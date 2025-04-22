@@ -1,0 +1,45 @@
+{
+  "name": "autumn-js",
+  "description": "Autumn JS Library",
+  "version": "0.0.6",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/sdk/index.d.ts",
+      "require": "./dist/sdk/index.js",
+      "import": "./dist/sdk/index.mjs"
+    },
+    "./next": {
+      "types": "./dist/next/index.d.ts",
+      "require": "./dist/next/index.js",
+      "import": "./dist/next/index.mjs"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "keywords": [
+    "pricing",
+    "autumn",
+    "js-sdk"
+  ],
+  "author": "John Yeo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@clerk/nextjs": "^6.16.0",
+    "better-auth": "^1.2.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
