@@ -18,8 +18,8 @@ export const metadata: Metadata = {
 };
 
 import { AutumnProvider } from "autumn-js/next";
-import { auth } from "@/lib/auth";
 
+import { auth } from "@/lib/auth";
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +34,7 @@ export default async function RootLayout({
           authPlugin={{
             provider: "better-auth",
             instance: auth,
+            useOrg: true, // True if orgs are your customer
           }}
         >
           {children}

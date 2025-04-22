@@ -27,7 +27,7 @@ export const withAuth = <
     args: Omit<T, "customerId"> & { encryptedCustomerId?: string }
   ) => {
     let customerId = null;
-    let customerData = null;
+    let customerData = args.customerData || undefined;
 
     const authConfig = getAuthPlugin();
     if (authConfig?.provider) {
