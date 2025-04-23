@@ -96,8 +96,5 @@ export const billingPortal = async ({
   data: BillingPortalResponse | null;
   error: AutumnError | null;
 }> => {
-  const queryParams = params?.return_url
-    ? `?return_url=${encodeURIComponent(params.return_url)}`
-    : "";
-  return instance.get(`/customers/${id}/billing_portal${queryParams}`);
+  return instance.post(`/customers/${id}/billing_portal`, params);
 };

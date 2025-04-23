@@ -83,6 +83,7 @@ export default defineConfig([
       "react-dom",
       "@clerk/nextjs",
       "better-auth",
+      "@supabase/ssr",
       // /^@clerk.*/,
     ],
     bundle: false,

@@ -4,6 +4,7 @@ import {
   handleAttach,
   handleEntitled,
   handleEvent,
+  handleUsage,
 } from "./general/genMethods";
 import {
   AttachParams,
@@ -12,6 +13,7 @@ import {
   EntitledResult,
   EventParams,
   EventResult,
+  UsageParams,
 } from "./general/genTypes";
 import { productMethods } from "./products/prodMethods";
 import { staticWrapper } from "./utils";
@@ -131,6 +133,8 @@ export class Autumn {
     staticWrapper(handleEvent, undefined, { params });
   static attach = (params: AttachParams) =>
     staticWrapper(handleAttach, undefined, { params });
+  static usage = (params: UsageParams) =>
+    staticWrapper(handleUsage, undefined, { params });
 
   async attach(params: AttachParams) {
     return handleAttach({
@@ -148,6 +152,13 @@ export class Autumn {
 
   async event(params: EventParams) {
     return handleEvent({
+      instance: this,
+      params,
+    });
+  }
+
+  async usage(params: UsageParams) {
+    return handleUsage({
       instance: this,
       params,
     });

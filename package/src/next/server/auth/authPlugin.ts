@@ -1,10 +1,8 @@
 export interface AuthPluginOptions {
-  provider: string;
+  provider: "better-auth" | "supabase" | "clerk";
   instance?: any;
   useOrg?: boolean;
   useUser?: boolean;
-
-  // createUserAsEntity?: string;
 }
 
 declare global {

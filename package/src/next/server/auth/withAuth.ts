@@ -30,13 +30,14 @@ export const withAuth = <
     let customerData = args.customerData || undefined;
 
     const authConfig = getAuthPlugin();
+
     if (authConfig?.provider) {
       let result = await handleAuthProvider({
         authPlugin: authConfig,
         withCustomerData: withCustomerData,
       });
       customerId = result?.customerId;
-      customerData = result?.customerData;
+      customerData = result?.customerData || undefined;
     } else {
       let encryptedCustomerId = args.encryptedCustomerId;
       customerId = encryptedCustomerId

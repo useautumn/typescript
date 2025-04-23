@@ -53,7 +53,7 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     return data;
   };
 
-  const sendEvent = async ({
+  const event = async ({
     featureId,
     value,
   }: {
@@ -101,7 +101,7 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     refetch,
 
     attach,
-    sendEvent,
+    event,
     entitled,
     openBillingPortal,
   };

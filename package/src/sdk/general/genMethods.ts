@@ -7,6 +7,8 @@ import {
   EntitledResult,
   EventParams,
   EventResult,
+  UsageParams,
+  UsageResult,
 } from "./genTypes";
 
 export const handleAttach = async ({
@@ -46,4 +48,17 @@ export const handleEvent = async ({
   error: AutumnError | null;
 }> => {
   return instance.post("/events", params);
+};
+
+export const handleUsage = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: UsageParams;
+}): Promise<{
+  data: UsageResult | null;
+  error: AutumnError | null;
+}> => {
+  return instance.post("/usage", params);
 };

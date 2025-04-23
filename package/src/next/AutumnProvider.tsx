@@ -25,7 +25,10 @@ export const AutumnProvider = ({
   let encryptedCustomerId = customerId ? encryptData(customerId) : undefined;
 
   if (authPlugin) {
-    setupAuthPlugin(authPlugin);
+    setupAuthPlugin({
+      useUser: true,
+      ...authPlugin,
+    });
   }
 
   return (

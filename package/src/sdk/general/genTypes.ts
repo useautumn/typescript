@@ -69,3 +69,16 @@ export interface EntitledResult {
   allowed: boolean; // Whether the customer is allowed to use the feature
   balances: EntitledBalance[]; // Balances for each entity
 }
+
+export interface UsageParams {
+  customer_id: string;
+  feature_id: string;
+  value: number;
+  customer_data?: CustomerData;
+}
+
+export interface UsageResult {
+  code: string; // Success code
+  customer_id: string; // Customer ID
+  feature_id: string; // Feature ID
+}

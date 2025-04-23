@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { AuthPluginOptions } from "./authPlugin";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { createSupabaseClient } from "./utils";
 // import { Auth } from "better-auth/*";
 
 export const handleBetterAuth = async (options: AuthPluginOptions) => {
@@ -75,6 +76,7 @@ export const handleClerk = async ({
   let authData = await auth();
 
   let clerk = await clerkClient();
+
   if (options.useOrg) {
     try {
       let orgId = authData.orgId;
@@ -96,6 +98,12 @@ export const handleClerk = async ({
             email: email,
           },
         };
+      } else {
+        if (authData.orgId) {
+          return {
+            customerId: authData.orgId,
+          };
+        }
       }
     } catch (error) {
       throw {
@@ -126,6 +134,43 @@ export const handleClerk = async ({
   return null;
 };
 
+export const handleSupabase = async (options: AuthPluginOptions) => {
+  let supabase;
+
+  try {
+    supabase = await createSupabaseClient();
+  } catch (error) {
+    throw {
+      message: `Failed to create supabase client. Try passing it in the instance param. Error: ${error}`,
+      code: "failed_to_create_supabase_client",
+    };
+  }
+
+  if (options.useOrg) {
+    console.warn("Supabase does not support organizations");
+  }
+
+  if (options.useUser) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      customerId: user?.id,
+      customerData: {
+        name: user?.user_metadata?.name,
+        email: user?.email,
+      },
+    };
+  }
+
+  return null;
+};
+
 export const handleAuthProvider = ({
   authPlugin,
   withCustomerData,
@@ -140,6 +185,8 @@ export const handleAuthProvider = ({
       return handleBetterAuth(authPlugin);
     case "clerk":
       return handleClerk({ options: authPlugin, withCustomerData });
+    case "supabase":
+      return handleSupabase(authPlugin);
     default:
       throw {
         message: `Unsupported auth provider: ${authProvider}`,
