@@ -1,5 +1,6 @@
 import { Autumn } from "../client";
-import { AutumnError } from "../error";
+
+import { AutumnPromise } from "../response";
 import { staticWrapper } from "../utils";
 import { CreateProductParams, Product } from "./prodTypes";
 
@@ -17,10 +18,7 @@ export const getProduct = async ({
 }: {
   instance: Autumn;
   id: string;
-}): Promise<{
-  data: Product | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<Product> => {
   return instance.get(`/products/${id}`);
 };
 
@@ -30,9 +28,6 @@ export const createProduct = async ({
 }: {
   instance: Autumn;
   params?: CreateProductParams;
-}): Promise<{
-  data: Product | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<Product> => {
   return instance.post("/products", params);
 };

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 export const Topbar = () => {
   const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  // const { user } = useUser();
+  // const { signOut } = useClerk();
 
   const handleSignOut = async () => {
     try {
@@ -45,24 +45,24 @@ export const Topbar = () => {
     }
 
     try {
-      await signOut();
+      // await signOut();
     } catch (error) {
       console.error(error);
     }
   };
   return (
-    <div className="w-full bg-white border-b border-gray-200">
+    <div className="w-full border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            {/* <h1 className="text-xl font-semibold text-gray-800">Your App</h1> */}
+            {/* <h1 className="text-xl font-semibold text-gray-100">Your App</h1> */}
           </div>
 
           <div className="flex items-center space-x-4">
-            {user && <OrganizationSwitcher />}
-            {/* <span className="text-sm text-gray-600">user@example.com</span> */}
+            {/* {user && <OrganizationSwitcher />} */}
+            {/* <span className="text-sm text-gray-300">user@example.com</span> */}
             <button
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors"
               onClick={handleSignOut}
             >
               Sign out

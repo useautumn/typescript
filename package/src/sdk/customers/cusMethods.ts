@@ -7,8 +7,9 @@ import {
   BillingPortalParams,
   BillingPortalResponse,
 } from "./cusTypes";
-import { AutumnError } from "../error";
 import { staticWrapper } from "../utils";
+import { AutumnPromise } from "../response";
+import { AutumnError } from "../error";
 
 export const customerMethods = (instance?: Autumn) => {
   return {
@@ -29,16 +30,17 @@ export const getCustomer = async ({
 }: {
   instance: Autumn;
   id: string;
-}): Promise<{
-  data: Customer | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<Customer> => {
   if (!id) {
-    throw {
-      message: "Customer ID is required",
-      code: "CUSTOMER_ID_REQUIRED",
+    return {
+      data: null,
+      error: new AutumnError({
+        message: "Customer ID is required",
+        code: "CUSTOMER_ID_REQUIRED",
+      }),
     };
   }
+
   return instance.get(`/customers/${id}`);
 };
 
@@ -48,10 +50,7 @@ export const createCustomer = async ({
 }: {
   instance: Autumn;
   params?: CreateCustomerParams;
-}): Promise<{
-  data: Customer | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<Customer> => {
   validateCreateCustomer(params || {});
   return instance.post("/customers", params);
 };
@@ -64,10 +63,7 @@ export const updateCustomer = async ({
   instance: Autumn;
   id: string;
   params: UpdateCustomerParams;
-}): Promise<{
-  data: Customer | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<Customer> => {
   return instance.post(`/customers/${id}`, params);
 };
 
@@ -77,10 +73,7 @@ export const deleteCustomer = async ({
 }: {
   instance: Autumn;
   id: string;
-}): Promise<{
-  data: Customer | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<Customer> => {
   return instance.delete(`/customers/${id}`);
 };
 
@@ -92,9 +85,6 @@ export const billingPortal = async ({
   instance: Autumn;
   id: string;
   params?: BillingPortalParams;
-}): Promise<{
-  data: BillingPortalResponse | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<BillingPortalResponse> => {
   return instance.post(`/customers/${id}/billing_portal`, params);
 };

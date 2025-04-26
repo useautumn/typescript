@@ -1,8 +1,10 @@
 import {
   attachAction,
+  checkAction,
   entitledAction,
   getBillingPortalAction,
   sendEventAction,
+  trackAction,
 } from "../../server/genActions";
 
 import { useAutumnContext } from "../AutumnContext";
@@ -24,10 +26,35 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     autoCreate: options?.autoCreate,
   });
 
-  const attach = async ({ productId }: { productId: string }) => {
+  const attach = async ({
+    productId,
+    options,
+    successUrl,
+    forceCheckout,
+    metadata,
+  }: {
+    productId: string;
+    options?: {
+      featureId: string;
+      quantity: number;
+    }[];
+    successUrl?: string;
+    forceCheckout?: boolean;
+    metadata?: Record<string, string>;
+  }) => {
+    let snakeOptions =
+      options?.map((option) => ({
+        feature_id: option.featureId,
+        quantity: option.quantity,
+      })) || undefined;
+
     const result = await attachAction({
       encryptedCustomerId,
       productId,
+      options: snakeOptions,
+      successUrl,
+      forceCheckout,
+      metadata,
     });
 
     if (result.error) {
@@ -39,9 +66,13 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     if (data?.checkout_url && typeof window !== "undefined") {
       window.open(data.checkout_url, "_blank");
     }
-    return result;
+    return result.data;
   };
 
+  /**
+   * @deprecated Use check({featureId}) instead.
+   * This method is deprecated and will be removed in a future version.
+   */
   const entitled = async ({ featureId }: { featureId: string }) => {
     const { data, error } = await entitledAction({
       encryptedCustomerId,
@@ -53,6 +84,56 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     return data;
   };
 
+  const check = async ({
+    featureId,
+    productId,
+    requiredQuantity,
+    sendEvent,
+  }: {
+    featureId?: string;
+    productId?: string;
+    requiredQuantity?: number;
+    sendEvent?: boolean;
+  }) => {
+    const { data, error } = await checkAction({
+      encryptedCustomerId,
+      featureId,
+      productId,
+      requiredQuantity,
+      sendEvent,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  };
+
+  const track = async ({
+    featureId,
+    value,
+  }: {
+    featureId: string;
+    value?: number;
+  }) => {
+    const { data, error } = await trackAction({
+      encryptedCustomerId,
+      featureId,
+      value,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  };
+
+  /**
+   * @deprecated Use track({featureId, value}) instead.
+   * This method is deprecated and will be removed in a future version.
+   */
   const event = async ({
     featureId,
     value,
@@ -71,11 +152,11 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     return data;
   };
 
-  const openBillingPortal = async () => {
+  const openBillingPortal = async (options?: { returnUrl?: string }) => {
     const result = await getBillingPortalAction({
       encryptedCustomerId,
       params: {
-        return_url: "https://example.com",
+        return_url: options?.returnUrl,
       },
     });
 
@@ -101,8 +182,20 @@ export const useAutumn = (options?: UseAutumnOptions) => {
     refetch,
 
     attach,
+
+    /**
+     * @deprecated Use track({featureId, value}) instead.
+     * This method is deprecated and will be removed in a future version.
+     */
     event,
+
+    /**
+     * @deprecated Use check({featureId}) instead.
+     * This method is deprecated and will be removed in a future version.
+     */
     entitled,
+    check,
+    track,
     openBillingPortal,
   };
 };

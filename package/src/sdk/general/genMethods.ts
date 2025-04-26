@@ -1,12 +1,13 @@
 import { Autumn } from "../client";
 import { AutumnError } from "../error";
+import { AutumnPromise } from "../response";
 import {
   AttachParams,
   AttachResult,
-  EntitledParams,
-  EntitledResult,
-  EventParams,
-  EventResult,
+  CheckParams,
+  CheckResult,
+  TrackParams,
+  TrackResult,
   UsageParams,
   UsageResult,
 } from "./genTypes";
@@ -17,10 +18,7 @@ export const handleAttach = async ({
 }: {
   instance: Autumn;
   params: AttachParams;
-}): Promise<{
-  data: AttachResult | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<AttachResult> => {
   return instance.post("/attach", params);
 };
 
@@ -29,11 +27,8 @@ export const handleEntitled = async ({
   params,
 }: {
   instance: Autumn;
-  params: EntitledParams;
-}): Promise<{
-  data: EntitledResult | null;
-  error: AutumnError | null;
-}> => {
+  params: CheckParams;
+}): AutumnPromise<CheckResult> => {
   return instance.post("/entitled", params);
 };
 
@@ -42,12 +37,19 @@ export const handleEvent = async ({
   params,
 }: {
   instance: Autumn;
-  params: EventParams;
-}): Promise<{
-  data: EventResult | null;
-  error: AutumnError | null;
-}> => {
+  params: TrackParams;
+}): AutumnPromise<TrackResult> => {
   return instance.post("/events", params);
+};
+
+export const handleTrack = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: TrackParams;
+}): AutumnPromise<TrackResult> => {
+  return instance.post("/track", params);
 };
 
 export const handleUsage = async ({
@@ -56,9 +58,16 @@ export const handleUsage = async ({
 }: {
   instance: Autumn;
   params: UsageParams;
-}): Promise<{
-  data: UsageResult | null;
-  error: AutumnError | null;
-}> => {
+}): AutumnPromise<UsageResult> => {
   return instance.post("/usage", params);
+};
+
+export const handleCheck = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: CheckParams;
+}): AutumnPromise<CheckResult> => {
+  return instance.post("/check", params);
 };

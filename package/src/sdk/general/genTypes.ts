@@ -27,7 +27,7 @@ export interface AttachResult {
 }
 
 // Events
-export interface EventParams {
+export interface TrackParams {
   customer_id: string;
   customer_data?: CustomerData;
   value?: number; // Defaults to 1
@@ -36,7 +36,7 @@ export interface EventParams {
   event_name?: string;
 }
 
-export interface EventResult {
+export interface TrackResult {
   id: string; // Event ID
   code: string; // Success code
   customer_id: string; // Customer ID
@@ -46,28 +46,37 @@ export interface EventResult {
 }
 
 // Entitled
-export interface EntitledParams {
+export interface CheckParams {
   customer_id: string;
-  feature_id: string;
-  required_quantity?: number;
+  feature_id?: string;
+  product_id?: string;
   customer_data?: CustomerData;
+  required_quantity?: number;
+  send_event?: boolean;
 }
 
 export interface EntitledBalance {
   feature_id: string;
   unlimited: boolean;
-  usage_allowed: boolean;
-  required_quantity: number | null;
   balance: number | null;
+  usage_allowed: boolean;
+  required?: number | null;
 }
 
-export interface EntitledResult {
+export interface CheckResult {
   customer_id: string; // Customer ID
-  feature_id: string; // Feature ID
+  allowed: boolean; // Whether the customer is allowed to use the feature
   code: string; // Success code
 
-  allowed: boolean; // Whether the customer is allowed to use the feature
-  balances: EntitledBalance[]; // Balances for each entity
+  // Feature return values
+  feature_id?: string; // Feature ID
+  required_quantity?: number; // Required quantity for the feature
+  unlimited?: boolean; // Whether the feature is unlimited
+  balance?: number | null; // Balance for the feature
+
+  // Product return values
+  product_id?: string; // Product ID
+  status?: string; // Status of the product...
 }
 
 export interface UsageParams {

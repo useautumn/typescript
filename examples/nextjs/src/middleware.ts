@@ -3,7 +3,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { updateSession } from "./lib/supabase/middleware";
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
-const AUTH_PROVIDER: string = "clerk";
+const AUTH_PROVIDER: string = "supabase";
 
 export default clerkMiddleware(async (auth, req) => {
   const requestHeaders = new Headers(req.headers);

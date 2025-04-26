@@ -95,8 +95,8 @@ export default function BillingPage() {
 The `useAutumn` hook exports several useful functions:
 
 - `attach({ productId })`: Opens a checkout URL automatically when called to attach a product to the customer
-- `entitled({ featureId })`: Checks if the customer is entitled to use a specific feature
-- `event({ featureId, value })`: Records usage for a particular feature
+- `check({ featureId })`: Checks if the customer is entitled to use a specific feature
+- `track({ featureId, value })`: Send usage for a particular feature
 - `openBillingPortal()`: Opens Stripe's billing portal for the current customer to manage their subscription and billing settings
 
 

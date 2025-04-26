@@ -2,17 +2,16 @@ import { customerMethods } from "./customers/cusMethods";
 import { AutumnError } from "./error";
 import {
   handleAttach,
+  handleCheck,
   handleEntitled,
   handleEvent,
+  handleTrack,
   handleUsage,
 } from "./general/genMethods";
 import {
   AttachParams,
-  AttachResult,
-  EntitledParams,
-  EntitledResult,
-  EventParams,
-  EventResult,
+  CheckParams,
+  TrackParams,
   UsageParams,
 } from "./general/genTypes";
 import { productMethods } from "./products/prodMethods";
@@ -63,19 +62,19 @@ export class Autumn {
       } catch (error) {
         return {
           data: null,
-          error: {
+          error: new AutumnError({
             message: "Something went wrong",
             code: "internal_error",
-          },
+          }),
         };
       }
 
       return {
         data: null,
-        error: {
+        error: new AutumnError({
           message: error.message,
           code: error.code,
-        },
+        }),
       };
     }
 
@@ -87,10 +86,10 @@ export class Autumn {
     } catch (error) {
       return {
         data: null,
-        error: {
+        error: new AutumnError({
           message: "Failed to parse Autumn API response",
           code: "internal_error",
-        },
+        }),
       };
     }
   }
@@ -127,10 +126,6 @@ export class Autumn {
   customers = customerMethods(this);
   products = productMethods(this);
 
-  static entitled = (params: EntitledParams) =>
-    staticWrapper(handleEntitled, undefined, { params });
-  static event = (params: EventParams) =>
-    staticWrapper(handleEvent, undefined, { params });
   static attach = (params: AttachParams) =>
     staticWrapper(handleAttach, undefined, { params });
   static usage = (params: UsageParams) =>
@@ -143,15 +138,57 @@ export class Autumn {
     });
   }
 
-  async entitled(params: EntitledParams) {
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Please use the new check() method instead.
+   */
+  static entitled = (params: CheckParams) =>
+    staticWrapper(handleEntitled, undefined, { params });
+
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Please use the new check() method instead.
+   */
+  async entitled(params: CheckParams) {
     return handleEntitled({
       instance: this,
       params,
     });
   }
 
-  async event(params: EventParams) {
+  static check = (params: CheckParams) =>
+    staticWrapper(handleCheck, undefined, { params });
+
+  async check(params: CheckParams) {
+    return handleCheck({
+      instance: this,
+      params,
+    });
+  }
+
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Please use the new track() method instead.
+   */
+  static event = (params: TrackParams) =>
+    staticWrapper(handleEvent, undefined, { params });
+
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Please use the new track() method instead.
+   */
+  async event(params: TrackParams) {
     return handleEvent({
+      instance: this,
+      params,
+    });
+  }
+
+  static track = (params: TrackParams) =>
+    staticWrapper(handleTrack, undefined, { params });
+
+  async track(params: TrackParams) {
+    return handleTrack({
       instance: this,
       params,
     });
