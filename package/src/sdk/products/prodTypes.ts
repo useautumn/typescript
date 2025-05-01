@@ -2,7 +2,6 @@ import { AppEnv } from "../general/genEnums";
 import {
   FreeTrialDuration,
   Infinite,
-  ProductItemInterval,
   ProductItemIntervalType,
   UsageModel,
 } from "./prodEnums";
@@ -58,3 +57,5 @@ export interface CreateProductParams {
   items?: ProductItem[];
   free_trial?: FreeTrial;
 }
+
+export interface ListProductsParams {}

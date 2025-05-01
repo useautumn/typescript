@@ -15,9 +15,10 @@
       "types": "./dist/next/index.d.ts",
       "require": "./dist/next/index.js",
       "import": "./dist/next/index.mjs"
-    }
+    }    
   },
   "scripts": {
+    "cli": "tsx src/cli/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsup",
     "dev": "tsup --watch"
@@ -34,14 +35,15 @@
     "@types/react": "^18.2.0 || ^19.0.0",
     "@types/react-dom": "^18.2.0 || ^19.0.0",
     "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "@clerk/nextjs": "^6.16.0",
+    "@supabase/ssr": "^0.6.1",
     "better-auth": "^1.2.7",
     "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0",
-    "@supabase/ssr": "^0.6.1"
+    "react-dom": "^18.2.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "@clerk/nextjs": {
@@ -53,5 +55,10 @@
     "@supabase/ssr": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "async-listen": "^3.1.0",
+    "commander": "^13.1.0",
+    "ora": "^8.2.0"
   }
 }

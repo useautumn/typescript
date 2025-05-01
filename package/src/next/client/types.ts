@@ -6,6 +6,7 @@ export interface AutumnContextParams {
   authProvider?: "clerk" | "better-auth";
   customer: Customer | null;
   setCustomer: (customer: Customer | null) => void;
+  paywallExists: boolean;
 }
 
 export interface AutumnProviderProps extends AutumnContextParams {

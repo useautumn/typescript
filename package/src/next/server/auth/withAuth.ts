@@ -19,10 +19,15 @@ export const withAuth = <
     customerData?: CustomerData;
     authProvider?: string;
   }
->(
-  fn: (args: T) => Promise<any>,
-  withCustomerData: boolean = false
-) => {
+>({
+  fn,
+  withCustomerData = false,
+  requireCustomer = true,
+}: {
+  fn: (args: T) => Promise<any>;
+  withCustomerData?: boolean;
+  requireCustomer?: boolean;
+}) => {
   return async (
     args: Omit<T, "customerId"> & { encryptedCustomerId?: string }
   ) => {

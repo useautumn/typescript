@@ -24,6 +24,14 @@ export default defineConfig([
       resolve: true,
     },
   },
+  // {
+  //   entry: ["./src/cli/index.ts"],
+  //   format: ["cjs", "esm"],
+  //   skipNodeModulesBundle: true,
+  //   clean: false,
+  //   outDir: "./dist/cli",
+  //   dts: true,
+  // },
 
   // GLOBAL
   {

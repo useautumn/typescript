@@ -1,10 +1,11 @@
 "use client";
 
-import Application from "@/components/application";
-import CustomerDetailsExample from "@/components/billing";
-import Intro from "@/components/introduction";
-import { Topbar } from "@/components/Topbar";
+import Topbar from "@/components/landing/topbar";
+import Application from "@/components/landing/application";
+import CustomerDetailsExample from "@/components/landing/billing";
+import Intro from "@/components/landing/introduction";
 import React from "react";
+
 export default function Home() {
   return (
     <React.Fragment>

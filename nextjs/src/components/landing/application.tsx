@@ -1,12 +1,12 @@
-import { useAutumn } from "autumn-js/next";
+import { useAutumn, useCustomer } from "autumn-js/next";
 import { MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "./ui/button";
-
-import { Autumn } from "autumn-js";
+import { Button } from "../ui/button";
 
 export default function Application() {
-  const { check, track, refetch } = useAutumn();
+  const featureId = "chat-messages";
+  const { check, track } = useAutumn();
+  const { refetch } = useCustomer();
 
   const sendMessageClicked = async (featureId: string) => {
     const res = await check({
@@ -14,7 +14,6 @@ export default function Application() {
     });
 
     if (!res.allowed) {
-      toast.error(`You're out of ${featureId}!`);
       return;
     }
 
@@ -28,14 +27,14 @@ export default function Application() {
   };
 
   return (
-    <div className="border border-gray-800 rounded-lg bg-zinc-900 overflow-hidden flex flex-col">
-      <div className="border-b border-gray-800 p-6">
+    <div className="border border-gray-200 rounded-lg bg-white overflow-hidden flex flex-col">
+      <div className="border-b border-gray-200 p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-gray-900">
               Feature Access Example
             </h2>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               Test how our feature access and event sending works
             </p>
           </div>
@@ -47,8 +46,8 @@ export default function Application() {
 
       <div className="p-6 flex-1">
         <div className="space-y-2">
-          <div className="text-sm font-medium text-white">How it works:</div>
-          <ol className="text-sm space-y-2 text-gray-400 list-decimal list-inside">
+          <div className="text-sm font-medium text-gray-900">How it works:</div>
+          <ol className="text-sm space-y-2 text-gray-500 list-decimal list-inside">
             <li>First calls /entitled to check message allowance</li>
             <li>If allowed, calls /events to record the message</li>
             <li>Updates remaining message count</li>
@@ -58,7 +57,7 @@ export default function Application() {
 
       <div className="p-6 pt-0 flex gap-2">
         <Button
-          className="w-full border-1 rounded-md border-[#0E8454] hover:border-[#48C890] bg-[#006239] hover:bg-[#2C7B57] text-white transition-colors"
+          variant="main"
           onClick={async () => {
             await sendMessageClicked("chat-messages");
           }}

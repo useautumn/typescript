@@ -7,10 +7,20 @@ import { getOrCreateCustomer, getCustomer } from "../../server/cusActions";
 
 export interface UseCustomerProps {
   autoCreate?: boolean;
-  customerData?: CustomerData;
 }
 
-export const useCustomer = ({ autoCreate = true }: UseCustomerProps) => {
+const defaultOptions: UseCustomerProps = {
+  autoCreate: true,
+};
+
+export const useCustomer = (options?: UseCustomerProps) => {
+  let finalOptions = defaultOptions;
+
+  if (options) {
+    finalOptions = { ...defaultOptions, ...options };
+  }
+  const { autoCreate } = finalOptions;
+
   const { encryptedCustomerId, customerData, customer, setCustomer } =
     useAutumnContext();
 
@@ -57,5 +67,5 @@ export const useCustomer = ({ autoCreate = true }: UseCustomerProps) => {
     fetchCustomer();
   }, [encryptedCustomerId]);
 
-  return { customer, error, isLoading, refetch };
+  return { customer, isLoading, error, refetch };
 };

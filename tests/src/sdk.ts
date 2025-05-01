@@ -113,19 +113,17 @@ const main = async () => {
 
     // let getCustomerRes = await getCustomer();
 
-    // let checkData = await check({
-    //   // featureId: featureId,
-    //   productId: freeProductId,
-    // });
+    let checkData = await check({
+      featureId: featureId,
+      productId: freeProductId,
+    });
 
     // console.log(checkData);
 
-    let trackData = await autumn.track({
-      customer_id: cusId,
-      feature_id: featureId,
-    });
-
-    console.log(trackData);
+    // let trackData = await autumn.track({
+    //   customer_id: cusId,
+    //   feature_id: featureId,
+    // });
 
     // let attachData = await attach({
     //   productId: proProductId,

@@ -53,6 +53,7 @@ export interface CheckParams {
   customer_data?: CustomerData;
   required_quantity?: number;
   send_event?: boolean;
+  with_preview?: boolean;
 }
 
 export interface EntitledBalance {

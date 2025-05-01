@@ -6,3 +6,6 @@ export * from "./customers/cusTypes";
 export * from "./customers/cusEnums";
 export * from "./products/prodTypes";
 export * from "./products/prodEnums";
+
+export * from "./components/componentTypes";
+export * from "./components/componentMethods";

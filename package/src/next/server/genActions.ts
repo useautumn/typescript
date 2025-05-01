@@ -2,9 +2,10 @@ import { BillingPortalParams, CustomerData } from "src/sdk";
 import { createAutumnClient } from "../server/cusActions";
 import { withAuth } from "./auth/withAuth";
 import { AttachFeatureOptions } from "src/sdk/general/genTypes";
+import { toServerResponse } from "./utils";
 
-export const attachAction = withAuth(
-  async ({
+export const attachAction = withAuth({
+  fn: async ({
     customerId,
     productId,
     options,
@@ -21,7 +22,7 @@ export const attachAction = withAuth(
   }) => {
     const autumn = createAutumnClient();
 
-    return autumn.attach({
+    let res = await autumn.attach({
       customer_id: customerId,
       product_id: productId,
       success_url: successUrl,
@@ -29,11 +30,13 @@ export const attachAction = withAuth(
       force_checkout: forceCheckout,
       metadata,
     });
-  }
-);
 
-export const entitledAction = withAuth(
-  async ({
+    return toServerResponse(res);
+  },
+});
+
+export const entitledAction = withAuth({
+  fn: async ({
     customerId,
     featureId,
   }: {
@@ -41,37 +44,47 @@ export const entitledAction = withAuth(
     featureId: string;
   }) => {
     const autumn = createAutumnClient();
-    return autumn.entitled({ customer_id: customerId, feature_id: featureId });
-  }
-);
+    let res = await autumn.entitled({
+      customer_id: customerId,
+      feature_id: featureId,
+    });
 
-export const checkAction = withAuth(
-  async ({
+    return toServerResponse(res);
+  },
+});
+
+export const checkAction = withAuth({
+  fn: async ({
     customerId,
     featureId,
     productId,
     requiredQuantity,
     sendEvent,
+    withPreview,
   }: {
     customerId: string;
     featureId?: string;
     productId?: string;
     requiredQuantity?: number;
     sendEvent?: boolean;
+    withPreview?: boolean;
   }) => {
     const autumn = createAutumnClient();
-    return autumn.check({
+    let res = await autumn.check({
       customer_id: customerId,
       feature_id: featureId,
       product_id: productId,
       required_quantity: requiredQuantity,
       send_event: sendEvent,
+      with_preview: withPreview,
     });
-  }
-);
 
-export const sendEventAction = withAuth(
-  async ({
+    return toServerResponse(res);
+  },
+});
+
+export const sendEventAction = withAuth({
+  fn: async ({
     customerId,
     featureId,
     value,
@@ -81,17 +94,18 @@ export const sendEventAction = withAuth(
     value?: number;
   }) => {
     const autumn = createAutumnClient();
-
-    return autumn.event({
+    let res = await autumn.event({
       customer_id: customerId,
       feature_id: featureId,
       value,
     });
-  }
-);
 
-export const trackAction = withAuth(
-  async ({
+    return toServerResponse(res);
+  },
+});
+
+export const trackAction = withAuth({
+  fn: async ({
     customerId,
     featureId,
     value,
@@ -101,15 +115,18 @@ export const trackAction = withAuth(
     value?: number;
   }) => {
     const autumn = createAutumnClient();
-    return autumn.track({
+    let res = await autumn.track({
       customer_id: customerId,
       feature_id: featureId,
       value,
     });
-  }
-);
-export const getBillingPortalAction = withAuth(
-  async ({
+
+    return toServerResponse(res);
+  },
+});
+
+export const getBillingPortalAction = withAuth({
+  fn: async ({
     customerId,
     params,
   }: {
@@ -118,6 +135,6 @@ export const getBillingPortalAction = withAuth(
   }) => {
     const autumn = createAutumnClient();
     let result = await autumn.customers.billingPortal(customerId, params);
-    return result;
-  }
-);
+    return toServerResponse(result);
+  },
+});

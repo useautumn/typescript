@@ -1,12 +1,15 @@
 import { Autumn, CustomerData } from "../../sdk";
 import { withAuth } from "./auth/withAuth";
+import { toServerResponse } from "./utils";
 
 export const createAutumnClient = (publishableKey?: string) => {
-  return new Autumn({ publishableKey });
+  return new Autumn({
+    publishableKey,
+  });
 };
 
-export const getOrCreateCustomer = withAuth(
-  async ({
+export const getOrCreateCustomer = withAuth({
+  fn: async ({
     customerId,
     customerData,
   }: {
@@ -20,15 +23,15 @@ export const getOrCreateCustomer = withAuth(
       ...customerData,
     });
 
-    return result;
+    return toServerResponse(result);
   },
-  true
-);
+  withCustomerData: true,
+});
 
-export const getCustomer = withAuth(
-  async ({ customerId }: { customerId: string }) => {
+export const getCustomer = withAuth({
+  fn: async ({ customerId }: { customerId: string }) => {
     const autumn = createAutumnClient();
     const result = await autumn.customers.get(customerId);
-    return result;
-  }
-);
+    return toServerResponse(result);
+  },
+});
