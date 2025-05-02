@@ -54,7 +54,7 @@ export const useAutumn = () => {
     const { data, error } = await checkAction({
       encryptedCustomerId,
       productId,
-      withPreview: true,
+      withPreview: "formatted",
     });
 
     if (error) {
@@ -159,7 +159,7 @@ export const useAutumn = () => {
       productId,
       requiredQuantity,
       sendEvent,
-      withPreview: dialog,
+      withPreview: dialog ? "formatted" : undefined,
     });
 
     if (res.error) {

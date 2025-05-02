@@ -49,11 +49,11 @@ export interface TrackResult {
 export interface CheckParams {
   customer_id: string;
   feature_id?: string;
-  product_id?: string;
+  product_id?: never;
   customer_data?: CustomerData;
   required_quantity?: number;
   send_event?: boolean;
-  with_preview?: boolean;
+  with_preview?: "raw" | "formatted";
 }
 
 export interface EntitledBalance {

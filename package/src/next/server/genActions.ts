@@ -67,7 +67,7 @@ export const checkAction = withAuth({
     productId?: string;
     requiredQuantity?: number;
     sendEvent?: boolean;
-    withPreview?: boolean;
+    withPreview?: "raw" | "formatted";
   }) => {
     const autumn = createAutumnClient();
     let res = await autumn.check({
