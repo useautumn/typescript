@@ -9,6 +9,10 @@ export interface ProductChangeDialogProps {
   setOpen: (open: boolean) => void;
   title: string;
   message: string;
+  items?: {
+    description: string;
+    price: string;
+  }[];
   options?: any;
   onClick: (options?: any) => void;
 }
@@ -31,7 +35,7 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
     return <></>;
   }
 
-  const { open, setOpen, onClick, title, message } = params;
+  const { open, setOpen, onClick, title, message, items } = params;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -42,6 +46,19 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
         <div className="text-muted-foreground px-6 my-0 text-sm whitespace-pre-line">
           {message}
         </div>
+        {items && items.length > 0 && (
+          <div className="text-foreground px-6 my-0 text-sm whitespace-pre-line">
+            {items.map((item, index) => {
+              const { description, price } = item;
+              return (
+                <div key={description} className="flex justify-between">
+                  <div>{description}</div>
+                  <div>{price}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
         {optionsInput.length > 0 && (
           <div className="text-foreground px-6 my-0 text-sm whitespace-pre-line">
             {optionsInput.map((option, index) => {

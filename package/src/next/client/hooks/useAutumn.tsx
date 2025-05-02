@@ -69,7 +69,8 @@ export const useAutumn = () => {
       setProdChangeDialogProps({
         title: preview.title,
         message: preview.message,
-        options: preview.options.map((option: any) => ({
+        items: preview.items,
+        options: preview.options?.map((option: any) => ({
           featureId: option.feature_id,
           featureName: option.feature_name,
           billingUnits: option.billing_units,
@@ -170,21 +171,22 @@ export const useAutumn = () => {
 
     if (data && data.preview) {
       let nextActionData = {};
-      let nextAction = data.preview.next_action;
+      let preview = data.preview;
 
-      if (nextAction) {
+      if (preview.upgrade_product_id) {
         nextActionData = {
           onClick: async () => {
             await attach({
               dialog: true,
-              productId: nextAction.product_id,
+              productId: preview.upgrade_product_id,
             });
             setPaywallDialogOpen(false);
           },
-          buttonText: nextAction.button_text,
+          buttonText: preview.button_text,
         };
       }
       setPaywallDialogProps({
+        title: data.preview.title,
         message: data.preview.message,
         ...nextActionData,
       });
