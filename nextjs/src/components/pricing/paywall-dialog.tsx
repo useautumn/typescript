@@ -7,7 +7,7 @@ import {
   PricingDialogFooter,
   PricingDialogTitle,
   Information,
-} from "./pricing-dialog clean";
+} from "./pricing-dialog";
 import { PricingTable, PricingCard } from "./pricing-table";
 
 const products = [
@@ -101,14 +101,14 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
     <PricingDialog open={open} setOpen={setOpen}>
       <PricingDialogTitle>{title || "Feature Unavailable"}</PricingDialogTitle>
       <Information className="mb-2">{message}</Information>
-      <PricingTable
+      {/* <PricingTable
         showFeatures={false}
         products={products}
         className="px-6 mb-8"
       >
         <PricingCard productId="pro" />
-      </PricingTable>
-      {/* <PricingDialogFooter>
+      </PricingTable> */}
+      <PricingDialogFooter>
         <PricingDialogButton
           size="sm"
           className="font-medium shadow transition min-w-20"
@@ -126,7 +126,7 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {buttonText || "Confirm"}
         </PricingDialogButton>
-      </PricingDialogFooter> */}
+      </PricingDialogFooter>
     </PricingDialog>
   );
 }
