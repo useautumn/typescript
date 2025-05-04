@@ -70,10 +70,14 @@ export const useAutumn = () => {
         title: preview.title,
         message: preview.message,
         items: preview.items,
+        dueToday: preview.due_today,
+        dueNextCycle: preview.due_next_cycle,
         options: preview.options?.map((option: any) => ({
           featureId: option.feature_id,
           featureName: option.feature_name,
           billingUnits: option.billing_units,
+          price: option.price,
+          tiers: option.tiers,
         })),
         onClick: async (options?: any) => {
           if (!preview.error_on_attach) {

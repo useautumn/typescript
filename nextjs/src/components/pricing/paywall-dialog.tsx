@@ -1,8 +1,84 @@
 "use client";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from "../ui/dialog";
 import { Loader2 } from "lucide-react";
+import {
+  PricingDialog,
+  PricingDialogButton,
+  PricingDialogFooter,
+  PricingDialogTitle,
+  Information,
+} from "./pricing-dialog clean";
+import { PricingTable, PricingCard } from "./pricing-table";
+
+const products = [
+  {
+    id: "hobby",
+    name: "Hobby",
+    description: "For personal projects and small-scale applications.",
+    price: {
+      primaryText: "Free",
+      secondaryText: "up to 3 users",
+    },
+    buttonText: "Start deploying",
+    items: [
+      {
+        primaryText: "Deploy full-stack apps in minutes",
+      },
+      {
+        primaryText: "Fully-managed datastores",
+      },
+      {
+        primaryText: "Custom domains",
+      },
+      {
+        primaryText: "Global CDN & regional hosting",
+      },
+      {
+        primaryText: "Get security out of the box",
+      },
+      {
+        primaryText: "Email support",
+      },
+    ],
+  },
+  {
+    id: "pro",
+    name: "Professional",
+    description: "For teams building production applications.",
+    // recommendedText: "Best Value",
+    price: {
+      primaryText: "$19",
+      secondaryText: "per user/month plus compute costs*",
+    },
+    priceAnnual: {
+      primaryText: "$190",
+      secondaryText: "per user/year plus compute costs*",
+    },
+    buttonText: "Select plan",
+    everythingFrom: "Hobby",
+    items: [
+      {
+        primaryText: "10 team members included",
+        secondaryText: "Then $20 per member",
+      },
+      {
+        primaryText: "500 GB of bandwidth included",
+      },
+      {
+        primaryText: "Unlimited projects & environments",
+      },
+      {
+        primaryText: "Horizontal autoscaling",
+      },
+      {
+        primaryText: "Test with preview environments",
+      },
+      {
+        primaryText: "Isolated environments",
+      },
+    ],
+  },
+];
 
 export interface PaywallDialogProps {
   open: boolean;
@@ -22,32 +98,35 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
   const { open, setOpen, title, message, onClick, buttonText } = params;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="flex flex-col gap-6 rounded-md overflow-hidden shadow-2xl bg-white w-md p-0">
-        <DialogTitle className="font-bold text-xl px-6 pt-4">
-          {title || "Feature Unavailable"}
-        </DialogTitle>
-        <div className="text-muted-foreground px-6 my-0 text-sm">{message}</div>
-        <DialogFooter className="flex justify-between border-t border-stone-200 bg-stone-100 py-3 px-6">
-          <Button
-            size="sm"
-            className="font-medium shadow transition min-w-20"
-            onClick={async () => {
-              setLoading(true);
-              try {
-                await onClick();
-              } catch (error) {
-                console.error(error);
-              }
-              setLoading(false);
-            }}
-            disabled={loading}
-          >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {buttonText || "Confirm"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <PricingDialog open={open} setOpen={setOpen}>
+      <PricingDialogTitle>{title || "Feature Unavailable"}</PricingDialogTitle>
+      <Information className="mb-2">{message}</Information>
+      <PricingTable
+        showFeatures={false}
+        products={products}
+        className="px-6 mb-8"
+      >
+        <PricingCard productId="pro" />
+      </PricingTable>
+      {/* <PricingDialogFooter>
+        <PricingDialogButton
+          size="sm"
+          className="font-medium shadow transition min-w-20"
+          onClick={async () => {
+            setLoading(true);
+            try {
+              await onClick();
+            } catch (error) {
+              console.error(error);
+            }
+            setLoading(false);
+          }}
+          disabled={loading}
+        >
+          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {buttonText || "Confirm"}
+        </PricingDialogButton>
+      </PricingDialogFooter> */}
+    </PricingDialog>
   );
 }
