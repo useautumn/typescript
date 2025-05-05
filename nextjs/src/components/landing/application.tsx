@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "../ui/button";
 
 export default function Application() {
-  const featureId = "chat-messages";
+  const featureId = "messages";
   const { check, track } = useAutumn();
   const { refetch } = useCustomer();
 

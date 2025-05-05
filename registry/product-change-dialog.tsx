@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
@@ -9,7 +10,7 @@ import {
   PricingDialogFooter,
   TotalPrice,
   PricingDialogButton,
-} from "./pricing-dialog";
+} from "../nextjs/src/components/pricing/pricing-dialog";
 
 export interface ProductChangeDialogProps {
   open: boolean;

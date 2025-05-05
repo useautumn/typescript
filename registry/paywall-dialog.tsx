@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
@@ -7,8 +8,11 @@ import {
   PricingDialogFooter,
   PricingDialogTitle,
   Information,
-} from "./pricing-dialog";
-import { PricingTable, PricingCard } from "./pricing-table";
+} from "../nextjs/src/components/pricing/pricing-dialog";
+import {
+  PricingTable,
+  PricingCard,
+} from "../nextjs/src/components/pricing/pricing-table";
 
 const products = [
   {
@@ -101,13 +105,6 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
     <PricingDialog open={open} setOpen={setOpen}>
       <PricingDialogTitle>{title || "Feature Unavailable"}</PricingDialogTitle>
       <Information className="mb-2">{message}</Information>
-      {/* <PricingTable
-        showFeatures={false}
-        products={products}
-        className="px-6 mb-8"
-      >
-        <PricingCard productId="pro" />
-      </PricingTable> */}
       <PricingDialogFooter>
         <PricingDialogButton
           size="sm"

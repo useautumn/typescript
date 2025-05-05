@@ -74,14 +74,16 @@ export const useAutumn = () => {
         title: preview.title,
         message: preview.message,
         items: preview.items,
+        dueToday: preview.due_today,
+        dueNextCycle: preview.due_next_cycle,
         options: preview.options?.map((option: any) => ({
           featureId: option.feature_id,
           featureName: option.feature_name,
           billingUnits: option.billing_units,
           usageModel: option.usage_model,
+          price: option.price,
+          tiers: option.tiers,
         })),
-        dueToday: preview.due_today,
-        dueNextCycle: preview.due_next_cycle,
         onClick: async (options?: any) => {
           if (!preview.error_on_attach) {
             await attachWithoutDialog(options);
