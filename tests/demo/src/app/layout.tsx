@@ -18,8 +18,6 @@ export const metadata: Metadata = {
 };
 
 import { AutumnProvider } from "autumn-js/next";
-import PaywallDialog from "@/components/autumn/paywall-dialog";
-import ProductChangeDialog from "@/components/autumn/product-change-dialog";
 
 export default function RootLayout({
   children,
@@ -28,13 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <AutumnProvider
-        customerId="123"
-        components={{
-          paywallDialog: PaywallDialog,
-          productChangeDialog: ProductChangeDialog,
-        }}
-      >
+      <AutumnProvider customerId="123">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
