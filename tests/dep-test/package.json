@@ -13,7 +13,7 @@
     "@radix-ui/react-slot": "^1.2.0",
     "@radix-ui/react-switch": "^1.2.2",
     "@supabase/ssr": "^0.6.1",
-    "autumn-js": "^0.0.22",
+    "autumn-js": "^0.0.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.507.0",

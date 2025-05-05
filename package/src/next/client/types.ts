@@ -1,10 +1,33 @@
 import { Customer, CustomerData } from "src/sdk";
 
-export class AutumnClientError {
-  message: string;
+export interface ProductDetails {
+  id: string;
+  description?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  recommendText?: string;
+}
+
+export interface PricingTableProduct {
+  id: string;
+  name: string;
+  buttonText: string;
+
+  price: {
+    primaryText: string;
+    secondaryText?: string;
+  };
+
+  items: {
+    primaryText: string;
+    secondaryText?: string;
+  }[];
+}
+
+export class AutumnClientError extends Error {
   code: string;
-  constructor(message: string, code: string) {
-    this.message = message;
+  constructor({ message, code }: { message: string; code: string }) {
+    super(message);
     this.code = code;
   }
 

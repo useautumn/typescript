@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "classic/paywall-dialog",
+  "type": "registry:component",
+  "dependencies": [
+    "autumn-js"
+  ],
+  "registryDependencies": [
+    "https://pricecn.com/classic/pricing-dialog.json"
+  ],
+  "files": [
+    {
+      "path": "registry/paywall-dialog.tsx",
+      "content": "\"use client\";\nimport React, { useState } from \"react\";\nimport { Loader2 } from \"lucide-react\";\nimport {\n  PricingDialog,\n  PricingDialogButton,\n  PricingDialogFooter,\n  PricingDialogTitle,\n  Information,\n} from \"@/components/pricing/pricing-dialog\";\n\nexport interface PaywallDialogProps {\n  open: boolean;\n  setOpen: (open: boolean) => void;\n  title: string;\n  message: string;\n  onClick: () => Promise<void>;\n  buttonText?: string;\n}\nexport default function AutumnPaywall(params?: PaywallDialogProps) {\n  const [loading, setLoading] = useState(false);\n\n  if (!params) {\n    return <></>;\n  }\n\n  const { open, setOpen, title, message, onClick, buttonText } = params;\n\n  return (\n    <PricingDialog open={open} setOpen={setOpen}>\n      <PricingDialogTitle>{title || \"Feature Unavailable\"}</PricingDialogTitle>\n      <Information className=\"mb-2\">{message}</Information>\n      <PricingDialogFooter>\n        <PricingDialogButton\n          size=\"sm\"\n          className=\"font-medium shadow transition min-w-20\"\n          onClick={async () => {\n            setLoading(true);\n            try {\n              await onClick();\n            } catch (error) {\n              console.error(error);\n            }\n            setLoading(false);\n          }}\n          disabled={loading}\n        >\n          {loading && <Loader2 className=\"w-4 h-4 animate-spin\" />}\n          {buttonText || \"Confirm\"}\n        </PricingDialogButton>\n      </PricingDialogFooter>\n    </PricingDialog>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/autumn/paywall-dialog.tsx"
+    }
+  ]
+}

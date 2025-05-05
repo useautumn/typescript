@@ -1,30 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAutumnContext } from "../AutumnContext";
-import { getPricingTableAction } from "../../server/componentActions";
-
-export interface ProductDetails {
-  id: string;
-  description?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-  recommendText?: string;
-}
-
-export interface PricingTableProduct {
-  id: string;
-  name: string;
-  buttonText: string;
-
-  price: {
-    primaryText: string;
-    secondaryText?: string;
-  };
-
-  items: {
-    primaryText: string;
-    secondaryText?: string;
-  }[];
-}
+import { PricingTableProduct, ProductDetails } from "../types";
+import { fetchPricingTableData } from "../clientUtils";
 
 const mergeProductDetails = (
   products: any[] | null,
@@ -65,34 +42,20 @@ export const usePricingTable = (options?: {
     recommendText?: string;
   }[];
 }) => {
-  const { encryptedCustomerId } = useAutumnContext();
+  const { encryptedCustomerId, pricingTableProducts, setPricingTableProducts } =
+    useAutumnContext();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<any>(null);
-  const [products, setProducts] = useState<
-    (PricingTableProduct & ProductDetails)[] | null
-  >(null);
 
   const fetchProducts = async () => {
     let returnData: PricingTableProduct[] | null = null;
-    try {
-      setIsLoading(true);
-      const res = await getPricingTableAction({
-        encryptedCustomerId,
-      });
+    returnData = await fetchPricingTableData({
+      setIsLoading,
+      setError,
+      setProducts: setPricingTableProducts,
+      encryptedCustomerId,
+    });
 
-      if (res.error) {
-        setError(res.error);
-        return res;
-      }
-
-      let products = res.data.list;
-      setProducts(products);
-      returnData = products;
-    } catch (error) {
-      setError(error);
-    } finally {
-      setIsLoading(false);
-    }
     return returnData;
   };
 
@@ -101,7 +64,10 @@ export const usePricingTable = (options?: {
   }, []);
 
   return {
-    products: mergeProductDetails(products, options?.productDetails),
+    products: mergeProductDetails(
+      pricingTableProducts,
+      options?.productDetails
+    ),
     isLoading,
     error,
     refetch: fetchProducts,

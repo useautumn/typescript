@@ -1,0 +1,127 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "pricecn",
+  "homepage": "https://pricecn.com",
+  "items": [
+    {
+      "name": "classic/pricing-table",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/classic/pricing-table.json"],
+      "files": [
+        {
+          "path": "registry/pricing-table.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/pricing-table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "clean/pricing-table",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/clean/pricing-table.json"],
+      "files": [
+        {
+          "path": "registry/pricing-table.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/pricing-table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dev/pricing-table",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/dev/pricing-table.json"],
+      "files": [
+        {
+          "path": "registry/pricing-table.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/pricing-table.tsx"
+        }
+      ]
+    },
+
+
+    {
+      "name": "classic/paywall-dialog",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/classic/pricing-dialog.json"],
+      "files": [
+        {
+          "path": "registry/paywall-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/paywall-dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "clean/paywall-dialog",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/clean/pricing-dialog.json"],
+      "files": [
+        {
+          "path": "registry/paywall-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/paywall-dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dev/paywall-dialog",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/dev/pricing-dialog.json"],
+      "files": [
+        {
+          "path": "registry/paywall-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/pricing-table.tsx"
+        }
+      ]
+    },
+
+    {
+      "name": "classic/product-change-dialog",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/classic/pricing-dialog.json"],
+      "files": [
+        {
+          "path": "registry/product-change-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/product-change-dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "clean/product-change-dialog",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/clean/pricing-dialog.json"],
+      "files": [
+        {
+          "path": "registry/product-change-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/product-change-dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dev/product-change-dialog",
+      "type": "registry:component",
+      "dependencies": ["autumn-js"],
+      "registryDependencies": ["https://pricecn.com/dev/pricing-dialog.json"],
+      "files": [
+        {
+          "path": "registry/product-change-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/product-change-dialog.tsx"
+        }
+      ]
+    }
+  ]
+}

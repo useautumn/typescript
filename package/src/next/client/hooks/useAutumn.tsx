@@ -10,10 +10,16 @@ import {
 import { useAutumnContext } from "../AutumnContext";
 import { AttachParams } from "./types";
 import { useCustomer } from "./useCustomer";
+import { fetchPricingTableData, toClientErrorResponse } from "../clientUtils";
 
 export const useAutumn = () => {
-  const { encryptedCustomerId, prodChangeDialog, paywallDialog } =
-    useAutumnContext();
+  const {
+    encryptedCustomerId,
+    prodChangeDialog,
+    paywallDialog,
+    pricingTableProducts,
+    setPricingTableProducts,
+  } = useAutumnContext();
 
   const { customer, isLoading: loading, error, refetch } = useCustomer();
 
@@ -47,7 +53,7 @@ export const useAutumn = () => {
           metadata,
         });
       } catch (error) {
-        console.error(error);
+        return toClientErrorResponse(error);
       } finally {
         await callback?.();
       }
@@ -62,13 +68,13 @@ export const useAutumn = () => {
     });
 
     if (error) {
-      throw error;
+      return toClientErrorResponse(error);
     }
 
     let preview = data.preview;
 
     if (!preview) {
-      await attachWithoutDialog();
+      return await attachWithoutDialog();
     } else {
       setProdChangeDialogProps({
         title: preview.title,
@@ -92,6 +98,8 @@ export const useAutumn = () => {
         },
       });
     }
+
+    return { data: null, error: null };
   };
 
   const attach = async ({
@@ -104,14 +112,13 @@ export const useAutumn = () => {
     callback,
   }: AttachParams) => {
     if (dialog) {
-      await attachWithDialog({
+      return await attachWithDialog({
         productId,
         successUrl,
         forceCheckout,
         metadata,
         callback,
       });
-      return;
     }
 
     let snakeOptions =
@@ -130,7 +137,7 @@ export const useAutumn = () => {
     });
 
     if (result.error) {
-      throw result.error;
+      return toClientErrorResponse(result.error);
     }
 
     let data = result.data;
@@ -142,10 +149,22 @@ export const useAutumn = () => {
     try {
       await callback?.();
     } catch (error) {
-      console.error("Attach callback error", error);
+      return toClientErrorResponse(error);
     }
 
-    return result.data;
+    if (pricingTableProducts) {
+      try {
+        await fetchPricingTableData({
+          setProducts: setPricingTableProducts,
+          encryptedCustomerId,
+        });
+      } catch (error) {
+        console.warn("Failed to fetch pricing table data");
+        console.warn(error);
+      }
+    }
+
+    return result;
   };
 
   const check = async ({
@@ -171,8 +190,7 @@ export const useAutumn = () => {
     });
 
     if (res.error) {
-      console.error(res.error);
-      return res;
+      return toClientErrorResponse(res.error);
     }
 
     let data = res.data;
@@ -212,11 +230,12 @@ export const useAutumn = () => {
       encryptedCustomerId,
       featureId,
     });
+
     if (res.error) {
-      console.error(res.error);
-      return res;
+      return toClientErrorResponse(res.error);
     }
-    return res.data;
+
+    return res;
   };
 
   const track = async ({
@@ -233,11 +252,10 @@ export const useAutumn = () => {
     });
 
     if (res.error) {
-      console.error(res.error);
-      return res;
+      return toClientErrorResponse(res.error);
     }
 
-    return res.data;
+    return res;
   };
 
   /**
@@ -257,7 +275,7 @@ export const useAutumn = () => {
       value,
     });
     if (error) {
-      throw error;
+      return toClientErrorResponse(error);
     }
     return data;
   };
@@ -271,17 +289,16 @@ export const useAutumn = () => {
     });
 
     if (result.error) {
-      console.error(result.error);
-      return result;
+      return toClientErrorResponse(result.error);
     }
 
     let data = result.data;
 
     if (data?.url && typeof window !== "undefined") {
       window.open(data.url, "_blank");
-      return data;
+      return result;
     } else {
-      return data;
+      return result;
     }
   };
 

@@ -1,7 +1,8 @@
-import { Customer } from "src/sdk";
+import { Customer, fetchPricingTable, PricingTableProduct } from "src/sdk";
 import { CustomerData } from "src/sdk";
 import { AutumnContext } from "./AutumnContext";
 import { useEffect, useState } from "react";
+import { usePricingTable } from "./hooks/usePricingTable";
 
 export interface AutumnProviderProps {
   children?: React.ReactNode;
@@ -54,6 +55,9 @@ export const AutumnClientProvider = ({
   components,
 }: AutumnProviderProps) => {
   let [customer, setCustomer] = useState<Customer | null>(null);
+  let [pricingTableProducts, setPricingTableProducts] = useState<
+    PricingTableProduct[] | null
+  >(null);
 
   const [
     prodChangeDialogFound,
@@ -88,6 +92,8 @@ export const AutumnClientProvider = ({
           setProps: setPaywallProps,
           setOpen: setPaywallOpen,
         },
+        pricingTableProducts,
+        setPricingTableProducts,
       }}
     >
       {components?.productChangeDialog && (

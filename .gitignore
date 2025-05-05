@@ -7,3 +7,6 @@ dist/
 .env
 **/.env*
 !examples/next-clerk/.env.local
+
+/archive
+nextjs

@@ -50,7 +50,7 @@ export const withAuth = <
         : null;
     }
 
-    if (!customerId) {
+    if (!customerId && requireCustomer) {
       return noCustomerIdError();
     }
 
