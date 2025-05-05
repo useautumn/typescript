@@ -1,21 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Geist_Mono, Geist } from "next/font/google";
+
 import { PricingTable } from "@/registry/pricing-table";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useAutumn } from "autumn-js/next";
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const geist = Geist({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export default function Home() {
   const { check } = useAutumn();
