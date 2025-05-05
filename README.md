@@ -76,11 +76,10 @@ export default function RootLayout({
 import { useAutumn } from 'autumn-js/next'
 
 export default function BillingPage() {
-  const { customer, attach, openBillingPortal } = useAutumn()
+  const { attach, openBillingPortal } = useAutumn()
 
   return (
     <div>
-      <h1>Welcome {customer?.name}</h1>
       <button onClick={() => openBillingPortal()}>
         Manage Billing
       </button>

@@ -1,8 +1,7 @@
 import { headers } from "next/headers";
 import { AuthPluginOptions } from "./authPlugin";
-import { auth, clerkClient } from "@clerk/nextjs/server";
-import { createSupabaseClient } from "./utils";
-// import { Auth } from "better-auth/*";
+import { createSupabaseClient } from "./supabase-wrapper";
+import { getClerkModule } from "./clerk-wrapper";
 
 export const handleBetterAuth = async (options: AuthPluginOptions) => {
   let betterAuth: any = options.instance;
@@ -73,6 +72,8 @@ export const handleClerk = async ({
   options: AuthPluginOptions;
   withCustomerData: boolean;
 }) => {
+  const { auth, clerkClient } = await getClerkModule();
+
   let authData = await auth();
 
   let clerk = await clerkClient();
@@ -137,14 +138,7 @@ export const handleClerk = async ({
 export const handleSupabase = async (options: AuthPluginOptions) => {
   let supabase;
 
-  try {
-    supabase = await createSupabaseClient();
-  } catch (error) {
-    throw {
-      message: `Failed to create supabase client. Try passing it in the instance param. Error: ${error}`,
-      code: "failed_to_create_supabase_client",
-    };
-  }
+  supabase = await createSupabaseClient();
 
   if (options.useOrg) {
     console.warn("Supabase does not support organizations");

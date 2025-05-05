@@ -97,39 +97,32 @@ const billingPortal = async () => {
 
 const main = async () => {
   try {
-    // const autumn = new Autumn({
-    //   secretKey: "am_sk_test_8bDtE5xZ3pLO4Pl1yQvpKc91fYAvdNTVZ2vOkR5jNe",
-    // });
+    let { data: cusData } = await autumn.customers.get(cusId);
 
-    let { data, error } = await autumn.customers.get("123");
-
-    // if (error) {
-    //   throw new Error(`Customer not found: ${error}`);
-    // }
-
-    // console.log(data.id);
-
-    // let customer = await createCustomer();
-
-    // let getCustomerRes = await getCustomer();
+    console.log(cusData);
 
     let checkData = await check({
       featureId: featureId,
-      productId: freeProductId,
     });
 
-    // console.log(checkData);
+    console.log(checkData);
 
-    // let trackData = await autumn.track({
-    //   customer_id: cusId,
-    //   feature_id: featureId,
-    // });
+    let trackData = await autumn.track({
+      customer_id: cusId,
+      feature_id: featureId,
+    });
 
-    // let attachData = await attach({
-    //   productId: proProductId,
-    // });
+    console.log(trackData);
 
-    // let billingPortalData = await billingPortal();
+    let attachData = await attach({
+      productId: proProductId,
+    });
+
+    console.log(attachData);
+
+    let billingPortalData = await billingPortal();
+
+    console.log(billingPortalData);
   } catch (error) {
     console.log(error);
   }

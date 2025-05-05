@@ -1,5 +1,5 @@
 import { useAutumn, useCustomer } from "autumn-js/next";
-import { MessageSquare } from "lucide-react";
+import { Cone, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 
@@ -17,7 +17,7 @@ export default function Application() {
       return;
     }
 
-    await track({
+    const trackRes = await track({
       featureId,
     });
 
@@ -59,7 +59,7 @@ export default function Application() {
         <Button
           variant="main"
           onClick={async () => {
-            await sendMessageClicked("chat-messages");
+            await sendMessageClicked(featureId);
           }}
         >
           Use Chat Message

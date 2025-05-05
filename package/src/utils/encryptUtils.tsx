@@ -1,13 +1,15 @@
 import crypto from "crypto";
+import { AutumnError } from "src/sdk";
 
 const getKey = () => {
   if (!process.env.AUTUMN_SECRET_KEY) {
-    throw {
+    throw new AutumnError({
       message:
         "Autumn secret key not found in process.env.AUTUMN_SECRET_KEY. Please set it in your .env file.",
       code: "secret_key_not_found",
-    };
+    });
   }
+
   return crypto
     .createHash("sha512")
     .update(process.env.AUTUMN_SECRET_KEY!)
@@ -16,7 +18,16 @@ const getKey = () => {
 };
 
 export function encryptData(data: string) {
-  const key = getKey();
+  let key: string;
+  try {
+    key = getKey();
+  } catch (error: any) {
+    throw new AutumnError({
+      message: `Failed to encrypt customer ID. ${error.message}`,
+      code: "encrypt_customer_id_failed",
+    });
+  }
+
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
 

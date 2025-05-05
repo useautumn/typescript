@@ -25,11 +25,12 @@ export const useCustomer = (options?: UseCustomerProps) => {
     useAutumnContext();
 
   const [error, setError] = useState<AutumnError | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchCustomer = async () => {
     setIsLoading(true);
 
+    let returnData: Customer | null = null;
     try {
       let data: Customer | null = null;
       let error: AutumnError | null = null;
@@ -52,11 +53,13 @@ export const useCustomer = (options?: UseCustomerProps) => {
       } else {
         setCustomer(data);
       }
+      returnData = data;
     } catch (error) {
-      console.log("Fetch customer error", error);
+      console.error("(Autumn) Error fetching customer:", error);
       setError(error as AutumnError);
     }
     setIsLoading(false);
+    return returnData;
   };
 
   const refetch = async () => {

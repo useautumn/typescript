@@ -1,4 +1,4 @@
-import { BillingPortalParams, CustomerData } from "src/sdk";
+import { BillingPortalParams } from "src/sdk";
 import { createAutumnClient } from "../server/cusActions";
 import { withAuth } from "./auth/withAuth";
 import { AttachFeatureOptions } from "src/sdk/general/genTypes";

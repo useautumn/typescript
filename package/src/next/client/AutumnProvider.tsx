@@ -7,13 +7,16 @@ export interface AutumnProviderProps {
   children?: React.ReactNode;
   encryptedCustomerId?: string;
   customerData?: CustomerData;
+  components?: {
+    paywallDialog?: any;
+    productChangeDialog?: any;
+  };
 }
 
-const useDialog = (type: string) => {
+const useDialog = (component?: any) => {
   const [dialogFound, setDialogFound] = useState<boolean>(false);
   const [dialogProps, setDialogProps] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [DialogComponent, setDialogComponent] = useState<any>(null);
 
   useEffect(() => {
     if (dialogProps) {
@@ -30,14 +33,9 @@ const useDialog = (type: string) => {
   }, [dialogOpen]);
 
   const loadDialog = async () => {
-    try {
-      // @ts-ignore
-      let module = await import(`@/components/pricing/${type}-dialog.tsx`);
-      if (module.default && typeof module.default === "function") {
-        setDialogComponent(() => module.default);
-        setDialogFound(true);
-      }
-    } catch (error) {
+    if (component) {
+      setDialogFound(true);
+    } else {
       setDialogFound(false);
     }
   };
@@ -46,20 +44,14 @@ const useDialog = (type: string) => {
     loadDialog();
   }, []);
 
-  return [
-    dialogFound,
-    dialogProps,
-    setDialogProps,
-    dialogOpen,
-    setDialogOpen,
-    DialogComponent,
-  ];
+  return [dialogFound, dialogProps, setDialogProps, dialogOpen, setDialogOpen];
 };
 
 export const AutumnClientProvider = ({
   children,
   encryptedCustomerId,
   customerData,
+  components,
 }: AutumnProviderProps) => {
   let [customer, setCustomer] = useState<Customer | null>(null);
 
@@ -69,8 +61,7 @@ export const AutumnClientProvider = ({
     setProdChangeDialogProps,
     prodChangeDialogOpen,
     setProdChangeDialogOpen,
-    ProdChangeDialogComponent,
-  ] = useDialog("product-change");
+  ] = useDialog(components?.productChangeDialog);
 
   const [
     paywallFound,
@@ -78,8 +69,7 @@ export const AutumnClientProvider = ({
     setPaywallProps,
     paywallOpen,
     setPaywallOpen,
-    PaywallDialogComponent,
-  ] = useDialog("paywall");
+  ] = useDialog(components?.paywallDialog);
 
   return (
     <AutumnContext.Provider
@@ -100,15 +90,15 @@ export const AutumnClientProvider = ({
         },
       }}
     >
-      {ProdChangeDialogComponent && (
-        <ProdChangeDialogComponent
+      {components?.productChangeDialog && (
+        <components.productChangeDialog
           open={prodChangeDialogOpen}
           setOpen={setProdChangeDialogOpen}
           {...prodChangeDialogProps}
         />
       )}
-      {PaywallDialogComponent && (
-        <PaywallDialogComponent
+      {components?.paywallDialog && (
+        <components.paywallDialog
           open={paywallOpen}
           setOpen={setPaywallOpen}
           {...paywallProps}

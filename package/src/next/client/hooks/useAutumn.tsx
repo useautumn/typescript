@@ -9,15 +9,20 @@ import {
 
 import { useAutumnContext } from "../AutumnContext";
 import { AttachParams } from "./types";
+import { useCustomer } from "./useCustomer";
 
 export const useAutumn = () => {
   const { encryptedCustomerId, prodChangeDialog, paywallDialog } =
     useAutumnContext();
+
+  const { customer, isLoading: loading, error, refetch } = useCustomer();
+
   let {
     found: prodChangeFound,
     setProps: setProdChangeDialogProps,
     setOpen: setProdChangeDialogOpen,
   } = prodChangeDialog;
+
   let {
     found: paywallFound,
     setProps: setPaywallDialogProps,
@@ -26,7 +31,6 @@ export const useAutumn = () => {
 
   const attachWithDialog = async ({
     productId,
-    options,
     successUrl,
     forceCheckout,
     metadata,
@@ -74,7 +78,10 @@ export const useAutumn = () => {
           featureId: option.feature_id,
           featureName: option.feature_name,
           billingUnits: option.billing_units,
+          usageModel: option.usage_model,
         })),
+        dueToday: preview.due_today,
+        dueNextCycle: preview.due_next_cycle,
         onClick: async (options?: any) => {
           if (!preview.error_on_attach) {
             await attachWithoutDialog(options);
@@ -97,7 +104,6 @@ export const useAutumn = () => {
     if (dialog) {
       await attachWithDialog({
         productId,
-        options,
         successUrl,
         forceCheckout,
         metadata,
@@ -280,6 +286,11 @@ export const useAutumn = () => {
   // 2. Create a client
   return {
     attach,
+    check,
+    track,
+    openBillingPortal,
+
+    // Deprecated
 
     /**
      * @deprecated Use track({featureId, value}) instead.
@@ -292,8 +303,29 @@ export const useAutumn = () => {
      * This method is deprecated and will be removed in a future version.
      */
     entitled,
-    check,
-    track,
-    openBillingPortal,
+
+    /**
+     * @deprecated Use the useCustomer() hook instead.
+     * This property is deprecated and will be removed in a future version.
+     */
+    customer,
+
+    /**
+     * @deprecated Use the useCustomer() hook instead.
+     * This property is deprecated and will be removed in a future version.
+     */
+    loading,
+
+    /**
+     * @deprecated Use the useCustomer() hook instead.
+     * This property is deprecated and will be removed in a future version.
+     */
+    error,
+
+    /**
+     * @deprecated Use the useCustomer() hook instead.
+     * This property is deprecated and will be removed in a future version.
+     */
+    refetch,
   };
 };

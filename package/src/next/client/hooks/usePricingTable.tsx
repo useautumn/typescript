@@ -9,12 +9,29 @@ export interface ProductDetails {
   buttonUrl?: string;
   recommendText?: string;
 }
+
+export interface PricingTableProduct {
+  id: string;
+  name: string;
+  buttonText: string;
+
+  price: {
+    primaryText: string;
+    secondaryText?: string;
+  };
+
+  items: {
+    primaryText: string;
+    secondaryText?: string;
+  }[];
+}
+
 const mergeProductDetails = (
-  products: any[],
+  products: any[] | null,
   productDetails?: ProductDetails[]
 ) => {
   if (!products) {
-    return [];
+    return null;
   }
 
   if (!productDetails) {
@@ -51,9 +68,12 @@ export const usePricingTable = (options?: {
   const { encryptedCustomerId } = useAutumnContext();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<
+    (PricingTableProduct & ProductDetails)[] | null
+  >(null);
 
   const fetchProducts = async () => {
+    let returnData: PricingTableProduct[] | null = null;
     try {
       setIsLoading(true);
       const res = await getPricingTableAction({
@@ -67,11 +87,13 @@ export const usePricingTable = (options?: {
 
       let products = res.data.list;
       setProducts(products);
+      returnData = products;
     } catch (error) {
       setError(error);
     } finally {
       setIsLoading(false);
     }
+    return returnData;
   };
 
   useEffect(() => {

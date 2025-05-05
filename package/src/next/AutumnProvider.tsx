@@ -8,6 +8,10 @@ interface AutumnProviderProps {
   customerData?: CustomerData;
   children?: React.ReactNode;
   authPlugin?: AuthPluginOptions;
+  components?: {
+    paywallDialog?: () => JSX.Element | React.ReactNode;
+    productChangeDialog?: () => JSX.Element | React.ReactNode;
+  };
 }
 
 export const AutumnProvider = ({
@@ -15,6 +19,7 @@ export const AutumnProvider = ({
   customerData,
   authPlugin,
   children,
+  components,
 }: AutumnProviderProps) => {
   if (typeof window !== "undefined") {
     throw new Error(
@@ -35,6 +40,7 @@ export const AutumnProvider = ({
     <AutumnClientProvider
       encryptedCustomerId={encryptedCustomerId}
       customerData={customerData}
+      components={components}
     >
       {children}
     </AutumnClientProvider>

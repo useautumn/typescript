@@ -49,7 +49,7 @@ export interface TrackResult {
 export interface CheckParams {
   customer_id: string;
   feature_id?: string;
-  product_id?: never;
+  product_id?: string;
   customer_data?: CustomerData;
   required_quantity?: number;
   send_event?: boolean;

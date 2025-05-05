@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.13",
+  "version": "0.0.22",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
       "types": "./dist/next/index.d.ts",
       "require": "./dist/next/index.js",
       "import": "./dist/next/index.mjs"
-    }    
+    }
   },
   "scripts": {
     "cli": "tsx src/cli/index.ts",
