@@ -3,11 +3,11 @@ export interface GetPricingTableParams {
 }
 
 export interface PricingTableProduct {
-  id?: string;
+  id: string;
   name: string;
-  description?: string;
 
   buttonText: string;
+  
   price: {
     primaryText: string;
     secondaryText?: string;

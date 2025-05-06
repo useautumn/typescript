@@ -49,7 +49,18 @@ export interface AutumnContextParams {
   authProvider?: "clerk" | "better-auth";
   customer: Customer | null;
   setCustomer: (customer: Customer | null) => void;
-  paywallExists: boolean;
+  prodChangeDialog: {
+    found: boolean;
+    setProps: (props: any) => void;
+    setOpen: (open: boolean) => void;
+  };
+  paywallDialog: {
+    found: boolean;
+    setProps: (props: any) => void;
+    setOpen: (open: boolean) => void;
+  };
+  pricingTableProducts: PricingTableProduct[] | null;
+  setPricingTableProducts: (products: PricingTableProduct[]) => void;
 }
 
 export interface AutumnProviderProps extends AutumnContextParams {

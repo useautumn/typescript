@@ -1,15 +1,25 @@
 import { createContext, useContext } from "react";
 import { AutumnContextParams } from "./types";
 import { Customer } from "../../sdk";
-// AutumnContextParams
-export const AutumnContext = createContext<any>({
+
+export const AutumnContext = createContext<AutumnContextParams>({
   encryptedCustomerId: "",
   customerData: {},
   authProvider: "better-auth",
   customer: null,
   setCustomer: () => {},
-  paywallOpen: false,
-  setPaywallOpen: () => {},
+  prodChangeDialog: {
+    found: false,
+    setProps: () => {},
+    setOpen: () => {},
+  },
+  paywallDialog: {
+    found: false,
+    setProps: () => {},
+    setOpen: () => {},
+  },
+  pricingTableProducts: null,
+  setPricingTableProducts: () => {},
 });
 
 export const useAutumnContext = () => {

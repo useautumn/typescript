@@ -3,14 +3,23 @@ import { ProductItemInterval } from "../products/prodEnums";
 import { ProductStatus } from "./cusEnums";
 
 export interface CustomerFeature {
-  feature_id: string;
-  unlimited?: boolean;
+  id: string;
+  name: string;
 
+  unlimited?: boolean;
   interval?: ProductItemInterval | null;
   balance?: number;
   usage?: number;
   included_usage?: number;
-  next_reset_at?: number;
+  next_reset_at?: number | null;
+
+  breakdown?: {
+    interval: ProductItemInterval;
+    balance?: number;
+    usage?: number;
+    included_usage?: number;
+    next_reset_at?: number;
+  }[];
 }
 
 export interface CustomerProduct {
@@ -28,19 +37,16 @@ export interface CustomerProduct {
 
 export interface Customer {
   // Internal fields
-  autumn_id: string;
-  created_at: number;
-  env: AppEnv;
-
   id: string | null;
+  created_at: number;
   name: string | null;
   email: string | null;
   fingerprint: string | null;
   stripe_id: string | null;
+  env: AppEnv;
 
-  products: CustomerProduct[];
-  add_ons: CustomerProduct[];
-  features: CustomerFeature[];
+  products: Record<string, CustomerProduct>;
+  features: Record<string, CustomerFeature>;
 }
 
 export interface CustomerData {

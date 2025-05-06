@@ -18,6 +18,7 @@ export enum ProductItemInterval {
   Quarter = "quarter",
   SemiAnnual = "semi_annual",
   Year = "year",
+  Multiple = "multiple",
 }
 
 export type ProductItemIntervalType =
@@ -28,4 +29,5 @@ export type ProductItemIntervalType =
   | "month"
   | "quarter"
   | "semi_annual"
-  | "year";
+  | "year"
+  | "multiple";
