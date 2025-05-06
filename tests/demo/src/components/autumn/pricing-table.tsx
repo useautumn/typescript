@@ -7,22 +7,7 @@ import { Loader2 } from "lucide-react";
 
 export const PricingTable = () => {
   const { attach } = useAutumn();
-  const { products, isLoading, error } = usePricingTable({
-    productDetails: [
-      {
-        id: "free-example",
-        description: "Try it out today",
-      },
-      {
-        id: "pro-example",
-        description: "Increased usage limits for messages",
-      },
-      {
-        id: "premium",
-        description: "Get access to all features and support",
-      },
-    ],
-  });
+  const { products, isLoading, error } = usePricingTable();
 
   if (isLoading) {
     return (
