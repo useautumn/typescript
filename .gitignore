@@ -10,3 +10,5 @@ dist/
 
 /archive
 nextjs
+
+.DS_Store

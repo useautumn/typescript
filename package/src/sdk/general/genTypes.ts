@@ -34,6 +34,7 @@ export interface TrackParams {
 
   feature_id?: string;
   event_name?: string;
+  entity_id?: string;
 }
 
 export interface TrackResult {
@@ -50,6 +51,7 @@ export interface CheckParams {
   customer_id: string;
   feature_id?: string;
   product_id?: string;
+  entity_id?: string;
   customer_data?: CustomerData;
   required_quantity?: number;
   send_event?: boolean;

@@ -1,6 +1,7 @@
 import { Autumn } from "autumn-js";
 const autumn = new Autumn({
-  secretKey: "am_sk_test_8bDtE5xZ3pLO4Pl1yQvpKc91fYAvdNTVZ2vOkR5jNe",
+  url: "http://localhost:8080/v1",
+  secretKey: "am_sk_test_Cho6lxlkmL4Ld2tkM8DFNGLinFaUHj0J1r9kOgj2tX",
 });
 
 const cusId = "123";
@@ -97,32 +98,28 @@ const billingPortal = async () => {
 
 const main = async () => {
   try {
-    let { data: cusData } = await autumn.customers.get(cusId);
-
-    console.log(cusData);
-
-    let checkData = await check({
-      featureId: featureId,
-    });
-
-    console.log(checkData);
-
-    let trackData = await autumn.track({
-      customer_id: cusId,
-      feature_id: featureId,
-    });
-
-    console.log(trackData);
-
-    let attachData = await attach({
-      productId: proProductId,
-    });
-
-    console.log(attachData);
-
-    let billingPortalData = await billingPortal();
-
-    console.log(billingPortalData);
+    // await autumn.entities.create(cusId, {
+    //   id: "2",
+    //   name: "John Doe",
+    //   feature_id: "websites",
+    // });
+    // let { data: cusData } = await autumn.customers.get(cusId);
+    // console.log(cusData);
+    // let checkData = await check({
+    //   featureId: featureId,
+    // });
+    // console.log(checkData);
+    // let trackData = await autumn.track({
+    //   customer_id: cusId,
+    //   feature_id: featureId,
+    // });
+    // console.log(trackData);
+    // let attachData = await attach({
+    //   productId: proProductId,
+    // });
+    // console.log(attachData);
+    // let billingPortalData = await billingPortal();
+    // console.log(billingPortalData);
   } catch (error) {
     console.log(error);
   }

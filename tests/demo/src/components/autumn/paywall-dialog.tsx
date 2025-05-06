@@ -17,7 +17,7 @@ export interface PaywallDialogProps {
   onClick: () => Promise<void>;
   buttonText?: string;
 }
-export default function PaywallDialog(params?: PaywallDialogProps) {
+export default function AutumnPaywall(params?: PaywallDialogProps) {
   const [loading, setLoading] = useState(false);
 
   if (!params) {

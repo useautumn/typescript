@@ -173,12 +173,14 @@ export const useAutumn = () => {
     productId,
     requiredQuantity,
     sendEvent,
+    withPreview,
   }: {
     dialog?: boolean;
     featureId?: string;
     productId?: string;
     requiredQuantity?: number;
     sendEvent?: boolean;
+    withPreview?: "formatted" | "raw";
   }) => {
     const res = await checkAction({
       encryptedCustomerId,
@@ -186,7 +188,7 @@ export const useAutumn = () => {
       productId,
       requiredQuantity,
       sendEvent,
-      withPreview: dialog ? "formatted" : undefined,
+      withPreview: dialog ? "formatted" : withPreview,
     });
 
     if (res.error) {
@@ -195,17 +197,19 @@ export const useAutumn = () => {
 
     let data = res.data;
 
-    if (data && data.preview) {
+    if (data && data.preview && dialog) {
       let nextActionData = {};
       let preview = data.preview;
 
       if (preview.upgrade_product_id) {
         nextActionData = {
           onClick: async () => {
-            await attach({
-              dialog: true,
-              productId: preview.upgrade_product_id,
-            });
+            if (preview.upgrade_product_id) {
+              await attach({
+                dialog: true,
+                productId: preview.upgrade_product_id,
+              });
+            }
             setPaywallDialogOpen(false);
           },
           buttonText: preview.button_text,

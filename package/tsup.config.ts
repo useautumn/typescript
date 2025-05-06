@@ -17,6 +17,7 @@ export default defineConfig([
       entry: {
         general: "src/sdk/general/genTypes.ts",
         customers: "src/sdk/customers/cusTypes.ts",
+        entities: "src/sdk/customers/entities/entTypes.ts",
         products: "src/sdk/products/prodTypes.ts",
         index: "src/sdk/index.ts", // Main types will go to index.d.ts
       },

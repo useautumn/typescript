@@ -12,7 +12,7 @@ export const toClientErrorResponse = (error: any) => {
     code = error.code;
   }
 
-  console.error(msg);
+  console.error("Autumn Error: ", msg);
   return {
     data: null,
     error: new AutumnClientError({ message: msg, code: code }),
@@ -28,7 +28,7 @@ export const fetchPricingTableData = async ({
   setIsLoading?: (isLoading: boolean) => void;
   setError?: (error: any) => void;
   setProducts: (products: PricingTableProduct[]) => void;
-  encryptedCustomerId: string;
+  encryptedCustomerId?: string;
 }) => {
   let returnData: PricingTableProduct[] | null = null;
   try {

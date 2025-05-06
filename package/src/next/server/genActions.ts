@@ -58,6 +58,7 @@ export const checkAction = withAuth({
     customerId,
     featureId,
     productId,
+    entityId,
     requiredQuantity,
     sendEvent,
     withPreview,
@@ -65,15 +66,18 @@ export const checkAction = withAuth({
     customerId: string;
     featureId?: string;
     productId?: string;
+    entityId?: string;
     requiredQuantity?: number;
     sendEvent?: boolean;
     withPreview?: "raw" | "formatted";
   }) => {
     const autumn = createAutumnClient();
+
     let res = await autumn.check({
       customer_id: customerId,
       feature_id: featureId,
       product_id: productId,
+      entity_id: entityId,
       required_quantity: requiredQuantity,
       send_event: sendEvent,
       with_preview: withPreview,
@@ -108,16 +112,19 @@ export const trackAction = withAuth({
   fn: async ({
     customerId,
     featureId,
+    entityId,
     value,
   }: {
     customerId: string;
     featureId: string;
+    entityId?: string;
     value?: number;
   }) => {
     const autumn = createAutumnClient();
     let res = await autumn.track({
       customer_id: customerId,
       feature_id: featureId,
+      entity_id: entityId,
       value,
     });
 

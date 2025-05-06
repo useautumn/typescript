@@ -1,4 +1,5 @@
 import { customerMethods } from "./customers/cusMethods";
+import { entityMethods } from "./customers/entities/entMethods";
 import { AutumnError } from "./error";
 import {
   handleAttach,
@@ -122,10 +123,11 @@ export class Autumn {
 
   static customers = customerMethods();
   static products = productMethods();
+  static entities = entityMethods();
 
   customers = customerMethods(this);
   products = productMethods(this);
-
+  entities = entityMethods(this);
   static attach = (params: AttachParams) =>
     staticWrapper(handleAttach, undefined, { params });
   static usage = (params: UsageParams) =>

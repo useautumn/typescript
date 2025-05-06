@@ -9,4 +9,5 @@ export interface AttachParams {
   forceCheckout?: boolean;
   metadata?: Record<string, string>;
   callback?: () => Promise<void>;
+  withPreview?: "formatted" | "raw";
 }
