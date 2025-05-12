@@ -58,7 +58,9 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
 
           {products.length > 0
-            ? `Upgrade to ${products[0].name}`
+            ? products[0].is_add_on
+              ? `Purchase ${products[0].name}`
+              : `Upgrade to ${products[0].name}`
             : "Contact Us"}
         </PricingDialogButton>
       </PricingDialogFooter>
