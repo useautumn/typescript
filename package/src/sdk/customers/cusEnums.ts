@@ -4,3 +4,5 @@ export enum ProductStatus {
   Trialing = "trialing",
   Scheduled = "scheduled",
 }
+
+export type CustomerExpandOption = "invoices";

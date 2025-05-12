@@ -3,6 +3,7 @@ import { entityMethods } from "./customers/entities/entMethods";
 import { AutumnError } from "./error";
 import {
   handleAttach,
+  handleCancel,
   handleCheck,
   handleEntitled,
   handleEvent,
@@ -11,6 +12,7 @@ import {
 } from "./general/genMethods";
 import {
   AttachParams,
+  CancelParams,
   CheckParams,
   TrackParams,
   UsageParams,
@@ -135,6 +137,16 @@ export class Autumn {
 
   async attach(params: AttachParams) {
     return handleAttach({
+      instance: this,
+      params,
+    });
+  }
+
+  static cancel = (params: CancelParams) =>
+    staticWrapper(handleCancel, undefined, { params });
+
+  async cancel(params: CancelParams) {
+    return handleCancel({
       instance: this,
       params,
     });

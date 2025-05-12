@@ -1,0 +1,11 @@
+<script>start("/Users/johnyeocx/Autumn/autumn-js/nextjs/.next/");</script>
+<script>onHasParentDirectory();</script>
+<script>addRow("cache","cache",1,160,"160 B",1746379752,"04/05/2025, 18:29:12");</script>
+<script>addRow("server","server",1,608,"608 B",1746381475,"04/05/2025, 18:57:55");</script>
+<script>addRow("static","static",1,224,"224 B",1746381476,"04/05/2025, 18:57:56");</script>
+<script>addRow("types","types",1,160,"160 B",1746381475,"04/05/2025, 18:57:55");</script>
+<script>addRow("app-build-manifest.json","app-build-manifest.json",0,308,"308 B",1746382616,"04/05/2025, 19:16:56");</script>
+<script>addRow("build-manifest.json","build-manifest.json",0,388,"388 B",1746382616,"04/05/2025, 19:16:56");</script>
+<script>addRow("package.json","package.json",0,20,"20 B",1746381468,"04/05/2025, 18:57:48");</script>
+<script>addRow("react-loadable-manifest.json","react-loadable-manifest.json",0,1131,"1.1 kB",1746382616,"04/05/2025, 19:16:56");</script>
+<script>addRow("trace","trace",0,502733,"491 kB",1746382907,"04/05/2025, 19:21:47");</script>

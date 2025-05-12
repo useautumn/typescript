@@ -44,6 +44,7 @@ export const usePricingTable = (options?: {
 }) => {
   const { encryptedCustomerId, pricingTableProducts, setPricingTableProducts } =
     useAutumnContext();
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<any>(null);
 

@@ -8,6 +8,7 @@ export const attachAction = withAuth({
   fn: async ({
     customerId,
     productId,
+    entityId,
     options,
     successUrl,
     forceCheckout,
@@ -15,6 +16,7 @@ export const attachAction = withAuth({
   }: {
     customerId: string;
     productId: string;
+    entityId?: string;
     successUrl?: string;
     options?: AttachFeatureOptions[];
     forceCheckout?: boolean;
@@ -25,10 +27,32 @@ export const attachAction = withAuth({
     let res = await autumn.attach({
       customer_id: customerId,
       product_id: productId,
+      entity_id: entityId,
       success_url: successUrl,
       options,
       force_checkout: forceCheckout,
       metadata,
+    });
+
+    return toServerResponse(res);
+  },
+});
+
+export const cancelAction = withAuth({
+  fn: async ({
+    customerId,
+    productId,
+    entityId,
+  }: {
+    customerId: string;
+    productId: string;
+    entityId?: string;
+  }) => {
+    const autumn = createAutumnClient();
+    let res = await autumn.cancel({
+      customer_id: customerId,
+      product_id: productId,
+      entity_id: entityId,
     });
 
     return toServerResponse(res);

@@ -1,6 +1,6 @@
 import { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
-import { ProductStatus } from "./cusEnums";
+import { CustomerExpandOption, ProductStatus } from "./cusEnums";
 
 export interface CustomerFeature {
   id: string;
@@ -45,8 +45,9 @@ export interface Customer {
   stripe_id: string | null;
   env: AppEnv;
 
-  products: Record<string, CustomerProduct>;
+  products: CustomerProduct[];
   features: Record<string, CustomerFeature>;
+  invoices?: CustomerInvoice[];
 }
 
 export interface CustomerData {
@@ -55,11 +56,16 @@ export interface CustomerData {
   fingerprint?: string;
 }
 
+export interface GetCustomerParams {
+  expand?: CustomerExpandOption[];
+}
+
 export interface CreateCustomerParams {
   id?: string | null;
   email?: string | null;
   name?: string | null;
   fingerprint?: string | null;
+  expand?: CustomerExpandOption[];
 }
 
 export interface UpdateCustomerParams {
@@ -76,4 +82,13 @@ export interface BillingPortalParams {
 export interface BillingPortalResponse {
   customer_id: string;
   url: string;
+}
+
+export interface CustomerInvoice {
+  product_ids: string[];
+  stripe_id: string;
+  status: string;
+  total: number;
+  currency: string;
+  created_at: number;
 }

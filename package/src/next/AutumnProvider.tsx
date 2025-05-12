@@ -8,10 +8,10 @@ interface AutumnProviderProps {
   customerData?: CustomerData;
   children?: React.ReactNode;
   authPlugin?: AuthPluginOptions;
-  components?: {
-    paywallDialog?: () => JSX.Element | React.ReactNode;
-    productChangeDialog?: () => JSX.Element | React.ReactNode;
-  };
+  // components?: {
+  //   paywallDialog?: () => JSX.Element | React.ReactNode;
+  //   productChangeDialog?: () => JSX.Element | React.ReactNode;
+  // };
 }
 
 export const AutumnProvider = ({
@@ -19,8 +19,8 @@ export const AutumnProvider = ({
   customerData,
   authPlugin,
   children,
-  components,
-}: AutumnProviderProps) => {
+}: // components,
+AutumnProviderProps) => {
   if (typeof window !== "undefined") {
     throw new Error(
       "AutumnProvider must be used in a server component. It cannot be used in client components."
@@ -40,7 +40,7 @@ export const AutumnProvider = ({
     <AutumnClientProvider
       encryptedCustomerId={encryptedCustomerId}
       customerData={customerData}
-      components={components}
+      // components={components}
     >
       {children}
     </AutumnClientProvider>

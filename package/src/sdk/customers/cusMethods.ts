@@ -6,6 +6,7 @@ import {
   UpdateCustomerParams,
   BillingPortalParams,
   BillingPortalResponse,
+  GetCustomerParams,
 } from "./cusTypes";
 import { staticWrapper } from "../utils";
 import { AutumnPromise } from "../response";
@@ -13,7 +14,8 @@ import { AutumnError } from "../error";
 
 export const customerMethods = (instance?: Autumn) => {
   return {
-    get: (id: string) => staticWrapper(getCustomer, instance, { id }),
+    get: (id: string, params?: GetCustomerParams) =>
+      staticWrapper(getCustomer, instance, { id, params }),
     create: (params?: CreateCustomerParams) =>
       staticWrapper(createCustomer, instance, { params }),
     update: (id: string, params: UpdateCustomerParams) =>
@@ -24,12 +26,21 @@ export const customerMethods = (instance?: Autumn) => {
   };
 };
 
+export const getExpandStr = (expand?: string[]) => {
+  if (!expand) {
+    return "";
+  }
+  return `expand=${expand.join(",")}`;
+};
+
 export const getCustomer = async ({
   instance,
   id,
+  params,
 }: {
   instance: Autumn;
   id: string;
+  params?: GetCustomerParams;
 }): AutumnPromise<Customer> => {
   if (!id) {
     return {
@@ -41,7 +52,7 @@ export const getCustomer = async ({
     };
   }
 
-  return instance.get(`/customers/${id}`);
+  return instance.get(`/customers/${id}?${getExpandStr(params?.expand)}`);
 };
 
 export const createCustomer = async ({
@@ -52,7 +63,7 @@ export const createCustomer = async ({
   params?: CreateCustomerParams;
 }): AutumnPromise<Customer> => {
   validateCreateCustomer(params || {});
-  return instance.post("/customers", params);
+  return instance.post(`/customers?${getExpandStr(params?.expand)}`, params);
 };
 
 export const updateCustomer = async ({

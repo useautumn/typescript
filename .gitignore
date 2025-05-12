@@ -9,6 +9,6 @@ dist/
 !examples/next-clerk/.env.local
 
 /archive
-nextjs
+# nextjs
 
 .DS_Store

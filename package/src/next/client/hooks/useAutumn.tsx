@@ -1,5 +1,6 @@
 import {
   attachAction,
+  cancelAction,
   checkAction,
   entitledAction,
   getBillingPortalAction,
@@ -24,19 +25,20 @@ export const useAutumn = () => {
   const { customer, isLoading: loading, error, refetch } = useCustomer();
 
   let {
-    found: prodChangeFound,
     setProps: setProdChangeDialogProps,
     setOpen: setProdChangeDialogOpen,
+    setComponent: setProdChangeComponent,
   } = prodChangeDialog;
 
   let {
-    found: paywallFound,
     setProps: setPaywallDialogProps,
     setOpen: setPaywallDialogOpen,
+    setComponent: setPaywallComponent,
   } = paywallDialog;
 
   const attachWithDialog = async ({
     productId,
+    entityId,
     successUrl,
     forceCheckout,
     metadata,
@@ -45,8 +47,8 @@ export const useAutumn = () => {
     const attachWithoutDialog = async (options?: any) => {
       try {
         await attach({
-          dialog: false,
           productId,
+          entityId,
           options,
           successUrl,
           forceCheckout,
@@ -64,6 +66,7 @@ export const useAutumn = () => {
     const { data, error } = await checkAction({
       encryptedCustomerId,
       productId,
+      entityId,
       withPreview: "formatted",
     });
 
@@ -77,43 +80,30 @@ export const useAutumn = () => {
       return await attachWithoutDialog();
     } else {
       setProdChangeDialogProps({
-        title: preview.title,
-        message: preview.message,
-        items: preview.items,
-        dueToday: preview.due_today,
-        dueNextCycle: preview.due_next_cycle,
-        options: preview.options?.map((option: any) => ({
-          featureId: option.feature_id,
-          featureName: option.feature_name,
-          billingUnits: option.billing_units,
-          usageModel: option.usage_model,
-          price: option.price,
-          tiers: option.tiers,
-        })),
-        onClick: async (options?: any) => {
-          if (!preview.error_on_attach) {
-            await attachWithoutDialog(options);
-          }
-          setProdChangeDialogOpen(false);
-        },
+        preview,
       });
+      setProdChangeDialogOpen(true);
     }
 
     return { data: null, error: null };
   };
 
   const attach = async ({
-    dialog = prodChangeFound || false,
     productId,
+    entityId,
     options,
     successUrl,
     forceCheckout,
     metadata,
+    dialog,
     callback,
   }: AttachParams) => {
     if (dialog) {
+      setProdChangeComponent(dialog);
+
       return await attachWithDialog({
         productId,
+        entityId,
         successUrl,
         forceCheckout,
         metadata,
@@ -130,6 +120,7 @@ export const useAutumn = () => {
     const result = await attachAction({
       encryptedCustomerId,
       productId,
+      entityId,
       options: snakeOptions,
       successUrl,
       forceCheckout,
@@ -167,25 +158,52 @@ export const useAutumn = () => {
     return result;
   };
 
+  const cancel = async ({
+    productId,
+    entityId,
+  }: {
+    productId: string;
+    entityId?: string;
+  }) => {
+    const res = await cancelAction({
+      encryptedCustomerId,
+      productId,
+      entityId,
+    });
+
+    if (res.error) {
+      return toClientErrorResponse(res.error);
+    }
+
+    return res;
+  };
+
   const check = async ({
-    dialog = paywallFound || false,
     featureId,
     productId,
+    entityId,
     requiredQuantity,
     sendEvent,
     withPreview,
+    dialog,
   }: {
-    dialog?: boolean;
     featureId?: string;
     productId?: string;
+    entityId?: string;
     requiredQuantity?: number;
     sendEvent?: boolean;
     withPreview?: "formatted" | "raw";
+    dialog?: (data: any) => JSX.Element | React.ReactNode;
   }) => {
+    if (dialog) {
+      setPaywallComponent(dialog);
+    }
+
     const res = await checkAction({
       encryptedCustomerId,
       featureId,
       productId,
+      entityId,
       requiredQuantity,
       sendEvent,
       withPreview: dialog ? "formatted" : withPreview,
@@ -198,31 +216,16 @@ export const useAutumn = () => {
     let data = res.data;
 
     if (data && data.preview && dialog) {
-      let nextActionData = {};
       let preview = data.preview;
 
-      if (preview.upgrade_product_id) {
-        nextActionData = {
-          onClick: async () => {
-            if (preview.upgrade_product_id) {
-              await attach({
-                dialog: true,
-                productId: preview.upgrade_product_id,
-              });
-            }
-            setPaywallDialogOpen(false);
-          },
-          buttonText: preview.button_text,
-        };
-      }
       setPaywallDialogProps({
-        title: data.preview.title,
-        message: data.preview.message,
-        ...nextActionData,
+        preview,
       });
+
+      setPaywallDialogOpen(true);
     }
 
-    return data;
+    return res;
   };
 
   /**
@@ -244,14 +247,17 @@ export const useAutumn = () => {
 
   const track = async ({
     featureId,
+    entityId,
     value,
   }: {
     featureId: string;
+    entityId?: string;
     value?: number;
   }) => {
     const res = await trackAction({
       encryptedCustomerId,
       featureId,
+      entityId,
       value,
     });
 
@@ -311,8 +317,8 @@ export const useAutumn = () => {
     attach,
     check,
     track,
+    cancel,
     openBillingPortal,
-
     // Deprecated
 
     /**

@@ -1,17 +1,17 @@
-import { Customer, fetchPricingTable, PricingTableProduct } from "src/sdk";
+import { Entity } from "src/sdk/customers/entities/entTypes";
 import { CustomerData } from "src/sdk";
 import { AutumnContext } from "./AutumnContext";
 import { useEffect, useState } from "react";
-import { usePricingTable } from "./hooks/usePricingTable";
+import { Customer, PricingTableProduct } from "src/sdk";
 
 export interface AutumnProviderProps {
   children?: React.ReactNode;
   encryptedCustomerId?: string;
   customerData?: CustomerData;
-  components?: {
-    paywallDialog?: any;
-    productChangeDialog?: any;
-  };
+  // components?: {
+  //   paywallDialog?: any;
+  //   productChangeDialog?: any;
+  // };
 }
 
 const useDialog = (component?: any) => {
@@ -19,11 +19,11 @@ const useDialog = (component?: any) => {
   const [dialogProps, setDialogProps] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (dialogProps) {
-      setDialogOpen(true);
-    }
-  }, [dialogProps]);
+  // useEffect(() => {
+  //   if (dialogProps) {
+  //     setDialogOpen(true);
+  //   }
+  // }, [dialogProps]);
 
   useEffect(() => {
     if (!dialogOpen) {
@@ -52,12 +52,19 @@ export const AutumnClientProvider = ({
   children,
   encryptedCustomerId,
   customerData,
-  components,
 }: AutumnProviderProps) => {
   let [customer, setCustomer] = useState<Customer | null>(null);
+
   let [pricingTableProducts, setPricingTableProducts] = useState<
     PricingTableProduct[] | null
   >(null);
+
+  const [components, setComponents] = useState<{
+    paywallDialog?: any;
+    productChangeDialog?: any;
+  }>({});
+
+  const [entity, setEntity] = useState<Entity | null>(null);
 
   const [
     prodChangeDialogFound,
@@ -86,14 +93,28 @@ export const AutumnClientProvider = ({
           found: prodChangeDialogFound,
           setProps: setProdChangeDialogProps,
           setOpen: setProdChangeDialogOpen,
+          setComponent: (component: any) => {
+            setComponents({
+              ...components,
+              productChangeDialog: component,
+            });
+          },
         },
         paywallDialog: {
           found: paywallFound,
           setProps: setPaywallProps,
           setOpen: setPaywallOpen,
+          setComponent: (component: any) => {
+            setComponents({
+              ...components,
+              paywallDialog: component,
+            });
+          },
         },
         pricingTableProducts,
         setPricingTableProducts,
+        entity,
+        setEntity,
       }}
     >
       {components?.productChangeDialog && (

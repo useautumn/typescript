@@ -4,6 +4,8 @@ import { AutumnPromise } from "../response";
 import {
   AttachParams,
   AttachResult,
+  CancelParams,
+  CancelResult,
   CheckParams,
   CheckResult,
   TrackParams,
@@ -20,6 +22,16 @@ export const handleAttach = async ({
   params: AttachParams;
 }): AutumnPromise<AttachResult> => {
   return instance.post("/attach", params);
+};
+
+export const handleCancel = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: CancelParams;
+}): AutumnPromise<CancelResult> => {
+  return instance.post("/cancel", params);
 };
 
 export const handleEntitled = async ({

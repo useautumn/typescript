@@ -47,6 +47,7 @@ export const fetchPricingTableData = async ({
     }
 
     let products = res.data.list;
+
     setProducts(products);
     returnData = products;
   } catch (error) {

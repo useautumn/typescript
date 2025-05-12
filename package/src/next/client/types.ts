@@ -1,4 +1,5 @@
 import { Customer, CustomerData } from "src/sdk";
+import { Entity } from "src/sdk/customers/entities/entTypes";
 
 export interface ProductDetails {
   id: string;
@@ -49,15 +50,20 @@ export interface AutumnContextParams {
   authProvider?: "clerk" | "better-auth";
   customer: Customer | null;
   setCustomer: (customer: Customer | null) => void;
+  entity: Entity | null;
+  setEntity: (entity: Entity | null) => void;
+  entityId?: string;
   prodChangeDialog: {
     found: boolean;
     setProps: (props: any) => void;
     setOpen: (open: boolean) => void;
+    setComponent: (component: any) => void;
   };
   paywallDialog: {
     found: boolean;
     setProps: (props: any) => void;
     setOpen: (open: boolean) => void;
+    setComponent: (component: any) => void;
   };
   pricingTableProducts: PricingTableProduct[] | null;
   setPricingTableProducts: (products: PricingTableProduct[]) => void;

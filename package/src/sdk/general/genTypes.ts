@@ -9,6 +9,7 @@ export interface AttachFeatureOptions {
 export interface AttachParams {
   customer_id: string;
   product_id: string;
+  entity_id?: string;
   options?: AttachFeatureOptions[];
 
   product_ids?: string[]; // If set, will attach multiple products to the customer (cannot be used with product_id)
@@ -16,6 +17,18 @@ export interface AttachParams {
   success_url?: string; // Passed to Stripe
   metadata?: Record<string, string>; // Passed to Stripe
   force_checkout?: boolean; // Default is false -- if set to true, will force the customer to checkout (not allowed for upgrades / downgrades)
+}
+
+export interface CancelParams {
+  customer_id: string;
+  product_id: string;
+  entity_id?: string;
+}
+
+export interface CancelResult {
+  success: boolean;
+  customer_id: string;
+  product_id: string;
 }
 
 export interface AttachResult {

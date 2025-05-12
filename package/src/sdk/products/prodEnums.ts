@@ -9,6 +9,8 @@ export enum UsageModel {
   PayPerUse = "pay_per_use",
 }
 
+export type UsageModelType = "prepaid" | "pay_per_use";
+
 export enum ProductItemInterval {
   Minute = "minute",
   Hour = "hour",

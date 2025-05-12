@@ -16,6 +16,8 @@ export default defineConfig([
     dts: {
       entry: {
         general: "src/sdk/general/genTypes.ts",
+        check: "src/sdk/general/checkTypes.ts",
+
         customers: "src/sdk/customers/cusTypes.ts",
         entities: "src/sdk/customers/entities/entTypes.ts",
         products: "src/sdk/products/prodTypes.ts",

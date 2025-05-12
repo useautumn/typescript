@@ -18,9 +18,6 @@ export const metadata: Metadata = {
   description: "Beautiful, customizable, pricing components",
 };
 
-import PaywallDialog from "@/registry/paywall-dialog";
-import ProductChangeDialog from "@/registry/product-change-dialog";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,13 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="light">
-      <AutumnProvider
-        customerId="123"
-        components={{
-          paywallDialog: PaywallDialog,
-          productChangeDialog: ProductChangeDialog,
-        }}
-      >
+      <AutumnProvider customerId="123">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased `}
         >
