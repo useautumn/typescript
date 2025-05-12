@@ -228,23 +228,6 @@ export const useAutumn = () => {
     return res;
   };
 
-  /**
-   * @deprecated Use check({featureId}) instead.
-   * This method is deprecated and will be removed in a future version.
-   */
-  const entitled = async ({ featureId }: { featureId: string }) => {
-    const res = await entitledAction({
-      encryptedCustomerId,
-      featureId,
-    });
-
-    if (res.error) {
-      return toClientErrorResponse(res.error);
-    }
-
-    return res;
-  };
-
   const track = async ({
     featureId,
     entityId,
@@ -266,28 +249,6 @@ export const useAutumn = () => {
     }
 
     return res;
-  };
-
-  /**
-   * @deprecated Use track({featureId, value}) instead.
-   * This method is deprecated and will be removed in a future version.
-   */
-  const event = async ({
-    featureId,
-    value,
-  }: {
-    featureId: string;
-    value?: number;
-  }) => {
-    const { data, error } = await sendEventAction({
-      encryptedCustomerId,
-      featureId,
-      value,
-    });
-    if (error) {
-      return toClientErrorResponse(error);
-    }
-    return data;
   };
 
   const openBillingPortal = async (options?: { returnUrl?: string }) => {
@@ -319,42 +280,5 @@ export const useAutumn = () => {
     track,
     cancel,
     openBillingPortal,
-    // Deprecated
-
-    /**
-     * @deprecated Use track({featureId, value}) instead.
-     * This method is deprecated and will be removed in a future version.
-     */
-    event,
-
-    /**
-     * @deprecated Use check({featureId}) instead.
-     * This method is deprecated and will be removed in a future version.
-     */
-    entitled,
-
-    /**
-     * @deprecated Use the useCustomer() hook instead.
-     * This property is deprecated and will be removed in a future version.
-     */
-    customer,
-
-    /**
-     * @deprecated Use the useCustomer() hook instead.
-     * This property is deprecated and will be removed in a future version.
-     */
-    loading,
-
-    /**
-     * @deprecated Use the useCustomer() hook instead.
-     * This property is deprecated and will be removed in a future version.
-     */
-    error,
-
-    /**
-     * @deprecated Use the useCustomer() hook instead.
-     * This property is deprecated and will be removed in a future version.
-     */
-    refetch,
   };
 };
