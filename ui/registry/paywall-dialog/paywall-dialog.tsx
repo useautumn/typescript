@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   PricingDialog,
   PricingDialogButton,
@@ -10,6 +11,7 @@ import {
 import { CheckFeatureFormattedPreview } from "autumn-js";
 import { useAutumn } from "autumn-js/next";
 import { getPaywallDialogTexts } from "@/registry/paywall-dialog/lib/get-paywall-texts";
+import { Loader2 } from "lucide-react";
 
 export interface PaywallDialogProps {
   open: boolean;
@@ -19,6 +21,8 @@ export interface PaywallDialogProps {
 
 export default function PaywallDialog(params?: PaywallDialogProps) {
   const { attach } = useAutumn();
+  const [loading, setLoading] = useState(false);
+
   if (!params || !params.preview) {
     return <></>;
   }
@@ -37,12 +41,22 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
           className="font-medium shadow transition min-w-20"
           onClick={async () => {
             if (products.length > 0) {
-              await attach({
-                productId: products[0].id,
-              });
+              setLoading(true);
+
+              try {
+                await attach({
+                  productId: products[0].id,
+                });
+              } catch (error) {
+                console.error(error);
+              } finally {
+                setLoading(false);
+              }
             }
           }}
         >
+          {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+
           {products.length > 0
             ? `Upgrade to ${products[0].name}`
             : "Contact Us"}
