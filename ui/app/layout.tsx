@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="light">
-      <AutumnProvider customerId="123">
+      <AutumnProvider customerId="abc">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased `}
         >

@@ -19,6 +19,19 @@ export const toClientErrorResponse = (error: any) => {
   };
 };
 
+export const toClientError = (error: any) => {
+  let msg = "Unknown error";
+  let code = "unknown";
+  if (error?.message) {
+    msg = error.message;
+  }
+  if (error?.code) {
+    code = error.code;
+  }
+  console.error("Autumn Error: ", msg);
+  return new AutumnClientError({ message: msg, code });
+};
+
 export const fetchPricingTableData = async ({
   setIsLoading,
   setError,

@@ -1,1 +1,36 @@
-{}
+{
+  "../node_modules/@clerk/nextjs/dist/esm/app-router/client/ClerkProvider.js -> ./keyless-creator-reader.js": {
+    "id": "../node_modules/@clerk/nextjs/dist/esm/app-router/client/ClerkProvider.js -> ./keyless-creator-reader.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_clerk_nextjs_dist_esm_app-router_client_keyless-creator-reader_js.js"
+    ]
+  },
+  "../node_modules/@clerk/nextjs/dist/esm/app-router/client/keyless-cookie-sync.js -> ../keyless-actions.js": {
+    "id": "../node_modules/@clerk/nextjs/dist/esm/app-router/client/keyless-cookie-sync.js -> ../keyless-actions.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_clerk_nextjs_dist_esm_app-router_keyless-actions_js.js"
+    ]
+  },
+  "../node_modules/@supabase/auth-js/dist/module/lib/helpers.js -> @supabase/node-fetch": {
+    "id": "../node_modules/@supabase/auth-js/dist/module/lib/helpers.js -> @supabase/node-fetch",
+    "files": []
+  },
+  "../node_modules/@supabase/functions-js/dist/module/helper.js -> @supabase/node-fetch": {
+    "id": "../node_modules/@supabase/functions-js/dist/module/helper.js -> @supabase/node-fetch",
+    "files": []
+  },
+  "../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> @supabase/node-fetch": {
+    "id": "../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> @supabase/node-fetch",
+    "files": []
+  },
+  "../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> ws": {
+    "id": "../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> ws",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_ws_browser_js.js"
+    ]
+  },
+  "../node_modules/@supabase/storage-js/dist/module/lib/helpers.js -> @supabase/node-fetch": {
+    "id": "../node_modules/@supabase/storage-js/dist/module/lib/helpers.js -> @supabase/node-fetch",
+    "files": []
+  }
+}

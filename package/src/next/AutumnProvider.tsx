@@ -6,24 +6,29 @@ import { AuthPluginOptions, setupAuthPlugin } from "./server/auth/authPlugin";
 interface AutumnProviderProps {
   customerId?: string;
   customerData?: CustomerData;
-  children?: React.ReactNode;
   authPlugin?: AuthPluginOptions;
-  // components?: {
-  //   paywallDialog?: () => JSX.Element | React.ReactNode;
-  //   productChangeDialog?: () => JSX.Element | React.ReactNode;
-  // };
+  children?: React.ReactNode;
 }
+
+const notNullish = (value: any) => {
+  return value !== null && value !== undefined;
+};
 
 export const AutumnProvider = ({
   customerId,
   customerData,
   authPlugin,
   children,
-}: // components,
-AutumnProviderProps) => {
+}: AutumnProviderProps) => {
   if (typeof window !== "undefined") {
     throw new Error(
       "AutumnProvider must be used in a server component. It cannot be used in client components."
+    );
+  }
+
+  if (notNullish(customerId) && notNullish(authPlugin)) {
+    throw new Error(
+      "AutumnProvider cannot have both customerId and authPlugin provided."
     );
   }
 
@@ -40,7 +45,6 @@ AutumnProviderProps) => {
     <AutumnClientProvider
       encryptedCustomerId={encryptedCustomerId}
       customerData={customerData}
-      // components={components}
     >
       {children}
     </AutumnClientProvider>

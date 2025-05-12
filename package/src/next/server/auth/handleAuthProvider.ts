@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { AuthPluginOptions } from "./authPlugin";
 import { createSupabaseClient } from "./supabase-wrapper";
 import { getClerkModule } from "./clerk-wrapper";
@@ -72,23 +72,36 @@ export const handleClerk = async ({
   options: AuthPluginOptions;
   withCustomerData: boolean;
 }) => {
-  const { auth, clerkClient } = await getClerkModule();
+  const { verifyToken, createClerkClient } = await getClerkModule();
+  const cookieStore = await cookies();
+  let sessionToken = cookieStore.get("__session")?.value;
 
-  let authData = await auth();
+  if (!sessionToken) {
+    console.warn("(Autumn) No clerk session token found");
+    return null;
+  }
 
-  let clerk = await clerkClient();
+  const clerk = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+  });
+
+  const authData = await verifyToken(sessionToken, {
+    secretKey: process.env.CLERK_SECRET_KEY,
+  });
+
+  let orgId = authData.org_id;
+  let userId = authData.sub;
 
   if (options.useOrg) {
     try {
-      let orgId = authData.orgId;
       if (orgId && withCustomerData) {
         let org = await clerk.organizations.getOrganization({
           organizationId: orgId,
         });
 
         let email = null;
-        if (authData.userId) {
-          let user = await clerk.users.getUser(authData.userId);
+        if (userId) {
+          let user = await clerk.users.getUser(userId);
           email = user.primaryEmailAddress?.emailAddress;
         }
 
@@ -114,11 +127,11 @@ export const handleClerk = async ({
     }
   }
 
-  if (options.useUser && authData.userId) {
+  if (options.useUser && userId) {
     try {
-      let user = await clerk.users.getUser(authData.userId);
+      let user = await clerk.users.getUser(userId);
       return {
-        customerId: user.id,
+        customerId: userId,
         customerData: {
           name: user.fullName,
           email: user.primaryEmailAddress?.emailAddress,

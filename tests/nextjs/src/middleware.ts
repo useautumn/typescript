@@ -4,6 +4,7 @@ import { updateSession } from "./lib/supabase/middleware";
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
 const AUTH_PROVIDER: string = "supabase";
+// const AUTH_PROVIDER: string = "clerk";
 
 export default clerkMiddleware(async (auth, req) => {
   const requestHeaders = new Headers(req.headers);

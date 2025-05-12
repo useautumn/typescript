@@ -3,15 +3,12 @@ import { CustomerData } from "src/sdk";
 import { AutumnContext } from "./AutumnContext";
 import { useEffect, useState } from "react";
 import { Customer, PricingTableProduct } from "src/sdk";
+import { useCustomer } from "./hooks/useCustomer";
 
 export interface AutumnProviderProps {
   children?: React.ReactNode;
   encryptedCustomerId?: string;
   customerData?: CustomerData;
-  // components?: {
-  //   paywallDialog?: any;
-  //   productChangeDialog?: any;
-  // };
 }
 
 const useDialog = (component?: any) => {
@@ -54,6 +51,12 @@ export const AutumnClientProvider = ({
   customerData,
 }: AutumnProviderProps) => {
   let [customer, setCustomer] = useState<Customer | null>(null);
+
+  useCustomer({
+    encryptedCustomerId,
+    customerData,
+    errorOnNotFound: false,
+  });
 
   let [pricingTableProducts, setPricingTableProducts] = useState<
     PricingTableProduct[] | null

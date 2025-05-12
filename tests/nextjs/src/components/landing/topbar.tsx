@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function Topbar() {
   const router = useRouter();
-  // const { user } = useUser();
+  const { user } = useUser();
   // const { signOut } = useClerk();
 
   const handleSignOut = async () => {
@@ -59,7 +59,7 @@ export default function Topbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* {user && <OrganizationSwitcher />} */}
+            {user && <OrganizationSwitcher />}
             {/* <span className="text-sm text-gray-300">user@example.com</span> */}
             <button
               className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-800 hover:bg-gray-700 rounded-md transition-colors"

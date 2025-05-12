@@ -59,24 +59,6 @@ export const cancelAction = withAuth({
   },
 });
 
-export const entitledAction = withAuth({
-  fn: async ({
-    customerId,
-    featureId,
-  }: {
-    customerId: string;
-    featureId: string;
-  }) => {
-    const autumn = createAutumnClient();
-    let res = await autumn.entitled({
-      customer_id: customerId,
-      feature_id: featureId,
-    });
-
-    return toServerResponse(res);
-  },
-});
-
 export const checkAction = withAuth({
   fn: async ({
     customerId,
@@ -105,27 +87,6 @@ export const checkAction = withAuth({
       required_quantity: requiredQuantity,
       send_event: sendEvent,
       with_preview: withPreview,
-    });
-
-    return toServerResponse(res);
-  },
-});
-
-export const sendEventAction = withAuth({
-  fn: async ({
-    customerId,
-    featureId,
-    value,
-  }: {
-    customerId: string;
-    featureId: string;
-    value?: number;
-  }) => {
-    const autumn = createAutumnClient();
-    let res = await autumn.event({
-      customer_id: customerId,
-      feature_id: featureId,
-      value,
     });
 
     return toServerResponse(res);

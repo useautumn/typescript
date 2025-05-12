@@ -41,11 +41,13 @@ const PricingTableContext = createContext<{
   setIsAnnual: (isAnnual: boolean) => void;
   products: Product[];
   showFeatures: boolean;
+  uniform: boolean;
 }>({
   isAnnual: false,
   setIsAnnual: () => {},
   products: [],
   showFeatures: true,
+  uniform: false,
 });
 
 export const usePricingTableContext = (componentName: string) => {
@@ -63,11 +65,13 @@ export const PricingTable = ({
   products,
   showFeatures = true,
   className,
+  uniform = false,
 }: {
   children?: React.ReactNode;
   products?: Product[];
   showFeatures?: boolean;
   className?: string;
+  uniform?: boolean;
 }) => {
   const [isAnnual, setIsAnnual] = useState(false);
 
@@ -77,12 +81,14 @@ export const PricingTable = ({
 
   return (
     <PricingTableContext.Provider
-      value={{ isAnnual, setIsAnnual, products, showFeatures }}
+      value={{ isAnnual, setIsAnnual, products, showFeatures, uniform }}
     >
       <div className={cn("flex items-center flex-col")}>
         {products.some((p) => p.priceAnnual) && (
           <div
-            className={cn(products.some((p) => p.recommendedText) && "mb-8")}
+            className={cn(
+              products.some((p) => p.recommendedText) && !uniform && "mb-8"
+            )}
           >
             <AnnualSwitch isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
           </div>
@@ -113,7 +119,7 @@ export const PricingCard = ({
   onButtonClick,
   buttonProps,
 }: PricingCardProps) => {
-  const { isAnnual, products, showFeatures } =
+  const { isAnnual, products, showFeatures, uniform } =
     usePricingTableContext("PricingCard");
   const product = products.find((p) => p.id === productId);
 
@@ -140,26 +146,34 @@ export const PricingCard = ({
       className={cn(
         "border rounded-md bg-background w-full h-full pt-6 text-foreground",
         recommendedText &&
+          !uniform &&
           "shadow-xl border-primary/30 lg:-translate-y-6 lg:h-[calc(100%+48px)] relative",
         className
       )}
     >
-      {recommendedText && <RecommendedBadge recommended={recommendedText} />}
-      <div className={cn("px-6", recommendedText && "lg:translate-y-6")}>
+      {recommendedText && !uniform && (
+        <RecommendedBadge recommended={recommendedText} />
+      )}
+      <div
+        className={cn(
+          "px-6",
+          recommendedText && !uniform && "lg:translate-y-6"
+        )}
+      >
         <div className="flex flex-col gap-2 ">
           <h2 className="text-sm font-medium uppercase">{name}</h2>
           {description && (
-            <span className="text-sm h-12 mb-2">{description}</span>
+            <span className="text-sm h-14 line-clamp-3">{description}</span>
           )}
           <div className="flex flex-col">
-            <h3 className="font-semibold flex items-center text-3xl mb-1">
+            <h3 className="font-semibold flex items-center text-3xl mb-1 ">
               {isAnnual && priceAnnual
                 ? priceAnnual?.primaryText
                 : price.primaryText}{" "}
             </h3>
 
             {price.secondaryText && (
-              <span className="font-normal text-muted-foreground text-sm mb-4 h-6">
+              <span className="font-normal text-muted-foreground text-sm pb-4 h-10 line-clamp-2">
                 {isAnnual && priceAnnual
                   ? priceAnnual?.secondaryText
                   : price.secondaryText}
@@ -260,13 +274,8 @@ export const PricingCardButton = React.forwardRef<
 
         if (onClick) {
           setLoading(true);
-          try {
-            await onClick(e);
-          } catch (error) {
-            throw error;
-          } finally {
-            setLoading(false);
-          }
+          await onClick(e);
+          setLoading(false);
         }
       }}
       {...props}

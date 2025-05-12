@@ -7,6 +7,7 @@ import {
   GetEntityParams,
 } from "../../../sdk/customers/entities/entTypes";
 import { getEntityAction } from "../../server/cusActions";
+import { toClientError } from "../clientUtils";
 
 export const useEntity = (entityId?: string, params?: GetEntityParams) => {
   const {
@@ -17,7 +18,7 @@ export const useEntity = (entityId?: string, params?: GetEntityParams) => {
   } = useAutumnContext();
 
   const finalEntityId = entityId || contextEntityId;
-  const [error, setError] = useState<AutumnError | null>(null);
+  const [error, setError] = useState<AutumnClientError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchEntity = async () => {
@@ -42,16 +43,14 @@ export const useEntity = (entityId?: string, params?: GetEntityParams) => {
       error = result.error;
 
       if (error) {
-        console.log("(Autumn) Error fetching entity:", error);
-        setError(error);
+        setError(toClientError(error));
       } else {
         setEntity(data);
         setError(null);
       }
       returnData = data;
     } catch (error) {
-      console.error("(Autumn) Error fetching entity:", error);
-      setError(error as AutumnError);
+      setError(toClientError(error));
     }
     setIsLoading(false);
     return returnData;

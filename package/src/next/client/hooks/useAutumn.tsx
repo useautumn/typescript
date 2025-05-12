@@ -2,15 +2,12 @@ import {
   attachAction,
   cancelAction,
   checkAction,
-  entitledAction,
   getBillingPortalAction,
-  sendEventAction,
   trackAction,
 } from "../../server/genActions";
 
 import { useAutumnContext } from "../AutumnContext";
 import { AttachParams } from "./types";
-import { useCustomer } from "./useCustomer";
 import { fetchPricingTableData, toClientErrorResponse } from "../clientUtils";
 
 export const useAutumn = () => {
@@ -21,8 +18,6 @@ export const useAutumn = () => {
     pricingTableProducts,
     setPricingTableProducts,
   } = useAutumnContext();
-
-  const { customer, isLoading: loading, error, refetch } = useCustomer();
 
   let {
     setProps: setProdChangeDialogProps,

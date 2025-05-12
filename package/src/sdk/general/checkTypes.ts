@@ -1,15 +1,15 @@
 import { UsageModelType } from "../products/prodEnums";
 import { Product } from "../products/prodTypes";
 
+export type CheckFeatureScenario = "usage_limit" | "feature_flag";
+
 export interface CheckFeatureFormattedPreview {
+  scenario: CheckFeatureScenario;
   title: string;
   message: string;
   feature_id: string;
   feature_name: string;
-
   products: Product[];
-  // next_tier: Product | null;
-  // upgrade_product_id: string | null;
 }
 
 export type CheckProductScenario =

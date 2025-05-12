@@ -14,7 +14,7 @@ import {
 
 import { CheckProductFormattedPreview } from "autumn-js";
 import { useAutumn } from "autumn-js/next";
-import { getTexts } from "@/lib/get-texts";
+import { getProductChangeTexts } from "@/lib/autumn/get-product-change-texts";
 
 export interface ProductChangeDialogProps {
   open: boolean;
@@ -57,7 +57,7 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
 
   const { open, setOpen, preview } = params;
   const { items, due_today, error_on_attach } = preview;
-  const { title, message } = getTexts(preview);
+  const { title, message } = getProductChangeTexts(preview);
 
   return (
     <PricingDialog open={open} setOpen={setOpen}>
@@ -125,13 +125,13 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
                     quantity: option.quantity || 0,
                   })),
                 });
+              } else {
+                setOpen(false);
               }
             } catch (error) {
               console.error(error);
-            } finally {
-              setLoading(false);
-              setOpen(false);
             }
+            setLoading(false);
           }}
           disabled={loading}
         >

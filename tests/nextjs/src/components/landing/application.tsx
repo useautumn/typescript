@@ -35,7 +35,7 @@ export default function Application() {
       <div className="border-b border-gray-200 p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <Button
+            {/* <Button
               onClick={async () =>
                 await createEntity({
                   id: "website1",
@@ -66,7 +66,7 @@ export default function Application() {
               }}
             >
               Cancel
-            </Button>
+            </Button> */}
             <h2 className="text-lg font-semibold text-gray-900">
               Feature Access Example
             </h2>

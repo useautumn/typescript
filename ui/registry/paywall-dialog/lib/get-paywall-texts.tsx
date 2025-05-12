@@ -40,21 +40,14 @@ export const getPaywallDialogTexts = (
 
   switch (scenario) {
     case "usage_limit":
-      if (isAddOn) {
-        return {
-          title: title,
-          message: `You have reached the usage limit for ${feature_name}. ${message}`,
-        };
-      } else {
-        return {
-          title: title,
-          message: `You have reached the usage limit for ${feature_name}. ${message}`,
-        };
-      }
+      return {
+        title: title,
+        message: `You have reached the usage limit for ${feature_name}. ${message}`,
+      };
     case "feature_flag":
       return {
-        title: "Feature Unavailable",
-        message: "This feature is not available for your account.",
+        title: title,
+        message: `This feature is not available for your account. ${message}`,
       };
     default:
       return {

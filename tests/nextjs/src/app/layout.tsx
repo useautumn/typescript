@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: "Next.js Autumn App",
   description: "Starter Next.js app with Autumn",
 };
-import { Toaster } from "@/components/ui/sonner";
 import { AutumnProvider } from "autumn-js/next";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export default async function RootLayout({
   children,
@@ -29,14 +29,12 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Toaster />
         <AutumnProvider
-          customerId="123"
-          customerData={{
-            name: "John Doe",
+          authPlugin={{
+            provider: "supabase",
           }}
         >
-          {children}
+          <ClerkProvider>{children}</ClerkProvider>
         </AutumnProvider>
       </body>
     </html>

@@ -12,16 +12,23 @@ import {
 import { CustomerExpandOption } from "../../../sdk/customers/cusEnums";
 import { CreateEntityParams } from "./types";
 import { CreateEntityParams as ServerCreateEntityParams } from "../../../sdk/customers/entities/entTypes";
-import { toClientErrorResponse } from "../clientUtils";
+import { toClientError, toClientErrorResponse } from "../clientUtils";
+import { AutumnClientError } from "../types";
 
 export interface UseCustomerProps {
   expand?: CustomerExpandOption[];
   autoCreate?: boolean;
+  encryptedCustomerId?: string;
+  customerData?: CustomerData;
+  errorOnNotFound?: boolean;
 }
 
 const defaultOptions: UseCustomerProps = {
   expand: undefined,
   autoCreate: true,
+  encryptedCustomerId: undefined,
+  customerData: undefined,
+  errorOnNotFound: true,
 };
 
 // Delete entity
@@ -52,10 +59,20 @@ export const useCustomer = (options?: UseCustomerProps) => {
   }
   const { autoCreate } = finalOptions;
 
-  const { encryptedCustomerId, customerData, customer, setCustomer } =
-    useAutumnContext();
+  const {
+    encryptedCustomerId: contextEncryptedCustomerId,
+    customerData: contextCustomerData,
+    customer,
+    setCustomer,
+  } = useAutumnContext();
 
-  const [error, setError] = useState<AutumnError | null>(null);
+  const encryptedCustomerId =
+    finalOptions.encryptedCustomerId || contextEncryptedCustomerId;
+
+  const customerData = finalOptions.customerData || contextCustomerData;
+  const errorOnNotFound = finalOptions.errorOnNotFound;
+
+  const [error, setError] = useState<AutumnClientError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchCustomer = async () => {
@@ -65,6 +82,7 @@ export const useCustomer = (options?: UseCustomerProps) => {
     try {
       let data: Customer | null = null;
       let error: AutumnError | null = null;
+
       if (autoCreate) {
         const result = await getOrCreateCustomer({
           encryptedCustomerId,
@@ -73,6 +91,7 @@ export const useCustomer = (options?: UseCustomerProps) => {
             expand: finalOptions.expand,
           },
         });
+
         data = result.data;
         error = result.error;
       } else {
@@ -87,17 +106,20 @@ export const useCustomer = (options?: UseCustomerProps) => {
       }
 
       if (error) {
-        console.log("(Autumn) Error fetching customer:", error);
-        setError(error);
+        if (error && error?.code == "no_customer_id" && !errorOnNotFound) {
+        } else {
+          setError(toClientError(error));
+        }
       } else {
         setCustomer(data);
         setError(null);
       }
+
       returnData = data;
     } catch (error) {
-      console.error("(Autumn) Error fetching customer:", error);
-      setError(error as AutumnError);
+      setError(toClientError(error));
     }
+
     setIsLoading(false);
     return returnData;
   };

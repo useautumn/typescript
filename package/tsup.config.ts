@@ -92,7 +92,7 @@ export default defineConfig([
       "react",
       "react/jsx-runtime",
       "react-dom",
-      "@clerk/nextjs",
+      "@clerk/backend",
       "better-auth",
       "@supabase/ssr",
       // /^@clerk.*/,

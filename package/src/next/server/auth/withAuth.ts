@@ -29,7 +29,8 @@ export const withAuth = <
   requireCustomer?: boolean;
 }) => {
   return async (
-    args: Omit<T, "customerId"> & { encryptedCustomerId?: string }
+    args: Omit<T, "customerId"> & { encryptedCustomerId?: string },
+    request?: Request
   ) => {
     let customerId = null;
     let customerData = args.customerData || undefined;
@@ -41,10 +42,12 @@ export const withAuth = <
         authPlugin: authConfig,
         withCustomerData: withCustomerData,
       });
+
       customerId = result?.customerId;
       customerData = result?.customerData || undefined;
     } else {
       let encryptedCustomerId = args.encryptedCustomerId;
+
       customerId = encryptedCustomerId
         ? decryptData(encryptedCustomerId)
         : null;

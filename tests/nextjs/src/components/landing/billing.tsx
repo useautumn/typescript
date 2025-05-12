@@ -10,13 +10,7 @@ export default function CustomerDetailsExample() {
   // const { customer } = useCustomer({
   //   expand: ["invoices"],
   // });
-
-  const [entityId, setEntityId] = useState<string | null>(null);
-  const { entity } = useEntity(entityId || undefined, {
-    expand: ["invoices"],
-  });
-
-  console.log("Entity", entity);
+  const { customer } = useCustomer();
 
   const productId = "pro-example";
 
@@ -41,14 +35,8 @@ export default function CustomerDetailsExample() {
     }
   };
 
-  const trafficEvents = entity?.features["traffic-events"];
-  const credits = entity?.features["credits"];
-
-  const hasLite = entity?.products?.length && entity?.products[0].id === "lite";
-
   return (
     <div className="border border-gray-200 rounded-lg bg-white overflow-hidden flex flex-col">
-      <Button onClick={() => setEntityId("website1")}>Set Entity ID</Button>
       <div className="border-b border-gray-200 p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -72,7 +60,7 @@ export default function CustomerDetailsExample() {
               Customer ID
             </span>
             <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
-              Customer: {entity?.customer_id}, Entity: {entity?.id}
+              Customer: {customer?.id}
             </span>
           </div>
           <div className="flex items-center justify-between py-2 border-b border-gray-200">
@@ -80,7 +68,7 @@ export default function CustomerDetailsExample() {
               Customer Email
             </span>
             <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
-              {entity?.name}
+              {customer?.email}
             </span>
           </div>
 
@@ -88,7 +76,7 @@ export default function CustomerDetailsExample() {
             <span className="text-sm font-medium text-gray-900">
               Chat Messages Remaining
             </span>
-            <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
+            {/* <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
               {trafficEvents?.unlimited
                 ? "Unlimited"
                 : trafficEvents?.balance || 0}
@@ -99,7 +87,7 @@ export default function CustomerDetailsExample() {
             </span>
             <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
               {credits?.unlimited ? "Unlimited" : credits?.balance || 0}
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center justify-between py-2">
@@ -108,18 +96,16 @@ export default function CustomerDetailsExample() {
             </span>
             <span className="text-sm font-medium">
               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                {entity?.products[0]?.name || "Free"}
+                {customer?.products[0]?.name || "Free"}
               </span>
             </span>
           </div>
         </div>
       </div>
       <div className="flex gap-2 p-6 pt-0">
-        {!hasLite && (
-          <Button className="flex-1" variant="main" onClick={upgradeClicked}>
-            Upgrade to Pro
-          </Button>
-        )}
+        <Button className="flex-1" variant="main" onClick={upgradeClicked}>
+          Upgrade to Pro
+        </Button>
         <Button
           className="flex-1"
           variant="main"
