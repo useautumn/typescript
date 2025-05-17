@@ -1,8 +1,15 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.34",
+  "version": "0.0.41",
   "main": "./dist/index.js",
+  "scripts": {
+    "cli": "tsx src/cli/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish-beta": "npm run build && npm publish --tag beta",
+    "build": "rm -rf dist && tsup",
+    "dev": "tsup --watch"
+  },
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -15,13 +22,37 @@
       "types": "./dist/next/index.d.ts",
       "require": "./dist/next/index.js",
       "import": "./dist/next/index.mjs"
+    },
+    "./hono": {
+      "types": "./dist/libraries/backend/hono.d.ts",
+      "require": "./dist/libraries/backend/hono.js",
+      "import": "./dist/libraries/backend/hono.mjs"
+    },
+    "./express": {
+      "types": "./dist/libraries/backend/express.d.ts",
+      "require": "./dist/libraries/backend/express.js",
+      "import": "./dist/libraries/backend/express.mjs"
+    },
+    "./fastify": {
+      "types": "./dist/libraries/backend/fastify.d.ts",
+      "require": "./dist/libraries/backend/fastify.js",
+      "import": "./dist/libraries/backend/fastify.mjs"
+    },
+    "./remix": {
+      "types": "./dist/libraries/backend/remix.d.ts",
+      "require": "./dist/libraries/backend/remix.js",
+      "import": "./dist/libraries/backend/remix.mjs"
+    },
+    "./tanstack": {
+      "types": "./dist/libraries/backend/tanstack.d.ts",
+      "require": "./dist/libraries/backend/tanstack.js",
+      "import": "./dist/libraries/backend/tanstack.mjs"
+    },
+    "./react": {
+      "types": "./dist/libraries/react/index.d.ts",
+      "require": "./dist/libraries/react/index.js",
+      "import": "./dist/libraries/react/index.mjs"
     }
-  },
-  "scripts": {
-    "cli": "tsx src/cli/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsup",
-    "dev": "tsup --watch"
   },
   "keywords": [
     "pricing",
@@ -31,30 +62,32 @@
   "author": "John Yeo",
   "license": "MIT",
   "devDependencies": {
+    "@remix-run/node": "^2.16.6",
+    "@supabase/ssr": "^0.6.1",
+    "@tanstack/react-start": "^1.120.5",
+    "@types/express": "^5.0.1",
     "@types/node": "^22.14.1",
-    "@types/react": "^18.2.0 || ^19.0.0",
-    "@types/react-dom": "^18.2.0 || ^19.0.0",
+    "@types/react": "^18.3.14",
+    "better-auth": "^1.2.7",
+    "express": "^5.1.0",
+    "fastify": "^5.3.3",
+    "hono": "^4.7.9",
+    "next": "^15.2.3",
+    "nodemon": "^3.1.10",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "@supabase/ssr": "^0.6.1",
-    "better-auth": "^1.2.7",
-    "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0"
+    "@tanstack/react-query": "^5.76.1",
+    "react": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "better-auth": {
-      "optional": true
-    },
-    "@supabase/ssr": {
+    "react": {
       "optional": true
     }
   },
   "dependencies": {
-    "async-listen": "^3.1.0",
-    "commander": "^13.1.0",
-    "ora": "^8.2.0"
+    "rou3": "^0.6.1"
   }
 }

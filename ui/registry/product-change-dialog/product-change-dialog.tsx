@@ -12,7 +12,7 @@ import {
   PricingDialogButton,
 } from "@/components/pricing/pricing-dialog";
 
-import { CheckProductFormattedPreview } from "autumn-js";
+import { type CheckProductFormattedPreview } from "autumn-js";
 import { useAutumn } from "autumn-js/next";
 import { getProductChangeTexts } from "@/registry/product-change-dialog/lib/get-product-change-texts";
 
@@ -84,7 +84,7 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
               <QuantityInput
                 key={feature_name}
                 value={quantity ? quantity / billing_units : ""}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const newOptions = [...optionsInput];
                   newOptions[index].quantity =
                     parseInt(e.target.value) * billing_units;
@@ -125,9 +125,8 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
                     quantity: option.quantity || 0,
                   })),
                 });
-              } else {
-                setOpen(false);
               }
+              setOpen(false);
             } catch (error) {
               console.error(error);
             }

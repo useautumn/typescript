@@ -1,4 +1,4 @@
-import { CheckProductFormattedPreview } from "autumn-js";
+import { type CheckProductFormattedPreview } from "autumn-js";
 
 export const getProductChangeTexts = (
   preview: CheckProductFormattedPreview
@@ -18,8 +18,13 @@ export const getProductChangeTexts = (
   switch (scenario) {
     case "scheduled":
       return {
-        title: <p>Scheduled product already exists</p>,
-        message: <p>You already have this product scheduled to start soon.</p>,
+        title: <p>{product_name} product already scheduled</p>,
+        message: (
+          <p>
+            You are currently on product {current_product_name} and are
+            scheduled to start {product_name} on {nextCycleAtStr}.
+          </p>
+        ),
       };
 
     case "active":

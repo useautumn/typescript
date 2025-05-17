@@ -1,4 +1,3 @@
-import { validateCreateCustomer } from "./cusUtils";
 import { Autumn } from "../client";
 import {
   Customer,
@@ -62,7 +61,6 @@ export const createCustomer = async ({
   instance: Autumn;
   params?: CreateCustomerParams;
 }): AutumnPromise<Customer> => {
-  validateCreateCustomer(params || {});
   return instance.post(`/customers?${getExpandStr(params?.expand)}`, params);
 };
 

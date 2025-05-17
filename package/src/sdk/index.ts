@@ -13,3 +13,9 @@ export * from "./products/prodEnums";
 
 export * from "./components/componentTypes";
 export * from "./components/componentMethods";
+
+export * from "./customers/entities/entTypes";
+export * from "./customers/entities/entEnums";
+
+export type { AutumnPromise } from "./response";
+export { toContainerResult } from "./response";

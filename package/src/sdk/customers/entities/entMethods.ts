@@ -44,11 +44,13 @@ export const getEntity = async ({
   entity_id: string;
   params?: GetEntityParams;
 }): AutumnPromise<Entity> => {
-  return instance.get(
+  let res = instance.get(
     `/customers/${customer_id}/entities/${entity_id}?${getExpandStr(
       params?.expand
     )}`
   );
+
+  return res;
 };
 
 export const createEntity = async ({

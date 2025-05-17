@@ -1,4 +1,40 @@
-import { defineConfig } from "tsup";
+import { defineConfig, Options } from "tsup";
+
+const reactConfigs: Options[] = [
+  // Backend
+  {
+    entry: ["src/libraries/backend/**/*.{ts,tsx}"],
+    format: ["cjs", "esm"],
+    dts: true,
+    clean: false, // Don't clean on subsequent builds
+    outDir: "./dist/libraries/backend",
+    external: ["react", "react/jsx-runtime", "react-dom"],
+    bundle: true,
+  },
+
+  // React
+  {
+    entry: ["src/libraries/react/**/*.{ts,tsx}"],
+    format: ["cjs", "esm"],
+    dts: true,
+    clean: false,
+    outDir: "./dist/libraries/react",
+    external: [
+      "react",
+      "react/jsx-runtime",
+      "react-dom",
+      "@tanstack/react-query",
+    ],
+    bundle: true,
+    banner: {
+      js: '"use client";\n',
+    },
+    // esbuildOptions(options) {
+    //   options.platform = "browser";
+    //   options.format = "esm";
+    // },
+  },
+];
 
 export default defineConfig([
   {
@@ -27,14 +63,6 @@ export default defineConfig([
       resolve: true,
     },
   },
-  // {
-  //   entry: ["./src/cli/index.ts"],
-  //   format: ["cjs", "esm"],
-  //   skipNodeModulesBundle: true,
-  //   clean: false,
-  //   outDir: "./dist/cli",
-  //   dts: true,
-  // },
 
   // GLOBAL
   {
@@ -59,6 +87,7 @@ export default defineConfig([
     external: ["react", "react/jsx-runtime", "react-dom"],
     bundle: false,
   },
+  ...reactConfigs,
 
   // React client components
   {
@@ -73,9 +102,6 @@ export default defineConfig([
       js: '"use client";\n',
     },
     esbuildOptions(options) {
-      // options.banner = {
-      //   js: '"use client";',
-      // };
       options.platform = "browser";
       options.format = "esm";
     },
@@ -95,7 +121,6 @@ export default defineConfig([
       "@clerk/backend",
       "better-auth",
       "@supabase/ssr",
-      // /^@clerk.*/,
     ],
     bundle: false,
     banner: {

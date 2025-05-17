@@ -1,7 +1,7 @@
-import { headers, cookies } from "next/headers";
 import { AuthPluginOptions } from "./authPlugin";
 import { createSupabaseClient } from "./supabase-wrapper";
 import { getClerkModule } from "./clerk-wrapper";
+import { getNextHeadersAndCookies } from "./get-next-headers";
 
 export const handleBetterAuth = async (options: AuthPluginOptions) => {
   let betterAuth: any = options.instance;
@@ -11,6 +11,8 @@ export const handleBetterAuth = async (options: AuthPluginOptions) => {
       code: "auth_instance_required",
     };
   }
+
+  const { headers } = await getNextHeadersAndCookies();
 
   if (options.useOrg) {
     try {
@@ -73,6 +75,7 @@ export const handleClerk = async ({
   withCustomerData: boolean;
 }) => {
   const { verifyToken, createClerkClient } = await getClerkModule();
+  const { cookies } = await getNextHeadersAndCookies();
   const cookieStore = await cookies();
   let sessionToken = cookieStore.get("__session")?.value;
 

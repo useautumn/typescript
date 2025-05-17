@@ -44,6 +44,7 @@ export interface Customer {
   fingerprint: string | null;
   stripe_id: string | null;
   env: AppEnv;
+  metadata: Record<string, any>;
 
   products: CustomerProduct[];
   features: Record<string, CustomerFeature>;
@@ -65,6 +66,7 @@ export interface CreateCustomerParams {
   email?: string | null;
   name?: string | null;
   fingerprint?: string | null;
+  metadata?: Record<string, any>;
   expand?: CustomerExpandOption[];
 }
 

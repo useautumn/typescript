@@ -1,4 +1,6 @@
 import { CustomerData } from "../customers/cusTypes";
+import { CheckProductFormattedPreview } from "./checkTypes";
+import { CheckFeatureFormattedPreview } from "./checkTypes";
 
 // Attach
 export interface AttachFeatureOptions {
@@ -17,6 +19,8 @@ export interface AttachParams {
   success_url?: string; // Passed to Stripe
   metadata?: Record<string, string>; // Passed to Stripe
   force_checkout?: boolean; // Default is false -- if set to true, will force the customer to checkout (not allowed for upgrades / downgrades)
+
+  customer_data?: CustomerData;
 }
 
 export interface CancelParams {
@@ -37,17 +41,19 @@ export interface AttachResult {
   product_ids: string[];
   code: string;
   message: string;
+  customer_data?: CustomerData;
 }
 
 // Events
 export interface TrackParams {
   customer_id: string;
-  customer_data?: CustomerData;
   value?: number; // Defaults to 1
 
   feature_id?: string;
   event_name?: string;
   entity_id?: string;
+  customer_data?: CustomerData;
+  idempotency_key?: string;
 }
 
 export interface TrackResult {
@@ -57,6 +63,7 @@ export interface TrackResult {
 
   feature_id?: string; // Feature ID
   event_name?: string; // Event name
+  idempotency_key?: string; // Idempotency key
 }
 
 // Entitled
@@ -93,6 +100,9 @@ export interface CheckResult {
   // Product return values
   product_id?: string; // Product ID
   status?: string; // Status of the product...
+
+  // Preview
+  preview?: CheckProductFormattedPreview | CheckFeatureFormattedPreview;
 }
 
 export interface UsageParams {

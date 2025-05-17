@@ -40,18 +40,19 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
           size="sm"
           className="font-medium shadow transition min-w-20"
           onClick={async () => {
-            if (products.length > 0) {
+            try {
               setLoading(true);
-
-              try {
+              if (products.length > 0) {
                 await attach({
                   productId: products[0].id,
                 });
-              } catch (error) {
-                console.error(error);
-              } finally {
-                setLoading(false);
+              } else {
+                window.open("https://useautumn.com", "_blank");
               }
+            } catch (error) {
+              console.error(error);
+            } finally {
+              setLoading(false);
             }
           }}
         >

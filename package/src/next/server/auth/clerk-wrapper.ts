@@ -7,6 +7,7 @@ export async function getClerkModule() {
     try {
       clerkModule = await import(
         /* webpackIgnore: true */
+        // @ts-ignore
         "@clerk/backend"
       );
     } catch (e) {

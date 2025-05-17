@@ -9,6 +9,7 @@ import {
 import { useAutumnContext } from "../AutumnContext";
 import { AttachParams } from "./types";
 import { fetchPricingTableData, toClientErrorResponse } from "../clientUtils";
+import { TrackParams } from "../../../libraries/react/client/types/clientGenTypes";
 
 export const useAutumn = () => {
   const {
@@ -223,20 +224,15 @@ export const useAutumn = () => {
     return res;
   };
 
-  const track = async ({
-    featureId,
-    entityId,
-    value,
-  }: {
-    featureId: string;
-    entityId?: string;
-    value?: number;
-  }) => {
+  const track = async (params: TrackParams) => {
+    const { featureId, entityId, value, eventName, idempotencyKey } = params;
     const res = await trackAction({
       encryptedCustomerId,
       featureId,
       entityId,
       value,
+      eventName,
+      idempotencyKey,
     });
 
     if (res.error) {

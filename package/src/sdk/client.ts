@@ -1,6 +1,6 @@
 import { customerMethods } from "./customers/cusMethods";
 import { entityMethods } from "./customers/entities/entMethods";
-import { AutumnError } from "./error";
+
 import {
   handleAttach,
   handleCancel,
@@ -18,8 +18,10 @@ import {
   UsageParams,
 } from "./general/genTypes";
 import { productMethods } from "./products/prodMethods";
+import { toContainerResult } from "./response";
 import { staticWrapper } from "./utils";
 
+const LATEST_API_VERSION = "1.2";
 export class Autumn {
   private readonly secretKey: string | undefined;
   private readonly publishableKey: string | undefined;
@@ -27,17 +29,16 @@ export class Autumn {
   private headers: Record<string, string>;
   private url: string;
 
-  constructor(
-    options: {
-      secretKey?: string;
-      publishableKey?: string;
-      url?: string;
-    } = {}
-  ) {
+  constructor(options?: {
+    secretKey?: string;
+    publishableKey?: string;
+    url?: string;
+    version?: string;
+  }) {
     try {
-      this.secretKey = options.secretKey || process.env.AUTUMN_SECRET_KEY;
+      this.secretKey = options?.secretKey || process.env.AUTUMN_SECRET_KEY;
       this.publishableKey =
-        options.publishableKey || process.env.AUTUMN_PUBLISHABLE_KEY;
+        options?.publishableKey || process.env.AUTUMN_PUBLISHABLE_KEY;
     } catch (error) {}
 
     if (!this.secretKey && !this.publishableKey) {
@@ -49,7 +50,10 @@ export class Autumn {
       "Content-Type": "application/json",
     };
 
-    this.url = options.url || "https://api.useautumn.com/v1";
+    let version = options?.version || LATEST_API_VERSION;
+    this.headers["x-api-version"] = version;
+
+    this.url = options?.url || "https://api.useautumn.com/v1";
     this.level = this.secretKey ? "secret" : "publishable";
   }
 
@@ -57,52 +61,12 @@ export class Autumn {
     return this.level;
   }
 
-  private async handleResponse(response: Response) {
-    if (response.status < 200 || response.status >= 300) {
-      let error: any;
-      try {
-        error = await response.json();
-      } catch (error) {
-        return {
-          data: null,
-          error: new AutumnError({
-            message: "Something went wrong",
-            code: "internal_error",
-          }),
-        };
-      }
-
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: error.code,
-        }),
-      };
-    }
-
-    try {
-      return {
-        data: await response.json(),
-        error: null,
-      };
-    } catch (error) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: "Failed to parse Autumn API response",
-          code: "internal_error",
-        }),
-      };
-    }
-  }
-
   async get(path: string) {
     const response = await fetch(`${this.url}${path}`, {
       headers: this.headers,
     });
 
-    return this.handleResponse(response);
+    return toContainerResult(response);
   }
 
   async post(path: string, body: any) {
@@ -112,7 +76,7 @@ export class Autumn {
       body: JSON.stringify(body),
     });
 
-    return this.handleResponse(response);
+    return toContainerResult(response);
   }
 
   async delete(path: string) {
@@ -120,7 +84,7 @@ export class Autumn {
       method: "DELETE",
       headers: this.headers,
     });
-    return this.handleResponse(response);
+    return toContainerResult(response);
   }
 
   static customers = customerMethods();

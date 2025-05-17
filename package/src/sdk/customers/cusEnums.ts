@@ -5,4 +5,4 @@ export enum ProductStatus {
   Scheduled = "scheduled",
 }
 
-export type CustomerExpandOption = "invoices";
+export type CustomerExpandOption = "invoices" | "rewards" | "trials_used";

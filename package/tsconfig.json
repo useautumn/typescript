@@ -5,8 +5,8 @@
     "esModuleInterop": true,
     "strictNullChecks": true,
     "target": "ES2022",
-    "moduleResolution": "Node10",
-    "module": "CommonJS",
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
     "declaration": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -14,6 +14,7 @@
     "jsx": "react-jsx",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "skipLibCheck": true,
+
     "baseUrl": ".",
     "paths": {
       // "@sdk/*": ["src/sdk/*"],

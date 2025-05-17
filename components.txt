@@ -1,0 +1,3 @@
+npx shadcn@latest add https://ui.useautumn.com/classic/pricing-table.json
+npx shadcn@latest add https://ui.useautumn.com/classic/product-change-dialog.json
+npx shadcn@latest add https://ui.useautumn.com/classic/paywall-dialog.json

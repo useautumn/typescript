@@ -10,7 +10,9 @@ npm run build
 
 npm version patch
 
-npm publish
-
-
+if [ "$1" = "--tag" ] && [ "$2" = "beta" ]; then
+  npm publish --tag beta
+else
+  npm publish
+fi
 

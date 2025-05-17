@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getNextHeadersAndCookies } from "./get-next-headers";
 
 export async function createSupabaseClient() {
   let createServerClient;
@@ -13,6 +13,8 @@ export async function createSupabaseClient() {
       code: "failed_to_import_supabase_ssr",
     };
   }
+
+  const { cookies } = await getNextHeadersAndCookies();
 
   // 2. Try to create the client
   try {

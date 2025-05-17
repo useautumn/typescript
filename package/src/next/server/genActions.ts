@@ -99,11 +99,15 @@ export const trackAction = withAuth({
     featureId,
     entityId,
     value,
+    eventName,
+    idempotencyKey,
   }: {
     customerId: string;
-    featureId: string;
+    featureId?: string;
     entityId?: string;
     value?: number;
+    eventName?: string;
+    idempotencyKey?: string;
   }) => {
     const autumn = createAutumnClient();
     let res = await autumn.track({
@@ -111,6 +115,8 @@ export const trackAction = withAuth({
       feature_id: featureId,
       entity_id: entityId,
       value,
+      event_name: eventName,
+      idempotency_key: idempotencyKey,
     });
 
     return toServerResponse(res);
