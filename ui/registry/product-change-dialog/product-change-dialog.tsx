@@ -12,9 +12,9 @@ import {
   PricingDialogButton,
 } from "@/components/pricing/pricing-dialog";
 
-import { type CheckProductFormattedPreview } from "autumn-js";
-import { useAutumn } from "autumn-js/next";
 import { getProductChangeTexts } from "@/registry/product-change-dialog/lib/get-product-change-texts";
+import { type CheckProductFormattedPreview } from "autumn-js";
+import { useAutumn } from "autumn-js/react";
 
 export interface ProductChangeDialogProps {
   open: boolean;

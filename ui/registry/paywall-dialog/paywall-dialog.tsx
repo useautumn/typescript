@@ -8,10 +8,11 @@ import {
   PricingDialogTitle,
   Information,
 } from "@/components/pricing/pricing-dialog";
-import { CheckFeatureFormattedPreview } from "autumn-js";
-import { useAutumn } from "autumn-js/next";
-import { getPaywallDialogTexts } from "@/registry/paywall-dialog/lib/get-paywall-texts";
 import { Loader2 } from "lucide-react";
+
+import { getPaywallDialogTexts } from "@/registry/paywall-dialog/lib/get-paywall-texts";
+import { type CheckFeatureFormattedPreview } from "autumn-js";
+import { useAutumn } from "autumn-js/react";
 
 export interface PaywallDialogProps {
   open: boolean;

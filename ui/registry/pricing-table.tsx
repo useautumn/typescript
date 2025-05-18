@@ -2,8 +2,9 @@ import {
   PricingCard,
   PricingTable as PricecnPricingTable,
 } from "@/components/pricing/pricing-table";
-import { useAutumn, usePricingTable } from "autumn-js/next";
 import { Loader2 } from "lucide-react";
+
+import { useAutumn, usePricingTable } from "autumn-js/react";
 
 export const PricingTable = () => {
   const { attach } = useAutumn();
