@@ -1,4 +1,5 @@
 import { CustomerData } from "../customers/cusTypes";
+import { EntityData } from "../customers/entities/entTypes";
 import { CheckProductFormattedPreview } from "./checkTypes";
 import { CheckFeatureFormattedPreview } from "./checkTypes";
 
@@ -21,6 +22,7 @@ export interface AttachParams {
   force_checkout?: boolean; // Default is false -- if set to true, will force the customer to checkout (not allowed for upgrades / downgrades)
 
   customer_data?: CustomerData;
+  entity_data?: EntityData;
 }
 
 export interface CancelParams {
@@ -54,6 +56,7 @@ export interface TrackParams {
   entity_id?: string;
   customer_data?: CustomerData;
   idempotency_key?: string;
+  entity_data?: EntityData;
 }
 
 export interface TrackResult {
@@ -63,7 +66,6 @@ export interface TrackResult {
 
   feature_id?: string; // Feature ID
   event_name?: string; // Event name
-  idempotency_key?: string; // Idempotency key
 }
 
 // Entitled
@@ -76,14 +78,7 @@ export interface CheckParams {
   required_quantity?: number;
   send_event?: boolean;
   with_preview?: "raw" | "formatted";
-}
-
-export interface EntitledBalance {
-  feature_id: string;
-  unlimited: boolean;
-  balance: number | null;
-  usage_allowed: boolean;
-  required?: number | null;
+  entity_data?: EntityData;
 }
 
 export interface CheckResult {
@@ -103,6 +98,14 @@ export interface CheckResult {
 
   // Preview
   preview?: CheckProductFormattedPreview | CheckFeatureFormattedPreview;
+}
+
+export interface EntitledBalance {
+  feature_id: string;
+  unlimited: boolean;
+  balance: number | null;
+  usage_allowed: boolean;
+  required?: number | null;
 }
 
 export interface UsageParams {

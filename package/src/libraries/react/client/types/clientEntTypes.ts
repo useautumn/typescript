@@ -7,3 +7,8 @@ export interface CreateEntityParams {
 export interface GetEntityParams {
   expand?: string[];
 }
+
+export interface EntityDataParams {
+  name?: string;
+  featureId: string;
+}

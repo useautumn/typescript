@@ -33,8 +33,9 @@ export const withAuth = <T extends {}>({
     searchParams?: Record<string, string>;
   }) => {
     let authResult = await getCustomer();
+    let customerId = authResult?.customerId;
 
-    if (!authResult && requireCustomer) {
+    if (!customerId && requireCustomer) {
       if (body?.errorOnNotFound === false) {
         return toBackendError({
           path,
@@ -58,7 +59,7 @@ export const withAuth = <T extends {}>({
       let res = await fn({
         body,
         autumn,
-        customer_id: authResult?.customerId || "",
+        customer_id: customerId!,
         customer_data: cusData,
         pathParams,
         searchParams,

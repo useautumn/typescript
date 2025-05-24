@@ -1,41 +1,51 @@
-import { BillingPortalParams } from "src/sdk";
+import { BillingPortalParams, CustomerData, EntityData } from "../../sdk";
 import { createAutumnClient } from "../server/cusActions";
 import { withAuth } from "./auth/withAuth";
 import { AttachFeatureOptions } from "src/sdk/general/genTypes";
 import { toServerResponse } from "./utils";
+import { EntityDataParams } from "../../libraries/react/client/types/clientEntTypes";
 
 export const attachAction = withAuth({
   fn: async ({
     customerId,
+    customerData,
     productId,
     entityId,
     options,
     successUrl,
     forceCheckout,
     metadata,
+    entityData,
   }: {
     customerId: string;
+    customerData?: CustomerData;
     productId: string;
     entityId?: string;
     successUrl?: string;
     options?: AttachFeatureOptions[];
     forceCheckout?: boolean;
     metadata?: Record<string, string>;
+    entityData?: EntityDataParams;
   }) => {
     const autumn = createAutumnClient();
 
     let res = await autumn.attach({
       customer_id: customerId,
+      customer_data: customerData,
       product_id: productId,
-      entity_id: entityId,
       success_url: successUrl,
       options,
       force_checkout: forceCheckout,
       metadata,
+      entity_id: entityId,
+      entity_data: entityData
+        ? ({ ...entityData, feature_id: entityData.featureId } as EntityData)
+        : undefined,
     });
 
     return toServerResponse(res);
   },
+  withCustomerData: true,
 });
 
 export const cancelAction = withAuth({
@@ -62,20 +72,24 @@ export const cancelAction = withAuth({
 export const checkAction = withAuth({
   fn: async ({
     customerId,
+    customerData,
     featureId,
     productId,
     entityId,
     requiredQuantity,
     sendEvent,
     withPreview,
+    entityData,
   }: {
     customerId: string;
+    customerData?: CustomerData;
     featureId?: string;
     productId?: string;
     entityId?: string;
     requiredQuantity?: number;
     sendEvent?: boolean;
     withPreview?: "raw" | "formatted";
+    entityData?: EntityDataParams;
   }) => {
     const autumn = createAutumnClient();
 
@@ -87,10 +101,15 @@ export const checkAction = withAuth({
       required_quantity: requiredQuantity,
       send_event: sendEvent,
       with_preview: withPreview,
+      customer_data: customerData,
+      entity_data: entityData
+        ? ({ ...entityData, feature_id: entityData.featureId } as EntityData)
+        : undefined,
     });
 
     return toServerResponse(res);
   },
+  withCustomerData: true,
 });
 
 export const trackAction = withAuth({
@@ -101,13 +120,17 @@ export const trackAction = withAuth({
     value,
     eventName,
     idempotencyKey,
+    customerData,
+    entityData,
   }: {
     customerId: string;
+    customerData?: CustomerData;
     featureId?: string;
     entityId?: string;
     value?: number;
     eventName?: string;
     idempotencyKey?: string;
+    entityData?: EntityDataParams;
   }) => {
     const autumn = createAutumnClient();
     let res = await autumn.track({
@@ -117,10 +140,15 @@ export const trackAction = withAuth({
       value,
       event_name: eventName,
       idempotency_key: idempotencyKey,
+      customer_data: customerData,
+      entity_data: entityData
+        ? ({ ...entityData, feature_id: entityData.featureId } as EntityData)
+        : undefined,
     });
 
     return toServerResponse(res);
   },
+  withCustomerData: true,
 });
 
 export const getBillingPortalAction = withAuth({

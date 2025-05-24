@@ -10,6 +10,7 @@ import { useAutumnContext } from "../AutumnContext";
 import { AttachParams } from "./types";
 import { fetchPricingTableData, toClientErrorResponse } from "../clientUtils";
 import { TrackParams } from "../../../libraries/react/client/types/clientGenTypes";
+import { EntityDataParams } from "../../../libraries/react/client/types/clientEntTypes";
 
 export const useAutumn = () => {
   const {
@@ -39,6 +40,7 @@ export const useAutumn = () => {
     forceCheckout,
     metadata,
     callback,
+    entityData,
   }: AttachParams) => {
     const attachWithoutDialog = async (options?: any) => {
       try {
@@ -49,6 +51,7 @@ export const useAutumn = () => {
           successUrl,
           forceCheckout,
           metadata,
+          entityData,
         });
       } catch (error) {
         return toClientErrorResponse(error);
@@ -93,6 +96,7 @@ export const useAutumn = () => {
     metadata,
     dialog,
     callback,
+    entityData,
   }: AttachParams) => {
     if (dialog) {
       setProdChangeComponent(dialog);
@@ -104,6 +108,7 @@ export const useAutumn = () => {
         forceCheckout,
         metadata,
         callback,
+        entityData,
       });
     }
 
@@ -121,6 +126,7 @@ export const useAutumn = () => {
       successUrl,
       forceCheckout,
       metadata,
+      entityData,
     });
 
     if (result.error) {
@@ -182,6 +188,7 @@ export const useAutumn = () => {
     sendEvent,
     withPreview,
     dialog,
+    entityData,
   }: {
     featureId?: string;
     productId?: string;
@@ -190,6 +197,7 @@ export const useAutumn = () => {
     sendEvent?: boolean;
     withPreview?: "formatted" | "raw";
     dialog?: (data: any) => JSX.Element | React.ReactNode;
+    entityData?: EntityDataParams;
   }) => {
     if (dialog) {
       setPaywallComponent(dialog);
@@ -203,6 +211,7 @@ export const useAutumn = () => {
       requiredQuantity,
       sendEvent,
       withPreview: dialog ? "formatted" : withPreview,
+      entityData,
     });
 
     if (res.error) {
@@ -225,7 +234,14 @@ export const useAutumn = () => {
   };
 
   const track = async (params: TrackParams) => {
-    const { featureId, entityId, value, eventName, idempotencyKey } = params;
+    const {
+      featureId,
+      entityId,
+      value,
+      eventName,
+      idempotencyKey,
+      entityData,
+    } = params;
     const res = await trackAction({
       encryptedCustomerId,
       featureId,
@@ -233,6 +249,7 @@ export const useAutumn = () => {
       value,
       eventName,
       idempotencyKey,
+      entityData,
     });
 
     if (res.error) {

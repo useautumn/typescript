@@ -29,3 +29,8 @@ export interface Entity {
   features: Record<string, CustomerFeature>;
   invoices?: CustomerInvoice[];
 }
+
+export interface EntityData {
+  name?: string;
+  feature_id: string;
+}

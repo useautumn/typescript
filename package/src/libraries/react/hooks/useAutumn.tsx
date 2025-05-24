@@ -37,11 +37,12 @@ export const useAutumn = () => {
       return await attach(rest);
     };
 
-    const { productId, entityId } = params;
+    const { productId, entityId, entityData } = params;
 
     const checkRes = await client.check({
       productId,
       entityId,
+      entityData,
       withPreview: "formatted",
     });
 
@@ -73,19 +74,13 @@ export const useAutumn = () => {
       metadata,
       dialog,
       callback,
+      entityData,
     } = params;
 
     if (dialog) {
       setProdChangeComponent(dialog);
 
-      return await attachWithDialog({
-        productId,
-        entityId,
-        successUrl,
-        forceCheckout,
-        metadata,
-        callback,
-      });
+      return await attachWithDialog(params);
     }
 
     const result = await client.attach({
@@ -97,6 +92,7 @@ export const useAutumn = () => {
       options,
       dialog,
       callback,
+      entityData,
     });
 
     if (result.error) {

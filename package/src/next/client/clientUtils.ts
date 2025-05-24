@@ -19,7 +19,7 @@ export const toClientErrorResponse = (error: any) => {
   };
 };
 
-export const toClientError = (error: any) => {
+export const toClientError = (error: any, log = true) => {
   let msg = "Unknown error";
   let code = "unknown";
   if (error?.message) {
@@ -28,7 +28,9 @@ export const toClientError = (error: any) => {
   if (error?.code) {
     code = error.code;
   }
-  console.error("Autumn Error: ", msg);
+  if (log) {
+    console.error("Autumn Error: ", msg);
+  }
   return new AutumnClientError({ message: msg, code });
 };
 

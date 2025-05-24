@@ -43,7 +43,7 @@ export const useEntity = (entityId?: string, params?: GetEntityParams) => {
       error = result.error;
 
       if (error) {
-        setError(toClientError(error));
+        setError(toClientError(error, false));
       } else {
         setEntity(data);
         setError(null);

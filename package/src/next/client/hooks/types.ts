@@ -1,4 +1,5 @@
 import React from "react";
+import { EntityDataParams } from "../../../libraries/react/client/types/clientEntTypes";
 
 export interface AttachParams {
   productId: string;
@@ -14,6 +15,7 @@ export interface AttachParams {
 
   callback?: () => Promise<void>;
   withPreview?: "formatted" | "raw";
+  entityData?: EntityDataParams;
 }
 
 export interface CreateEntityParams {

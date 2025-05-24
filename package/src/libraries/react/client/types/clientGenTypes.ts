@@ -1,3 +1,5 @@
+import { EntityDataParams } from "./clientEntTypes";
+
 // Attach
 export interface AttachFeatureOptions {
   featureId: string;
@@ -15,6 +17,7 @@ export interface AttachParams {
   forceCheckout?: boolean; // Default is false -- if set to true, will force the customer to checkout (not allowed for upgrades / downgrades)
   dialog?: (data: any) => JSX.Element | React.ReactNode;
   callback?: () => Promise<void> | void;
+  entityData?: EntityDataParams;
 }
 
 export interface CancelParams {
@@ -31,6 +34,7 @@ export interface CheckParams {
   sendEvent?: boolean;
   withPreview?: "formatted" | "raw";
   dialog?: (data: any) => JSX.Element | React.ReactNode;
+  entityData?: EntityDataParams;
 }
 
 export interface TrackParams {
@@ -39,6 +43,7 @@ export interface TrackParams {
   entityId?: string;
   value?: number;
   idempotencyKey?: string;
+  entityData?: EntityDataParams;
 }
 
 export interface OpenBillingPortalParams {

@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.41",
+  "version": "0.0.43",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -10,6 +10,7 @@
     "build": "rm -rf dist && tsup",
     "dev": "tsup --watch"
   },
+  
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {

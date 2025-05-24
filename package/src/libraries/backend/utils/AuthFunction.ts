@@ -1,5 +1,5 @@
 export type AuthResult = Promise<{
-  customerId: string;
+  customerId?: string;
   customerData?: {
     name?: string;
     email?: string;

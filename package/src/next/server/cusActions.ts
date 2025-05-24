@@ -67,6 +67,7 @@ export const getEntityAction = withAuth({
     const autumn = createAutumnClient();
 
     const result = await autumn.entities.get(customerId, entityId, params);
+
     return toServerResponse(result);
   },
 });

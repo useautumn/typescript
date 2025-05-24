@@ -108,7 +108,7 @@ export const useCustomer = (options?: UseCustomerProps) => {
       if (error) {
         if (error && error?.code == "no_customer_id" && !errorOnNotFound) {
         } else {
-          setError(toClientError(error));
+          setError(toClientError(error, false));
         }
       } else {
         setCustomer(data);
