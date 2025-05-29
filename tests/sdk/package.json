@@ -15,7 +15,6 @@
     "tsx": "^4.19.3"
   },
   "dependencies": {
-    "autumn-js": "^0.0.29",
     "typescript": "^5.8.3"
   }
 }

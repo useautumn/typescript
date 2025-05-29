@@ -13,7 +13,7 @@ export default function Home() {
         <Intro />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* <Application /> */}
-          {/* <CustomerDetailsExample /> */}
+          <CustomerDetailsExample />
         </div>
       </div>
     </React.Fragment>

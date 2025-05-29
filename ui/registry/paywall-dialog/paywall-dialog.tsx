@@ -22,7 +22,7 @@ export interface PaywallDialogProps {
 
 export default function PaywallDialog(params?: PaywallDialogProps) {
   const { attach } = useAutumn();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   if (!params || !params.preview) {
     return <></>;
@@ -41,20 +41,9 @@ export default function PaywallDialog(params?: PaywallDialogProps) {
           size="sm"
           className="font-medium shadow transition min-w-20"
           onClick={async () => {
-            try {
-              setLoading(true);
-              if (products.length > 0) {
-                await attach({
-                  productId: products[0].id,
-                });
-              } else {
-                window.open("https://useautumn.com", "_blank");
-              }
-            } catch (error) {
-              console.error(error);
-            } finally {
-              setLoading(false);
-            }
+            await attach({
+              productId: products[0].id,
+            });
           }}
         >
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

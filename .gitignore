@@ -13,3 +13,6 @@ dist/
 
 .DS_Store
 new
+
+# ignore any .next folder in any directory
+**/.next/

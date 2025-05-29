@@ -10,6 +10,7 @@ export type AutumnRequestHandler = (req: any, res: any, next: any) => void;
 
 export type AutumnHandlerOptions = {
   identify: (req: any) => AuthResult;
+  autumn?: (req: any) => Autumn | Autumn;
   version?: string;
 };
 
@@ -47,8 +48,13 @@ export const autumnHandler = (
       }
 
       try {
+        let autumnClient =
+          typeof options?.autumn === "function"
+            ? options.autumn(req)
+            : options?.autumn || autumn;
+
         let result = await handler({
-          autumn,
+          autumn: autumnClient,
           body,
           path: req.path,
           getCustomer: async () => {

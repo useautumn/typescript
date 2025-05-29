@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 import { ClerkProvider } from "@clerk/nextjs";
 import { createClient } from "@/lib/supabase/client";
-import { AutumnProvider } from "autumn-js/react";
+import { AutumnProvider } from "autumn-js/next";
 
 export default async function RootLayout({
   children,
@@ -32,7 +32,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AutumnProvider backendUrl="http://localhost:3001">
+        <AutumnProvider customerId="123">
           <ClerkProvider>{children}</ClerkProvider>
         </AutumnProvider>
       </body>

@@ -1,10 +1,16 @@
-import { CustomerFeature, CustomerInvoice, CustomerProduct } from "../cusTypes";
+import {
+  CustomerData,
+  CustomerFeature,
+  CustomerInvoice,
+  CustomerProduct,
+} from "../cusTypes";
 import { EntityExpandOption } from "./entEnums";
 
 export interface CreateEntityParams {
   id: string;
   name: string;
   feature_id: string;
+  customer_data?: CustomerData;
 }
 
 export interface CreateEntityResult {

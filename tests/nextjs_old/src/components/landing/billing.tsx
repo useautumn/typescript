@@ -3,11 +3,12 @@
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
-import { useAutumn, useCustomer } from "autumn-js/react";
+import { useAutumn, useCustomer, useEntity } from "autumn-js/next";
 
 export default function CustomerDetailsExample() {
-  const { attach, openBillingPortal } = useAutumn();
+  const { attach, openBillingPortal, check } = useAutumn();
   const { customer } = useCustomer();
+  const { entity } = useEntity("test");
 
   const productId = "pro-example";
 
@@ -24,9 +25,18 @@ export default function CustomerDetailsExample() {
 
   const manageBillingClicked = async () => {
     try {
-      await openBillingPortal({
-        returnUrl: "https://app.useautumn.com",
+      const result = await check({
+        featureId: "credits",
+        entityId: "test-entity2",
+        entityData: {
+          name: "My Entity",
+          featureId: "website",
+        },
       });
+      console.log(result);
+      // await openBillingPortal({
+      //   returnUrl: "https://app.useautumn.com",
+      // });
     } catch (error: any) {
       toast.error(`${error.message}`);
     }

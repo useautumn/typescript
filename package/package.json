@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.44",
+  "version": "0.0.47",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -92,13 +92,27 @@
   },
   "typesVersions": {
     "*": {
-      "next": ["./dist/next/index.d.ts"],
-      "hono": ["./dist/libraries/backend/hono.d.ts"],
-      "express": ["./dist/libraries/backend/express.d.ts"],
-      "fastify": ["./dist/libraries/backend/fastify.d.ts"],
-      "remix": ["./dist/libraries/backend/remix.d.ts"],
-      "tanstack": ["./dist/libraries/backend/tanstack.d.ts"],
-      "react": ["./dist/libraries/react/index.d.ts"]
+      "next": [
+        "./dist/next/index.d.ts"
+      ],
+      "hono": [
+        "./dist/libraries/backend/hono.d.ts"
+      ],
+      "express": [
+        "./dist/libraries/backend/express.d.ts"
+      ],
+      "fastify": [
+        "./dist/libraries/backend/fastify.d.ts"
+      ],
+      "remix": [
+        "./dist/libraries/backend/remix.d.ts"
+      ],
+      "tanstack": [
+        "./dist/libraries/backend/tanstack.d.ts"
+      ],
+      "react": [
+        "./dist/libraries/react/index.d.ts"
+      ]
     }
   }
 }

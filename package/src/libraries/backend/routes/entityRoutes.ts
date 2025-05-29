@@ -1,6 +1,11 @@
 import { RouterContext } from "rou3";
 import { addRoute } from "rou3";
-import { Autumn, CreateEntityParams, GetEntityParams } from "../../../sdk";
+import {
+  Autumn,
+  CreateEntityParams,
+  CustomerData,
+  GetEntityParams,
+} from "../../../sdk";
 import { withAuth } from "../utils/withAuth";
 
 const createEntityHandler = withAuth({

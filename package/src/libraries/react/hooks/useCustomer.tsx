@@ -1,19 +1,17 @@
 import { useAutumnContext } from "../AutumnContext";
 import { useEffect } from "react";
 import { UseCustomerParams } from "./useCustomerProvider";
-import {
-  Customer,
-  AutumnError,
-  CreateEntityParams,
-  AutumnPromise,
-  Entity,
-} from "../../../sdk";
+import { Customer, AutumnError, AutumnPromise, Entity } from "../../../sdk";
+import { CreateEntityParams } from "../client/types/clientEntTypes";
 
 interface UseCustomerResult {
   customer: Customer | null;
   isLoading: boolean;
   error: AutumnError | null;
   refetch: () => Promise<void>;
+  createEntity: (
+    params: CreateEntityParams | CreateEntityParams[]
+  ) => AutumnPromise<Entity | Entity[]>;
 }
 
 export const useCustomer = (params?: UseCustomerParams) => {
