@@ -9,6 +9,7 @@ import {
 } from "../../../sdk";
 import { BASE_PATH } from "../constants";
 import { addEntityRoutes } from "./entityRoutes";
+import { addReferralRoutes } from "./referralRoutes";
 
 type RouteData = {
   handler: any;
@@ -80,6 +81,8 @@ export const createRouterWithOptions = ({ autumn }: { autumn: Autumn }) => {
   addGenRoutes(router);
 
   addEntityRoutes(router);
+
+  addReferralRoutes(router);
 
   // Add /api/autumn prefix to all routes
   return router;

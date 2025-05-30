@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import { AutumnError, Customer, PricingTableProduct } from "../../sdk";
+import { AutumnError, PricingTableProduct } from "../../sdk";
 import { AutumnClient } from "./client/ReactAutumnClient";
 import { EntityProvider } from "./hooks/useEntityProvider";
 

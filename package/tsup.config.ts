@@ -57,6 +57,7 @@ export default defineConfig([
         customers: "src/sdk/customers/cusTypes.ts",
         entities: "src/sdk/customers/entities/entTypes.ts",
         products: "src/sdk/products/prodTypes.ts",
+        referrals: "src/sdk/referrals/referralTypes.ts",
         index: "src/sdk/index.ts", // Main types will go to index.d.ts
       },
       // This ensures .d.ts files are generated separately

@@ -18,6 +18,7 @@ import {
   UsageParams,
 } from "./general/genTypes";
 import { productMethods } from "./products/prodMethods";
+import { referralMethods } from "./referrals/referralMethods";
 import { toContainerResult } from "./response";
 import { staticWrapper } from "./utils";
 
@@ -90,10 +91,13 @@ export class Autumn {
   static customers = customerMethods();
   static products = productMethods();
   static entities = entityMethods();
+  static referrals = referralMethods();
 
   customers = customerMethods(this);
   products = productMethods(this);
   entities = entityMethods(this);
+  referrals = referralMethods(this);
+
   static attach = (params: AttachParams) =>
     staticWrapper(handleAttach, undefined, { params });
   static usage = (params: UsageParams) =>

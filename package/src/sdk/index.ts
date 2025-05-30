@@ -17,5 +17,7 @@ export * from "./components/componentMethods";
 export * from "./customers/entities/entTypes";
 export * from "./customers/entities/entEnums";
 
+export * from "./referrals/referralTypes";
+
 export type { AutumnPromise } from "./response";
 export { toContainerResult } from "./response";

@@ -156,28 +156,6 @@ export const useCustomer = (options?: UseCustomerProps) => {
     return result;
   };
 
-  const generateReferralCode = async (programId: string) => {
-    const result = await generateReferralCodeAction({
-      encryptedCustomerId,
-      programId,
-    });
-    if (result.error) {
-      return toClientErrorResponse(result.error);
-    }
-    return result;
-  };
-
-  const redeemReferralCode = async (code: string) => {
-    const result = await redeemReferralCodeAction({
-      code,
-      encryptedCustomerId,
-    });
-    if (result.error) {
-      return toClientErrorResponse(result.error);
-    }
-    return result;
-  };
-
   useEffect(() => {
     fetchCustomer();
   }, [encryptedCustomerId]);
@@ -190,7 +168,5 @@ export const useCustomer = (options?: UseCustomerProps) => {
     createEntity,
     deleteEntity: (entityId: string) =>
       deleteEntity({ encryptedCustomerId, entityId }),
-    generateReferralCode,
-    redeemReferralCode,
   };
 };

@@ -174,7 +174,7 @@ export const generateReferralCodeAction = withAuth({
     programId: string;
   }) => {
     const autumn = createAutumnClient();
-    let result = await autumn.customers.generateReferralCode({
+    let result = await autumn.referrals.createCode({
       customer_id: customerId,
       program_id: programId,
     });
@@ -185,7 +185,7 @@ export const generateReferralCodeAction = withAuth({
 export const redeemReferralCodeAction = withAuth({
   fn: async ({ code, customerId }: { code: string; customerId: string }) => {
     const autumn = createAutumnClient();
-    let result = await autumn.customers.redeemReferralCode({
+    let result = await autumn.referrals.redeemCode({
       code,
       customer_id: customerId,
     });

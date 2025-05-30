@@ -18,6 +18,7 @@ import {
   openBillingPortalMethod,
   trackMethod,
 } from "./clientGenMethods";
+import { redeemCode, createCode } from "./clientReferralMethods";
 
 export interface ErrorResponse {
   message: string;
@@ -134,5 +135,10 @@ export class AutumnClient {
     create: createEntityMethod.bind(this),
     get: getEntityMethod.bind(this),
     delete: deleteEntityMethod.bind(this),
+  };
+
+  referrals = {
+    createCode: createCode.bind(this),
+    redeemCode: redeemCode.bind(this),
   };
 }

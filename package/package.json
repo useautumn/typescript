@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.47",
+  "version": "0.0.49",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -88,7 +88,8 @@
     }
   },
   "dependencies": {
-    "rou3": "^0.6.1"
+    "rou3": "^0.6.1",
+    "swr": "^2.3.3"
   },
   "typesVersions": {
     "*": {

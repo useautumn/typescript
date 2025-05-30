@@ -1,7 +1,4 @@
-import {
-  CreateEntityParams,
-  GetEntityParams,
-} from "src/sdk/customers/entities/entTypes";
+import { CreateEntityParams } from "../../sdk/customers/entities/entTypes";
 import {
   Autumn,
   CreateCustomerParams,
@@ -10,6 +7,7 @@ import {
 } from "../../sdk";
 import { withAuth } from "./auth/withAuth";
 import { toServerResponse } from "./utils";
+import { GetEntityParams } from "../../libraries/react/client/types/clientEntTypes";
 
 export const createAutumnClient = (publishableKey?: string) => {
   return new Autumn({
@@ -65,8 +63,11 @@ export const getEntityAction = withAuth({
     params?: GetEntityParams;
   }) => {
     const autumn = createAutumnClient();
-
-    const result = await autumn.entities.get(customerId, entityId, params);
+    const result = await autumn.entities.get(
+      customerId,
+      entityId,
+      params as any
+    );
 
     return toServerResponse(result);
   },
