@@ -1,52 +1,57 @@
+import { useAutumn, useEntity } from "autumn-js/next";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export default function Intro() {
+export default function Intro({
+  number,
+  // entityId = "1",
+  params,
+}: {
+  number: number;
+  // entityId: string;
+  params?: any;
+}) {
+  const { track } = useAutumn();
+  const [entityId, setEntityId] = useState<any>("1");
+  const { entity, isLoading, refetch } = useEntity(entityId, params);
+
+  useEffect(() => {
+    console.log("Entity changed:", entity);
+  }, [entity]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Welcome to the Next.js Autumn template
-        </h1>
-        <p className="text-gray-500">
-          Get started with Autumn by setting up your account and exploring the
-          core features.
-        </p>
-      </div>
-
-      {/* Setup Requirements */}
-      <div className="p-6 border border-gray-200 rounded-lg bg-white space-y-4">
-        <h2 className="font-semibold text-gray-900">Before you get started</h2>
-        <ul className="space-y-3 text-sm">
-          <li className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-gray-300" />
-            <span className="text-gray-600">
-              Create your Autumn secret key{" "}
-              <Link
-                href="https://app.useautumn.com/sandbox/dev"
-                className="text-green-600 underline underline-offset-4 hover:text-green-500"
-                target="_blank"
-              >
-                here
-              </Link>{" "}
-              and add it to the .env.local file
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-gray-300" />
-            <span className="text-gray-600">
-              Connect your Stripe account{" "}
-              <Link
-                href="https://app.useautumn.com/sandbox/integrations/stripe"
-                className="text-green-600 underline underline-offset-4 hover:text-green-500"
-                target="_blank"
-              >
-                here
-              </Link>
-            </span>
-          </li>
-        </ul>
-      </div>
+      <button
+        onClick={() => {
+          if (entityId === "1") {
+            console.log("Changing to 3");
+            setEntityId("3");
+          } else {
+            console.log("Changing to 1");
+            setEntityId("1");
+          }
+        }}
+      >
+        Toggle ID
+      </button>
+      <div>Entity ID: {entityId}</div>
+      <pre className="text-xs">{JSON.stringify(entity, null, 2)}</pre>
+      <p>useEntity {number} ⬆️</p>
+      <button
+        onClick={async () => {
+          await track({
+            featureId: "credits",
+            value: 100,
+          });
+          await refetch();
+        }}
+      >
+        Track
+      </button>
     </div>
   );
 }

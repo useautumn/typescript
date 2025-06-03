@@ -41,6 +41,7 @@ export const useAutumn = () => {
     metadata,
     callback,
     entityData,
+    openInNewTab,
   }: AttachParams) => {
     const attachWithoutDialog = async (options?: any) => {
       try {
@@ -52,6 +53,7 @@ export const useAutumn = () => {
           forceCheckout,
           metadata,
           entityData,
+          openInNewTab,
         });
       } catch (error) {
         return toClientErrorResponse(error);
@@ -97,6 +99,7 @@ export const useAutumn = () => {
     dialog,
     callback,
     entityData,
+    openInNewTab,
   }: AttachParams) => {
     if (dialog) {
       setProdChangeComponent(dialog);
@@ -109,6 +112,7 @@ export const useAutumn = () => {
         metadata,
         callback,
         entityData,
+        openInNewTab,
       });
     }
 
@@ -136,7 +140,11 @@ export const useAutumn = () => {
     let data = result.data;
 
     if (data?.checkout_url && typeof window !== "undefined") {
-      window.open(data.checkout_url, "_blank");
+      if (openInNewTab) {
+        window.open(data.checkout_url, "_blank");
+      } else {
+        window.open(data.checkout_url, "_self");
+      }
     }
 
     try {
@@ -184,7 +192,7 @@ export const useAutumn = () => {
     featureId,
     productId,
     entityId,
-    requiredQuantity,
+    requiredBalance,
     sendEvent,
     withPreview,
     dialog,
@@ -193,7 +201,7 @@ export const useAutumn = () => {
     featureId?: string;
     productId?: string;
     entityId?: string;
-    requiredQuantity?: number;
+    requiredBalance?: number;
     sendEvent?: boolean;
     withPreview?: "formatted" | "raw";
     dialog?: (data: any) => JSX.Element | React.ReactNode;
@@ -208,7 +216,7 @@ export const useAutumn = () => {
       featureId,
       productId,
       entityId,
-      requiredQuantity,
+      requiredBalance,
       sendEvent,
       withPreview: dialog ? "formatted" : withPreview,
       entityData,

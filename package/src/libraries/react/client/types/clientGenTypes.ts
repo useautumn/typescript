@@ -18,6 +18,7 @@ export interface AttachParams {
   dialog?: (data: any) => JSX.Element | React.ReactNode;
   callback?: () => Promise<void> | void;
   entityData?: EntityDataParams;
+  openInNewTab?: boolean;
 }
 
 export interface CancelParams {
@@ -30,7 +31,7 @@ export interface CheckParams {
   featureId?: string;
   productId?: string;
   entityId?: string;
-  requiredQuantity?: number;
+  requiredBalance?: number;
   sendEvent?: boolean;
   withPreview?: "formatted" | "raw";
   dialog?: (data: any) => JSX.Element | React.ReactNode;

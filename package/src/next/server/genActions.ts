@@ -76,7 +76,7 @@ export const checkAction = withAuth({
     featureId,
     productId,
     entityId,
-    requiredQuantity,
+    requiredBalance,
     sendEvent,
     withPreview,
     entityData,
@@ -86,7 +86,7 @@ export const checkAction = withAuth({
     featureId?: string;
     productId?: string;
     entityId?: string;
-    requiredQuantity?: number;
+    requiredBalance?: number;
     sendEvent?: boolean;
     withPreview?: "raw" | "formatted";
     entityData?: EntityDataParams;
@@ -98,7 +98,7 @@ export const checkAction = withAuth({
       feature_id: featureId,
       product_id: productId,
       entity_id: entityId,
-      required_quantity: requiredQuantity,
+      required_balance: requiredBalance,
       send_event: sendEvent,
       with_preview: withPreview,
       customer_data: customerData,

@@ -12,7 +12,7 @@ export const useEntityProvider = (
 
   const fetchEntity = async () => {
     if (!entityId) {
-      return;
+      return null;
     }
 
     const { data, error } = await getEntityAction({
@@ -25,13 +25,35 @@ export const useEntityProvider = (
       throw error;
     }
 
+    if (!data) {
+      return null;
+    }
+
     return data;
   };
 
-  const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity);
+  const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity, {
+    fallbackData: null,
+    onErrorRetry: (error, key, config) => {
+      if (error.code == "entity_not_found") {
+        return false;
+      }
+
+      return true;
+    },
+  });
+
+  if (!entityId) {
+    return {
+      entity: null,
+      isLoading: false,
+      error: null,
+      refetch: mutate,
+    };
+  }
 
   return {
-    entity: data,
+    entity: error ? null : data,
     isLoading,
     error,
     refetch: mutate,

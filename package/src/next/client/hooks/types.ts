@@ -16,6 +16,7 @@ export interface AttachParams {
   callback?: () => Promise<void>;
   withPreview?: "formatted" | "raw";
   entityData?: EntityDataParams;
+  openInNewTab?: boolean;
 }
 
 export interface CreateEntityParams {

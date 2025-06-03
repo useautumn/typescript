@@ -75,6 +75,7 @@ export const useAutumn = () => {
       dialog,
       callback,
       entityData,
+      openInNewTab,
     } = params;
 
     if (dialog) {
@@ -102,7 +103,11 @@ export const useAutumn = () => {
     let data = result.data;
 
     if (data?.checkout_url && typeof window !== "undefined") {
-      window.open(data.checkout_url, "_blank");
+      if (openInNewTab) {
+        window.open(data.checkout_url, "_blank");
+      } else {
+        window.location.href = data.checkout_url;
+      }
     }
 
     try {

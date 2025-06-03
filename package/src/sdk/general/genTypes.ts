@@ -75,7 +75,7 @@ export interface CheckParams {
   product_id?: string;
   entity_id?: string;
   customer_data?: CustomerData;
-  required_quantity?: number;
+  required_balance?: number;
   send_event?: boolean;
   with_preview?: "raw" | "formatted";
   entity_data?: EntityData;
@@ -88,7 +88,7 @@ export interface CheckResult {
 
   // Feature return values
   feature_id?: string; // Feature ID
-  required_quantity?: number; // Required quantity for the feature
+  required_balance?: number; // Required balance for the feature
   unlimited?: boolean; // Whether the feature is unlimited
   balance?: number | null; // Balance for the feature
 
