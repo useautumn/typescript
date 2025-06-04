@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.54",
+  "version": "0.0.55",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -52,6 +52,11 @@
       "types": "./dist/libraries/react/index.d.ts",
       "require": "./dist/libraries/react/index.js",
       "import": "./dist/libraries/react/index.mjs"
+    },
+    "./supabase": {
+      "types": "./dist/libraries/backend/supabase.d.ts",
+      "require": "./dist/libraries/backend/supabase.js",
+      "import": "./dist/libraries/backend/supabase.mjs"
     }
   },
   "keywords": [
@@ -113,6 +118,9 @@
       ],
       "react": [
         "./dist/libraries/react/index.d.ts"
+      ],
+      "supabase": [
+        "./dist/libraries/backend/supabase.d.ts"
       ]
     }
   }
