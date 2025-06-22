@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.55",
+  "version": "0.0.66",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -38,11 +38,6 @@
       "require": "./dist/libraries/backend/fastify.js",
       "import": "./dist/libraries/backend/fastify.mjs"
     },
-    "./remix": {
-      "types": "./dist/libraries/backend/remix.d.ts",
-      "require": "./dist/libraries/backend/remix.js",
-      "import": "./dist/libraries/backend/remix.mjs"
-    },
     "./tanstack": {
       "types": "./dist/libraries/backend/tanstack.d.ts",
       "require": "./dist/libraries/backend/tanstack.js",
@@ -57,6 +52,11 @@
       "types": "./dist/libraries/backend/supabase.d.ts",
       "require": "./dist/libraries/backend/supabase.js",
       "import": "./dist/libraries/backend/supabase.mjs"
+    },
+    "./react-router": {
+      "types": "./dist/libraries/backend/react-router.d.ts",
+      "require": "./dist/libraries/backend/react-router.js",
+      "import": "./dist/libraries/backend/react-router.mjs"
     }
   },
   "keywords": [
@@ -109,9 +109,6 @@
       ],
       "fastify": [
         "./dist/libraries/backend/fastify.d.ts"
-      ],
-      "remix": [
-        "./dist/libraries/backend/remix.d.ts"
       ],
       "tanstack": [
         "./dist/libraries/backend/tanstack.d.ts"

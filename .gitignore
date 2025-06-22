@@ -16,3 +16,7 @@ new
 
 # ignore any .next folder in any directory
 **/.next/
+tests
+nextjs/test.ts
+nextjs/run.sh
+frameworks

@@ -13,7 +13,7 @@ import {
 } from "@/components/pricing/pricing-dialog";
 
 import { CheckProductFormattedPreview } from "autumn-js";
-import { useAutumn } from "autumn-js/next";
+import { useAutumn } from "autumn-js/react";
 import { getProductChangeTexts } from "@/lib/autumn/get-product-change-texts";
 
 export interface ProductChangeDialogProps {
@@ -41,7 +41,7 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
     let sum = 0;
     optionsInput.forEach((option) => {
       if (option.price && option.quantity) {
-        sum += option.price * option.quantity;
+        sum += option.price * (option.quantity / option.billing_units);
       }
     });
     setPrepaidTotals(sum);
@@ -56,7 +56,7 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
   }
 
   const { open, setOpen, preview } = params;
-  const { items, due_today, error_on_attach } = preview;
+  const { items, due_today, error_on_attach, product_name } = preview;
   const { title, message } = getProductChangeTexts(preview);
 
   return (
@@ -80,7 +80,9 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
           const { feature_name, billing_units, quantity, price } = option;
           return (
             <PriceItem key={feature_name}>
-              <span>{feature_name}</span>
+              <span>
+                {product_name} - {feature_name}
+              </span>
               <QuantityInput
                 key={feature_name}
                 value={quantity ? quantity / billing_units : ""}

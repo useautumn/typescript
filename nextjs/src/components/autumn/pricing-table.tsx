@@ -25,7 +25,7 @@ export const PricingTable = () => {
   return (
     <div>
       {products && (
-        <PricecnPricingTable products={products}>
+        <PricecnPricingTable products={products} className="p-10">
           {products.map((product) => (
             <PricingCard
               productId={product.id}

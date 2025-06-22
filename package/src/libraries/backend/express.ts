@@ -17,16 +17,18 @@ export type AutumnHandlerOptions = {
 export const autumnHandler = (
   options?: AutumnHandlerOptions
 ): AutumnRequestHandler => {
-  const autumn = new Autumn({
-    url: autumnApiUrl,
-    version: options?.version,
-  });
-
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   return async (req: any, res: any, next: any) => {
+    let autumn =
+      typeof options?.autumn === "function"
+        ? options.autumn(req)
+        : options?.autumn ||
+          new Autumn({
+            url: autumnApiUrl,
+            version: options?.version,
+          });
+
     let path = req.path;
     const searchParams = Object.fromEntries(new URLSearchParams(req.query));
 
@@ -48,13 +50,8 @@ export const autumnHandler = (
       }
 
       try {
-        let autumnClient =
-          typeof options?.autumn === "function"
-            ? options.autumn(req)
-            : options?.autumn || autumn;
-
         let result = await handler({
-          autumn: autumnClient,
+          autumn,
           body,
           path: req.path,
           getCustomer: async () => {

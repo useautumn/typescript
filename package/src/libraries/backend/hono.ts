@@ -14,9 +14,7 @@ export const autumnHandler = <ContextType extends Context = Context>(options: {
     version: options.version,
   });
 
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   return async (c: Context, next: Next) => {
     const request = new URL(c.req.url);

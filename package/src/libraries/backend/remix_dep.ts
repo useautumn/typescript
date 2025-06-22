@@ -2,12 +2,15 @@
 import { Autumn } from "../../sdk";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { findRoute } from "rou3";
-import { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
 
 export function autumnHandler(options: {
-  identify: (args: LoaderFunctionArgs | ActionFunctionArgs) => AuthResult;
+  secretKey?: string;
+  identify: (args: {
+    request: Request;
+    params: Record<string, string>;
+  }) => AuthResult;
   version?: string;
 }) {
   const autumn = new Autumn({
@@ -15,14 +18,13 @@ export function autumnHandler(options: {
     version: options.version,
   });
 
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   // Common handler for both loader and action
-  async function handleAutumnRequest(
-    args: LoaderFunctionArgs | ActionFunctionArgs
-  ) {
+  async function handleAutumnRequest(args: {
+    request: Request;
+    params: Record<string, string>;
+  }) {
     let path = args.params["*"] || "";
 
     const url = new URL(args.request.url);
@@ -67,11 +69,11 @@ export function autumnHandler(options: {
 
   // Return loader and action that both use the common handler
   return {
-    loader: async (args: LoaderFunctionArgs) => {
+    loader: async (args: any) => {
       return handleAutumnRequest(args);
     },
 
-    action: async (args: ActionFunctionArgs) => {
+    action: async (args: any) => {
       return handleAutumnRequest(args);
     },
   };

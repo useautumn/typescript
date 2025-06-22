@@ -50,6 +50,7 @@ export const useCustomer = (params?: UseCustomerParams) => {
       await refetch({ params });
     },
     createEntity: client.entities.create,
+    deleteEntity: client.entities.delete,
     createReferralCode: client.referrals.createCode,
     redeemReferralCode: client.referrals.redeemCode,
   } as UseCustomerResult;

@@ -2,15 +2,15 @@
 
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { useAutumn, useCustomer } from "autumn-js/react";
 import { Button } from "../ui/button";
-import { useAutumn, useCustomer, useEntity } from "autumn-js/next";
 
 export default function CustomerDetailsExample() {
-  const { attach, openBillingPortal, check } = useAutumn();
+  const { attach, openBillingPortal } = useAutumn();
   const { customer } = useCustomer();
-  const { entity } = useEntity("test");
 
-  const productId = "pro-example";
+  const productId = "lite";
+  const featureId = "credits";
 
   const upgradeClicked = async () => {
     try {
@@ -25,22 +25,15 @@ export default function CustomerDetailsExample() {
 
   const manageBillingClicked = async () => {
     try {
-      const result = await check({
-        featureId: "credits",
-        entityId: "test-entity2",
-        entityData: {
-          name: "My Entity",
-          featureId: "website",
-        },
+      await openBillingPortal({
+        returnUrl: "https://app.useautumn.com",
       });
-      console.log(result);
-      // await openBillingPortal({
-      //   returnUrl: "https://app.useautumn.com",
-      // });
     } catch (error: any) {
       toast.error(`${error.message}`);
     }
   };
+
+  console.log("Customer", customer);
 
   return (
     <div className="border border-gray-200 rounded-lg bg-white overflow-hidden flex flex-col">
@@ -83,18 +76,9 @@ export default function CustomerDetailsExample() {
             <span className="text-sm font-medium text-gray-900">
               Chat Messages Remaining
             </span>
-            {/* <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
-              {trafficEvents?.unlimited
-                ? "Unlimited"
-                : trafficEvents?.balance || 0}
-            </span>
-            <span className="text-sm font-medium text-gray-900">
-              {" "}
-              Credits Remaining
-            </span>
             <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">
-              {credits?.unlimited ? "Unlimited" : credits?.balance || 0}
-            </span> */}
+              {customer?.features[featureId]?.balance || 0}
+            </span>
           </div>
 
           <div className="flex items-center justify-between py-2">

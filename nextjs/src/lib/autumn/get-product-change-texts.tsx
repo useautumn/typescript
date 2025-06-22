@@ -64,7 +64,7 @@ export const getProductChangeTexts = (
 
     case "upgrade":
       return {
-        title: <p>Please upgrade to {product_name}</p>,
+        title: <p>Upgrade to {product_name}</p>,
         message: (
           <p>
             By clicking confirm, you will upgrade your subscription to{" "}

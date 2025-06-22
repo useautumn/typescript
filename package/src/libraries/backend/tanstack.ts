@@ -15,9 +15,7 @@ export const autumnHandler = (options: {
     version: options.version,
   });
 
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   // Generic handler function that works with any HTTP method
   const handleRequest = async (ctx: { request: Request; params: any }) => {

@@ -7,9 +7,12 @@ import {
 } from "../../server/genActions";
 
 import { useAutumnContext } from "../AutumnContext";
-import { AttachParams } from "./types";
 import { fetchPricingTableData, toClientErrorResponse } from "../clientUtils";
-import { TrackParams } from "../../../libraries/react/client/types/clientGenTypes";
+import {
+  AttachParams,
+  CancelParams,
+  TrackParams,
+} from "../../../libraries/react/client/types/clientGenTypes";
 import { EntityDataParams } from "../../../libraries/react/client/types/clientEntTypes";
 
 export const useAutumn = () => {
@@ -33,36 +36,17 @@ export const useAutumn = () => {
     setComponent: setPaywallComponent,
   } = paywallDialog;
 
-  const attachWithDialog = async ({
-    productId,
-    entityId,
-    successUrl,
-    forceCheckout,
-    metadata,
-    callback,
-    entityData,
-    openInNewTab,
-  }: AttachParams) => {
-    const attachWithoutDialog = async (options?: any) => {
+  const attachWithDialog = async (params: AttachParams) => {
+    const attachWithoutDialog = async () => {
       try {
-        await attach({
-          productId,
-          entityId,
-          options,
-          successUrl,
-          forceCheckout,
-          metadata,
-          entityData,
-          openInNewTab,
-        });
+        await attach(params);
       } catch (error) {
         return toClientErrorResponse(error);
-      } finally {
-        await callback?.();
       }
     };
 
     // 1. Check product
+    const { entityId, productId } = params;
 
     const { data, error } = await checkAction({
       encryptedCustomerId,
@@ -89,48 +73,17 @@ export const useAutumn = () => {
     return { data: null, error: null };
   };
 
-  const attach = async ({
-    productId,
-    entityId,
-    options,
-    successUrl,
-    forceCheckout,
-    metadata,
-    dialog,
-    callback,
-    entityData,
-    openInNewTab,
-  }: AttachParams) => {
+  const attach = async (params: AttachParams) => {
+    const { dialog, ...rest } = params;
     if (dialog) {
       setProdChangeComponent(dialog);
 
-      return await attachWithDialog({
-        productId,
-        entityId,
-        successUrl,
-        forceCheckout,
-        metadata,
-        callback,
-        entityData,
-        openInNewTab,
-      });
+      return await attachWithDialog(rest);
     }
-
-    let snakeOptions =
-      options?.map((option) => ({
-        feature_id: option.featureId,
-        quantity: option.quantity,
-      })) || undefined;
 
     const result = await attachAction({
       encryptedCustomerId,
-      productId,
-      entityId,
-      options: snakeOptions,
-      successUrl,
-      forceCheckout,
-      metadata,
-      entityData,
+      ...rest,
     });
 
     if (result.error) {
@@ -138,6 +91,7 @@ export const useAutumn = () => {
     }
 
     let data = result.data;
+    const { openInNewTab } = rest;
 
     if (data?.checkout_url && typeof window !== "undefined") {
       if (openInNewTab) {
@@ -145,12 +99,6 @@ export const useAutumn = () => {
       } else {
         window.open(data.checkout_url, "_self");
       }
-    }
-
-    try {
-      await callback?.();
-    } catch (error) {
-      return toClientErrorResponse(error);
     }
 
     if (pricingTableProducts) {
@@ -168,17 +116,10 @@ export const useAutumn = () => {
     return result;
   };
 
-  const cancel = async ({
-    productId,
-    entityId,
-  }: {
-    productId: string;
-    entityId?: string;
-  }) => {
+  const cancel = async (params: CancelParams) => {
     const res = await cancelAction({
       encryptedCustomerId,
-      productId,
-      entityId,
+      ...params,
     });
 
     if (res.error) {

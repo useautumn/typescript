@@ -17,23 +17,24 @@ export const metadata: Metadata = {
   description: "Starter Next.js app with Autumn",
 };
 import { ClerkProvider } from "@clerk/nextjs";
-import { createClient } from "@/lib/supabase/client";
 import { AutumnProvider } from "autumn-js/next";
+// import { AutumnProvider } from "autumn-js/react";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = createClient();
-
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AutumnProvider customerId="123">
-          <ClerkProvider>{children}</ClerkProvider>
+        <AutumnProvider
+          // backendUrl="http://localhost:3001"
+          customerId="123"
+        >
+          {children}
         </AutumnProvider>
       </body>
     </html>

@@ -13,9 +13,7 @@ export function autumnHandler(options: {
     version: options.version,
   });
 
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   return async function (request: any, reply: any) {
     try {

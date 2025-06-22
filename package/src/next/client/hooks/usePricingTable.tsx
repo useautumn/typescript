@@ -50,6 +50,7 @@ export const usePricingTable = (options?: {
 
   const fetchProducts = async () => {
     let returnData: PricingTableProduct[] | null = null;
+
     returnData = await fetchPricingTableData({
       setIsLoading,
       setError,

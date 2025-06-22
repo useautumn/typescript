@@ -1,4 +1,4 @@
-import { AutumnClientProvider } from "./client/AutumnProvider";
+import { AutumnClientProvider } from "./client/NextAutumnProvider";
 import { encryptData } from "../utils/encryptUtils";
 import { CustomerData } from "src/sdk";
 import { AuthPluginOptions, setupAuthPlugin } from "./server/auth/authPlugin";

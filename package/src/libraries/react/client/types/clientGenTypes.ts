@@ -7,7 +7,7 @@ export interface AttachFeatureOptions {
 }
 
 export interface AttachParams {
-  productId: string;
+  productId?: string;
   entityId?: string;
   options?: AttachFeatureOptions[];
   productIds?: string[]; // If set, will attach multiple products to the customer (cannot be used with productId)
@@ -16,14 +16,15 @@ export interface AttachParams {
   metadata?: Record<string, string>; // Passed to Stripe
   forceCheckout?: boolean; // Default is false -- if set to true, will force the customer to checkout (not allowed for upgrades / downgrades)
   dialog?: (data: any) => JSX.Element | React.ReactNode;
-  callback?: () => Promise<void> | void;
   entityData?: EntityDataParams;
   openInNewTab?: boolean;
+  reward?: string;
 }
 
 export interface CancelParams {
   productId: string;
   entityId?: string;
+  cancelImmediately?: boolean;
 }
 
 // Add interfaces for function params

@@ -1,3 +1,4 @@
+import { autumnApiUrl } from "../libraries/backend/constants";
 import { customerMethods } from "./customers/cusMethods";
 import { entityMethods } from "./customers/entities/entMethods";
 
@@ -35,6 +36,7 @@ export class Autumn {
     publishableKey?: string;
     url?: string;
     version?: string;
+    headers?: Record<string, string>;
   }) {
     try {
       this.secretKey = options?.secretKey || process.env.AUTUMN_SECRET_KEY;
@@ -42,11 +44,11 @@ export class Autumn {
         options?.publishableKey || process.env.AUTUMN_PUBLISHABLE_KEY;
     } catch (error) {}
 
-    if (!this.secretKey && !this.publishableKey) {
+    if (!this.secretKey && !this.publishableKey && !options?.headers) {
       throw new Error("Autumn secret key or publishable key is required");
     }
 
-    this.headers = {
+    this.headers = options?.headers || {
       Authorization: `Bearer ${this.secretKey || this.publishableKey}`,
       "Content-Type": "application/json",
     };
@@ -54,7 +56,7 @@ export class Autumn {
     let version = options?.version || LATEST_API_VERSION;
     this.headers["x-api-version"] = version;
 
-    this.url = options?.url || "https://api.useautumn.com/v1";
+    this.url = options?.url || autumnApiUrl;
     this.level = this.secretKey ? "secret" : "publishable";
   }
 
@@ -71,13 +73,18 @@ export class Autumn {
   }
 
   async post(path: string, body: any) {
-    const response = await fetch(`${this.url}${path}`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(body),
-    });
+    try {
+      const response = await fetch(`${this.url}${path}`, {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify(body),
+      });
 
-    return toContainerResult(response);
+      return toContainerResult(response);
+    } catch (error) {
+      console.error("Error sending request:", error);
+      throw error;
+    }
   }
 
   async delete(path: string) {

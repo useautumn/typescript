@@ -1,7 +1,8 @@
-import { AttachResult, CheckResult } from "src/sdk";
+import { AttachResult, CheckResult } from "../../../sdk";
 import { useAutumnContext } from "../AutumnContext";
 import {
   AttachParams,
+  CancelParams,
   CheckParams,
   OpenBillingPortalParams,
   TrackParams,
@@ -65,36 +66,14 @@ export const useAutumn = () => {
   };
 
   const attach = async (params: AttachParams) => {
-    const {
-      productId,
-      entityId,
-      options,
-      successUrl,
-      forceCheckout,
-      metadata,
-      dialog,
-      callback,
-      entityData,
-      openInNewTab,
-    } = params;
+    const { dialog, callback, openInNewTab } = params;
 
     if (dialog) {
       setProdChangeComponent(dialog);
-
       return await attachWithDialog(params);
     }
 
-    const result = await client.attach({
-      productId,
-      entityId,
-      successUrl,
-      forceCheckout,
-      metadata,
-      options,
-      dialog,
-      callback,
-      entityData,
-    });
+    const result = await client.attach(params);
 
     if (result.error) {
       return result;
@@ -133,17 +112,8 @@ export const useAutumn = () => {
     return result;
   };
 
-  const cancel = async ({
-    productId,
-    entityId,
-  }: {
-    productId: string;
-    entityId?: string;
-  }) => {
-    const res = await client.cancel({
-      productId,
-      entityId,
-    });
+  const cancel = async (params: CancelParams) => {
+    const res = await client.cancel(params);
 
     if (res.error) {
       return res;
