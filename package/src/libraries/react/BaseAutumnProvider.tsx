@@ -1,17 +1,21 @@
-import { AutumnContext } from "./AutumnContext";
-import { useEffect, useState } from "react";
+"use client";
+
+import React from "react";
+import { useState } from "react";
 import { AutumnClient } from "./client/ReactAutumnClient";
 import { useDialog } from "./hooks/useDialog";
-import { usePricingTableProvider } from "./hooks/usePricingTableProvider";
-import { useEntityProvider } from "./hooks/useEntityProvider";
-import { useCustomerProvider } from "./hooks/useCustomerProvider";
+import { useCustomerBase } from "./hooks/useCustomerBase";
+
+
 
 export function BaseAutumnProvider({
   client,
   children,
+  AutumnContext,
 }: {
   client: AutumnClient;
   children: React.ReactNode;
+  AutumnContext: any;
 }) {
   const [components, setComponents] = useState<{
     paywallDialog?: any;
@@ -28,39 +32,12 @@ export function BaseAutumnProvider({
     setProductChangeOpen,
   ] = useDialog(components.productChangeDialog);
 
-  const customerProvider = useCustomerProvider(client);
+  useCustomerBase({ client, AutumnContext, errorOnNotFound: false });
 
-  const entityProvider = useEntityProvider({ client });
-
-  const {
-    pricingTableProducts,
-    isLoading: pricingTableLoading,
-    error: pricingTableError,
-    refetch,
-  } = usePricingTableProvider({
-    client,
-  });
-
-  useEffect(() => {
-    customerProvider.refetch({
-      errorOnNotFound: false,
-    });
-  }, []);
 
   return (
     <AutumnContext.Provider
       value={{
-        customerProvider,
-
-        entityProvider,
-
-        pricingTableProvider: {
-          pricingTableProducts,
-          isLoading: pricingTableLoading,
-          error: pricingTableError,
-          refetch,
-        },
-
         client,
 
         paywallDialog: {

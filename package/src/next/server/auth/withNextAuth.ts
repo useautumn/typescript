@@ -18,7 +18,7 @@ export const withAuth = <
     customerId?: string;
     customerData?: CustomerData;
     authProvider?: string;
-  }
+  },
 >({
   fn,
   withCustomerData = false,

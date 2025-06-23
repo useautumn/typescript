@@ -3,6 +3,7 @@ import { Autumn } from "../../sdk";
 import { AuthResult } from "./utils/AuthFunction";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { autumnApiUrl } from "./constants";
+import { logger } from "../../utils/logger";
 
 export function autumnHandler(options: {
   secretKey?: string;
@@ -15,6 +16,7 @@ export function autumnHandler(options: {
   const autumn = new Autumn({
     secretKey: options.secretKey || undefined,
     url: autumnApiUrl,
+    logger
   });
 
   const router = createRouterWithOptions();

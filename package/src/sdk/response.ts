@@ -1,3 +1,4 @@
+import { Logger } from "pino";
 import { AutumnError } from "./error";
 
 type Success<T> = {
@@ -13,12 +14,13 @@ type Failure<E> = {
 };
 
 export const toContainerResult = async (
-  response: Response
+  { response, logger }: { response: Response; logger: Logger | Console }
 ): Promise<Result<any, AutumnError>> => {
   if (response.status < 200 || response.status >= 300) {
     let error: any;
     try {
       error = await response.json();
+      logger.error(`[Autumn] ${error.message}`);
     } catch (error) {
       return {
         data: null,
@@ -42,13 +44,13 @@ export const toContainerResult = async (
 
   try {
     let data = await response.json();
-
     return {
       data: data,
       error: null,
       statusCode: response?.status,
     };
   } catch (error) {
+
     return {
       data: null,
       error: new AutumnError({

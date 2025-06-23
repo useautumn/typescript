@@ -21,10 +21,6 @@ export const toBackendError = ({
   code?: string;
   statusCode?: number;
 }) => {
-  console.error(
-    `Autumn middleware error: ${message} (code: ${code}) | path: ${path}`
-  );
-
   return {
     statusCode,
     body: new AutumnError({

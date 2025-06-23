@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { AutumnContextParams } from "./types";
+import { AutumnContextParams } from "../next/client/types";
 
 export const AutumnContext = createContext<AutumnContextParams>({
   encryptedCustomerId: "",

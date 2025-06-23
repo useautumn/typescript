@@ -1,8 +1,5 @@
-import { createContext, useContext } from "react";
-
-import { AutumnError, PricingTableProduct } from "../../sdk";
 import { AutumnClient } from "./client/ReactAutumnClient";
-import { EntityProvider } from "./hooks/useEntityProvider";
+import { createContext, useContext } from "react";
 
 export interface AutumnDialogContext {
   props: any;
@@ -13,45 +10,16 @@ export interface AutumnDialogContext {
 }
 
 export interface AutumnContextParams {
-  customerProvider: any;
-
-  pricingTableProvider: {
-    pricingTableProducts: PricingTableProduct[] | null;
-    isLoading: boolean;
-    error: AutumnError | null;
-    refetch: () => Promise<void>;
-  };
-
-  entityProvider: EntityProvider;
-
   client: AutumnClient;
-
   paywallDialog: AutumnDialogContext;
   prodChangeDialog: AutumnDialogContext;
 }
 
 export const AutumnContext = createContext<AutumnContextParams>({
-  customerProvider: null,
-
-  pricingTableProvider: {
-    pricingTableProducts: null,
-    isLoading: true,
-    error: null,
-    refetch: () => Promise.resolve(),
-  },
-
-  entityProvider: {
-    entity: null,
-    isLoading: true,
-    error: null,
-    refetch: () => Promise.resolve(),
-    lastParams: null,
-  },
-
   client: new AutumnClient({
-    backendUrl: "http://localhost:8000",
+    backendUrl: process.env.NEXT_PUBLIC_AUTUMN_BACKEND_URL,
   }),
-
+  
   paywallDialog: {
     props: null,
     setProps: () => {},

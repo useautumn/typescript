@@ -1,7 +1,7 @@
 import { getNextHeadersAndCookies } from "./get-next-headers";
 
 export async function createSupabaseClient() {
-  let createServerClient;
+  let createServerClient: any;
 
   // 1. Try to import the createServerClient function
   try {
@@ -28,8 +28,8 @@ export async function createSupabaseClient() {
           getAll() {
             return cookieStore.getAll();
           },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
+          setAll(cookiesToSet: any) {
+            cookiesToSet.forEach(({ name, value, options }: any) =>
               cookieStore.set(name, value, options)
             );
           },

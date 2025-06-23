@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
 import { Customer, AutumnError, CustomerExpandOption } from "../../../sdk";
 

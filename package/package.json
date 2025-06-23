@@ -83,16 +83,15 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
-  "peerDependencies": {
-    "@tanstack/react-query": "^5.76.1",
-    "react": "^18.0.0 || ^19.0.0"
-  },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     }
   },
   "dependencies": {
+    "chalk": "^5.4.1",
+    "pino": "^9.7.0",
+    "pino-pretty": "^13.0.0",
     "rou3": "^0.6.1",
     "swr": "^2.3.3"
   },

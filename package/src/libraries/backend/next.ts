@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AuthResult } from "./utils/AuthFunction";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { autumnApiUrl } from "./constants";
+import { logger } from "../../utils/logger";
 
 export function autumnHandler(options: {
   identify: (request: NextRequest) => AuthResult;
@@ -14,6 +15,7 @@ export function autumnHandler(options: {
   const autumn = new Autumn({
     secretKey: options.secretKey || undefined,
     url: options.url || autumnApiUrl,
+    logger,
   });
 
   const router = createRouterWithOptions();

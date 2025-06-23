@@ -83,6 +83,5 @@ export const createRouterWithOptions = () => {
 
   addReferralRoutes(router);
 
-  // Add /api/autumn prefix to all routes
   return router;
 };

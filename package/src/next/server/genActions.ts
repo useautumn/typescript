@@ -1,6 +1,6 @@
 import { BillingPortalParams, CustomerData, EntityData } from "../../sdk";
 import { createAutumnClient } from "../server/cusActions";
-import { withAuth } from "./auth/withAuth";
+import { withAuth } from "./auth/withNextAuth";
 import { toServerResponse } from "./utils";
 import {
   AttachParams,
@@ -8,20 +8,8 @@ import {
   CheckParams,
   TrackParams,
 } from "../../libraries/react/client/types/clientGenTypes";
-import { toSnakeCase } from "../../libraries/react/utils/toSnakeCase";
+import { toSnakeCase } from "../../utils/toSnakeCase";
 
-// {
-//   customerId: string;
-//   customerData?: CustomerData;
-//   productId: string;
-//   entityId?: string;
-//   successUrl?: string;
-//   options?: AttachFeatureOptions[];
-//   forceCheckout?: boolean;
-//   metadata?: Record<string, string>;
-//   entityData?: EntityDataParams;
-//   reward?: string;
-// }
 export const attachAction = withAuth({
   fn: async (
     params: AttachParams & { customerId: string; customerData?: CustomerData }
@@ -36,6 +24,7 @@ export const attachAction = withAuth({
 
     return toServerResponse(res);
   },
+
   withCustomerData: true,
 });
 

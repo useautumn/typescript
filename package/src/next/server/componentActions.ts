@@ -1,4 +1,4 @@
-import { withAuth } from "./auth/withAuth";
+import { withAuth } from "./auth/withNextAuth";
 import { createAutumnClient } from "./cusActions";
 import { fetchPricingTable } from "../../sdk";
 import { toServerResponse } from "./utils";

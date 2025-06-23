@@ -1,13 +1,9 @@
-import { CreateEntityParams } from "../../sdk/customers/entities/entTypes";
-import {
-  Autumn,
-  CreateCustomerParams,
-  CustomerData,
-  GetCustomerParams,
-} from "../../sdk";
-import { withAuth } from "./auth/withAuth";
+
+import { Autumn, CustomerData } from "../../sdk";
+import { withAuth } from "./auth/withNextAuth";
 import { toServerResponse } from "./utils";
-import { GetEntityParams } from "../../libraries/react/client/types/clientEntTypes";
+import { CreateEntityParams, GetEntityParams } from "../../libraries/react/client/types/clientEntTypes";
+import { toSnakeCase } from "../../utils/toSnakeCase";
 
 export const createAutumnClient = (publishableKey?: string) => {
   return new Autumn({
@@ -15,41 +11,24 @@ export const createAutumnClient = (publishableKey?: string) => {
   });
 };
 
-export const getOrCreateCustomer = withAuth({
+export const createCusAction = withAuth({
   fn: async ({
     customerId,
     customerData,
-    params,
   }: {
     customerId: string;
     customerData?: CustomerData;
-    params?: CreateCustomerParams;
   }) => {
     const autumn = createAutumnClient();
 
     const result = await autumn.customers.create({
       id: customerId,
       ...customerData,
-      ...params,
     });
 
     return toServerResponse(result);
   },
   withCustomerData: true,
-});
-
-export const getCustomer = withAuth({
-  fn: async ({
-    customerId,
-    params,
-  }: {
-    customerId: string;
-    params?: GetCustomerParams;
-  }) => {
-    const autumn = createAutumnClient();
-    const result = await autumn.customers.get(customerId, params);
-    return toServerResponse(result);
-  },
 });
 
 export const getEntityAction = withAuth({
@@ -63,10 +42,12 @@ export const getEntityAction = withAuth({
     params?: GetEntityParams;
   }) => {
     const autumn = createAutumnClient();
+
+    let snakeParams = toSnakeCase(params);
     const result = await autumn.entities.get(
       customerId,
       entityId,
-      params as any
+      snakeParams as any
     );
 
     return toServerResponse(result);
@@ -82,7 +63,8 @@ export const createEntityAction = withAuth({
     entity: CreateEntityParams | CreateEntityParams[];
   }) => {
     const autumn = createAutumnClient();
-    const result = await autumn.entities.create(customerId, entity);
+    let snakeEntity = toSnakeCase(entity);
+    const result = await autumn.entities.create(customerId, snakeEntity);
     return toServerResponse(result);
   },
 });

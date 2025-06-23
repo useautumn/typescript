@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import { AutumnError, Entity } from "../../../sdk";
-import { GetEntityParams } from "../client/types/clientEntTypes";
-import { AutumnClient } from "../client/ReactAutumnClient";
+import { AutumnError, Entity } from "../sdk";
+import { GetEntityParams } from "../libraries/react/client/types/clientEntTypes";
+import { AutumnClient } from "../libraries/react/client/ReactAutumnClient";
 
 export interface EntityProvider {
   entity: Entity | null;

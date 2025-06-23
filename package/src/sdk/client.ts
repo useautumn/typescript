@@ -1,7 +1,3 @@
-import { autumnApiUrl } from "../libraries/backend/constants";
-import { customerMethods } from "./customers/cusMethods";
-import { entityMethods } from "./customers/entities/entMethods";
-
 import {
   handleAttach,
   handleCancel,
@@ -18,18 +14,25 @@ import {
   TrackParams,
   UsageParams,
 } from "./general/genTypes";
+
+import { autumnApiUrl } from "../libraries/backend/constants";
+import { customerMethods } from "./customers/cusMethods";
+import { entityMethods } from "./customers/entities/entMethods";
 import { productMethods } from "./products/prodMethods";
 import { referralMethods } from "./referrals/referralMethods";
 import { toContainerResult } from "./response";
 import { staticWrapper } from "./utils";
+import { logger } from "../utils/logger";
 
 const LATEST_API_VERSION = "1.2";
+  
 export class Autumn {
   private readonly secretKey: string | undefined;
   private readonly publishableKey: string | undefined;
-  private level: "secret" | "publishable";
   private headers: Record<string, string>;
   private url: string;
+  private logger: any = console;
+  
 
   constructor(options?: {
     secretKey?: string;
@@ -37,7 +40,9 @@ export class Autumn {
     url?: string;
     version?: string;
     headers?: Record<string, string>;
+    logLevel?: string;
   }) {
+    
     try {
       this.secretKey = options?.secretKey || process.env.AUTUMN_SECRET_KEY;
       this.publishableKey =
@@ -55,21 +60,19 @@ export class Autumn {
 
     let version = options?.version || LATEST_API_VERSION;
     this.headers["x-api-version"] = version;
-
     this.url = options?.url || autumnApiUrl;
-    this.level = this.secretKey ? "secret" : "publishable";
+
+    this.logger = logger;
+    this.logger.level = options?.logLevel || "info";
   }
 
-  public getLevel() {
-    return this.level;
-  }
 
   async get(path: string) {
     const response = await fetch(`${this.url}${path}`, {
       headers: this.headers,
     });
 
-    return toContainerResult(response);
+    return toContainerResult({ response, logger: this.logger });
   }
 
   async post(path: string, body: any) {
@@ -80,7 +83,7 @@ export class Autumn {
         body: JSON.stringify(body),
       });
 
-      return toContainerResult(response);
+      return toContainerResult({ response, logger: this.logger });
     } catch (error) {
       console.error("Error sending request:", error);
       throw error;
@@ -92,7 +95,7 @@ export class Autumn {
       method: "DELETE",
       headers: this.headers,
     });
-    return toContainerResult(response);
+    return toContainerResult({ response, logger: this.logger });
   }
 
   static customers = customerMethods();

@@ -3,6 +3,7 @@ import { Autumn } from "../../sdk";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
+import { logger } from "../../utils/logger";
 // import { type Request, type Response, type NextFunction } from "express";
 
 // Define middleware types
@@ -27,6 +28,7 @@ export const autumnHandler = (
           new Autumn({
             url: autumnApiUrl,
             version: options?.version,
+            logger
           });
 
     let path = req.path;

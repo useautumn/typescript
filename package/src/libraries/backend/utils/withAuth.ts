@@ -1,6 +1,8 @@
 import { Autumn, CustomerData } from "../../../sdk";
 import { toBackendError, toBackendRes } from "./backendRes";
 import { AuthResult } from "./AuthFunction";
+import { logBackendErrors } from "./logBackendErrors";
+import { logger } from "../../../utils/logger";
 
 // 1. Takes in
 export const withAuth = <T extends {}>({
@@ -37,16 +39,17 @@ export const withAuth = <T extends {}>({
 
     if (!customerId && requireCustomer) {
       if (body?.errorOnNotFound === false) {
-        return toBackendError({
-          path,
-          message: "No customer ID found",
-          code: "no_customer_id",
+        return {
           statusCode: 202,
-        });
+          body: null,
+        };
       } else {
+        logger.error(
+          `[Autumn]: customerId returned from identify function is ${customerId}`
+        );
         return toBackendError({
           path,
-          message: "No customer ID found",
+          message: `customerId returned from identify function is ${customerId}`,
           code: "no_customer_id",
           statusCode: 401,
         });
@@ -67,6 +70,7 @@ export const withAuth = <T extends {}>({
 
       return toBackendRes({ res });
     } catch (error: any) {
+      logger.error(`${error.message}`);
       return toBackendError({
         path,
         message: error.message || "unknown error",

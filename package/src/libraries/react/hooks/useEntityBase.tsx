@@ -1,13 +1,18 @@
 import useSWR from "swr";
 import { GetEntityParams } from "../../../libraries/react/client/types/clientEntTypes";
 import { getEntityAction } from "../../../next/server/cusActions";
-import { useAutumnContext } from "../AutumnContext";
+import { useContext } from "react";
 
-export const useEntityProvider = (
-  entityId?: string,
-  params?: GetEntityParams
-) => {
-  const { encryptedCustomerId } = useAutumnContext();
+export const useEntityBase = ({
+  entityId,
+  params,
+  AutumnContext,
+}: {
+  entityId?: string;
+  params?: GetEntityParams;
+  AutumnContext: React.Context<any>;
+}) => {
+  const { encryptedCustomerId, client } = useContext(AutumnContext);
   const queryKey = ["entity", entityId, params?.expand];
 
   const fetchEntity = async () => {
@@ -15,11 +20,16 @@ export const useEntityProvider = (
       return null;
     }
 
-    const { data, error } = await getEntityAction({
-      encryptedCustomerId,
+    const { data, error } = await client.entities.get({
       entityId,
       params,
     });
+
+    // getEntityAction({
+    //   encryptedCustomerId,
+    //   entityId,
+    //   params,
+    // });
 
     if (error) {
       throw error;
@@ -34,7 +44,7 @@ export const useEntityProvider = (
 
   const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity, {
     fallbackData: null,
-    onErrorRetry: (error, key, config) => {
+    onErrorRetry: (error: any, key: any, config: any) => {
       if (error.code == "entity_not_found") {
         return false;
       }
