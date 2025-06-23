@@ -8,7 +8,7 @@ import {
   Information,
 } from "@/components/pricing/pricing-dialog";
 import { CheckFeatureFormattedPreview } from "autumn-js";
-import { useAutumn } from "autumn-js/next";
+import { useAutumn } from "autumn-js/react";
 import { getPaywallDialogTexts } from "@/lib/autumn/get-paywall-texts";
 
 export interface PaywallDialogProps {

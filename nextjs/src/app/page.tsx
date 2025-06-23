@@ -1,30 +1,19 @@
 "use client";
 
-import Topbar from "@/components/landing/topbar";
-import React from "react";
-import { useAutumn, useCustomer, useEntity } from "autumn-js/react";
+import React, { useEffect } from "react";
+import { useCustomer } from "autumn-js/react";
 import { PricingTable } from "@/components/autumn/pricing-table";
-import PaywallDialog from "@/components/autumn/paywall-dialog";
 
 export default function Home() {
-  // const { createReferralCode, redeemReferralCode } = useCustomer();
-  const { attach, check } = useAutumn();
+  const { customer } = useCustomer();
 
   return (
     <React.Fragment>
-      <Topbar />
-
-      <button
-        onClick={async () => {
-          const res = await check({
-            featureId: "tokens",
-            dialog: PaywallDialog,
-          });
-          console.log(res);
-        }}
-      >
-        Check
-      </button>
+      <div className="p-10">
+        <div className="max-w-full text-xs overflow-hidden">
+          {/* <pre>{JSON.stringify(customer, null, 2)}</pre> */}
+        </div>
+      </div>
       <PricingTable />
     </React.Fragment>
   );

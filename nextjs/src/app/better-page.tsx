@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { useAutumn } from "autumn-js/next";
+import { useAutumn, useCustomer } from "autumn-js/react";
 import { useState } from "react";
 import {
   Dialog,
@@ -23,7 +23,8 @@ export default function Home() {
     slug: "",
   });
 
-  const { customer, attach, openBillingPortal } = useAutumn();
+  const { attach, openBillingPortal } = useAutumn();
+  const { customer } = useCustomer();
 
   const handleCreateOrg = async (e: React.FormEvent) => {
     e.preventDefault();

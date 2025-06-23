@@ -2,8 +2,8 @@ import {
   PricingCard,
   PricingTable as PricecnPricingTable,
 } from "@/components/pricing/pricing-table";
-import { useAutumn, usePricingTable } from "autumn-js/next";
 import { Loader2 } from "lucide-react";
+import { useAutumn, usePricingTable } from "autumn-js/react";
 import ProductChangeDialog from "./product-change-dialog";
 
 export const PricingTable = () => {
@@ -33,7 +33,7 @@ export const PricingTable = () => {
               buttonProps={{
                 onClick: async () => {
                   await attach({
-                    productId: product.id,
+                    productId: "null",
                     dialog: ProductChangeDialog,
                   });
                 },

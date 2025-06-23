@@ -16,9 +16,8 @@ export const metadata: Metadata = {
   title: "Next.js Autumn App",
   description: "Starter Next.js app with Autumn",
 };
-import { ClerkProvider } from "@clerk/nextjs";
-import { AutumnProvider } from "autumn-js/next";
-// import { AutumnProvider } from "autumn-js/react";
+
+import { AutumnProvider } from "autumn-js/react";
 
 export default async function RootLayout({
   children,
@@ -30,12 +29,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AutumnProvider
-          // backendUrl="http://localhost:3001"
-          customerId="123"
-        >
-          {children}
-        </AutumnProvider>
+        <AutumnProvider backendUrl="">{children}</AutumnProvider>
       </body>
     </html>
   );

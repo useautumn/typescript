@@ -1,9 +1,11 @@
 import { authClient } from "@/lib/auth-client";
 import { createClient } from "@/lib/supabase/client";
+import { useCustomer } from "autumn-js/next";
 import { useRouter } from "next/navigation";
 
 export default function Topbar() {
   const router = useRouter();
+  const { customer, refetch } = useCustomer();
 
   const handleSignOut = async () => {
     try {
@@ -49,6 +51,7 @@ export default function Topbar() {
   };
   return (
     <div className="w-full border-b border-gray-200">
+      <button onClick={() => refetch()}>Refetch</button>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
