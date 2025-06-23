@@ -17,6 +17,10 @@ export const ReactAutumnProvider = ({
   includeCredentials?: boolean;
 }) => {
   
+  if (backendUrl && !backendUrl.startsWith("http")) {
+    console.warn(`backendUrl is not a valid URL: ${backendUrl}`);
+  }
+
   let client = new AutumnClient({
     backendUrl: backendUrl || "",
     getBearerToken,

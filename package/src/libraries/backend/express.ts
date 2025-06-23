@@ -28,7 +28,6 @@ export const autumnHandler = (
           new Autumn({
             url: autumnApiUrl,
             version: options?.version,
-            logger
           });
 
     let path = req.path;

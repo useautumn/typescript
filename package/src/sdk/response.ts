@@ -22,6 +22,7 @@ export const toContainerResult = async (
       error = await response.json();
       logger.error(`[Autumn] ${error.message}`);
     } catch (error) {
+      throw error;
       return {
         data: null,
         error: new AutumnError({
@@ -50,7 +51,7 @@ export const toContainerResult = async (
       statusCode: response?.status,
     };
   } catch (error) {
-
+    throw error;
     return {
       data: null,
       error: new AutumnError({

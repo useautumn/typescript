@@ -16,7 +16,6 @@ export function autumnHandler(options: {
   const autumn = new Autumn({
     secretKey: options.secretKey || undefined,
     url: autumnApiUrl,
-    logger
   });
 
   const router = createRouterWithOptions();

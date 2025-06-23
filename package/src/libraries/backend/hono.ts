@@ -4,7 +4,6 @@ import { createRouterWithOptions } from "./routes/backendRouter";
 import { Context, Next } from "hono";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
-import { logger } from "../../utils/logger";
 
 export const autumnHandler = <ContextType extends Context = Context>(options: {
   identify: (c: ContextType) => AuthResult;
@@ -13,7 +12,6 @@ export const autumnHandler = <ContextType extends Context = Context>(options: {
   const autumn = new Autumn({
     url: autumnApiUrl,
     version: options.version,
-    logger
   });
 
   const router = createRouterWithOptions();

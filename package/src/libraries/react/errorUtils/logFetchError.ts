@@ -11,5 +11,6 @@ export const logFetchError = ({
 }) => {
   console.error(`[Autumn] Fetch failed: ${method} ${backendUrl}${path}
 
-Check that backendUrl in <AutumnProvider/> is correctly set.`);
+1. Check that backendUrl in <AutumnProvider/> is correctly set.
+2. Check that autumnHandler is correctly registered on your backend.`);
 };

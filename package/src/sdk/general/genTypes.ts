@@ -1,7 +1,7 @@
 import { CustomerData } from "../customers/cusTypes";
 import { EntityData } from "../customers/entities/entTypes";
-import { CheckProductFormattedPreview } from "./checkTypes";
-import { CheckFeatureFormattedPreview } from "./checkTypes";
+import { CheckProductPreview } from "./checkTypes";
+import { CheckFeaturePreview } from "./checkTypes";
 
 // Attach
 export interface AttachFeatureOptions {
@@ -101,7 +101,7 @@ export interface CheckResult {
   status?: string; // Status of the product...
 
   // Preview
-  preview?: CheckProductFormattedPreview | CheckFeatureFormattedPreview;
+  preview?: CheckProductPreview | CheckFeaturePreview;
 }
 
 export interface EntitledBalance {

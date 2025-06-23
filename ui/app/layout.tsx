@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AutumnProvider } from "autumn-js/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +17,8 @@ export const metadata: Metadata = {
   description: "Beautiful, customizable, pricing components",
 };
 
+import { AutumnProvider } from "autumn-js/react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="light">
-      <AutumnProvider customerId="abc">
+      <AutumnProvider>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased `}
         >
