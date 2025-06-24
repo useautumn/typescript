@@ -20,8 +20,8 @@ export async function attachMethod(
   this: AutumnClient,
   params: AttachParams
 ): AutumnPromise<AttachResult> {
-  // Remove dialog from params
   let { dialog, ...rest } = params;
+
   let snakeParams = toSnakeCase(rest);
   const res = await this.post("/api/autumn/attach", snakeParams);
   return res;

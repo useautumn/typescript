@@ -37,7 +37,6 @@ const createCustomerHandler = withAuth({
     customer_data?: CustomerData;
     body: CreateCustomerParams;
   }) => {
-    console.log;
     let res = await autumn.customers.create({
       id: customer_id,
       ...customer_data,
@@ -66,7 +65,7 @@ const getPricingTableHandler = withAuth({
   requireCustomer: false,
 });
 
-export const createRouterWithOptions = ({ autumn }: { autumn: Autumn }) => {
+export const createRouterWithOptions = () => {
   const router = createRouter<RouteData>();
 
   addRoute(router, "POST", `${BASE_PATH}/customers`, {
@@ -84,6 +83,5 @@ export const createRouterWithOptions = ({ autumn }: { autumn: Autumn }) => {
 
   addReferralRoutes(router);
 
-  // Add /api/autumn prefix to all routes
   return router;
 };

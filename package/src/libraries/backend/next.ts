@@ -8,14 +8,15 @@ import { autumnApiUrl } from "./constants";
 
 export function autumnHandler(options: {
   identify: (request: NextRequest) => AuthResult;
+  url?: string;
+  secretKey?: string;
 }) {
   const autumn = new Autumn({
-    url: autumnApiUrl,
+    secretKey: options.secretKey || undefined,
+    url: options.url || autumnApiUrl,
   });
 
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   async function handler(request: NextRequest) {
     const method = request.method;

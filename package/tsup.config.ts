@@ -19,12 +19,7 @@ const reactConfigs: Options[] = [
     dts: true,
     clean: false,
     outDir: "./dist/libraries/react",
-    external: [
-      "react",
-      "react/jsx-runtime",
-      "react-dom",
-      "@tanstack/react-query",
-    ],
+    external: ["react", "react/jsx-runtime", "react-dom"],
     bundle: true,
     banner: {
       js: '"use client";\n',

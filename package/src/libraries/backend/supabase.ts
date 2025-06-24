@@ -22,9 +22,7 @@ export function autumnHandler(options: {
     secretKey,
   });
 
-  const router = createRouterWithOptions({
-    autumn,
-  });
+  const router = createRouterWithOptions();
 
   return async function handler(request: Request): Promise<Response> {
     const method = request.method;

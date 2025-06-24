@@ -3,6 +3,7 @@ export enum ProductStatus {
   Expired = "expired",
   Trialing = "trialing",
   Scheduled = "scheduled",
+  PastDue = "past_due",
 }
 
 export type CustomerExpandOption =

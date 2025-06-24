@@ -2,19 +2,29 @@
 
 import * as React from "react";
 
-import { PricingTable } from "@/registry/pricing-table";
+import { useAutumn, useCustomer } from "autumn-js/react";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { useAutumn } from "autumn-js/next";
+import CheckDialog from "@/registry/check-dialog/check-dialog";
 
 export default function Home() {
   const { check } = useAutumn();
+
   return (
     <div className="h-screen w-screen">
       <div className="max-w-[1000px] mx-auto p-[40px]">
-        <PricingTable />
+        {/* <PricingTable /> */}
+        <button
+          onClick={() => {
+            check({
+              featureId: "messages",
+              dialog: CheckDialog,
+            });
+          }}
+        >
+          Check
+        </button>
         <Separator className="my-8" />
-        <div className="flex justify-center w-full">
+        {/* <div className="flex justify-center w-full">
           <Button
             onClick={async () => {
               const res = await check({ featureId: "chat-messages" });
@@ -23,7 +33,7 @@ export default function Home() {
           >
             Use chat message
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

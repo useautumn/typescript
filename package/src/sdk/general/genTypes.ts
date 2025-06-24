@@ -1,7 +1,7 @@
 import { CustomerData } from "../customers/cusTypes";
 import { EntityData } from "../customers/entities/entTypes";
-import { CheckProductFormattedPreview } from "./checkTypes";
-import { CheckFeatureFormattedPreview } from "./checkTypes";
+import { CheckProductPreview } from "./checkTypes";
+import { CheckFeaturePreview } from "./checkTypes";
 
 // Attach
 export interface AttachFeatureOptions {
@@ -11,7 +11,7 @@ export interface AttachFeatureOptions {
 
 export interface AttachParams {
   customer_id: string;
-  product_id: string;
+  product_id?: string;
   entity_id?: string;
   options?: AttachFeatureOptions[];
 
@@ -23,12 +23,16 @@ export interface AttachParams {
 
   customer_data?: CustomerData;
   entity_data?: EntityData;
+
+  checkout_session_params?: Record<string, any>; // Passed to Stripe
+  reward?: string;
 }
 
 export interface CancelParams {
   customer_id: string;
   product_id: string;
   entity_id?: string;
+  cancel_immediately?: boolean;
 }
 
 export interface CancelResult {
@@ -77,7 +81,7 @@ export interface CheckParams {
   customer_data?: CustomerData;
   required_balance?: number;
   send_event?: boolean;
-  with_preview?: "raw" | "formatted";
+  with_preview?: boolean;
   entity_data?: EntityData;
 }
 
@@ -97,7 +101,7 @@ export interface CheckResult {
   status?: string; // Status of the product...
 
   // Preview
-  preview?: CheckProductFormattedPreview | CheckFeatureFormattedPreview;
+  preview?: CheckProductPreview | CheckFeaturePreview;
 }
 
 export interface EntitledBalance {

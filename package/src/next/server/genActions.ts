@@ -1,110 +1,52 @@
 import { BillingPortalParams, CustomerData, EntityData } from "../../sdk";
 import { createAutumnClient } from "../server/cusActions";
-import { withAuth } from "./auth/withAuth";
-import { AttachFeatureOptions } from "src/sdk/general/genTypes";
+import { withAuth } from "./auth/withNextAuth";
 import { toServerResponse } from "./utils";
-import { EntityDataParams } from "../../libraries/react/client/types/clientEntTypes";
+import {
+  AttachParams,
+  CancelParams,
+  CheckParams,
+  TrackParams,
+} from "../../libraries/react/client/types/clientGenTypes";
+import { toSnakeCase } from "../../utils/toSnakeCase";
 
 export const attachAction = withAuth({
-  fn: async ({
-    customerId,
-    customerData,
-    productId,
-    entityId,
-    options,
-    successUrl,
-    forceCheckout,
-    metadata,
-    entityData,
-  }: {
-    customerId: string;
-    customerData?: CustomerData;
-    productId: string;
-    entityId?: string;
-    successUrl?: string;
-    options?: AttachFeatureOptions[];
-    forceCheckout?: boolean;
-    metadata?: Record<string, string>;
-    entityData?: EntityDataParams;
-  }) => {
+  fn: async (
+    params: AttachParams & { customerId: string; customerData?: CustomerData }
+  ) => {
     const autumn = createAutumnClient();
 
     let res = await autumn.attach({
-      customer_id: customerId,
-      customer_data: customerData,
-      product_id: productId,
-      success_url: successUrl,
-      options,
-      force_checkout: forceCheckout,
-      metadata,
-      entity_id: entityId,
-      entity_data: entityData
-        ? ({ ...entityData, feature_id: entityData.featureId } as EntityData)
-        : undefined,
+      customer_id: params.customerId,
+      customer_data: params.customerData,
+      ...toSnakeCase(params),
     });
 
     return toServerResponse(res);
   },
+
   withCustomerData: true,
 });
 
 export const cancelAction = withAuth({
-  fn: async ({
-    customerId,
-    productId,
-    entityId,
-  }: {
-    customerId: string;
-    productId: string;
-    entityId?: string;
-  }) => {
+  fn: async (params: CancelParams & { customerId: string }) => {
     const autumn = createAutumnClient();
-    let res = await autumn.cancel({
-      customer_id: customerId,
-      product_id: productId,
-      entity_id: entityId,
-    });
+    let res = await autumn.cancel(toSnakeCase(params));
 
     return toServerResponse(res);
   },
 });
 
 export const checkAction = withAuth({
-  fn: async ({
-    customerId,
-    customerData,
-    featureId,
-    productId,
-    entityId,
-    requiredBalance,
-    sendEvent,
-    withPreview,
-    entityData,
-  }: {
-    customerId: string;
-    customerData?: CustomerData;
-    featureId?: string;
-    productId?: string;
-    entityId?: string;
-    requiredBalance?: number;
-    sendEvent?: boolean;
-    withPreview?: "raw" | "formatted";
-    entityData?: EntityDataParams;
-  }) => {
+  fn: async (
+    params: CheckParams & { customerId: string; customerData?: CustomerData }
+  ) => {
     const autumn = createAutumnClient();
 
     let res = await autumn.check({
-      customer_id: customerId,
-      feature_id: featureId,
-      product_id: productId,
-      entity_id: entityId,
-      required_balance: requiredBalance,
-      send_event: sendEvent,
-      with_preview: withPreview,
-      customer_data: customerData,
-      entity_data: entityData
-        ? ({ ...entityData, feature_id: entityData.featureId } as EntityData)
-        : undefined,
+      customer_id: params.customerId,
+      customer_data: params.customerData,
+      ...toSnakeCase(params),
     });
 
     return toServerResponse(res);
@@ -113,37 +55,14 @@ export const checkAction = withAuth({
 });
 
 export const trackAction = withAuth({
-  fn: async ({
-    customerId,
-    featureId,
-    entityId,
-    value,
-    eventName,
-    idempotencyKey,
-    customerData,
-    entityData,
-  }: {
-    customerId: string;
-    customerData?: CustomerData;
-    featureId?: string;
-    entityId?: string;
-    value?: number;
-    eventName?: string;
-    idempotencyKey?: string;
-    entityData?: EntityDataParams;
-  }) => {
+  fn: async (
+    params: TrackParams & { customerId: string; customerData?: CustomerData }
+  ) => {
     const autumn = createAutumnClient();
     let res = await autumn.track({
-      customer_id: customerId,
-      feature_id: featureId,
-      entity_id: entityId,
-      value,
-      event_name: eventName,
-      idempotency_key: idempotencyKey,
-      customer_data: customerData,
-      entity_data: entityData
-        ? ({ ...entityData, feature_id: entityData.featureId } as EntityData)
-        : undefined,
+      customer_id: params.customerId,
+      customer_data: params.customerData,
+      ...toSnakeCase(params),
     });
 
     return toServerResponse(res);

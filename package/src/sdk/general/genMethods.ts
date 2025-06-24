@@ -1,5 +1,5 @@
 import { Autumn } from "../client";
-import { AutumnError } from "../error";
+
 import { AutumnPromise } from "../response";
 import {
   AttachParams,

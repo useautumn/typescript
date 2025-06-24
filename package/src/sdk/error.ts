@@ -13,6 +13,13 @@ export class AutumnError extends Error {
     this.code = response.code;
   }
 
+  static fromError(error: any) {
+    return new AutumnError({
+      message: error.message || "Unknown error",
+      code: error.code || "unknown_error",
+    });
+  }
+
   toString() {
     return `${this.message} (code: ${this.code})`;
   }

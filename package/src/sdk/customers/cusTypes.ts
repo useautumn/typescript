@@ -33,6 +33,12 @@ export interface CustomerProduct {
   subscription_ids?: string[] | null;
   current_period_start?: number | null;
   current_period_end?: number | null;
+
+  trial_ends_at?: number;
+  entity_id?: string;
+
+  is_add_on: boolean;
+  is_default: boolean;
 }
 
 export interface Customer {

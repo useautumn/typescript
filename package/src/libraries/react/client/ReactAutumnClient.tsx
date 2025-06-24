@@ -1,8 +1,10 @@
 import {
+  AutumnError,
   CreateCustomerParams,
   CustomerData,
   toContainerResult,
 } from "../../../sdk";
+import { logFetchError } from "../errorUtils/logFetchError";
 import { getPricingTableMethod } from "./clientCompMethods";
 import { createCustomerMethod } from "./clientCusMethods";
 import {
@@ -32,23 +34,25 @@ export type OmitCustomerType =
   | "fingerprint"
   | "customer_id";
 
+export interface AutumnClientConfig {
+  backendUrl?: string;
+  getBearerToken?: () => Promise<string | null | undefined>;
+  customerData?: CustomerData;
+  includeCredentials?: boolean;
+}
+
 export class AutumnClient {
-  private readonly backendUrl: string;
-  private readonly getBearerToken?: () => Promise<string | null | undefined>;
-  private readonly customerData?: CustomerData;
-  private readonly includeCredentials?: boolean;
+  protected readonly backendUrl?: string;
+  protected readonly getBearerToken?: () => Promise<string | null | undefined>;
+  protected readonly customerData?: CustomerData;
+  protected readonly includeCredentials?: boolean;
 
   constructor({
     backendUrl,
     getBearerToken,
     customerData,
     includeCredentials,
-  }: {
-    backendUrl: string;
-    getBearerToken?: () => Promise<string | null | undefined>;
-    customerData?: CustomerData;
-    includeCredentials?: boolean;
-  }) {
+  }: AutumnClientConfig) {
     this.backendUrl = backendUrl;
     this.getBearerToken = getBearerToken;
     this.customerData = customerData;
@@ -72,42 +76,70 @@ export class AutumnClient {
     return headers;
   }
 
-  async handleFetchResult(result: Response) {
-    let res = await toContainerResult(result);
-    return res;
+  async handleFetch({
+    path,
+    method,
+    body,
+  }: {
+    path: string;
+    method: string;
+    body?: any;
+  }) {
+
+    body = method === "POST" ? JSON.stringify({
+      ...body,
+      customer_data: this.customerData || undefined,
+    }) : undefined;
+
+    
+    try {
+      const response = await fetch(`${this.backendUrl}${path}`, {
+        method,
+        body,
+        headers: await this.getHeaders(),
+        credentials: this.includeCredentials ? "include" : undefined,
+      });
+
+      return await toContainerResult({ response, logger: console });
+    } catch (error: any) {
+
+      logFetchError({
+        method,
+        backendUrl: this.backendUrl || "",
+        path,
+        error,
+      });
+      return {
+        data: null,
+        error: new AutumnError({
+          message: error.message,
+          code: "fetch_failed",
+        }),
+      };
+
+    }
   }
 
   async post(path: string, body: any) {
-    const response = await fetch(`${this.backendUrl}${path}`, {
+    return await this.handleFetch({
+      path,
       method: "POST",
-      body: JSON.stringify({
-        ...body,
-        customer_data: this.customerData || undefined,
-      }),
-      headers: await this.getHeaders(),
-      credentials: this.includeCredentials ? "include" : undefined,
+      body,
     });
-
-    return await this.handleFetchResult(response);
   }
 
   async get(path: string) {
-    const response = await fetch(`${this.backendUrl}${path}`, {
+    return await this.handleFetch({
+      path,
       method: "GET",
-      headers: await this.getHeaders(),
-      credentials: this.includeCredentials ? "include" : undefined,
     });
-
-    return await this.handleFetchResult(response);
   }
 
   async delete(path: string) {
-    const response = await fetch(`${this.backendUrl}${path}`, {
+    return await this.handleFetch({
+      path,
       method: "DELETE",
-      headers: await this.getHeaders(),
     });
-
-    return await this.handleFetchResult(response);
   }
 
   async createCustomer(

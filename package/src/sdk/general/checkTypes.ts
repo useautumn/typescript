@@ -3,7 +3,7 @@ import { Product } from "../products/prodTypes";
 
 export type CheckFeatureScenario = "usage_limit" | "feature_flag";
 
-export interface CheckFeatureFormattedPreview {
+export interface CheckFeaturePreview {
   scenario: CheckFeatureScenario;
   title: string;
   message: string;
@@ -21,7 +21,7 @@ export type CheckProductScenario =
   | "downgrade"
   | "cancel";
 
-export interface CheckProductFormattedPreview {
+export interface CheckProductPreview {
   scenario: CheckProductScenario;
   product_id: string;
   product_name: string;

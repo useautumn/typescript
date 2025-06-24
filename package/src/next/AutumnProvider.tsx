@@ -1,7 +1,8 @@
-import { AutumnClientProvider } from "./client/AutumnProvider";
 import { encryptData } from "../utils/encryptUtils";
 import { CustomerData } from "src/sdk";
 import { AuthPluginOptions, setupAuthPlugin } from "./server/auth/authPlugin";
+import { NextAutumnProvider } from "./client/NextAutumnProvider";
+
 
 interface AutumnProviderProps {
   customerId?: string;
@@ -42,11 +43,11 @@ export const AutumnProvider = ({
   }
 
   return (
-    <AutumnClientProvider
+    <NextAutumnProvider
       encryptedCustomerId={encryptedCustomerId}
       customerData={customerData}
     >
       {children}
-    </AutumnClientProvider>
+    </NextAutumnProvider>
   );
 };
