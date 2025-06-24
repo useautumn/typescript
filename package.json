@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf node_modules */node_modules */*/node_modules pnpm-lock.yaml */pnpm-lock.yaml",
-    "install-all": "pnpm install --frozen-lockfile=false"
+    "install-all": "pnpm install --frozen-lockfile=false",
+    "ui:build": "pnpm -F ui build"
   },
   "pnpm": {
     "overrides": {
