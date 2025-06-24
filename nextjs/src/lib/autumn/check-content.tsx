@@ -1,8 +1,6 @@
-import { CheckFeatureFormattedPreview } from "autumn-js";
+import { type CheckFeaturePreview } from "autumn-js";
 
-export const getPaywallDialogTexts = (
-  preview: CheckFeatureFormattedPreview
-) => {
+export const getCheckContent = (preview: CheckFeaturePreview) => {
   const { scenario, products, feature_name } = preview;
 
   if (products.length == 0) {
@@ -40,21 +38,14 @@ export const getPaywallDialogTexts = (
 
   switch (scenario) {
     case "usage_limit":
-      if (isAddOn) {
-        return {
-          title: title,
-          message: `You have reached the usage limit for ${feature_name}. ${message}`,
-        };
-      } else {
-        return {
-          title: title,
-          message: `You have reached the usage limit for ${feature_name}. ${message}`,
-        };
-      }
+      return {
+        title: title,
+        message: `You have reached the usage limit for ${feature_name}. ${message}`,
+      };
     case "feature_flag":
       return {
-        title: "Feature Unavailable",
-        message: "This feature is not available for your account.",
+        title: title,
+        message: `This feature is not available for your account. ${message}`,
       };
     default:
       return {

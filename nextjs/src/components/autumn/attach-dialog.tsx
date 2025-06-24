@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { type CheckProductPreview } from "autumn-js";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { getAttachContent } from "@/registry/attach-dialog/lib/attach-content";
+import { getAttachContent } from "@/lib/autumn/attach-content";
 
 export interface AttachDialogProps {
   open: boolean;

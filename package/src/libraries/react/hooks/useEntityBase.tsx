@@ -1,18 +1,18 @@
 import useSWR from "swr";
 import { GetEntityParams } from "../../../libraries/react/client/types/clientEntTypes";
-import { getEntityAction } from "../../../next/server/cusActions";
 import { useContext } from "react";
+import { AutumnContextParams } from "../AutumnContext";
 
 export const useEntityBase = ({
   entityId,
   params,
   AutumnContext,
 }: {
-  entityId?: string;
+  entityId: string | null;
   params?: GetEntityParams;
-  AutumnContext: React.Context<any>;
+  AutumnContext: React.Context<AutumnContextParams>;
 }) => {
-  const { encryptedCustomerId, client } = useContext(AutumnContext);
+  const { client } = useContext(AutumnContext);
   const queryKey = ["entity", entityId, params?.expand];
 
   const fetchEntity = async () => {
@@ -20,16 +20,7 @@ export const useEntityBase = ({
       return null;
     }
 
-    const { data, error } = await client.entities.get({
-      entityId,
-      params,
-    });
-
-    // getEntityAction({
-    //   encryptedCustomerId,
-    //   entityId,
-    //   params,
-    // });
+    const { data, error } = await client.entities.get(entityId, params);
 
     if (error) {
       throw error;

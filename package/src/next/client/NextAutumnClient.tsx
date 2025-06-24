@@ -42,9 +42,11 @@ export class NextAutumnClient extends AutumnClient {
       errorOnNotFound?: boolean;
     }
   ) {
+
     const res = await createCusAction({
       encryptedCustomerId: this.encryptedCustomerId,
       customerData: this.customerData,
+      ...params,
     });
 
     return res;
@@ -59,15 +61,11 @@ export class NextAutumnClient extends AutumnClient {
 
   // Entities
   attach = async (params: AttachParams): AutumnPromise<AttachResult> => {
-    console.log("Calling attach with params:", params);
     const res = await attachAction({
       encryptedCustomerId: this.encryptedCustomerId,
       customerData: this.customerData,
       ...params,
     });
-
-    console.log("Attach res:", res);
-
     return res;
   }
 

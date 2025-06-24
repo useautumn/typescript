@@ -32,12 +32,13 @@ export function BaseAutumnProvider({
     setProductChangeOpen,
   ] = useDialog(components.productChangeDialog);
 
-  useCustomerBase({ client, AutumnContext, errorOnNotFound: false });
+  useCustomerBase({ client, params: { errorOnNotFound: false } });
 
 
   return (
     <AutumnContext.Provider
       value={{
+        initialized: true,
         client,
 
         paywallDialog: {

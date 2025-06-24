@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run registry:build && next dev",
+    "dev": "npm run registry:build && next dev -p 3002",
     "build": "next build && npm run registry:build",
     "start": "next start",
     "lint": "next lint",

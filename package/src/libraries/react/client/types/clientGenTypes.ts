@@ -50,4 +50,5 @@ export interface TrackParams {
 
 export interface OpenBillingPortalParams {
   returnUrl?: string;
+  openInNewTab?: boolean;
 }

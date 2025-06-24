@@ -5,6 +5,7 @@ import {
 import { Loader2 } from "lucide-react";
 
 import { useAutumn, usePricingTable } from "autumn-js/react";
+import AttachDialog from "./attach-dialog/attach-dialog";
 
 export const PricingTable = () => {
   const { attach } = useAutumn();
@@ -34,6 +35,7 @@ export const PricingTable = () => {
                 onClick: async () => {
                   await attach({
                     productId: product.id,
+                    dialog: AttachDialog,
                   });
                 },
               }}

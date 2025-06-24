@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "check-dialog",
+  "type": "registry:component",
+  "dependencies": [
+    "autumn-js"
+  ],
+  "files": [
+    {
+      "path": "registry/check-dialog/check-dialog.tsx",
+      "content": "\"use client\";\n\nimport {\n  Dialog,\n  DialogContent,\n  DialogFooter,\n  DialogTitle,\n} from \"@/components/ui/dialog\";\nimport { useState } from \"react\";\nimport { Loader2 } from \"lucide-react\";\nimport { Button } from \"@/components/ui/button\";\nimport { getCheckContent } from \"@/registry/check-dialog/lib/check-content\";\nimport { type CheckFeaturePreview } from \"autumn-js\";\nimport { cn } from \"@/lib/utils\";\n\nexport interface CheckDialogProps {\n  open: boolean;\n  setOpen: (open: boolean) => void;\n  preview: CheckFeaturePreview;\n}\n\nexport default function CheckDialog(params?: CheckDialogProps) {\n  const [loading] = useState(false);\n\n  if (!params || !params.preview) {\n    return <></>;\n  }\n\n  const { open, setOpen } = params;\n  const { products } = params.preview;\n  const { title, message } = getCheckContent(params.preview);\n\n  return (\n    <Dialog open={open} onOpenChange={setOpen}>\n      <DialogContent className=\"p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm\">\n        <DialogTitle className={cn(\"font-bold text-xl px-6\")}>\n          {title}\n        </DialogTitle>\n        <div className=\"px-6 my-2\">{message}</div>\n        <DialogFooter className=\"flex flex-col sm:flex-row justify-between gap-x-4 py-2 mt-4 pl-6 pr-3 bg-secondary border-t\">\n          <Button\n            size=\"sm\"\n            className=\"font-medium shadow transition min-w-20\"\n            onClick={async () => {\n              setOpen(false);\n            }}\n          >\n            {loading && <Loader2 className=\"w-4 h-4 mr-2 animate-spin\" />}\n            Confirm\n          </Button>\n        </DialogFooter>\n      </DialogContent>\n    </Dialog>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/autumn/check-dialog.tsx"
+    },
+    {
+      "path": "registry/check-dialog/lib/check-content.tsx",
+      "content": "import { type CheckFeaturePreview } from \"autumn-js\";\n\nexport const getCheckContent = (preview: CheckFeaturePreview) => {\n  const { scenario, products, feature_name } = preview;\n\n  if (products.length == 0) {\n    switch (scenario) {\n      case \"usage_limit\":\n        return {\n          title: `Feature Unavailable`,\n          message: `You have reached the usage limit for ${feature_name}. Please contact us to increase your limit.`,\n        };\n      default:\n        return {\n          title: \"Feature Unavailable\",\n          message:\n            \"This feature is not available for your account. Please contact us to enable it.\",\n        };\n    }\n  }\n\n  const nextProduct = products[0];\n\n  const isAddOn = nextProduct && nextProduct.is_add_on;\n\n  const title = nextProduct.free_trial\n    ? `Start trial for ${nextProduct.name}`\n    : nextProduct.is_add_on\n    ? `Purchase ${nextProduct.name}`\n    : `Upgrade to ${nextProduct.name}`;\n\n  let message = \"\";\n  if (isAddOn) {\n    message = `Please purchase the ${nextProduct.name} add-on to continue using ${feature_name}.`;\n  } else {\n    message = `Please upgrade to the ${nextProduct.name} plan to continue using ${feature_name}.`;\n  }\n\n  switch (scenario) {\n    case \"usage_limit\":\n      return {\n        title: title,\n        message: `You have reached the usage limit for ${feature_name}. ${message}`,\n      };\n    case \"feature_flag\":\n      return {\n        title: title,\n        message: `This feature is not available for your account. ${message}`,\n      };\n    default:\n      return {\n        title: \"Feature Unavailable\",\n        message: \"This feature is not available for your account.\",\n      };\n  }\n};\n",
+      "type": "registry:lib",
+      "target": "lib/autumn/check-content.tsx"
+    }
+  ]
+}
