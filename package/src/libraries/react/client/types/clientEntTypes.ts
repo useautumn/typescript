@@ -1,6 +1,6 @@
 export interface CreateEntityParams {
   id: string;
-  name: string;
+  name?: string;
   featureId: string;
 }
 

@@ -1,9 +1,9 @@
 import { AutumnContext } from "../../../libraries/react/AutumnContext";
-import { useCustomerBase, UseCustomerResult } from "../../../libraries/react/hooks/useCustomerBase";
+import { useCustomerBase, UseCustomerParams, UseCustomerResult } from "../../../libraries/react/hooks/useCustomerBase";
 
-export const useCustomer = (): UseCustomerResult => {
+export const useCustomer = (params?: UseCustomerParams): UseCustomerResult => {
   return useCustomerBase({
-    errorOnNotFound: false,
+    params,
     AutumnContext: AutumnContext,
   });
 };

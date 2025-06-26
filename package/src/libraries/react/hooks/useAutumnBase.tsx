@@ -8,19 +8,20 @@ import {
   TrackParams,
 } from "../client/types/clientGenTypes";
 import { AutumnPromise } from "../../../sdk";
-import { usePricingTable } from "./usePricingTable";
-import { useContext } from "react";
+import { usePricingTableBase } from "./usePricingTableBase";
 
 export const useAutumnBase = ({
   AutumnContext,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
 }) => {
-  const context = useContext(AutumnContext);
+  const context = useAutumnContext({ AutumnContext, name: "useAutumn" });
   const { prodChangeDialog, paywallDialog } = context;
 
   const client = context.client;
-  const { refetch: refetchPricingTable } = usePricingTable();
+  const { refetch: refetchPricingTable } = usePricingTableBase({
+    AutumnContext,
+  });
 
   let {
     setProps: setProdChangeDialogProps,
@@ -147,7 +148,16 @@ export const useAutumnBase = ({
   };
 
   const openBillingPortal = async (params?: OpenBillingPortalParams) => {
-    const res = await client.openBillingPortal(params);
+    let defaultParams = {
+      openInNewTab: false,
+    };
+
+    let finalParams = {
+      ...defaultParams,
+      ...params,
+    };
+
+    const res = await client.openBillingPortal(finalParams);
 
     if (res.error) {
       return res;
@@ -156,7 +166,12 @@ export const useAutumnBase = ({
     let data = res.data;
 
     if (data?.url && typeof window !== "undefined") {
-      window.open(data.url, "_blank");
+      if (finalParams.openInNewTab) {
+        window.open(data.url, "_blank");
+      } else {
+        window.open(data.url, "_self");
+      }
+
       return res;
     } else {
       return res;

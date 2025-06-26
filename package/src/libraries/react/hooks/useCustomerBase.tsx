@@ -5,6 +5,7 @@ import {
   Entity,
   CreateReferralCodeResult,
   RedeemReferralCodeResult,
+  CustomerExpandOption,
 } from "../../../sdk";
 import { CreateEntityParams } from "../client/types/clientEntTypes";
 import {
@@ -14,6 +15,7 @@ import {
 import useSWR from "swr";
 import React, { useContext } from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
+import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 
 export interface UseCustomerResult {
   customer: Customer | null;
@@ -31,25 +33,35 @@ export interface UseCustomerResult {
   ) => AutumnPromise<RedeemReferralCodeResult>;
 }
 
+export interface UseCustomerParams {
+  errorOnNotFound?: boolean;
+  expand?: CustomerExpandOption[];
+}
+
 export const useCustomerBase = ({
-  errorOnNotFound,
+  params,
   AutumnContext,
   client,
 }: {
-  errorOnNotFound?: boolean;
-  AutumnContext: React.Context<any>;
+  params?: UseCustomerParams;
+  AutumnContext?: React.Context<any>;
   client?: AutumnClient;
 }): UseCustomerResult => {
   const queryKey = ["customer"];
-  const context = useContext(AutumnContext);
+  
+  let context: AutumnContextParams | undefined;
+  if (AutumnContext) {
+    context = useAutumnContext({ AutumnContext, name: "useCustomer" });
+  }
 
   if (!client) {
-    client = context.client;
+    client = context!.client;
   }
 
   const fetchCustomer = async () => {
     const { data, error } = await client!.createCustomer({
-      errorOnNotFound,
+      errorOnNotFound: params?.errorOnNotFound,
+      expand: params?.expand,
     });
 
     if (error) {

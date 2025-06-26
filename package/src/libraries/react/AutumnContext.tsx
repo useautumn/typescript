@@ -10,12 +10,14 @@ export interface AutumnDialogContext {
 }
 
 export interface AutumnContextParams {
+  initialized: boolean;
   client: AutumnClient;
   paywallDialog: AutumnDialogContext;
   prodChangeDialog: AutumnDialogContext;
 }
 
 export const AutumnContext = createContext<AutumnContextParams>({
+  initialized: false,
   client: new AutumnClient({
     backendUrl: process.env.NEXT_PUBLIC_AUTUMN_BACKEND_URL,
   }),
@@ -37,13 +39,19 @@ export const AutumnContext = createContext<AutumnContextParams>({
   },
 });
 
-export const useAutumnContext = () => {
+export const useAutumnContext = ({
+  AutumnContext,
+  name,
+}: {
+  AutumnContext: React.Context<AutumnContextParams>;
+  name: string;
+}) => {
   const context = useContext(AutumnContext);
 
-  if (context === undefined) {
-    throw new Error(
-      "useAutumnContext must be used within a AutumnContextProvider"
-    );
+
+  if (!context.initialized) {
+    // console.error(`${name} must be used within <AutumnProvider />`);
+    throw new Error(`${name} must be used within <AutumnProvider />`);
   }
 
   return context;

@@ -1,5 +1,5 @@
 
-import { Autumn, CustomerData } from "../../sdk";
+import { Autumn, CreateCustomerParams, CustomerData } from "../../sdk";
 import { withAuth } from "./auth/withNextAuth";
 import { toServerResponse } from "./utils";
 import { CreateEntityParams, GetEntityParams } from "../../libraries/react/client/types/clientEntTypes";
@@ -15,15 +15,18 @@ export const createCusAction = withAuth({
   fn: async ({
     customerId,
     customerData,
+    ...params
   }: {
     customerId: string;
     customerData?: CustomerData;
+    params?: CreateCustomerParams;
   }) => {
     const autumn = createAutumnClient();
 
     const result = await autumn.customers.create({
       id: customerId,
       ...customerData,
+      ...params,
     });
 
     return toServerResponse(result);
@@ -35,7 +38,7 @@ export const getEntityAction = withAuth({
   fn: async ({
     customerId,
     entityId,
-    params,
+    ...params
   }: {
     customerId: string;
     entityId: string;

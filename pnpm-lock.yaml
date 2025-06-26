@@ -69,8 +69,8 @@ importers:
         specifier: ^2.49.4
         version: 2.50.0
       autumn-js:
-        specifier: workspace:*
-        version: link:../package
+        specifier: ^0.0.67
+        version: 0.0.67(react@18.3.1)
       better-auth:
         specifier: ^1.2.7
         version: 1.2.10
@@ -147,12 +147,6 @@ importers:
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
-      pino:
-        specifier: ^9.7.0
-        version: 9.7.0
-      pino-pretty:
-        specifier: ^13.0.0
-        version: 13.0.0
       rou3:
         specifier: ^0.6.1
         version: 0.6.3
@@ -3038,6 +3032,48 @@ packages:
   atomic-sleep@1.0.0:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
+
+  autoprefixer@10.4.21:
+    resolution: {integrity: sha512-O+A6LWV5LDHSJD3LjHYoNi4VLsj/Whi7k6zG12xTYaU4cQ8oxQGckXNX8cRHK5yOZ/ppVHe0ZBXGzSV9jXdVbQ==}
+    engines: {node: ^10 || ^12 || >=14}
+    hasBin: true
+    peerDependencies:
+      postcss: ^8.1.0
+
+  autumn-js@0.0.41:
+    resolution: {integrity: sha512-oP6CMamBTm8LlJPZCt3JTdG2mRkY7NGKp4jgY5l2GY0LTtjtoKJsDyoNqL2nzWR30Sayct9EG4WDUFZQtrgAZA==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.76.1
+      react: 18.3.1
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  autumn-js@0.0.60:
+    resolution: {integrity: sha512-hVI14qBSlNcPgOKxzzEXXWnLghzeTGnPKRuJ1yVN8oUzx/h16LYfZGNk7kM2Jh0nccvrFcGTFCYPorJG6P0GAg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.76.1
+      react: 18.3.1
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  autumn-js@0.0.65:
+    resolution: {integrity: sha512-YKR5kNDdpYvxGDNEmgqtqrDODyJG3frApR2HC9z05hazg94rEDSoatfUh7iweJUAGSauhqhjWADtgMvRRbSLfA==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.76.1
+      react: 18.3.1
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  autumn-js@0.0.67:
+    resolution: {integrity: sha512-Xf1HxXA+RqH/qWvFNNjSO9tCZTRpwgi5WS3wEzTZ2d/nmUqhs7YTkR0GXC71BOscH3TByRSzBPFu5LLle5g42A==}
+    peerDependencies:
+      react: '*'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
@@ -10292,6 +10328,52 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
+<<<<<<< HEAD
+=======
+  autoprefixer@10.4.21(postcss@8.5.6):
+    dependencies:
+      browserslist: 4.25.0
+      caniuse-lite: 1.0.30001724
+      fraction.js: 4.3.7
+      normalize-range: 0.1.2
+      picocolors: 1.1.1
+      postcss: 8.5.6
+      postcss-value-parser: 4.2.0
+
+  autumn-js@0.0.41(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@tanstack/react-query': 5.81.2(react@18.3.1)
+      rou3: 0.6.3
+    optionalDependencies:
+      react: 18.3.1
+
+  autumn-js@0.0.60(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@tanstack/react-query': 5.81.2(react@18.3.1)
+      rou3: 0.6.3
+      swr: 2.3.3(react@18.3.1)
+    optionalDependencies:
+      react: 18.3.1
+
+  autumn-js@0.0.65(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@tanstack/react-query': 5.81.2(react@18.3.1)
+      rou3: 0.6.3
+      swr: 2.3.3(react@18.3.1)
+    optionalDependencies:
+      react: 18.3.1
+
+  autumn-js@0.0.67(react@18.3.1):
+    dependencies:
+      chalk: 5.4.1
+      pino: 9.7.0
+      pino-pretty: 13.0.0
+      rou3: 0.6.3
+      swr: 2.3.3(react@18.3.1)
+    optionalDependencies:
+      react: 18.3.1
+
+>>>>>>> 41ff0627e09c112353156315f714dba282c909b4
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0

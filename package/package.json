@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.66",
+  "version": "0.0.67",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -90,8 +90,6 @@
   },
   "dependencies": {
     "chalk": "^5.4.1",
-    "pino": "^9.7.0",
-    "pino-pretty": "^13.0.0",
     "rou3": "^0.6.1",
     "swr": "^2.3.3"
   },

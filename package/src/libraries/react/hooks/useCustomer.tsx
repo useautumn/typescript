@@ -1,9 +1,9 @@
 import { AutumnContext } from "../AutumnContext";
-import { useCustomerBase } from "./useCustomerBase";
+import { useCustomerBase, UseCustomerParams } from "./useCustomerBase";
 
-export const useCustomer = (params?: { errorOnNotFound?: boolean }) => {
+export const useCustomer = (params?: UseCustomerParams) => {
   return useCustomerBase({
-    errorOnNotFound: params?.errorOnNotFound,
+    params,
     AutumnContext: AutumnContext,
   });
 };

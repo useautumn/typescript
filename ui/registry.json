@@ -45,110 +45,37 @@
 
 
     {
-      "name": "classic/paywall-dialog",
+      "name": "check-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.vercel.app/classic/pricing-dialog.json"],
       "files": [
         {
-          "path": "registry/paywall-dialog/paywall-dialog.tsx",
+          "path": "registry/check-dialog/check-dialog.tsx",
           "type": "registry:component",
-          "target": "components/autumn/paywall-dialog.tsx"
+          "target": "components/autumn/check-dialog.tsx"
         },
         {
-          "path": "registry/paywall-dialog/lib/get-paywall-texts.tsx",
+          "path": "registry/check-dialog/lib/check-content.tsx",
           "type": "registry:lib",
-          "target": "lib/autumn/get-paywall-texts.tsx"
-        }
-      ]
-    },
-    {
-      "name": "dev/paywall-dialog",
-      "type": "registry:component",
-      "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.vercel.app/dev/pricing-dialog.json"],
-      "files": [
-        {
-          "path": "registry/paywall-dialog/paywall-dialog.tsx",
-          "type": "registry:component",
-          "target": "components/autumn/paywall-dialog.tsx"
-        },
-        {
-          "path": "registry/paywall-dialog/lib/get-paywall-texts.tsx",
-          "type": "registry:lib",
-          "target": "lib/autumn/get-paywall-texts.tsx"
-        }
-      ]
-    },{
-      "name": "clean/paywall-dialog",
-      "type": "registry:component",
-      "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.vercel.app/clean/pricing-dialog.json"],
-      "files": [
-        {
-          "path": "registry/paywall-dialog/paywall-dialog.tsx",
-          "type": "registry:component",
-          "target": "components/autumn/paywall-dialog.tsx"
-        },
-        {
-          "path": "registry/paywall-dialog/lib/get-paywall-texts.tsx",
-          "type": "registry:lib",
-          "target": "lib/autumn/get-paywall-texts.tsx"
+          "target": "lib/autumn/check-content.tsx"
         }
       ]
     },
 
     {
-      "name": "classic/product-change-dialog",
+      "name": "attach-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.vercel.app/classic/pricing-dialog.json"],
       "files": [
         {
-          "path": "registry/product-change-dialog/product-change-dialog.tsx",
+          "path": "registry/attach-dialog/attach-dialog.tsx",
           "type": "registry:component",
-          "target": "components/autumn/product-change-dialog.tsx"
+          "target": "components/autumn/attach-dialog.tsx"
         },
         {
-          "path": "registry/product-change-dialog/lib/get-product-change-texts.tsx",
+          "path": "registry/attach-dialog/lib/attach-content.tsx",
           "type": "registry:lib",
-          "target": "lib/autumn/get-product-change-texts.tsx"
-        }
-      ]
-    },
-    {
-      "name": "dev/product-change-dialog",
-      "type": "registry:component",
-      "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.vercel.app/dev/pricing-dialog.json"],
-      "files": [
-        {
-          "path": "registry/product-change-dialog/product-change-dialog.tsx",
-          "type": "registry:component",
-          "target": "components/autumn/product-change-dialog.tsx"
-        },
-        {
-          "path": "registry/product-change-dialog/lib/get-product-change-texts.tsx",
-          "type": "registry:lib",
-          "target": "lib/autumn/get-product-change-texts.tsx"
-        }
-      ]
-    },
-    {
-      "name": "clean/product-change-dialog",
-      "type": "registry:component",
-      "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.vercel.app/clean/pricing-dialog.json"],
-      "files": [
-        {
-          "path": "registry/product-change-dialog/product-change-dialog.tsx",
-          "type": "registry:component",
-          "target": "components/autumn/product-change-dialog.tsx"
-        },
-        {
-          "path": "registry/product-change-dialog/lib/get-product-change-texts.tsx",
-          "type": "registry:lib",
-          "target": "lib/autumn/get-product-change-texts.tsx"
+          "target": "lib/autumn/attach-content.tsx"
         }
       ]
     }

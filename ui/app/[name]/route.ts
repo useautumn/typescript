@@ -13,7 +13,7 @@ export const generateStaticParams = async () => {
   }));
 };
 
-// This route shows an example for serving a component using a route handler.
+// This route serves components directly at the root level without .json extension
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ name: string }> }
@@ -25,7 +25,10 @@ export async function GET(
     const registry = registryData.default;
 
     // Find the component from the registry.
-    const component = registry.items.find((c) => c.name === name);
+    // Handle both with and without .json extension
+    const component = registry.items.find(
+      (c) => c.name === name || c.name === `${name}.json`
+    );
 
     // If the component is not found, return a 404 error.
     if (!component) {
