@@ -1,8 +1,6 @@
 import { type CheckProductPreview } from "autumn-js";
 
-export const getAttachContent = (
-  preview: CheckProductPreview
-) => {
+export const getAttachContent = (preview: CheckProductPreview) => {
   const {
     scenario,
     product_name,
@@ -10,6 +8,8 @@ export const getAttachContent = (
     current_product_name,
     next_cycle_at,
   } = preview;
+
+  console.log("preview", preview);
 
   const nextCycleAtStr = next_cycle_at
     ? new Date(next_cycle_at).toLocaleDateString()
@@ -50,7 +50,7 @@ export const getAttachContent = (
           message: (
             <p>
               By clicking confirm, you will purchase {product_name} and your
-              card will be charged immedaitely.
+              card will be charged immediately.
             </p>
           ),
         };
@@ -72,8 +72,8 @@ export const getAttachContent = (
         title: <p>Upgrade to {product_name}</p>,
         message: (
           <p>
-            By clicking confirm, you will upgrade your subscription to{" "}
-            {product_name} and your card will be charged immediately.
+            By clicking confirm, you will upgrade to {product_name} and your
+            payment method will be charged immediately.
           </p>
         ),
       };

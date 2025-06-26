@@ -6,8 +6,8 @@ dotenv.config({ path: "../.env" });
 export const { GET, POST } = autumnHandler({
   identify: async (request) => {
     return {
-      // customerId: "123",
-      customerId: undefined,
+      customerId: "123",
+      // customerId: undefined,
     };
   },
 });

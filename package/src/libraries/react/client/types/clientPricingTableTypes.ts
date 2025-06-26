@@ -1,23 +1,38 @@
+import { ProductItem } from "../../../../sdk";
+
 export interface ProductDetails {
   id: string;
   description?: string;
   buttonText?: string;
   buttonUrl?: string;
   recommendText?: string;
-}
+  everythingFrom?: string;
 
-export interface PricingTableProduct {
-  id: string;
-  name: string;
-  buttonText: string;
-
-  price: {
+  price?: {
     primaryText: string;
     secondaryText?: string;
   };
 
   items: {
+    featureId?: string;
     primaryText: string;
     secondaryText?: string;
   }[];
 }
+
+// export interface PricingTableProduct {
+//   id: string;
+//   name: string;
+//   buttonText: string;
+
+//   price: {
+//     primaryText: string;
+//     secondaryText?: string;
+//   };
+
+//   items: ({
+//     featureId?: string;
+//     primaryText: string;
+//     secondaryText?: string;
+//   } & ProductItem)[];
+// }

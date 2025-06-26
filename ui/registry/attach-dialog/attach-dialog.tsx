@@ -7,7 +7,12 @@ import { useAutumn } from "autumn-js/react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { type CheckProductPreview } from "autumn-js";
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export interface ProductChangeDialogProps {
   open: boolean;
@@ -27,12 +32,11 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
     let sum = due_today?.price || 0;
     optionsInput.forEach((option) => {
       if (option.price && option.quantity) {
-        sum += option.price * option.quantity;
+        sum += (option.price * option.quantity) / option.billing_units;
       }
     });
     return sum;
-  }
-
+  };
 
   useEffect(() => {
     setOptionsInput(params?.preview?.options || []);
@@ -51,30 +55,34 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
       <DialogContent
         className={cn("p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm")}
       >
-        <DialogTitle className={cn("font-bold text-xl px-6")}>
-          {title}
-        </DialogTitle>
-        <div className={cn("px-6 my-2")}>{message}</div>
-        {items?.map((item) => (
-          <PriceItem key={item.description}>
-            <span>{item.description}</span>
-            <span>{item.price}</span>
-          </PriceItem>
-        ))}
+        <DialogTitle className={cn("px-6 mb-1 ")}>{title}</DialogTitle>
+        <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
+          {message}
+        </div>
+        {(items || optionsInput.length > 0) && (
+          <div className="mb-6 px-6">
+            {items?.map((item) => (
+              <PriceItem key={item.description}>
+                <span className="truncate flex-1">{item.description}</span>
+                <span>{item.price}</span>
+              </PriceItem>
+            ))}
 
-        {optionsInput?.map((option, index) => {
-          return (
-            <OptionsInput
-              key={option.feature_name}
-              option={option as FeatureOptionWithRequiredPrice}
-              optionsInput={optionsInput}
-              setOptionsInput={setOptionsInput}
-              index={index}
-            />
-          );
-        })}
+            {optionsInput?.map((option, index) => {
+              return (
+                <OptionsInput
+                  key={option.feature_name}
+                  option={option as FeatureOptionWithRequiredPrice}
+                  optionsInput={optionsInput}
+                  setOptionsInput={setOptionsInput}
+                  index={index}
+                />
+              );
+            })}
+          </div>
+        )}
 
-        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 mt-4 pl-6 pr-3 bg-secondary border-t">
+        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
           {due_today && (
             <TotalPrice>
               <span>Due Today</span>
@@ -102,7 +110,14 @@ export default function ProductChangeDialog(params?: ProductChangeDialogProps) {
             }}
             disabled={loading}
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm"}
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <span className="whitespace-nowrap flex gap-1">
+                Confirm
+                <ArrowRight className="w-3 h-3 max-w-3" />
+              </span>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -121,7 +136,7 @@ export const PriceItem = ({
   return (
     <div
       className={cn(
-        "flex flex-col text-muted-foreground pb-4 sm:pb-0 gap-1 sm:flex-row justify-between px-6 sm:h-7 sm:gap-2 sm:items-center  sm:whitespace-nowrap ",
+        "flex flex-col pb-4 sm:pb-0 gap-1 sm:flex-row justify-between sm:h-7 sm:gap-2 sm:items-center",
         className
       )}
       {...props}
@@ -172,7 +187,7 @@ export const OptionsInput = ({
           setOptionsInput(newOptions);
         }}
       >
-        <span className="text-muted-foreground">
+        <span className="">
           × ${price} per {billing_units === 1 ? " " : billing_units}{" "}
           {feature_name}
         </span>
