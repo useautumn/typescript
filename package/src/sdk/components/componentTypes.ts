@@ -1,3 +1,6 @@
+import { CheckProductScenario } from "../general/checkTypes";
+import { ProductItem } from "../products/prodTypes";
+
 export interface GetPricingTableParams {
   customer_id?: string;
 }
@@ -5,18 +8,22 @@ export interface GetPricingTableParams {
 export interface PricingTableProduct {
   id: string;
   name: string;
+  description?: string;
+  button_text?: string;
+  recommend_text?: string;
+  everything_from?: string;
 
-  buttonText: string;
-  
   price: {
-    primaryText: string;
-    secondaryText?: string;
-  };
+    primary_text: string;
+    secondary_text?: string;
+  } & ProductItem;
 
-  items: {
-    primaryText: string;
-    secondaryText?: string;
-  }[];
+  items: ({
+    primary_text: string;
+    secondary_text?: string;
+  } & ProductItem)[];
+
+  scenario: CheckProductScenario;
 }
 
 // export interface PricecnClientProduct {
