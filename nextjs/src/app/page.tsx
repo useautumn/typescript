@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useAutumn, useCustomer, useEntity } from "autumn-js/react";
-import AttachDialog from "@/components/autumn/attach-dialog";
-import CheckDialog from "@/components/autumn/check-dialog";
+import { useCustomer } from "autumn-js/react";
+import { PricingTable } from "@/components/autumn/pricing-table";
+import { useUser } from "@clerk/nextjs";
 
 const JSONWrapper = ({
   label,
@@ -21,112 +21,79 @@ const JSONWrapper = ({
 };
 
 export default function Home() {
-  const { attach, check, track, cancel, openBillingPortal } = useAutumn();
   const {
     customer,
     refetch,
-    createEntity,
-    createReferralCode,
-    redeemReferralCode,
+    allowed,
+    track,
+    cancel,
+    openBillingPortal,
+    attach,
+    check,
   } = useCustomer();
 
-  useEffect(() => {
-    const res = createReferralCode({
-      programId: "test_program",
-    }).then((res) => {
-      console.log(res);
-    });
-
-    // console.log(res);
-
-    // redeemReferralCode({
-    //   code: "test_code",
-    // });
-    // createEntity({
-    //   id: "test",
-    //   name: "test",
-    //   featureId: "seats",
-    // });
-  }, []);
-
+  const featureId = "messages";
   return (
     <React.Fragment>
       <div className="p-10">
         <JSONWrapper label="Customer">
           <pre>{JSON.stringify(customer, null, 2)}</pre>
         </JSONWrapper>
-        {/* <JSONWrapper label="Entity">
-          <pre>{JSON.stringify(entity, null, 2)}</pre>
-        </JSONWrapper> */}
+        <div>Messages allowed: {allowed({ featureId }) ? "true" : "false"}</div>
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              const res = await check({ featureId: "messages" });
+              const { data, error } = res;
 
-        <button
-          onClick={async () => {
-            const res = await createEntity({
-              id: "test",
-              name: "test",
-              featureId: "seats",
-            });
-          }}
-        >
-          {" "}
-          Create Entity
-        </button>
-
-        <button
-          onClick={() => {
-            check({
-              featureId: "credits",
-              dialog: CheckDialog,
-            });
-          }}
-        >
-          Check
-        </button>
-        <button
-          onClick={() => {
-            attach({
-              productId: "pro",
-              dialog: AttachDialog,
-            });
-          }}
-        >
-          Attach
-        </button>
-        <button
-          onClick={async () => {
-            await track({
-              featureId: "credits",
-              value: 2,
-            });
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            await refetch();
-          }}
-        >
-          Track
-        </button>
-        <button
-          onClick={async () => {
-            await cancel({
-              productId: "pro",
-            });
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            await refetch();
-          }}
-        >
-          Cancel
-        </button>
-        <button
-          onClick={async () => {
-            await openBillingPortal({
-              openInNewTab: true,
-              returnUrl: "test",
-            });
-          }}
-        >
-          Open Billing Portal
-        </button>
+              console.log(data?.breakdown);
+            }}
+          >
+            Check
+          </button>
+          <button
+            onClick={async () => {
+              // attach({ productId: "premium" });
+            }}
+          >
+            Attach
+          </button>
+          <button
+            onClick={async () => {
+              await track({
+                featureId: "credits",
+                value: 2,
+              });
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              await refetch();
+            }}
+          >
+            Track
+          </button>
+          <button
+            onClick={async () => {
+              await cancel({
+                productId: "pro",
+              });
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              await refetch();
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              await openBillingPortal({
+                openInNewTab: true,
+                returnUrl: "test",
+              });
+            }}
+          >
+            Open Billing Portal
+          </button>
+        </div>
       </div>
-      {/* <PricingTable /> */}
+      <PricingTable />
     </React.Fragment>
   );
 }

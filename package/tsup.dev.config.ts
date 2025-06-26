@@ -13,7 +13,7 @@ const reactConfigs: Options[] = [
   {
     entry: ["src/libraries/backend/**/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: true,
+    dts: false, // Disabled for dev
     clean: false, // Don't clean on subsequent builds
     outDir: "./dist/libraries/backend",
     external: ["react", "react/jsx-runtime", "react-dom"],
@@ -28,7 +28,7 @@ const reactConfigs: Options[] = [
   {
     entry: ["src/libraries/react/**/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: true,
+    dts: false, // Disabled for dev
     clean: false,
     outDir: "./dist/libraries/react",
     external: ["react", "react/jsx-runtime", "react-dom"],
@@ -48,6 +48,7 @@ export default defineConfig([
     format: ["cjs", "esm"],
     entry: ["./src/sdk/index.ts"],
     skipNodeModulesBundle: true,
+    dts: false, // Disabled for dev
     shims: true,
     clean: false,
     outDir: "./dist/sdk",
@@ -59,28 +60,13 @@ export default defineConfig([
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
     },
-
-    dts: {
-      entry: {
-        general: "src/sdk/general/genTypes.ts",
-        check: "src/sdk/general/checkTypes.ts",
-
-        customers: "src/sdk/customers/cusTypes.ts",
-        entities: "src/sdk/customers/entities/entTypes.ts",
-        products: "src/sdk/products/prodTypes.ts",
-        referrals: "src/sdk/referrals/referralTypes.ts",
-        index: "src/sdk/index.ts", // Main types will go to index.d.ts
-      },
-      // This ensures .d.ts files are generated separately
-      resolve: true,
-    },
   },
 
   // GLOBAL
   {
     entry: ["src/utils/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: true,
+    dts: false, // Disabled for dev
     clean: true,
     bundle: true,
     outDir: "./dist/utils", // Fixed wildcard path to specific directory
@@ -95,9 +81,7 @@ export default defineConfig([
   {
     entry: ["src/next/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: {
-      entry: "src/next/index.ts",
-    },
+    dts: false, // Disabled for dev
     clean: false, // Don't clean on subsequent builds
     outDir: "./dist/next",
     external: ["react", "react/jsx-runtime", "react-dom"],
@@ -113,7 +97,7 @@ export default defineConfig([
   {
     entry: ["src/next/client/**/*.ts", "src/next/client/**/*.tsx"],
     format: ["cjs", "esm"],
-    dts: true,
+    dts: false, // Disabled for dev
     clean: true,
     outDir: "./dist/next/client",
     external: ["react", "react/jsx-runtime", "react-dom"],
@@ -192,7 +176,7 @@ export default ${JSON.stringify(result.css)};
   {
     entry: ["src/next/server/**/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: true,
+    dts: false, // Disabled for dev
     clean: true,
     outDir: "./dist/next/server",
     external: [

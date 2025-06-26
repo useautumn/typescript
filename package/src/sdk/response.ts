@@ -1,4 +1,4 @@
-import { Logger } from "pino";
+
 import { AutumnError } from "./error";
 
 type Success<T> = {
@@ -14,7 +14,7 @@ type Failure<E> = {
 };
 
 export const toContainerResult = async (
-  { response, logger }: { response: Response; logger: Logger | Console }
+  { response, logger }: { response: Response; logger: Console }
 ): Promise<Result<any, AutumnError>> => {
   if (response.status < 200 || response.status >= 300) {
     let error: any;

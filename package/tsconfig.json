@@ -17,8 +17,12 @@
 
     "baseUrl": ".",
     "paths": {
-      // "@sdk/*": ["src/sdk/*"],
-      // "@react/*": ["src/react/*"]
+      "@/*": ["src/libraries/react/*"],
+      "@/components/*": ["src/libraries/react/components/*"],
+      "@/lib/*": ["src/libraries/react/lib/*"],
+      "@/hooks/*": ["src/libraries/react/hooks/*"],
+      "@sdk": ["src/sdk/index"],
+      "@sdk/*": ["src/sdk/*"]
     }
   },
   "include": ["src"],

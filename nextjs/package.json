@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "autumn-js": "workspace:*",
     "@clerk/nextjs": "^6.19.2",
     "@headlessui/react": "^2.2.2",
     "@radix-ui/react-dialog": "^1.1.13",
@@ -22,7 +23,6 @@
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
-    "autumn-js": "^0.0.67",
     "better-auth": "^1.2.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

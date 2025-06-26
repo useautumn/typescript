@@ -11,13 +11,19 @@ export interface AutumnDialogContext {
 
 export interface AutumnContextParams {
   initialized: boolean;
+  disableDialogs: boolean;
+
   client: AutumnClient;
+
+  // Internal
   paywallDialog: AutumnDialogContext;
-  prodChangeDialog: AutumnDialogContext;
+  attachDialog: AutumnDialogContext;
 }
 
 export const AutumnContext = createContext<AutumnContextParams>({
   initialized: false,
+  disableDialogs: false,
+  
   client: new AutumnClient({
     backendUrl: process.env.NEXT_PUBLIC_AUTUMN_BACKEND_URL,
   }),
@@ -30,7 +36,7 @@ export const AutumnContext = createContext<AutumnContextParams>({
     setComponent: () => {},
   },
 
-  prodChangeDialog: {
+  attachDialog: {
     props: null,
     setProps: () => {},
     open: false,

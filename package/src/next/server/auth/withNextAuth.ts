@@ -1,4 +1,4 @@
-import { CustomerData } from "src/sdk";
+import { CustomerData } from "@sdk";
 import { decryptData } from "../../../utils/encryptUtils";
 import { handleAuthProvider } from "./handleAuthProvider";
 import { getAuthPlugin } from "./authPlugin";

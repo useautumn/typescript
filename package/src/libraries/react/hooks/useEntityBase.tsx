@@ -2,6 +2,7 @@ import useSWR from "swr";
 import { GetEntityParams } from "../../../libraries/react/client/types/clientEntTypes";
 import { useContext } from "react";
 import { AutumnContextParams } from "../AutumnContext";
+import { AllowedParams, handleAllowed } from "./handleAllowed";
 
 export const useEntityBase = ({
   entityId,
@@ -58,5 +59,6 @@ export const useEntityBase = ({
     isLoading,
     error,
     refetch: mutate,
+    allowed: (params: AllowedParams): boolean => handleAllowed({ customer: data, params }),
   };
 };

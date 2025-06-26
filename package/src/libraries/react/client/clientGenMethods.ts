@@ -9,8 +9,10 @@ import {
 } from "./types/clientGenTypes";
 import {
   AttachResult,
-  BillingPortalResponse,
+  BillingPortalResult,
   CancelResult,
+  CheckFeatureResult,
+  CheckProductResult,
   CheckResult,
   TrackResult,
 } from "../../../sdk";
@@ -46,6 +48,12 @@ export async function checkMethod(
 
   const res = await this.post("/api/autumn/check", snakeParams);
   return res;
+
+  // if (params.featureId) {
+  //   return res as AutumnPromise<CheckFeatureResult>;
+  // } else {
+  //   return res as AutumnPromise<CheckProductResult>;
+  // }
 }
 
 export async function trackMethod(
@@ -60,7 +68,7 @@ export async function trackMethod(
 export async function openBillingPortalMethod(
   this: AutumnClient,
   params?: OpenBillingPortalParams
-): AutumnPromise<BillingPortalResponse> {
+): AutumnPromise<BillingPortalResult> {
   let snakeParams = toSnakeCase(params || {});
 
   const res = await this.post("/api/autumn/billing_portal", snakeParams);

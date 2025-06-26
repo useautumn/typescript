@@ -25,14 +25,13 @@ import { staticWrapper } from "./utils";
 import { logger } from "../utils/logger";
 
 const LATEST_API_VERSION = "1.2";
-  
+
 export class Autumn {
   private readonly secretKey: string | undefined;
   private readonly publishableKey: string | undefined;
   private headers: Record<string, string>;
   private url: string;
   private logger: any = console;
-  
 
   constructor(options?: {
     secretKey?: string;
@@ -42,7 +41,6 @@ export class Autumn {
     headers?: Record<string, string>;
     logLevel?: string;
   }) {
-    
     try {
       this.secretKey = options?.secretKey || process.env.AUTUMN_SECRET_KEY;
       this.publishableKey =
@@ -65,7 +63,6 @@ export class Autumn {
     this.logger = logger;
     this.logger.level = options?.logLevel || "info";
   }
-
 
   async get(path: string) {
     const response = await fetch(`${this.url}${path}`, {

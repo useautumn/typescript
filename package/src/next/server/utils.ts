@@ -1,4 +1,4 @@
-import { Result } from "src/sdk/response";
+import { Result } from "@sdk/response";
 import { AutumnError, ErrorResponse } from "../../sdk";
 
 export const toServerResponse = <T>(

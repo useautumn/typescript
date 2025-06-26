@@ -182,7 +182,7 @@ export const OptionsInput = ({
       <QuantityInput
         key={feature_name}
         value={quantity ? quantity / billing_units : ""}
-        onChange={(e) => {
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           const newOptions = [...optionsInput];
           newOptions[index].quantity = parseInt(e.target.value) * billing_units;
           setOptionsInput(newOptions);
