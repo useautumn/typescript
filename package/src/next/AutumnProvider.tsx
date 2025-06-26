@@ -1,5 +1,5 @@
 import { encryptData } from "../utils/encryptUtils";
-import { CustomerData } from "src/sdk";
+import { CustomerData } from "../sdk";
 import { AuthPluginOptions, setupAuthPlugin } from "./server/auth/authPlugin";
 import { NextAutumnProvider } from "./client/NextAutumnProvider";
 

@@ -2,10 +2,7 @@ import { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
 import { CustomerExpandOption, ProductStatus } from "./cusEnums";
 
-export interface CustomerFeature {
-  id: string;
-  name: string;
-
+export interface CoreCustomerFeature {
   unlimited?: boolean;
   interval?: ProductItemInterval | null;
   balance?: number;
@@ -20,6 +17,17 @@ export interface CustomerFeature {
     included_usage?: number;
     next_reset_at?: number;
   }[];
+
+  credit_schema?: {
+    feature_id: string;
+    credit_amount: number;
+  }[];
+}
+
+export interface CustomerFeature extends CoreCustomerFeature {
+  id: string;
+  name: string;
+  type: "static" | "single_use" | "continuous_use";
 }
 
 export interface CustomerProduct {
@@ -87,7 +95,7 @@ export interface BillingPortalParams {
   return_url?: string;
 }
 
-export interface BillingPortalResponse {
+export interface BillingPortalResult {
   customer_id: string;
   url: string;
 }

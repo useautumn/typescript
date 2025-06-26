@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useAutumn } from "autumn-js/react";
+import { useAutumn } from '@/index';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { type CheckProductPreview } from "autumn-js";
+import { type CheckProductPreview } from '@sdk';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { getAttachContent } from "@/registry/attach-dialog/lib/attach-content";
+import { getAttachContent } from "./lib/attach-content";
 
 export interface AttachDialogProps {
   open: boolean;

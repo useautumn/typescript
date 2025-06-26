@@ -1,21 +1,21 @@
 "use client";
 
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AutumnClient } from "./client/ReactAutumnClient";
 import { useDialog } from "./hooks/useDialog";
 import { useCustomerBase } from "./hooks/useCustomerBase";
-
-
 
 export function BaseAutumnProvider({
   client,
   children,
   AutumnContext,
+  disableDialogs = false,
 }: {
   client: AutumnClient;
   children: React.ReactNode;
   AutumnContext: any;
+  disableDialogs?: boolean;
 }) {
   const [components, setComponents] = useState<{
     paywallDialog?: any;
@@ -35,11 +35,13 @@ export function BaseAutumnProvider({
   useCustomerBase({ client, params: { errorOnNotFound: false } });
 
 
+  // AutumnContext = AutumnContext as React.Context<AutumnContextParams>;
   return (
     <AutumnContext.Provider
       value={{
         initialized: true,
         client,
+        disableDialogs,
 
         paywallDialog: {
           props: paywallProps,
@@ -54,7 +56,7 @@ export function BaseAutumnProvider({
           },
         },
 
-        prodChangeDialog: {
+        attachDialog: {
           props: productChangeProps,
           setProps: setProductChangeProps,
           open: productChangeOpen,

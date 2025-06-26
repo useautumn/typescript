@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { AutumnError } from "src/sdk";
+import { AutumnError } from "../sdk";
 
 const getKey = () => {
   if (!process.env.AUTUMN_SECRET_KEY) {

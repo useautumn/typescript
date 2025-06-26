@@ -4,6 +4,7 @@ import { createRouterWithOptions } from "./routes/backendRouter";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
 import { logger } from "../../utils/logger";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 // import { type Request, type Response, type NextFunction } from "express";
 
 // Define middleware types
@@ -13,6 +14,7 @@ export type AutumnHandlerOptions = {
   identify: (req: any) => AuthResult;
   autumn?: (req: any) => Autumn | Autumn;
   version?: string;
+  secretKey?: string;
 };
 
 export const autumnHandler = (
@@ -20,7 +22,13 @@ export const autumnHandler = (
 ): AutumnRequestHandler => {
   const router = createRouterWithOptions();
 
+  let { found, error: resError } = secretKeyCheck(options?.secretKey);
+
   return async (req: any, res: any, next: any) => {
+    if (!found) {
+      return res.status(resError!.statusCode).json(resError);
+    }
+
     let autumn =
       typeof options?.autumn === "function"
         ? options.autumn(req)

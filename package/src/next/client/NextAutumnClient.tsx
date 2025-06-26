@@ -1,4 +1,4 @@
-import { CustomerData, CreateCustomerParams, AutumnPromise, BillingPortalResponse, TrackResult, CheckResult, CancelResult, AttachResult, Entity, DeleteEntityResult, CreateReferralCodeResult, RedeemReferralCodeParams, RedeemReferralCodeResult } from "../../sdk";
+import { CustomerData, CreateCustomerParams, AutumnPromise, TrackResult, CheckResult, CancelResult, AttachResult, Entity, DeleteEntityResult, RedeemReferralCodeParams} from "@sdk";
 import { AutumnClient } from "../../libraries/react/client/ReactAutumnClient";
 
 import { createCusAction, createEntityAction, deleteEntityAction, getEntityAction } from "../server/cusActions";

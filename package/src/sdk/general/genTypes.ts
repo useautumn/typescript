@@ -1,6 +1,6 @@
 import { CustomerData } from "../customers/cusTypes";
 import { EntityData } from "../customers/entities/entTypes";
-import { CheckProductPreview } from "./checkTypes";
+import { CheckFeatureResult, CheckProductPreview, CheckProductResult } from "./checkTypes";
 import { CheckFeaturePreview } from "./checkTypes";
 
 // Attach
@@ -85,32 +85,7 @@ export interface CheckParams {
   entity_data?: EntityData;
 }
 
-export interface CheckResult {
-  customer_id: string; // Customer ID
-  allowed: boolean; // Whether the customer is allowed to use the feature
-  code: string; // Success code
-
-  // Feature return values
-  feature_id?: string; // Feature ID
-  required_balance?: number; // Required balance for the feature
-  unlimited?: boolean; // Whether the feature is unlimited
-  balance?: number | null; // Balance for the feature
-
-  // Product return values
-  product_id?: string; // Product ID
-  status?: string; // Status of the product...
-
-  // Preview
-  preview?: CheckProductPreview | CheckFeaturePreview;
-}
-
-export interface EntitledBalance {
-  feature_id: string;
-  unlimited: boolean;
-  balance: number | null;
-  usage_allowed: boolean;
-  required?: number | null;
-}
+export type CheckResult = CheckFeatureResult & CheckProductResult;
 
 export interface UsageParams {
   customer_id: string;
@@ -124,3 +99,4 @@ export interface UsageResult {
   customer_id: string; // Customer ID
   feature_id: string; // Feature ID
 }
+

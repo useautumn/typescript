@@ -29,6 +29,7 @@ export interface FreeTrial {
   duration: FreeTrialDuration;
   length: number;
   unique_fingerprint: boolean;
+  trial_available?: boolean;
 }
 
 export interface Product {

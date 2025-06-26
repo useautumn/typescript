@@ -5,20 +5,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { AuthResult } from "./utils/AuthFunction";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { autumnApiUrl } from "./constants";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export function autumnHandler(options: {
   identify: (request: NextRequest) => AuthResult;
   url?: string;
   secretKey?: string;
 }) {
-  const autumn = new Autumn({
-    secretKey: options.secretKey || undefined,
-    url: options.url || autumnApiUrl,
-  });
-
   const router = createRouterWithOptions();
 
   async function handler(request: NextRequest) {
+    let { found, error: resError } = secretKeyCheck(options.secretKey);
+
+    if (!found) {
+      return NextResponse.json(resError, { status: resError!.statusCode });
+    }
+
+    const autumn = new Autumn({
+      secretKey: options.secretKey || undefined,
+      url: options.url || autumnApiUrl,
+    });
+
+    if (!found) {
+      return NextResponse.json(resError, { status: 500 });
+    }
+
     const method = request.method;
     const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams);

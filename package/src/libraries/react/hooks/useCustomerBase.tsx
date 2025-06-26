@@ -6,7 +6,12 @@ import {
   CreateReferralCodeResult,
   RedeemReferralCodeResult,
   CustomerExpandOption,
-} from "../../../sdk";
+  BillingPortalResult,
+  AttachResult,
+  CheckResult,
+  TrackResult,
+  CancelResult,
+} from "@sdk";
 import { CreateEntityParams } from "../client/types/clientEntTypes";
 import {
   CreateReferralCodeParams,
@@ -16,11 +21,22 @@ import useSWR from "swr";
 import React, { useContext } from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
+import { useAutumnBase } from "./useAutumnBase";
+import { AttachParams, CancelParams, CheckParams, OpenBillingPortalParams, TrackParams } from "@/client/types/clientGenTypes";
+import { AllowedParams, handleAllowed } from "./handleAllowed";
 
 export interface UseCustomerResult {
   customer: Customer | null;
   isLoading: boolean;
   error: AutumnError | null;
+
+  // Autumn functions
+  attach: (params: AttachParams) => AutumnPromise<AttachResult>;
+  check: (params: CheckParams) => AutumnPromise<CheckResult>;
+  track: (params: TrackParams) => AutumnPromise<TrackResult>;
+  cancel: (params: CancelParams) => AutumnPromise<CancelResult>;
+  openBillingPortal: (params?: OpenBillingPortalParams) => AutumnPromise<BillingPortalResult>;
+
   refetch: () => Promise<Customer | null>;
   createEntity: (
     params: CreateEntityParams | CreateEntityParams[]
@@ -31,11 +47,22 @@ export interface UseCustomerResult {
   redeemReferralCode: (
     params: RedeemReferralCodeParams
   ) => AutumnPromise<RedeemReferralCodeResult>;
+
+  allowed: (params: AllowedParams) => boolean;
 }
 
 export interface UseCustomerParams {
   errorOnNotFound?: boolean;
   expand?: CustomerExpandOption[];
+}
+
+
+const emptyDefaultFunctions = {
+  attach: "" as any,
+  check: "" as any,
+  track: "" as any,
+  cancel: "" as any,
+  openBillingPortal: "" as any,
 }
 
 export const useCustomerBase = ({
@@ -75,7 +102,7 @@ export const useCustomerBase = ({
     return data;
   };
 
-  const { data, error, isLoading, mutate } = useSWR(queryKey, fetchCustomer, {
+  const { data: customer, error, isLoading, mutate } = useSWR(queryKey, fetchCustomer, {
     fallbackData: null,
     onErrorRetry: (error: any, key: any, config: any) => {
       if (error.code == "entity_not_found") {
@@ -86,13 +113,23 @@ export const useCustomerBase = ({
     },
   });
 
+  let autumnFunctions = emptyDefaultFunctions;
+  if (AutumnContext) {
+    autumnFunctions = useAutumnBase({ AutumnContext })
+  }
+
+  
+
   return {
-    customer: error ? null : data,
+    customer: error ? null : customer,
     isLoading,
     error,
     refetch: mutate as any,
+
+    ...autumnFunctions,
     createEntity: client!.entities.create,
     createReferralCode: client!.referrals.createCode,
     redeemReferralCode: client!.referrals.redeemCode,
+    allowed: (params: AllowedParams): boolean => handleAllowed({ customer, params }),
   };
 };

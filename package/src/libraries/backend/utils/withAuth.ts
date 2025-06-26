@@ -10,8 +10,8 @@ export const withAuth = <T extends {}>({
   requireCustomer = true,
 }: {
   fn: (args: {
-    body: any;
     autumn: Autumn;
+    body: any;
     customer_id: string;
     customer_data?: CustomerData;
     pathParams?: Record<string, string>;
