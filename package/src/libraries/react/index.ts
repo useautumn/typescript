@@ -11,6 +11,6 @@ export { useEntity } from "./hooks/useEntity";
 export { useAutumn } from "./hooks/useAutumn";
 
 // Auto-synced components
-export { default as AttachDialog } from "./components/attach-dialog/attach-dialog-synced";
-export { default as CheckDialog } from "./components/check-dialog/check-dialog-synced";
-export { default as PricingTable } from "./components/pricing-table/pricing-table-synced";
+// export { default as AttachDialog } from "./components/attach-dialog/attach-dialog-synced";
+// export { default as CheckDialog } from "./components/check-dialog/check-dialog-synced";
+// export { default as PricingTable } from "./components/pricing-table/pricing-table-synced";

@@ -75,23 +75,26 @@ export default function Home() {
     check,
   } = useCustomer();
 
-  const featureId = "messages";
+  const featureId = "words";
   return (
     <React.Fragment>
       <div className="p-10">
-        <ReactPricingTable productDetails={productDetails} />
+        <ReactPricingTable />
       </div>
 
       <div className="p-10">
         <JSONWrapper label="Customer">
           <pre>{JSON.stringify(customer, null, 2)}</pre>
         </JSONWrapper>
-        <div>Messages allowed: {allowed({ featureId }) ? "true" : "false"}</div>
+        <div>
+          {featureId} allowed: {allowed({ featureId }) ? "true" : "false"}
+        </div>
         <div className="flex gap-2">
           <button
             onClick={async () => {
               const res = await check({ featureId: "messages" });
               const { data, error } = res;
+              console.log(data, error);
             }}
           >
             Check

@@ -46,7 +46,7 @@ const handleFeatureAllowed = ({ customer, params }: {
 
   if (cusFeature.type == "static") return true;
 
-  if (cusFeature.unlimited) return true;
+  if (cusFeature.unlimited || cusFeature.overage_allowed) return true;
 
   
 

@@ -1,7 +1,7 @@
 import { type CheckProductPreview } from '@sdk';
 
 export const getPricingTableContent = (product: any) => {
-  const { scenario, name, free_trial, price } = product;
+  const { scenario, free_trial } = product;
 
   if (free_trial && free_trial.trial_available) {
     return {
@@ -21,13 +21,13 @@ export const getPricingTableContent = (product: any) => {
       };
 
     case "new":
-      if (price.interval) {
+      if (product.properties?.is_one_off) {
         return {
-          buttonText: <p>Get started</p>,
+          buttonText: <p>Purchase</p>,
         };
       } else {
         return {
-          buttonText: <p>x</p>,
+          buttonText: <p>Get started</p>,
         };
       }
 

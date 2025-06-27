@@ -43,6 +43,32 @@ export const useAutumnBase = ({
     setComponent: setPaywallComponent,
   } = paywallDialog;
 
+  const attachWithoutDialog = async (params: AttachParams) => {
+    const result = await client.attach(params);
+
+    if (result.error) {
+      return result;
+    }
+
+    let data = result.data;
+
+    if (data?.checkout_url && typeof window !== "undefined") {
+      if (params.openInNewTab) {
+        window.open(data.checkout_url, "_blank");
+      } else {
+        window.location.href = data.checkout_url;
+      }
+    }
+
+    await refetchPricingTable();
+
+    if (setAttachOpen) {
+      setAttachOpen(false);
+    }
+
+    return result;
+  };
+
   const attachWithDialog = async (
     params: AttachParams
   ): AutumnPromise<AttachResult | CheckResult> => {
@@ -64,7 +90,7 @@ export const useAutumnBase = ({
     let preview = checkRes.data.preview;
 
     if (!preview) {
-      return await attach(rest);
+      return await attachWithoutDialog(rest);
     } else {
       setAttachProps({ preview });
       setAttachOpen(true);
@@ -87,29 +113,7 @@ export const useAutumnBase = ({
       return await attachWithDialog(params);
     }
 
-    const result = await client.attach(params);
-
-    if (result.error) {
-      return result;
-    }
-
-    let data = result.data;
-
-    if (data?.checkout_url && typeof window !== "undefined") {
-      if (openInNewTab) {
-        window.open(data.checkout_url, "_blank");
-      } else {
-        window.location.href = data.checkout_url;
-      }
-    }
-
-    await refetchPricingTable();
-
-    if (setAttachOpen) {
-      setAttachOpen(false);
-    }
-
-    return result;
+    return await attachWithoutDialog(params);
   };
 
   const cancel = async (params: CancelParams): AutumnPromise<CancelResult> => {

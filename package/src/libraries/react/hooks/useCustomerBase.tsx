@@ -18,7 +18,7 @@ import {
   RedeemReferralCodeParams,
 } from "../client/types/clientReferralTypes";
 import useSWR from "swr";
-import React, { useContext } from "react";
+import React from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { useAutumnBase } from "./useAutumnBase";
@@ -90,6 +90,8 @@ export const useCustomerBase = ({
       errorOnNotFound: params?.errorOnNotFound,
       expand: params?.expand,
     });
+
+
 
     if (error) {
       throw error;

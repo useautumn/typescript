@@ -9,6 +9,7 @@ export interface CoreCustomerFeature {
   usage?: number;
   included_usage?: number;
   next_reset_at?: number | null;
+  overage_allowed?: boolean;
 
   breakdown?: {
     interval: ProductItemInterval;

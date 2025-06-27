@@ -39,11 +39,8 @@ export interface FreeTrial {
 }
 
 export interface Product {
-  // internal_id: string;
-  autumn_id: string;
-  created_at: number;
-
   id: string;
+  created_at: number;
   name: string;
   env: AppEnv;
 
@@ -59,7 +56,7 @@ export interface Product {
 
   properties?: {
     is_free?: boolean;
-    is_subscription?: boolean;
+    is_one_off?: boolean;
     interval_group?: string;
   };
 

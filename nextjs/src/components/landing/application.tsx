@@ -2,7 +2,7 @@ import { useAutumn, useCustomer } from "autumn-js/react";
 import { MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
-import { useState } from "react";
+
 
 export default function Application() {
   // const featureId = "chat-messages";
