@@ -2,23 +2,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@source "../../";
-
-button {
-  /* padding: 5px 10px; */
-  /* background-color: #771cff; */
-  /* color: white;
-  cursor: pointer;
-  border-radius: 5px; */
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-/* button:hover {
-  background-color: #413652;
-} */
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

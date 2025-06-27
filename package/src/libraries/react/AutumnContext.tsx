@@ -23,11 +23,9 @@ export interface AutumnContextParams {
 export const AutumnContext = createContext<AutumnContextParams>({
   initialized: false,
   disableDialogs: false,
-  
-  client: new AutumnClient({
-    backendUrl: process.env.NEXT_PUBLIC_AUTUMN_BACKEND_URL,
-  }),
-  
+
+  client: new AutumnClient({ backendUrl: "" }),
+
   paywallDialog: {
     props: null,
     setProps: () => {},
@@ -53,7 +51,6 @@ export const useAutumnContext = ({
   name: string;
 }) => {
   const context = useContext(AutumnContext);
-
 
   if (!context.initialized) {
     // console.error(`${name} must be used within <AutumnProvider />`);

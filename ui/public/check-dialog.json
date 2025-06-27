@@ -5,6 +5,10 @@
   "dependencies": [
     "autumn-js"
   ],
+  "registryDependencies": [
+    "button",
+    "dialog"
+  ],
   "files": [
     {
       "path": "registry/check-dialog/check-dialog.tsx",

@@ -1,16 +1,12 @@
 import useSWR from "swr";
-import { AutumnError, PricingTableProduct } from "../../../sdk";
+import { AutumnError, Product } from "@sdk";
 import { ProductDetails } from "../client/types/clientPricingTableTypes";
-import { useContext } from "react";
-import { toSnakeCase } from "../utils/toSnakeCase";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 
 const mergeProductDetails = (
-  products: PricingTableProduct[] | undefined,
+  products: Product[] | undefined,
   productDetails?: ProductDetails[]
-): PricingTableProduct[] | null => {
-  // console.log("products", products);
-
+): Product[] | null => {
   if (!products) {
     return null;
   }
@@ -21,10 +17,41 @@ const mergeProductDetails = (
 
   let fetchedProducts = structuredClone(products);
 
-  let mergedProducts: PricingTableProduct[] = [];
+  let mergedProducts: Product[] = [];
   for (const overrideDetails of productDetails) {
     if (!overrideDetails.id) {
-      mergedProducts.push(toSnakeCase(overrideDetails));
+      let properties: any = {};
+      let overrideItems = overrideDetails.items?.map((item) => ({
+        display: {
+          primary_text: item.primaryText,
+          secondary_text: item.secondaryText,
+        },
+      }));
+      let overridePrice = overrideDetails.price;
+      if (overrideDetails.price) {
+        properties.is_free = false;
+        overrideItems = [
+          {
+            display: {
+              primary_text: overridePrice?.primaryText,
+              secondary_text: overridePrice?.secondaryText,
+            },
+          },
+          ...(overrideItems || []),
+        ];
+      }
+      mergedProducts.push({
+        name: overrideDetails.name || "",
+        display: {
+          description: overrideDetails.description,
+          button_text: overrideDetails.buttonText,
+          recommend_text: overrideDetails.recommendText,
+          everything_from: overrideDetails.everythingFrom,
+          button_url: overrideDetails.buttonUrl,
+        },
+        items: overrideItems,
+        properties,
+      } as unknown as Product);
       continue;
     }
 
@@ -36,27 +63,42 @@ const mergeProductDetails = (
       continue;
     }
 
-    // 1. Merge price
-    let mergedPrice;
+    const originalIsFree = fetchedProduct.properties?.is_free;
+    let overrideProperties = fetchedProduct.properties || {};
+    let overrideItems = overrideDetails.items;
     let overridePrice = overrideDetails.price;
+    let mergedItems = [];
+
     if (overridePrice) {
-      mergedPrice = {
-        ...fetchedProduct.price,
-        primary_text: overridePrice.primaryText,
-        secondary_text: overridePrice.secondaryText,
-      };
+      overrideProperties.is_free = false;
+
+      if (originalIsFree || overrideItems !== undefined) {
+        mergedItems.push({
+          display: {
+            primary_text: overridePrice.primaryText,
+            secondary_text: overridePrice.secondaryText,
+          },
+        });
+      } else {
+        fetchedProduct.items[0].display = {
+          primary_text: overridePrice.primaryText,
+          secondary_text: overridePrice.secondaryText,
+        };
+      }
     } else {
-      mergedPrice = fetchedProduct.price;
+      if (overrideItems && !originalIsFree) {
+        mergedItems.push(fetchedProduct.items[0]);
+      }
     }
 
-    let overrideItems = overrideDetails.items;
-    let mergedItems = [];
     if (overrideItems) {
       for (const overrideItem of overrideItems) {
         if (!overrideItem.featureId) {
           mergedItems.push({
-            primary_text: overrideItem.primaryText,
-            secondary_text: overrideItem.secondaryText,
+            display: {
+              primary_text: overrideItem.primaryText,
+              secondary_text: overrideItem.secondaryText,
+            },
           });
         } else {
           let fetchedItem = fetchedProduct.items.find(
@@ -70,26 +112,38 @@ const mergeProductDetails = (
           }
           mergedItems.push({
             ...fetchedItem,
-            primary_text: overrideItem.primaryText || fetchedItem.primary_text,
-            secondary_text:
-              overrideItem.secondaryText || fetchedItem.secondary_text,
+            display: {
+              primary_text:
+                overrideItem.primaryText || fetchedItem.display?.primary_text,
+              secondary_text:
+                overrideItem.secondaryText ||
+                fetchedItem.display?.secondary_text,
+            },
           });
         }
       }
+    } else {
+      mergedItems = fetchedProduct.items;
     }
 
-    const mergedProduct: PricingTableProduct = {
+    const mergedProduct: Product = {
       ...fetchedProduct,
-      description: overrideDetails.description,
-      button_text: overrideDetails.buttonText,
-      recommend_text: overrideDetails.recommendText,
-      everything_from: overrideDetails.everythingFrom,
-      price: mergedPrice,
+      name: overrideDetails.name || fetchedProduct.name,
       items: mergedItems,
+      properties: overrideProperties,
+      display: {
+        description: overrideDetails.description,
+        button_text: overrideDetails.buttonText,
+        recommend_text: overrideDetails.recommendText,
+        everything_from: overrideDetails.everythingFrom,
+        button_url: overrideDetails.buttonUrl,
+      },
+      // description: overrideDetails.description,
+      // button_text: overrideDetails.buttonText,
+      // recommend_text: overrideDetails.recommendText,
+      // everything_from: overrideDetails.everythingFrom,
     };
 
-    console.log("Override Details", overrideDetails);
-    console.log("Merged Product", mergedProduct);
     mergedProducts.push(mergedProduct);
   }
   return mergedProducts;
@@ -108,8 +162,9 @@ export const usePricingTableBase = ({
 
   const fetcher = async () => {
     try {
-      const { data, error } = await context.client.getPricingTable();
+      const { data, error } = await context.client.products.list();
       if (error) throw error;
+
       return data?.list || [];
     } catch (error) {
       throw new AutumnError({
@@ -119,13 +174,14 @@ export const usePricingTableBase = ({
     }
   };
 
-  const { data, error, mutate } = useSWR<PricingTableProduct[], AutumnError>(
+  const { data, error, mutate } = useSWR<Product[], AutumnError>(
     "pricing-table",
     fetcher
   );
 
   return {
-    products: mergeProductDetails(data || undefined, params?.productDetails),
+    products: mergeProductDetails(data || [], params?.productDetails),
+    // products: data || [],
     isLoading: !error && !data,
     error,
     refetch: mutate,

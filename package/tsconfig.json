@@ -22,7 +22,8 @@
       "@/lib/*": ["src/libraries/react/lib/*"],
       "@/hooks/*": ["src/libraries/react/hooks/*"],
       "@sdk": ["src/sdk/index"],
-      "@sdk/*": ["src/sdk/*"]
+      "@sdk/*": ["src/sdk/*"],
+      "@styles": ["src/styles/*"]
     }
   },
   "include": ["src"],

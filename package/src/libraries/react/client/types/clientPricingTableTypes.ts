@@ -1,7 +1,6 @@
-import { ProductItem } from "../../../../sdk";
-
 export interface ProductDetails {
-  id: string;
+  id?: string;
+  name?: string;
   description?: string;
   buttonText?: string;
   buttonUrl?: string;
@@ -13,26 +12,9 @@ export interface ProductDetails {
     secondaryText?: string;
   };
 
-  items: {
+  items?: {
     featureId?: string;
-    primaryText: string;
+    primaryText?: string;
     secondaryText?: string;
   }[];
 }
-
-// export interface PricingTableProduct {
-//   id: string;
-//   name: string;
-//   buttonText: string;
-
-//   price: {
-//     primaryText: string;
-//     secondaryText?: string;
-//   };
-
-//   items: ({
-//     featureId?: string;
-//     primaryText: string;
-//     secondaryText?: string;
-//   } & ProductItem)[];
-// }

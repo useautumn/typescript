@@ -9,8 +9,6 @@ export const getAttachContent = (preview: CheckProductPreview) => {
     next_cycle_at,
   } = preview;
 
-  console.log("preview", preview);
-
   const nextCycleAtStr = next_cycle_at
     ? new Date(next_cycle_at).toLocaleDateString()
     : undefined;

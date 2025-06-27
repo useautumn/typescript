@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useAutumn } from '@/index';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -13,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getAttachContent } from "./lib/attach-content";
+import { useCustomer } from '@/index';
 
 export interface AttachDialogProps {
   open: boolean;
@@ -22,7 +22,7 @@ export interface AttachDialogProps {
 }
 
 export default function AttachDialog(params?: AttachDialogProps) {
-  const { attach } = useAutumn();
+  const { attach } = useCustomer();
   const [loading, setLoading] = useState(false);
   const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
     params?.preview?.options || []
@@ -114,10 +114,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <span className="whitespace-nowrap flex gap-1">
-                Confirm
-                <ArrowRight className="w-3 h-3 max-w-3" />
-              </span>
+              <>
+                <span className="whitespace-nowrap flex gap-1">Confirm</span>
+              </>
             )}
           </Button>
         </DialogFooter>

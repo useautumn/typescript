@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.67",
+  "version": "0.0.68",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -10,6 +10,7 @@
     "build": "rm -rf dist && tsup",
     "dev": "tsx scripts/sync-registry.ts sync && (tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\")",
     "sync-registry": "tsx scripts/sync-registry.ts sync",
+    "reverse": "tsx scripts/sync-registry.ts reverse",
     "watch-registry": "tsx scripts/sync-registry.ts watch"
   },
   "module": "./dist/index.mjs",
@@ -71,24 +72,31 @@
   "devDependencies": {
     "@remix-run/node": "^2.16.6",
     "@supabase/ssr": "^0.6.1",
-    "@tailwindcss/postcss": "^4.1.10",
     "@tanstack/react-start": "^1.120.5",
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.1",
     "@types/react": "^18.3.14",
+    "autoprefixer": "^10.4.21",
     "better-auth": "^1.2.7",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "esbuild-plugin-alias": "^0.2.1",
     "esbuild-plugin-path-alias": "^1.0.7",
     "express": "^5.1.0",
     "fastify": "^5.3.3",
     "hono": "^4.7.9",
+    "install": "^0.13.0",
+    "lucide-react": "^0.523.0",
     "next": "^15.2.3",
     "nodemon": "^3.1.10",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.10",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.1",
+    "tailwindcss-scoped-preflight": "^3.4.12",
     "tsconfig-paths": "^4.2.0",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
+    "tw-animate-css": "^1.3.4",
     "typescript": "^5.8.3"
   },
   "peerDependenciesMeta": {
@@ -99,14 +107,12 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
     "chalk": "^5.4.1",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.523.0",
+    "postcss-nested": "^7.0.2",
     "rou3": "^0.6.1",
     "swr": "^2.3.3",
-    "tailwind-merge": "^3.3.1",
-    "tw-animate-css": "^1.3.4"
+    "tailwindcss-animate": "1.0.7"
   },
   "typesVersions": {
     "*": {

@@ -1,4 +1,4 @@
-import { CheckProductScenario } from "../general/checkTypes";
+import { ProductScenario } from "@sdk/general/checkTypes";
 import { ProductItem } from "../products/prodTypes";
 
 export interface GetPricingTableParams {
@@ -23,14 +23,5 @@ export interface PricingTableProduct {
     secondary_text?: string;
   } & ProductItem)[];
 
-  scenario: CheckProductScenario;
+  scenario: ProductScenario;
 }
-
-// export interface PricecnClientProduct {
-//   id: string;
-//   description?: string;
-//   buttonText?: string;
-//   recommendText?: string;
-//   onClick?: any;
-//   href?: string;
-// }

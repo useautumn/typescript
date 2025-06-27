@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { useAutumn, useCustomer } from "autumn-js/react";
-import { PricingTable } from "@/registry/pricing-table/pricing-table";
+import PricingTable from "@/registry/pricing-table/pricing-table";
 
 const productDetails = [
   {

@@ -1,20 +1,22 @@
-import { useAutumn, usePricingTable } from "autumn-js/react";
 import React from "react";
+import { useCustomer, usePricingTable } from "autumn-js/react";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
-import ProductChangeDialog from "../attach-dialog/attach-dialog";
-import { getPricingTableContent } from "./lib/pricing-table-content";
-import { PricingTableProduct } from "autumn-js";
+import AttachDialog from "@/registry/attach-dialog/attach-dialog";
+import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
+import { Product, ProductItem } from "autumn-js";
 
-export const PricingTable = ({ productDetails }: { productDetails?: any }) => {
-  const { attach } = useAutumn();
+export default function PricingTable({
+  productDetails,
+}: {
+  productDetails?: any;
+}) {
+  const { attach } = useCustomer();
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
-
-  console.log(products);
 
   if (isLoading) {
     return (
@@ -29,21 +31,23 @@ export const PricingTable = ({ productDetails }: { productDetails?: any }) => {
   }
 
   const intervals = Array.from(
-    new Set(products?.map((p) => p.price?.interval).filter((i) => !!i))
+    new Set(
+      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
+    )
   );
 
-  let multiInterval = intervals.length > 1;
+  const multiInterval = intervals.length > 1;
 
   const intervalFilter = (product: any) => {
-    if (!product.price?.interval) {
+    if (!product.properties?.interval_group) {
       return true;
     }
 
     if (multiInterval) {
       if (isAnnual) {
-        return product.price?.interval === "year";
+        return product.properties?.interval_group === "year";
       } else {
-        return product.price?.interval === "month";
+        return product.properties?.interval_group === "month";
       }
     }
 
@@ -68,10 +72,14 @@ export const PricingTable = ({ productDetails }: { productDetails?: any }) => {
                   product.scenario === "active" ||
                   product.scenario === "scheduled",
                 onClick: async () => {
-                  await attach({
-                    productId: product.id,
-                    dialog: ProductChangeDialog,
-                  });
+                  if (product.id) {
+                    await attach({
+                      productId: product.id,
+                      dialog: AttachDialog,
+                    });
+                  } else if (product.display?.button_url) {
+                    window.open(product.display?.button_url, "_blank");
+                  }
                 },
               }}
             />
@@ -80,12 +88,12 @@ export const PricingTable = ({ productDetails }: { productDetails?: any }) => {
       )}
     </div>
   );
-};
+}
 
 const PricingTableContext = createContext<{
   isAnnualToggle: boolean;
   setIsAnnualToggle: (isAnnual: boolean) => void;
-  products: PricingTableProduct[];
+  products: Product[];
   showFeatures: boolean;
 }>({
   isAnnualToggle: false,
@@ -114,7 +122,7 @@ export const PricingTableContainer = ({
   multiInterval,
 }: {
   children?: React.ReactNode;
-  products?: PricingTableProduct[];
+  products?: Product[];
   showFeatures?: boolean;
   className?: string;
   isAnnualToggle: boolean;
@@ -135,7 +143,11 @@ export const PricingTableContainer = ({
     >
       <div className={cn("flex items-center flex-col")}>
         {multiInterval && (
-          <div className={cn(products.some((p) => p.recommend_text) && "mb-8")}>
+          <div
+            className={cn(
+              products.some((p) => p.display?.recommend_text) && "mb-8"
+            )}
+          >
             <AnnualSwitch
               isAnnualToggle={isAnnualToggle}
               setIsAnnualToggle={setIsAnnualToggle}
@@ -177,10 +189,19 @@ export const PricingCard = ({
     throw new Error(`Product with id ${productId} not found`);
   }
 
-  const { name, price, button_text, recommend_text, items, description } =
-    product;
+  const { name, display: productDisplay, items } = product;
 
-  const isRecommended = recommend_text ? true : false;
+  const { buttonText } = getPricingTableContent(product);
+  const isRecommended = productDisplay?.recommend_text ? true : false;
+  const mainPriceDisplay = product.properties?.is_free
+    ? {
+        primary_text: "Free",
+      }
+    : product.items[0].display;
+
+  const featureItems = product.properties?.is_free
+    ? product.items
+    : product.items.slice(1);
 
   return (
     <div
@@ -191,7 +212,9 @@ export const PricingCard = ({
         className
       )}
     >
-      {recommend_text && <RecommendedBadge recommended={recommend_text} />}
+      {productDisplay?.recommend_text && (
+        <RecommendedBadge recommended={productDisplay?.recommend_text} />
+      )}
       <div
         className={cn(
           "flex flex-col h-full flex-grow",
@@ -202,42 +225,44 @@ export const PricingCard = ({
           <div className="flex flex-col">
             <div className="pb-4">
               <h2 className="text-2xl font-semibold px-6 truncate">{name}</h2>
-              {description && (
+              {productDisplay?.description && (
                 <div className="text-sm text-muted-foreground px-6 h-8">
-                  <p className="line-clamp-2">{description}</p>
+                  <p className="line-clamp-2">
+                    Everything from {productDisplay?.description}, plus:
+                  </p>
                 </div>
               )}
             </div>
             <div className="mb-2">
               <h3 className="font-semibold h-16 flex px-6 items-center border-y mb-4 bg-secondary/40">
                 <div className="line-clamp-2">
-                  {price.primary_text}{" "}
-                  {price.secondary_text && (
+                  {mainPriceDisplay?.primary_text}{" "}
+                  {mainPriceDisplay?.secondary_text && (
                     <span className="font-normal text-muted-foreground mt-1">
-                      {price.secondary_text}
+                      {mainPriceDisplay?.secondary_text}
                     </span>
                   )}
                 </div>
               </h3>
             </div>
           </div>
-          {showFeatures && items.length > 0 && (
+          {showFeatures && featureItems.length > 0 && (
             <div className="flex-grow px-6 mb-6">
               <PricingFeatureList
-                items={items}
+                items={featureItems}
                 showIcon={true}
-                everythingFrom={product.everything_from}
+                everythingFrom={product.display?.everything_from}
               />
             </div>
           )}
         </div>
         <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
           <PricingCardButton
-            recommended={recommend_text ? true : false}
+            recommended={productDisplay?.recommend_text ? true : false}
             onClick={onButtonClick}
             {...buttonProps}
           >
-            {button_text}
+            {buttonText}
           </PricingCardButton>
         </div>
       </div>
@@ -252,10 +277,7 @@ export const PricingFeatureList = ({
   everythingFrom,
   className,
 }: {
-  items: {
-    primary_text: string;
-    secondary_text?: string;
-  }[];
+  items: ProductItem[];
   showIcon?: boolean;
   everythingFrom?: string;
   className?: string;
@@ -272,10 +294,10 @@ export const PricingFeatureList = ({
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )}
             <div className="flex flex-col">
-              <span>{item.primary_text}</span>
-              {item.secondary_text && (
+              <span>{item.display?.primary_text}</span>
+              {item.display?.secondary_text && (
                 <span className="text-sm text-muted-foreground">
-                  {item.secondary_text}
+                  {item.display?.secondary_text}
                 </span>
               )}
             </div>
