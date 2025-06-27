@@ -20,8 +20,10 @@ export const listProducts = async ({
 }: {
   instance: Autumn;
   params?: ListProductsParams;
-}): AutumnPromise<Product[]> => {
-  let path = "/products";
+}): AutumnPromise<{
+  list: Product[];
+}> => {
+  let path = "/products_beta";
   if (params) {
     const queryParams = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {

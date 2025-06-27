@@ -79,8 +79,8 @@ export const useAutumnBase = ({
     let finalDialog = dialog
       ? dialog
       : context.disableDialogs
-      ? undefined
-      : AttachDialog;
+        ? undefined
+        : AttachDialog;
 
     if (finalDialog) {
       setAttachComponent(finalDialog);
@@ -125,19 +125,13 @@ export const useAutumnBase = ({
   const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
     let { dialog, withPreview } = params;
 
-    let finalDialog = dialog
-      ? dialog
-      : context.disableDialogs
-      ? undefined
-      : CheckDialog;
-
-    if (finalDialog) {
-      setPaywallComponent(finalDialog);
+    if (dialog) {
+      setPaywallComponent(dialog);
     }
 
     const res = await client.check({
       ...params,
-      withPreview: withPreview || finalDialog ? true : false,
+      withPreview: withPreview || dialog ? true : false,
     });
 
     if (res.error) {
@@ -146,7 +140,7 @@ export const useAutumnBase = ({
 
     let data = res.data;
 
-    if (data && data.preview && finalDialog) {
+    if (data && data.preview && dialog) {
       let preview = data.preview;
       setCheckProps({ preview });
       setCheckOpen(true);

@@ -4,50 +4,39 @@
   "homepage": "https://pricecn.com",
   "items": [
     {
-      "name": "classic/pricing-table",
+      "name": "pricing-table",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.com/classic/pricing-table.json"],
+      "registryDependencies": ["switch", "button", "dialog"],
       "files": [
         {
-          "path": "registry/pricing-table.tsx",
+          "path": "registry/attach-dialog/attach-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/autumn/attach-dialog.tsx"
+        },
+        {
+          "path": "registry/attach-dialog/lib/attach-content.tsx",
+          "type": "registry:lib",
+          "target": "lib/autumn/attach-content.tsx"
+        },
+        {
+          "path": "registry/pricing-table/pricing-table.tsx",
           "type": "registry:component",
           "target": "components/autumn/pricing-table.tsx"
+        },
+        {
+          "path": "registry/pricing-table/lib/pricing-table-content.tsx",
+          "type": "registry:lib",
+          "target": "lib/autumn/pricing-table-content.tsx"
         }
       ]
     },
-    {
-      "name": "clean/pricing-table",
-      "type": "registry:component",
-      "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.com/clean/pricing-table.json"],
-      "files": [
-        {
-          "path": "registry/pricing-table.tsx",
-          "type": "registry:component",
-          "target": "components/autumn/pricing-table.tsx"
-        }
-      ]
-    },
-    {
-      "name": "dev/pricing-table",
-      "type": "registry:component",
-      "dependencies": ["autumn-js"],
-      "registryDependencies": ["https://pricecn.com/dev/pricing-table.json"],
-      "files": [
-        {
-          "path": "registry/pricing-table.tsx",
-          "type": "registry:component",
-          "target": "components/autumn/pricing-table.tsx"
-        }
-      ]
-    },
-
 
     {
       "name": "check-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
+      "registryDependencies": ["button", "dialog"],
       "files": [
         {
           "path": "registry/check-dialog/check-dialog.tsx",
@@ -66,6 +55,7 @@
       "name": "attach-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
+      "registryDependencies": ["button", "dialog"],
       "files": [
         {
           "path": "registry/attach-dialog/attach-dialog.tsx",

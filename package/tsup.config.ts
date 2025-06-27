@@ -1,11 +1,12 @@
 import { defineConfig, Options } from "tsup";
-import path from "path";
+import * as path from "path";
 import alias from "esbuild-plugin-alias";
 
 // Path aliases that match tsconfig.json
 const pathAliases = {
-  '@': path.resolve('./src/libraries/react'),
-  '@sdk': path.resolve('./src/sdk'),
+  "@": path.resolve("./src/libraries/react"),
+  "@sdk": path.resolve("./src/sdk"),
+  "@styles": path.resolve("./src/styles"),
 };
 
 const reactConfigs: Options[] = [
@@ -24,9 +25,48 @@ const reactConfigs: Options[] = [
     },
   },
 
-  // React
+  // React - Index file with CSS import (CommonJS)
   {
-    entry: ["src/libraries/react/**/*.{ts,tsx}"],
+    entry: ["src/libraries/react/index.ts"],
+    format: ["cjs"],
+    dts: true,
+    clean: false,
+    outDir: "./dist/libraries/react",
+    external: ["react", "react/jsx-runtime", "react-dom"],
+    bundle: true,
+    banner: {
+      js: '"use client";\nrequire("../../styles/global.css");',
+    },
+    esbuildOptions(options) {
+      options.plugins = options.plugins || [];
+      options.plugins.push(alias(pathAliases));
+    },
+  },
+
+  // React - Index file with CSS import (ESM)
+  {
+    entry: ["src/libraries/react/index.ts"],
+    format: ["esm"],
+    dts: false, // Only generate types once
+    clean: false,
+    outDir: "./dist/libraries/react",
+    external: ["react", "react/jsx-runtime", "react-dom"],
+    bundle: true,
+    banner: {
+      js: '"use client";\nimport "../../styles/global.css";',
+    },
+    esbuildOptions(options) {
+      options.plugins = options.plugins || [];
+      options.plugins.push(alias(pathAliases));
+    },
+  },
+
+  // React - Other files without CSS import
+  {
+    entry: [
+      "src/libraries/react/**/*.{ts,tsx}",
+      "!src/libraries/react/index.ts",
+    ],
     format: ["cjs", "esm"],
     dts: true,
     clean: false,
@@ -48,6 +88,7 @@ export default defineConfig([
     format: ["cjs", "esm"],
     entry: ["./src/sdk/index.ts"],
     skipNodeModulesBundle: true,
+    dts: true,
     shims: true,
     clean: false,
     outDir: "./dist/sdk",
@@ -58,21 +99,6 @@ export default defineConfig([
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
-    },
-
-    dts: {
-      entry: {
-        general: "src/sdk/general/genTypes.ts",
-        check: "src/sdk/general/checkTypes.ts",
-
-        customers: "src/sdk/customers/cusTypes.ts",
-        entities: "src/sdk/customers/entities/entTypes.ts",
-        products: "src/sdk/products/prodTypes.ts",
-        referrals: "src/sdk/referrals/referralTypes.ts",
-        index: "src/sdk/index.ts", // Main types will go to index.d.ts
-      },
-      // This ensures .d.ts files are generated separately
-      resolve: true,
     },
   },
 
@@ -95,9 +121,7 @@ export default defineConfig([
   {
     entry: ["src/next/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: {
-      entry: "src/next/index.ts",
-    },
+    dts: true,
     clean: false, // Don't clean on subsequent builds
     outDir: "./dist/next",
     external: ["react", "react/jsx-runtime", "react-dom"],
@@ -129,63 +153,13 @@ export default defineConfig([
     },
   },
 
-  // Styles - Convert CSS to JS module for auto-injection
+  // Styles - Properly process CSS with PostCSS and Tailwind
   {
-    entry: ["src/styles/index.css"],
+    entry: ["src/styles/global.css"],
     format: ["esm", "cjs"],
     outDir: "./dist/styles",
     clean: false,
     bundle: true,
-    esbuildOptions(options) {
-      options.plugins = options.plugins || [];
-      options.plugins.push({
-        name: 'css-to-js',
-        setup(build) {
-          build.onLoad({ filter: /\.css$/ }, async (args) => {
-            const postcss = await import('postcss');
-            const fs = await import('fs/promises');
-            const path = await import('path');
-            
-            // Load PostCSS config
-            const configPath = path.resolve(process.cwd(), 'postcss.config.mjs');
-            const config = await import(configPath);
-            
-            const css = await fs.readFile(args.path, 'utf8');
-            const result = await postcss.default(config.default.plugins).process(css, {
-              from: args.path,
-              to: undefined,
-            });
-            
-            // Convert CSS to JavaScript module that auto-injects styles
-            const jsContent = `
-let injected = false;
-
-export function injectStyles() {
-  if (injected || typeof document === 'undefined') return;
-  
-  const style = document.createElement('style');
-  style.textContent = ${JSON.stringify(result.css)};
-  style.setAttribute('data-autumn-styles', 'true');
-  document.head.appendChild(style);
-  injected = true;
-}
-
-// Auto-inject on import
-if (typeof document !== 'undefined') {
-  injectStyles();
-}
-
-export default ${JSON.stringify(result.css)};
-`;
-            
-            return {
-              contents: jsContent,
-              loader: 'js',
-            };
-          });
-        },
-      });
-    },
   },
 
   // React server components

@@ -1,3 +1,4 @@
+import { ProductScenario } from "@sdk/general/checkTypes";
 import { AppEnv } from "../general/genEnums";
 import {
   FreeTrialDuration,
@@ -23,6 +24,11 @@ export interface ProductItem {
   entity_feature_id?: string;
   reset_usage_on_billing?: boolean;
   reset_usage_when_enabled?: boolean;
+
+  display?: {
+    primary_text?: string;
+    secondary_text?: string;
+  };
 }
 
 export interface FreeTrial {
@@ -48,6 +54,22 @@ export interface Product {
 
   items: ProductItem[];
   free_trial: FreeTrial | null;
+
+  scenario?: ProductScenario;
+
+  properties?: {
+    is_free?: boolean;
+    is_subscription?: boolean;
+    interval_group?: string;
+  };
+
+  display?: {
+    description?: string;
+    button_text?: string;
+    recommend_text?: string;
+    everything_from?: string;
+    button_url?: string;
+  };
 }
 
 export interface CreateProductParams {
@@ -59,4 +81,6 @@ export interface CreateProductParams {
   free_trial?: FreeTrial;
 }
 
-export interface ListProductsParams {}
+export interface ListProductsParams {
+  customer_id?: string;
+}

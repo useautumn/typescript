@@ -1,23 +1,20 @@
 export interface ProductDetails {
-  id: string;
+  id?: string;
+  name?: string;
   description?: string;
   buttonText?: string;
   buttonUrl?: string;
   recommendText?: string;
-}
+  everythingFrom?: string;
 
-export interface PricingTableProduct {
-  id: string;
-  name: string;
-  buttonText: string;
-
-  price: {
+  price?: {
     primaryText: string;
     secondaryText?: string;
   };
 
-  items: {
-    primaryText: string;
+  items?: {
+    featureId?: string;
+    primaryText?: string;
     secondaryText?: string;
   }[];
 }

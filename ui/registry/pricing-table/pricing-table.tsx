@@ -1,51 +1,105 @@
-"use client";
-
 import React from "react";
+import { useCustomer, usePricingTable } from "autumn-js/react";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
+import AttachDialog from "@/registry/attach-dialog/attach-dialog";
+import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
+import { Product, ProductItem } from "autumn-js";
 
-export interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  everythingFrom?: string;
+export default function PricingTable({
+  productDetails,
+}: {
+  productDetails?: any;
+}) {
+  const { attach } = useCustomer();
+  const [isAnnual, setIsAnnual] = useState(false);
+  const { products, isLoading, error } = usePricingTable({ productDetails });
 
-  buttonText?: string;
-  buttonUrl?: string;
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex justify-center items-center min-h-[300px]">
+        <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
+      </div>
+    );
+  }
 
-  recommendedText?: string;
+  if (error) {
+    return <div> Something went wrong...</div>;
+  }
 
-  price: {
-    primaryText: string;
-    secondaryText?: string;
+  const intervals = Array.from(
+    new Set(
+      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
+    )
+  );
+
+  const multiInterval = intervals.length > 1;
+
+  const intervalFilter = (product: any) => {
+    if (!product.properties?.interval_group) {
+      return true;
+    }
+
+    if (multiInterval) {
+      if (isAnnual) {
+        return product.properties?.interval_group === "year";
+      } else {
+        return product.properties?.interval_group === "month";
+      }
+    }
+
+    return true;
   };
 
-  priceAnnual?: {
-    primaryText: string;
-    secondaryText?: string;
-  };
-
-  items: {
-    primaryText: string;
-    secondaryText?: string;
-  }[];
+  return (
+    <div>
+      {products && (
+        <PricingTableContainer
+          products={products as any}
+          isAnnualToggle={isAnnual}
+          setIsAnnualToggle={setIsAnnual}
+          multiInterval={multiInterval}
+        >
+          {products.filter(intervalFilter).map((product, index) => (
+            <PricingCard
+              key={index}
+              productId={product.id}
+              buttonProps={{
+                disabled:
+                  product.scenario === "active" ||
+                  product.scenario === "scheduled",
+                onClick: async () => {
+                  if (product.id) {
+                    await attach({
+                      productId: product.id,
+                      dialog: AttachDialog,
+                    });
+                  } else if (product.display?.button_url) {
+                    window.open(product.display?.button_url, "_blank");
+                  }
+                },
+              }}
+            />
+          ))}
+        </PricingTableContainer>
+      )}
+    </div>
+  );
 }
 
 const PricingTableContext = createContext<{
-  isAnnual: boolean;
-  setIsAnnual: (isAnnual: boolean) => void;
+  isAnnualToggle: boolean;
+  setIsAnnualToggle: (isAnnual: boolean) => void;
   products: Product[];
   showFeatures: boolean;
-  uniform: boolean;
 }>({
-  isAnnual: false,
-  setIsAnnual: () => {},
+  isAnnualToggle: false,
+  setIsAnnualToggle: () => {},
   products: [],
   showFeatures: true,
-  uniform: false,
 });
 
 export const usePricingTableContext = (componentName: string) => {
@@ -58,21 +112,23 @@ export const usePricingTableContext = (componentName: string) => {
   return context;
 };
 
-export const PricingTable = ({
+export const PricingTableContainer = ({
   children,
   products,
   showFeatures = true,
   className,
-  uniform = false,
+  isAnnualToggle,
+  setIsAnnualToggle,
+  multiInterval,
 }: {
   children?: React.ReactNode;
   products?: Product[];
   showFeatures?: boolean;
   className?: string;
-  uniform?: boolean;
+  isAnnualToggle: boolean;
+  setIsAnnualToggle: (isAnnual: boolean) => void;
+  multiInterval: boolean;
 }) => {
-  const [isAnnual, setIsAnnual] = useState(false);
-
   if (!products) {
     throw new Error("products is required in <PricingTable />");
   }
@@ -80,26 +136,27 @@ export const PricingTable = ({
   if (products.length === 0) {
     return <></>;
   }
-  const hasEvenProducts = products.length % 2 === 0;
 
   return (
     <PricingTableContext.Provider
-      value={{ isAnnual, setIsAnnual, products, showFeatures, uniform }}
+      value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
       <div className={cn("flex items-center flex-col")}>
-        {products.some((p) => p.priceAnnual) && (
+        {multiInterval && (
           <div
             className={cn(
-              products.some((p) => p.recommendedText) && !uniform && "mb-8"
+              products.some((p) => p.display?.recommend_text) && "mb-8"
             )}
           >
-            <AnnualSwitch isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
+            <AnnualSwitch
+              isAnnualToggle={isAnnualToggle}
+              setIsAnnualToggle={setIsAnnualToggle}
+            />
           </div>
         )}
         <div
           className={cn(
-            "w-full grid grid-cols-1 lg:grid-cols-none lg:auto-cols-[minmax(200px,1fr)] lg:grid-flow-col bg-background rounded-xl border overflow-hidden lg:overflow-visible dark:shadow-zinc-800 shadow-inner ",
-            hasEvenProducts && "sm:grid-cols-2",
+            "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-2",
             className
           )}
         >
@@ -124,8 +181,7 @@ export const PricingCard = ({
   onButtonClick,
   buttonProps,
 }: PricingCardProps) => {
-  const { isAnnual, products, showFeatures, uniform } =
-    usePricingTableContext("PricingCard");
+  const { products, showFeatures } = usePricingTableContext("PricingCard");
 
   const product = products.find((p) => p.id === productId);
 
@@ -133,84 +189,77 @@ export const PricingCard = ({
     throw new Error(`Product with id ${productId} not found`);
   }
 
-  const {
-    name,
-    price,
-    priceAnnual,
-    recommendedText,
-    buttonText,
-    items,
-    description,
-    buttonUrl,
-    everythingFrom,
-  } = product;
+  const { name, display: productDisplay, items } = product;
 
-  const isRecommended = recommendedText ? true : false;
+  const { buttonText } = getPricingTableContent(product);
+  const isRecommended = productDisplay?.recommend_text ? true : false;
+  const mainPriceDisplay = product.properties?.is_free
+    ? {
+        primary_text: "Free",
+      }
+    : product.items[0].display;
+
+  const featureItems = product.properties?.is_free
+    ? product.items
+    : product.items.slice(1);
 
   return (
     <div
       className={cn(
-        "w-full h-full py-6 text-foreground border-l border-t lg:border-t-0 lg:first:border-l-0 lg:ml-0 ml-[-1px] -mt-[1px]",
+        "w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
         isRecommended &&
-          !uniform &&
-          "lg:border-none lg:outline lg:outline-1 lg:outline-border lg:-translate-y-6 lg:rounded-xl lg:shadow-lg lg:shadow-zinc-200 lg:dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-stone-100 dark:bg-zinc-900 relative dark:outline-zinc-700",
+          "lg:-translate-y-6 lg:shadow-lg dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-secondary/40",
         className
       )}
     >
-      {recommendedText && !uniform && (
-        <RecommendedBadge recommended={recommendedText} />
+      {productDisplay?.recommend_text && (
+        <RecommendedBadge recommended={productDisplay?.recommend_text} />
       )}
       <div
         className={cn(
           "flex flex-col h-full flex-grow",
-          isRecommended && !uniform && "lg:translate-y-6"
+          isRecommended && "lg:translate-y-6"
         )}
       >
         <div className="h-full">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-2xl font-bold px-6 ">{name}</h2>
-            {description && (
-              <div className="text-sm text-muted-foreground px-6 h-8">
-                <p className="line-clamp-2">{description}</p>
-              </div>
-            )}
-            <div className="mt-2 mb-6">
-              <h3 className="font-semibold h-16 border-y flex items-center px-6">
+          <div className="flex flex-col">
+            <div className="pb-4">
+              <h2 className="text-2xl font-semibold px-6 truncate">{name}</h2>
+              {productDisplay?.description && (
+                <div className="text-sm text-muted-foreground px-6 h-8">
+                  <p className="line-clamp-2">
+                    Everything from {productDisplay?.description}, plus:
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="mb-2">
+              <h3 className="font-semibold h-16 flex px-6 items-center border-y mb-4 bg-secondary/40">
                 <div className="line-clamp-2">
-                  {isAnnual && priceAnnual
-                    ? priceAnnual?.primaryText
-                    : price.primaryText}{" "}
-                  {price.secondaryText && (
+                  {mainPriceDisplay?.primary_text}{" "}
+                  {mainPriceDisplay?.secondary_text && (
                     <span className="font-normal text-muted-foreground mt-1">
-                      {isAnnual && priceAnnual
-                        ? priceAnnual?.secondaryText
-                        : price.secondaryText}
+                      {mainPriceDisplay?.secondary_text}
                     </span>
                   )}
                 </div>
               </h3>
             </div>
           </div>
-          {showFeatures && items.length > 0 && (
+          {showFeatures && featureItems.length > 0 && (
             <div className="flex-grow px-6 mb-6">
               <PricingFeatureList
-                items={items}
+                items={featureItems}
                 showIcon={true}
-                everythingFrom={everythingFrom}
+                everythingFrom={product.display?.everything_from}
               />
             </div>
           )}
         </div>
-        <div
-          className={cn(
-            " px-6 ",
-            isRecommended && !uniform && "lg:-translate-y-12"
-          )}
-        >
+        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
           <PricingCardButton
-            recommended={recommendedText ? true : false}
+            recommended={productDisplay?.recommend_text ? true : false}
             onClick={onButtonClick}
-            buttonUrl={buttonUrl}
             {...buttonProps}
           >
             {buttonText}
@@ -228,10 +277,7 @@ export const PricingFeatureList = ({
   everythingFrom,
   className,
 }: {
-  items: {
-    primaryText: string;
-    secondaryText?: string;
-  }[];
+  items: ProductItem[];
   showIcon?: boolean;
   everythingFrom?: string;
   className?: string;
@@ -248,10 +294,10 @@ export const PricingFeatureList = ({
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )}
             <div className="flex flex-col">
-              <span>{item.primaryText}</span>
-              {item.secondaryText && (
+              <span>{item.display?.primary_text}</span>
+              {item.display?.secondary_text && (
                 <span className="text-sm text-muted-foreground">
-                  {item.secondaryText}
+                  {item.display?.secondary_text}
                 </span>
               )}
             </div>
@@ -280,6 +326,7 @@ export const PricingCardButton = React.forwardRef<
         className
       )}
       variant={recommended ? "default" : "secondary"}
+      // variant="default"
       ref={ref}
       disabled={loading}
       onClick={async (e) => {
@@ -324,19 +371,19 @@ PricingCardButton.displayName = "PricingCardButton";
 
 // Annual Switch
 export const AnnualSwitch = ({
-  isAnnual,
-  setIsAnnual,
+  isAnnualToggle,
+  setIsAnnualToggle,
 }: {
-  isAnnual: boolean;
-  setIsAnnual: (isAnnual: boolean) => void;
+  isAnnualToggle: boolean;
+  setIsAnnualToggle: (isAnnual: boolean) => void;
 }) => {
   return (
     <div className="flex items-center space-x-2 mb-4">
       <span className="text-sm text-muted-foreground">Monthly</span>
       <Switch
         id="annual-billing"
-        checked={isAnnual}
-        onCheckedChange={setIsAnnual}
+        checked={isAnnualToggle}
+        onCheckedChange={setIsAnnualToggle}
       />
       <span className="text-sm text-muted-foreground">Annual</span>
     </div>

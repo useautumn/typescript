@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useCustomer } from "autumn-js/react";
-import { PricingTable } from "@/components/autumn/pricing-table";
-import { useUser } from "@clerk/nextjs";
+import {
+  ProductDetails,
+  useCustomer,
+  PricingTable as ReactPricingTable,
+} from "autumn-js/react";
+
+// import PricingTable from "@/components/autumn/pricing-table";
 
 const JSONWrapper = ({
   label,
@@ -19,6 +23,45 @@ const JSONWrapper = ({
     </div>
   );
 };
+
+const productDetails: ProductDetails[] = [
+  {
+    id: "premium",
+    description: "Only for cool people",
+    buttonText: "Upgrade",
+    everythingFrom: "Hobby",
+    price: {
+      primaryText: "$10",
+      secondaryText: "/month",
+    },
+    items: [
+      {
+        featureId: "messages",
+        // primaryText: "1000 messages",
+      },
+    ],
+  },
+  {
+    name: "Enterprise",
+    description: "Pro plan",
+    buttonText: "Upgrade",
+    everythingFrom: "Hobby",
+    price: {
+      primaryText: "Contact Us",
+    },
+    items: [
+      {
+        featureId: "messages",
+        primaryText: "1000 messages",
+      },
+      {
+        featureId: "credits",
+        primaryText: "1000 credits",
+      },
+    ],
+    buttonUrl: "https://www.google.com",
+  },
+];
 
 export default function Home() {
   const {
@@ -36,6 +79,10 @@ export default function Home() {
   return (
     <React.Fragment>
       <div className="p-10">
+        <ReactPricingTable productDetails={productDetails} />
+      </div>
+
+      <div className="p-10">
         <JSONWrapper label="Customer">
           <pre>{JSON.stringify(customer, null, 2)}</pre>
         </JSONWrapper>
@@ -45,15 +92,13 @@ export default function Home() {
             onClick={async () => {
               const res = await check({ featureId: "messages" });
               const { data, error } = res;
-
-              console.log(data?.breakdown);
             }}
           >
             Check
           </button>
           <button
             onClick={async () => {
-              // attach({ productId: "premium" });
+              attach({ productId: "premium" });
             }}
           >
             Attach
@@ -93,7 +138,6 @@ export default function Home() {
           </button>
         </div>
       </div>
-      <PricingTable />
     </React.Fragment>
   );
 }

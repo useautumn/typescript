@@ -20,6 +20,7 @@ import {
   openBillingPortalMethod,
   trackMethod,
 } from "./clientGenMethods";
+import { listProductsMethod } from "./clientProdMethods";
 import { redeemCode, createCode } from "./clientReferralMethods";
 
 export interface ErrorResponse {
@@ -85,13 +86,14 @@ export class AutumnClient {
     method: string;
     body?: any;
   }) {
+    body =
+      method === "POST"
+        ? JSON.stringify({
+            ...body,
+            customer_data: this.customerData || undefined,
+          })
+        : undefined;
 
-    body = method === "POST" ? JSON.stringify({
-      ...body,
-      customer_data: this.customerData || undefined,
-    }) : undefined;
-
-    
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
         method,
@@ -102,7 +104,6 @@ export class AutumnClient {
 
       return await toContainerResult({ response, logger: console });
     } catch (error: any) {
-
       logFetchError({
         method,
         backendUrl: this.backendUrl || "",
@@ -116,7 +117,6 @@ export class AutumnClient {
           code: "fetch_failed",
         }),
       };
-
     }
   }
 
@@ -172,5 +172,9 @@ export class AutumnClient {
   referrals = {
     createCode: createCode.bind(this),
     redeemCode: redeemCode.bind(this),
+  };
+
+  products = {
+    list: listProductsMethod.bind(this),
   };
 }

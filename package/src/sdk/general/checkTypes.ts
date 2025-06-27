@@ -24,7 +24,7 @@ export interface CheckFeaturePreview {
   products: Product[];
 }
 
-export type CheckProductScenario =
+export type ProductScenario =
   | "scheduled"
   | "active"
   | "new"
@@ -44,7 +44,7 @@ export interface CheckProductResult {
 }
 
 export interface CheckProductPreview {
-  scenario: CheckProductScenario;
+  scenario: ProductScenario;
   product_id: string;
   product_name: string;
   recurring: boolean;
