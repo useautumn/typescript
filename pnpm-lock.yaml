@@ -911,8 +911,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.1(@babel/runtime@7.27.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       autumn-js:
-        specifier: workspace:*
-        version: link:../package
+        specifier: latest
+        version: 0.0.68(@types/react-dom@18.3.5(@types/react@18.3.14))(@types/react@18.3.14)(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.19.1)(typescript@5.8.3)))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -4768,6 +4768,14 @@ packages:
     peerDependencies:
       '@tanstack/react-query': ^5.76.1
       react: 18.3.1
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  autumn-js@0.0.68:
+    resolution: {integrity: sha512-8NwxfjvKUpS2P+Q0USPvA4pZCKLgYTK/q18LHUxYcqI7wMzZxk5cfMZXbVqNyB7mBaQWvaBqnqJHV2xON/3ddw==}
+    peerDependencies:
+      react: '*'
     peerDependenciesMeta:
       react:
         optional: true
@@ -14916,6 +14924,25 @@ snapshots:
       swr: 2.3.3(react@18.3.1)
     optionalDependencies:
       react: 18.3.1
+
+  autumn-js@0.0.68(@types/react-dom@18.3.5(@types/react@18.3.14))(@types/react@18.3.14)(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.19.1)(typescript@5.8.3))):
+    dependencies:
+      '@radix-ui/react-dialog': 1.1.14(@types/react-dom@18.3.5(@types/react@18.3.14))(@types/react@18.3.14)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-slot': 1.2.3(@types/react@18.3.14)(react@18.3.1)
+      '@radix-ui/react-switch': 1.2.5(@types/react-dom@18.3.5(@types/react@18.3.14))(@types/react@18.3.14)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      chalk: 5.4.1
+      postcss-nested: 7.0.2(postcss@8.5.6)
+      rou3: 0.6.3
+      swr: 2.3.3(react@18.3.1)
+      tailwindcss-animate: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.19.1)(typescript@5.8.3)))
+    optionalDependencies:
+      react: 18.3.1
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - postcss
+      - react-dom
+      - tailwindcss
 
   available-typed-arrays@1.0.7:
     dependencies:
