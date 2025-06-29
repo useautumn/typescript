@@ -236,7 +236,7 @@ export const PricingCard = ({
               {productDisplay?.description && (
                 <div className="au-text-sm au-text-muted-foreground au-px-6 au-h-8">
                   <p className="au-line-clamp-2">
-                    Everything from {productDisplay?.description}, plus:
+                    {productDisplay?.description}
                   </p>
                 </div>
               )}

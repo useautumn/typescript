@@ -879,7 +879,7 @@ importers:
         version: 3.1.1(@babel/runtime@7.27.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       autumn-js:
         specifier: latest
-        version: 0.0.74(react@18.3.1)
+        version: 0.0.76(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -4828,8 +4828,8 @@ packages:
       react:
         optional: true
 
-  autumn-js@0.0.74:
-    resolution: {integrity: sha512-rh5B77gDlY0fCMbJ2KeQ8fPEQio1b6j8T6kGyGMNDLBoO/Z9AoXd2SDkLcVJe68xb72RTukm6pjJBiH38Yz/1w==}
+  autumn-js@0.0.76:
+    resolution: {integrity: sha512-Iw2/ByHq9Yb7+0OGgvHItOCj8lDsB8EVnArYrykgfG5JBfZv5Dj9MCa09PHIIWEV296rzHKOONStFJ/3KUxqLA==}
     peerDependencies:
       react: '*'
     peerDependenciesMeta:
@@ -15111,7 +15111,7 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
 
-  autumn-js@0.0.74(react@18.3.1):
+  autumn-js@0.0.76(react@18.3.1):
     dependencies:
       chalk: 5.4.1
       rou3: 0.6.3
