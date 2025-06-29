@@ -1,8 +1,6 @@
-.autumn {
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
@@ -13,7 +11,6 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: 240 5.9% 10%;
-    /* --primary: 135 100% 40%; */
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -80,9 +77,9 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply au-border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply au-bg-background au-text-foreground;
   }
 }

@@ -1,29 +1,29 @@
-import * as React from "react"
-import * as SwitchPrimitive from "@radix-ui/react-switch"
+"use client";
 
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import * as SwitchPrimitives from "@radix-ui/react-switch";
 
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
-  return (
-    <SwitchPrimitive.Root
-      data-slot="switch"
+import { cn } from "@/lib/utils";
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "au-peer au-inline-flex au-h-5 au-w-9 au-shrink-0 au-cursor-pointer au-items-center au-rounded-full au-border-2 au-border-transparent au-shadow-sm au-transition-colors focus-visible:au-outline-none focus-visible:au-ring-2 focus-visible:au-ring-ring focus-visible:au-ring-offset-2 focus-visible:au-ring-offset-background au-disabled:cursor-not-allowed au-disabled:opacity-50 data-[state=checked]:au-bg-primary data-[state=unchecked]:au-bg-input",
+      className
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
       className={cn(
-        "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        "au-pointer-events-none au-block au-h-4 au-w-4 au-rounded-full au-bg-background au-shadow-lg au-ring-0 au-transition-transform data-[state=checked]:au-translate-x-4 data-[state=unchecked]:au-translate-x-0"
       )}
-      {...props}
-    >
-      <SwitchPrimitive.Thumb
-        data-slot="switch-thumb"
-        className={cn(
-          "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
-        )}
-      />
-    </SwitchPrimitive.Root>
-  )
-}
+    />
+  </SwitchPrimitives.Root>
+));
+Switch.displayName = SwitchPrimitives.Root.displayName;
 
-export { Switch }
+export { Switch };

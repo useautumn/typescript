@@ -1,146 +1,72 @@
 "use client";
-
-import React, { useEffect } from "react";
-import {
-  ProductDetails,
-  useCustomer,
-  PricingTable as ReactPricingTable,
-} from "autumn-js/react";
-
-// import PricingTable from "@/components/autumn/pricing-table";
-
-const JSONWrapper = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="max-w-full text-xs overflow-y-scroll max-h-[350px] border border-zinc-100 p-2">
-      <p>{label}</p>
-      {children}
-    </div>
-  );
-};
-
-const productDetails: ProductDetails[] = [
-  {
-    id: "premium",
-    description: "Only for cool people",
-    buttonText: "Upgrade",
-    everythingFrom: "Hobby",
-    price: {
-      primaryText: "$10",
-      secondaryText: "/month",
-    },
-    items: [
-      {
-        featureId: "messages",
-        // primaryText: "1000 messages",
-      },
-    ],
-  },
-  {
-    name: "Enterprise",
-    description: "Pro plan",
-    buttonText: "Upgrade",
-    everythingFrom: "Hobby",
-    price: {
-      primaryText: "Contact Us",
-    },
-    items: [
-      {
-        featureId: "messages",
-        primaryText: "1000 messages",
-      },
-      {
-        featureId: "credits",
-        primaryText: "1000 credits",
-      },
-    ],
-    buttonUrl: "https://www.google.com",
-  },
-];
+import { authClient } from "@/lib/auth-client";
+import { CheckDialog, PricingTable, useEntity } from "autumn-js/react";
 
 export default function Home() {
-  const {
-    customer,
-    refetch,
-    allowed,
-    track,
-    cancel,
-    openBillingPortal,
-    attach,
-    check,
-  } = useCustomer();
+  // const { attach } = useCustomer();
 
-  const featureId = "words";
+  const { entity, allowed, attach, check } = useEntity("2");
+
+  const featureId = "messages";
   return (
-    <React.Fragment>
-      <div className="p-10">
-        <ReactPricingTable />
-      </div>
-
-      <div className="p-10">
-        <JSONWrapper label="Customer">
-          <pre>{JSON.stringify(customer, null, 2)}</pre>
-        </JSONWrapper>
+    <div className="w-screen h-screen flex justify-center items-start p-10">
+      <main className="flex flex-col w-[800px] gap-4 overflow-hidden">
         <div>
-          {featureId} allowed: {allowed({ featureId }) ? "true" : "false"}
+          <button
+            onClick={async () => {
+              const res = await fetch(
+                "http://localhost:3001/api/auth/autumn/attach",
+                {
+                  method: "POST",
+                  body: JSON.stringify({
+                    productId: "premium",
+                  }),
+                }
+              );
+              console.log(res);
+              // authClient.api.autumn.attach({
+              //   productId: "premium",
+              // });
+            }}
+          >
+            Test better auth plugin
+          </button>
         </div>
         <div className="flex gap-2">
           <button
+            className="bg-blue-500 text-white p-2 rounded-md"
             onClick={async () => {
-              const res = await check({ featureId: "messages" });
-              const { data, error } = res;
-              console.log(data, error);
-            }}
-          >
-            Check
-          </button>
-          <button
-            onClick={async () => {
-              attach({ productId: "premium" });
-            }}
-          >
-            Attach
-          </button>
-          <button
-            onClick={async () => {
-              await track({
-                featureId: "credits",
-                value: 2,
+              const res = await authClient.signIn.email({
+                email: "johnyeo10@gmail.com",
+                password: "testing123",
               });
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              await refetch();
+              console.log(res);
             }}
           >
-            Track
+            Sign in
           </button>
           <button
+            className="bg-blue-500 text-white p-2 rounded-md"
             onClick={async () => {
-              await cancel({
-                productId: "pro",
+              const res = await authClient.signUp.email({
+                name: "John Yeo",
+                email: "johnyeo10@gmail.com",
+                password: "testing123",
               });
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              await refetch();
+              console.log(res);
             }}
           >
-            Cancel
-          </button>
-          <button
-            onClick={async () => {
-              await openBillingPortal({
-                openInNewTab: true,
-                returnUrl: "test",
-              });
-            }}
-          >
-            Open Billing Portal
+            Sign up
           </button>
         </div>
-      </div>
-    </React.Fragment>
+        <div className="bg-stone-50 max-h-[400px] p-4 overflow-auto text-xs">
+          <pre className="whitespace-pre-wrap">
+            {JSON.stringify(entity, null, 2)}
+          </pre>
+        </div>
+
+        <PricingTable />
+      </main>
+    </div>
   );
 }

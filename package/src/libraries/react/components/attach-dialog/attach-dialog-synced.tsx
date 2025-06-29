@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { type CheckProductPreview } from '@sdk';
+import { type CheckProductPreview } from "@sdk";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getAttachContent } from "./lib/attach-content";
-import { useCustomer } from '@/index';
+import { useCustomer } from "@/index";
 
 export interface AttachDialogProps {
   open: boolean;
@@ -53,17 +53,21 @@ export default function AttachDialog(params?: AttachDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className={cn("p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm")}
+        className={cn(
+          "au-p-0 au-pt-4 au-gap-0 au-text-foreground au-overflow-hidden au-text-sm"
+        )}
       >
-        <DialogTitle className={cn("px-6 mb-1 ")}>{title}</DialogTitle>
-        <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
+        <DialogTitle className={cn("au-px-6 au-mb-1 ")}>{title}</DialogTitle>
+        <div className={cn("au-px-6 au-mt-1 au-mb-4 au-text-muted-foreground")}>
           {message}
         </div>
         {(items || optionsInput.length > 0) && (
-          <div className="mb-6 px-6">
+          <div className="au-mb-6 au-px-6">
             {items?.map((item) => (
               <PriceItem key={item.description}>
-                <span className="truncate flex-1">{item.description}</span>
+                <span className="au-truncate au-flex-1">
+                  {item.description}
+                </span>
                 <span>{item.price}</span>
               </PriceItem>
             ))}
@@ -82,7 +86,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
           </div>
         )}
 
-        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
+        <DialogFooter className="au-flex au-flex-col sm:au-flex-row au-justify-between au-gap-x-4 au-py-2 au-pl-6 au-pr-3 au-bg-secondary au-border-t au-shadow-inner">
           {due_today && (
             <TotalPrice>
               <span>Due Today</span>
@@ -109,13 +113,15 @@ export default function AttachDialog(params?: AttachDialogProps) {
               setLoading(false);
             }}
             disabled={loading}
-            className="min-w-16 flex items-center gap-2"
+            className="au-min-w-16 au-flex au-items-center au-gap-2"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="au-w-4 au-h-4 au-animate-spin" />
             ) : (
               <>
-                <span className="whitespace-nowrap flex gap-1">Confirm</span>
+                <span className="au-whitespace-nowrap au-flex au-gap-1">
+                  Confirm
+                </span>
               </>
             )}
           </Button>
@@ -136,7 +142,7 @@ export const PriceItem = ({
   return (
     <div
       className={cn(
-        "flex flex-col pb-4 sm:pb-0 gap-1 sm:flex-row justify-between sm:h-7 sm:gap-2 sm:items-center",
+        "au-flex au-flex-col au-pb-4 sm:au-pb-0 au-gap-1 sm:au-flex-row au-justify-between sm:au-h-7 sm:au-gap-2 sm:au-items-center",
         className
       )}
       {...props}
@@ -219,10 +225,10 @@ export const QuantityInput = ({
 
   return (
     <div
-      className={cn(className, "flex flex-row items-center gap-4")}
+      className={cn(className, "au-flex au-flex-row au-items-center au-gap-4")}
       {...props}
     >
-      <div className="flex items-center gap-1">
+      <div className="au-flex au-items-center au-gap-1">
         <Button
           variant="outline"
           size="icon"
@@ -230,16 +236,18 @@ export const QuantityInput = ({
             currentValue > 0 && handleValueChange(currentValue - 1)
           }
           disabled={currentValue <= 0}
-          className="h-6 w-6 pb-0.5"
+          className="au-h-6 au-w-6 au-pb-0.5"
         >
           -
         </Button>
-        <span className="w-8 text-center text-foreground">{currentValue}</span>
+        <span className="au-w-8 au-text-center au-text-foreground">
+          {currentValue}
+        </span>
         <Button
           variant="outline"
           size="icon"
           onClick={() => handleValueChange(currentValue + 1)}
-          className="h-6 w-6 pb-0.5"
+          className="au-h-6 au-w-6 au-pb-0.5"
         >
           +
         </Button>
@@ -251,7 +259,7 @@ export const QuantityInput = ({
 
 export const TotalPrice = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="w-full font-semibold flex justify-between items-center">
+    <div className="au-w-full au-font-semibold au-flex au-justify-between au-items-center">
       {children}
     </div>
   );
@@ -275,10 +283,10 @@ export const PricingDialogButton = ({
       onClick={onClick}
       disabled={disabled}
       size={size}
-      className={cn(className, "shadow-sm shadow-stone-400")}
+      className={cn(className, "au-shadow-sm au-shadow-stone-400")}
     >
       {children}
-      <ArrowRight className="!h-3" />
+      <ArrowRight className="!au-h-3" />
     </Button>
   );
 };

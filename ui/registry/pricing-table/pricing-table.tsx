@@ -71,6 +71,7 @@ export default function PricingTable({
                 disabled:
                   product.scenario === "active" ||
                   product.scenario === "scheduled",
+
                 onClick: async () => {
                   if (product.id) {
                     await attach({
@@ -178,7 +179,6 @@ interface PricingCardProps {
 export const PricingCard = ({
   productId,
   className,
-  onButtonClick,
   buttonProps,
 }: PricingCardProps) => {
   const { products, showFeatures } = usePricingTableContext("PricingCard");
@@ -224,7 +224,9 @@ export const PricingCard = ({
         <div className="h-full">
           <div className="flex flex-col">
             <div className="pb-4">
-              <h2 className="text-2xl font-semibold px-6 truncate">{name}</h2>
+              <h2 className="text-2xl font-semibold px-6 truncate">
+                {name}
+              </h2>
               {productDisplay?.description && (
                 <div className="text-sm text-muted-foreground px-6 h-8">
                   <p className="line-clamp-2">
@@ -256,10 +258,11 @@ export const PricingCard = ({
             </div>
           )}
         </div>
-        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
+        <div
+          className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}
+        >
           <PricingCardButton
             recommended={productDisplay?.recommend_text ? true : false}
-            onClick={onButtonClick}
             {...buttonProps}
           >
             {buttonText}
@@ -285,11 +288,16 @@ export const PricingFeatureList = ({
   return (
     <div className={cn("flex-grow", className)}>
       {everythingFrom && (
-        <p className="text-sm mb-4">Everything from {everythingFrom}, plus:</p>
+        <p className="text-sm mb-4">
+          Everything from {everythingFrom}, plus:
+        </p>
       )}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex items-start gap-2 text-sm">
+          <div
+            key={index}
+            className="flex items-start gap-2 text-sm"
+          >
             {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )}
@@ -317,38 +325,31 @@ export interface PricingCardButtonProps extends React.ComponentProps<"button"> {
 export const PricingCardButton = React.forwardRef<
   HTMLButtonElement,
   PricingCardButtonProps
->(({ recommended, children, buttonUrl, onClick, className, ...props }, ref) => {
+>(({ recommended, children, className, onClick, ...props }, ref) => {
   const [loading, setLoading] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    setLoading(true);
+    try {
+      await onClick?.(e);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Button
       className={cn(
         "w-full py-3 px-4 group overflow-hidden relative transition-all duration-300 hover:brightness-90 border rounded-lg",
         className
       )}
-      variant={recommended ? "default" : "secondary"}
-      // variant="default"
-      ref={ref}
-      disabled={loading}
-      onClick={async (e) => {
-        setLoading(true);
-        try {
-          if (onClick) {
-            await onClick(e);
-
-            return;
-          }
-
-          if (buttonUrl) {
-            window.open(buttonUrl, "_blank");
-            return;
-          }
-        } catch (error) {
-          throw error;
-        } finally {
-          setLoading(false);
-        }
-      }}
       {...props}
+      variant={recommended ? "default" : "secondary"}
+      ref={ref}
+      disabled={loading || props.disabled}
+      onClick={handleClick}
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

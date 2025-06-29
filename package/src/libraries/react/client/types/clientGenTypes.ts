@@ -19,6 +19,7 @@ export interface AttachParams {
   entityData?: EntityDataParams;
   openInNewTab?: boolean;
   reward?: string;
+  checkoutSessionParams?: Record<string, any>;
 }
 
 export interface CancelParams {

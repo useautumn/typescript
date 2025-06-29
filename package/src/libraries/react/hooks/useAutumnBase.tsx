@@ -16,7 +16,8 @@ import {
 import { AutumnPromise } from "../../../sdk";
 import { usePricingTableBase } from "./usePricingTableBase";
 import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
-import CheckDialog from "@/components/check-dialog/check-dialog-synced";
+// import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
+// import CheckDialog from "@/components/check-dialog/check-dialog-synced";
 
 export const useAutumnBase = ({
   AutumnContext,
@@ -32,6 +33,7 @@ export const useAutumnBase = ({
   });
 
   let {
+    open: attachOpen,
     setProps: setAttachProps,
     setOpen: setAttachOpen,
     setComponent: setAttachComponent,
@@ -108,7 +110,7 @@ export const useAutumnBase = ({
         ? undefined
         : AttachDialog;
 
-    if (finalDialog) {
+    if (finalDialog && !attachOpen) {
       setAttachComponent(finalDialog);
       return await attachWithDialog(params);
     }

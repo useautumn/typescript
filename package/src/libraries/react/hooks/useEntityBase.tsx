@@ -3,6 +3,13 @@ import { GetEntityParams } from "../../../libraries/react/client/types/clientEnt
 import { useContext } from "react";
 import { AutumnContextParams } from "../AutumnContext";
 import { AllowedParams, handleAllowed } from "./handleAllowed";
+import { useAutumnBase } from "./useAutumnBase";
+import {
+  AttachParams,
+  CancelParams,
+  CheckParams,
+  TrackParams,
+} from "@/client/types/clientGenTypes";
 
 export const useEntityBase = ({
   entityId,
@@ -45,12 +52,38 @@ export const useEntityBase = ({
     },
   });
 
+  const {
+    check: checkAutumn,
+    attach: attachAutumn,
+    cancel: cancelAutumn,
+    track: trackAutumn,
+  } = useAutumnBase({
+    AutumnContext,
+  });
+
+  const allowed = (params: AllowedParams): boolean =>
+    handleAllowed({ customer: data, params });
+
+  const check = (params: CheckParams) =>
+    checkAutumn({ ...params, entityId: entityId || undefined });
+  const attach = (params: AttachParams) =>
+    attachAutumn({ ...params, entityId: entityId || undefined });
+  const cancel = (params: CancelParams) =>
+    cancelAutumn({ ...params, entityId: entityId || undefined });
+  const track = (params: TrackParams) =>
+    trackAutumn({ ...params, entityId: entityId || undefined });
+
   if (!entityId) {
     return {
       entity: null,
       isLoading: false,
       error: null,
       refetch: mutate,
+      allowed,
+      check,
+      attach,
+      cancel,
+      track,
     };
   }
 
@@ -59,6 +92,10 @@ export const useEntityBase = ({
     isLoading,
     error,
     refetch: mutate,
-    allowed: (params: AllowedParams): boolean => handleAllowed({ customer: data, params }),
+    allowed,
+    check,
+    attach,
+    cancel,
+    track,
   };
 };

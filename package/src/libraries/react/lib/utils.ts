@@ -1,5 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Create a custom twMerge that understands the "au-" prefix
+const twMerge = extendTailwindMerge({
+  prefix: "au-",
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

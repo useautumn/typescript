@@ -1,4 +1,5 @@
 import { defineConfig, Options } from "tsup";
+// @ts-ignore
 import * as path from "path";
 import alias from "esbuild-plugin-alias";
 

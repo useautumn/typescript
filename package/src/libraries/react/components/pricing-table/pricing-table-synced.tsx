@@ -1,5 +1,5 @@
 import React from "react";
-import { useCustomer, usePricingTable } from '@/index';
+import { useCustomer, usePricingTable } from "@/index";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "../attach-dialog/attach-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
-import { Product, ProductItem } from '@sdk';
+import { Product, ProductItem } from "@sdk";
 
 export default function PricingTable({
   productDetails,
@@ -20,8 +20,8 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center min-h-[300px]">
-        <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
+      <div className="au-w-full au-h-full au-flex au-justify-center au-items-center au-min-h-[300px]">
+        <Loader2 className="au-w-6 au-h-6 au-text-zinc-400 au-animate-spin" />
       </div>
     );
   }
@@ -71,6 +71,7 @@ export default function PricingTable({
                 disabled:
                   product.scenario === "active" ||
                   product.scenario === "scheduled",
+
                 onClick: async () => {
                   if (product.id) {
                     await attach({
@@ -141,11 +142,11 @@ export const PricingTableContainer = ({
     <PricingTableContext.Provider
       value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
-      <div className={cn("flex items-center flex-col")}>
+      <div className={cn("au-flex au-items-center au-flex-col")}>
         {multiInterval && (
           <div
             className={cn(
-              products.some((p) => p.display?.recommend_text) && "mb-8"
+              products.some((p) => p.display?.recommend_text) && "au-mb-8"
             )}
           >
             <AnnualSwitch
@@ -156,7 +157,7 @@ export const PricingTableContainer = ({
         )}
         <div
           className={cn(
-            "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-2",
+            "au-grid au-grid-cols-1 sm:au-grid-cols-2 lg:au-grid-cols-[repeat(auto-fit,minmax(200px,1fr))] au-w-full au-gap-2",
             className
           )}
         >
@@ -178,7 +179,6 @@ interface PricingCardProps {
 export const PricingCard = ({
   productId,
   className,
-  onButtonClick,
   buttonProps,
 }: PricingCardProps) => {
   const { products, showFeatures } = usePricingTableContext("PricingCard");
@@ -206,9 +206,9 @@ export const PricingCard = ({
   return (
     <div
       className={cn(
-        "w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
+        "au-w-full au-h-full au-py-6 au-text-foreground au-border au-rounded-lg au-shadow-sm au-max-w-xl",
         isRecommended &&
-          "lg:-translate-y-6 lg:shadow-lg dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-secondary/40",
+          "lg:au--translate-y-6 lg:au-shadow-lg dark:au-shadow-zinc-800/80 lg:au-h-[calc(100%+48px)] au-bg-secondary/40",
         className
       )}
     >
@@ -217,28 +217,30 @@ export const PricingCard = ({
       )}
       <div
         className={cn(
-          "flex flex-col h-full flex-grow",
-          isRecommended && "lg:translate-y-6"
+          "au-flex au-flex-col au-h-full au-flex-grow",
+          isRecommended && "lg:au-translate-y-6"
         )}
       >
-        <div className="h-full">
-          <div className="flex flex-col">
-            <div className="pb-4">
-              <h2 className="text-2xl font-semibold px-6 truncate">{name}</h2>
+        <div className="au-h-full">
+          <div className="au-flex au-flex-col">
+            <div className="au-pb-4">
+              <h2 className="au-text-2xl au-font-semibold au-px-6 au-truncate">
+                {name}
+              </h2>
               {productDisplay?.description && (
-                <div className="text-sm text-muted-foreground px-6 h-8">
-                  <p className="line-clamp-2">
+                <div className="au-text-sm au-text-muted-foreground au-px-6 au-h-8">
+                  <p className="au-line-clamp-2">
                     Everything from {productDisplay?.description}, plus:
                   </p>
                 </div>
               )}
             </div>
-            <div className="mb-2">
-              <h3 className="font-semibold h-16 flex px-6 items-center border-y mb-4 bg-secondary/40">
-                <div className="line-clamp-2">
+            <div className="au-mb-2">
+              <h3 className="au-font-semibold au-h-16 au-flex au-px-6 au-items-center au-border-y au-mb-4 au-bg-secondary/40">
+                <div className="au-line-clamp-2">
                   {mainPriceDisplay?.primary_text}{" "}
                   {mainPriceDisplay?.secondary_text && (
-                    <span className="font-normal text-muted-foreground mt-1">
+                    <span className="au-font-normal au-text-muted-foreground au-mt-1">
                       {mainPriceDisplay?.secondary_text}
                     </span>
                   )}
@@ -247,7 +249,7 @@ export const PricingCard = ({
             </div>
           </div>
           {showFeatures && featureItems.length > 0 && (
-            <div className="flex-grow px-6 mb-6">
+            <div className="au-flex-grow au-px-6 au-mb-6">
               <PricingFeatureList
                 items={featureItems}
                 showIcon={true}
@@ -256,10 +258,11 @@ export const PricingCard = ({
             </div>
           )}
         </div>
-        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
+        <div
+          className={cn(" au-px-6 ", isRecommended && "lg:au--translate-y-12")}
+        >
           <PricingCardButton
             recommended={productDisplay?.recommend_text ? true : false}
-            onClick={onButtonClick}
             {...buttonProps}
           >
             {buttonText}
@@ -283,20 +286,25 @@ export const PricingFeatureList = ({
   className?: string;
 }) => {
   return (
-    <div className={cn("flex-grow", className)}>
+    <div className={cn("au-flex-grow", className)}>
       {everythingFrom && (
-        <p className="text-sm mb-4">Everything from {everythingFrom}, plus:</p>
+        <p className="au-text-sm au-mb-4">
+          Everything from {everythingFrom}, plus:
+        </p>
       )}
-      <div className="space-y-3">
+      <div className="au-space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex items-start gap-2 text-sm">
+          <div
+            key={index}
+            className="au-flex au-items-start au-gap-2 au-text-sm"
+          >
             {showIcon && (
-              <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+              <Check className="au-h-4 au-w-4 au-text-primary au-flex-shrink-0 au-mt-0.5" />
             )}
-            <div className="flex flex-col">
+            <div className="au-flex au-flex-col">
               <span>{item.display?.primary_text}</span>
               {item.display?.secondary_text && (
-                <span className="text-sm text-muted-foreground">
+                <span className="au-text-sm au-text-muted-foreground">
                   {item.display?.secondary_text}
                 </span>
               )}
@@ -317,50 +325,43 @@ export interface PricingCardButtonProps extends React.ComponentProps<"button"> {
 export const PricingCardButton = React.forwardRef<
   HTMLButtonElement,
   PricingCardButtonProps
->(({ recommended, children, buttonUrl, onClick, className, ...props }, ref) => {
+>(({ recommended, children, className, onClick, ...props }, ref) => {
   const [loading, setLoading] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    setLoading(true);
+    try {
+      await onClick?.(e);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Button
       className={cn(
-        "w-full py-3 px-4 group overflow-hidden relative transition-all duration-300 hover:brightness-90 border rounded-lg",
+        "au-w-full au-py-3 au-px-4 au-group au-overflow-hidden au-relative au-transition-all au-duration-300 hover:au-brightness-90 au-border au-rounded-lg",
         className
       )}
-      variant={recommended ? "default" : "secondary"}
-      // variant="default"
-      ref={ref}
-      disabled={loading}
-      onClick={async (e) => {
-        setLoading(true);
-        try {
-          if (onClick) {
-            await onClick(e);
-
-            return;
-          }
-
-          if (buttonUrl) {
-            window.open(buttonUrl, "_blank");
-            return;
-          }
-        } catch (error) {
-          throw error;
-        } finally {
-          setLoading(false);
-        }
-      }}
       {...props}
+      variant={recommended ? "default" : "secondary"}
+      ref={ref}
+      disabled={loading || props.disabled}
+      onClick={handleClick}
     >
       {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="au-h-4 au-w-4 au-animate-spin" />
       ) : (
         <>
-          <div className="flex items-center justify-between w-full transition-transform duration-300 group-hover:translate-y-[-130%]">
+          <div className="au-flex au-items-center au-justify-between au-w-full au-transition-transform au-duration-300 group-hover:au-translate-y-[-130%]">
             <span>{children}</span>
-            <span className="text-sm">→</span>
+            <span className="au-text-sm">→</span>
           </div>
-          <div className="flex items-center justify-between w-full absolute px-4 translate-y-[130%] transition-transform duration-300 group-hover:translate-y-0 mt-2 group-hover:mt-0">
+          <div className="au-flex au-items-center au-justify-between au-w-full au-absolute au-px-4 au-translate-y-[130%] au-transition-transform au-duration-300 group-hover:au-translate-y-0 au-mt-2 group-hover:au-mt-0">
             <span>{children}</span>
-            <span className="text-sm">→</span>
+            <span className="au-text-sm">→</span>
           </div>
         </>
       )}
@@ -378,21 +379,21 @@ export const AnnualSwitch = ({
   setIsAnnualToggle: (isAnnual: boolean) => void;
 }) => {
   return (
-    <div className="flex items-center space-x-2 mb-4">
-      <span className="text-sm text-muted-foreground">Monthly</span>
+    <div className="au-flex au-items-center au-space-x-2 au-mb-4">
+      <span className="au-text-sm au-text-muted-foreground">Monthly</span>
       <Switch
         id="annual-billing"
         checked={isAnnualToggle}
         onCheckedChange={setIsAnnualToggle}
       />
-      <span className="text-sm text-muted-foreground">Annual</span>
+      <span className="au-text-sm au-text-muted-foreground">Annual</span>
     </div>
   );
 };
 
 export const RecommendedBadge = ({ recommended }: { recommended: string }) => {
   return (
-    <div className="bg-secondary absolute border text-muted-foreground text-sm font-medium lg:rounded-full px-3 lg:py-0.5 lg:top-4 lg:right-4 top-[-1px] right-[-1px] rounded-bl-lg">
+    <div className="au-bg-secondary au-absolute au-border au-text-muted-foreground au-text-sm au-font-medium lg:au-rounded-full au-px-3 lg:au-py-0.5 lg:au-top-4 lg:au-right-4 au-top-[-1px] au-right-[-1px] au-rounded-bl-lg">
       {recommended}
     </div>
   );

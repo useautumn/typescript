@@ -24,7 +24,8 @@ export async function attachMethod(
 ): AutumnPromise<AttachResult> {
   let { dialog, ...rest } = params;
 
-  let snakeParams = toSnakeCase(rest);
+  let snakeParams = toSnakeCase(rest, ["checkoutSessionparams"]);
+
   const res = await this.post("/api/autumn/attach", snakeParams);
   return res;
 }

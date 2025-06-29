@@ -5,27 +5,26 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "au-inline-flex au-items-center au-justify-center au-gap-2 au-whitespace-nowrap au-rounded-md au-text-sm au-font-medium au-transition-colors focus-visible:au-outline-none focus-visible:au-ring-1 focus-visible:au-ring-ring disabled:au-pointer-events-none disabled:au-opacity-50 [&_svg]:au-pointer-events-none [&_svg]:au-size-4 [&_svg]:au-shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/90",
+          "au-bg-primary au-text-primary-foreground au-shadow hover:au-bg-primary/90",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "au-bg-destructive au-text-destructive-foreground au-shadow-sm hover:au-bg-destructive/90",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
+          "au-border au-border-input au-bg-background au-shadow-sm hover:au-bg-accent hover:au-text-accent-foreground",
+        secondary:
+          "au-bg-secondary au-text-secondary-foreground au-shadow-sm hover:au-bg-secondary/80",
+        ghost: "hover:au-bg-accent hover:au-text-accent-foreground",
+        link: "au-text-primary au-underline-offset-4 hover:au-underline",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        default: "au-h-9 au-px-4 au-py-2",
+        sm: "au-h-8 au-rounded-md au-px-3 au-text-xs",
+        lg: "au-h-10 au-rounded-md au-px-8",
+        icon: "au-h-9 au-w-9",
       },
     },
     defaultVariants: {
@@ -35,25 +34,25 @@ const buttonVariants = cva(
   }
 );
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
-  const Comp = asChild ? Slot : "button";
-
-  return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  );
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
 }
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    // console.log("Button className", className);
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size }), className)}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
-import { updateSession } from "./lib/supabase/middleware";
-import { clerkMiddleware } from "@clerk/nextjs/server";
 
-const AUTH_PROVIDER: string = "better-auth";
+export async function middleware(request: NextRequest) {
+  const sessionCookie = getSessionCookie(request);
 
-export default clerkMiddleware(async (auth, req) => {
-  const sessionCookie = getSessionCookie(req);
   if (!sessionCookie) {
-    console.log("No session cookie found");
-    return NextResponse.next();
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

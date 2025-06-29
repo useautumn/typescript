@@ -53,7 +53,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className={cn("p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm")}
+        className={cn(
+          "p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm"
+        )}
       >
         <DialogTitle className={cn("px-6 mb-1 ")}>{title}</DialogTitle>
         <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
@@ -63,7 +65,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
           <div className="mb-6 px-6">
             {items?.map((item) => (
               <PriceItem key={item.description}>
-                <span className="truncate flex-1">{item.description}</span>
+                <span className="truncate flex-1">
+                  {item.description}
+                </span>
                 <span>{item.price}</span>
               </PriceItem>
             ))}
@@ -115,7 +119,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span className="whitespace-nowrap flex gap-1">Confirm</span>
+                <span className="whitespace-nowrap flex gap-1">
+                  Confirm
+                </span>
               </>
             )}
           </Button>
@@ -234,7 +240,9 @@ export const QuantityInput = ({
         >
           -
         </Button>
-        <span className="w-8 text-center text-foreground">{currentValue}</span>
+        <span className="w-8 text-center text-foreground">
+          {currentValue}
+        </span>
         <Button
           variant="outline"
           size="icon"
