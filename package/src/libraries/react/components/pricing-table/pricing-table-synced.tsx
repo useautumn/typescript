@@ -18,12 +18,6 @@ export default function PricingTable({
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
 
-  // console.log("Products:", products);
-  // console.log(
-  //   "Has recommended:",
-  //   products?.some((p) => p.display?.recommend_text)
-  // );
-
   if (isLoading) {
     return (
       <div className="au-w-full au-h-full au-flex au-justify-center au-items-center au-min-h-[300px]">
@@ -60,10 +54,8 @@ export default function PricingTable({
     return true;
   };
 
-  const hasRecommended = products?.some((p) => p.display?.recommend_text);
-
   return (
-    <div className="au-root">
+    <div className={cn("au-root")}>
       {products && (
         <PricingTableContainer
           products={products as any}
@@ -146,11 +138,17 @@ export const PricingTableContainer = ({
     return <></>;
   }
 
+  const hasRecommended = products?.some((p) => p.display?.recommend_text);
   return (
     <PricingTableContext.Provider
       value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
-      <div className={cn("au-flex au-items-center au-flex-col")}>
+      <div
+        className={cn(
+          "au-flex au-items-center au-flex-col",
+          hasRecommended && "!au-py-10"
+        )}
+      >
         {multiInterval && (
           <div
             className={cn(
@@ -214,7 +212,7 @@ export const PricingCard = ({
   return (
     <div
       className={cn(
-        "au-w-full au-h-full au-py-6 au-text-foreground au-border au-rounded-lg au-shadow-sm au-max-w-xl",
+        " au-w-full au-h-full au-py-6 au-text-foreground au-border au-rounded-lg au-shadow-sm au-max-w-xl",
         isRecommended &&
           "lg:au--translate-y-6 lg:au-shadow-lg dark:au-shadow-zinc-800/80 lg:au-h-[calc(100%+48px)] au-bg-secondary/40",
         className

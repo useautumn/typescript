@@ -9,7 +9,22 @@ export default function Home() {
 
   console.log("Customer:", customer);
 
-  const featureId = "messages";
+  const productDetails = [
+    {
+      id: "free",
+      name: "Free",
+    },
+    {
+      id: "pro",
+      name: "Pro",
+      recommendText: "Lit",
+    },
+    {
+      id: "premium",
+      name: "Premium",
+      price: 100,
+    },
+  ];
   return (
     <div className="w-screen h-screen flex justify-center items-start p-10">
       <main className="flex flex-col w-[800px] gap-4 overflow-hidden">
@@ -68,7 +83,7 @@ export default function Home() {
         </div>
 
         {/* <div className="w-full p-10"> */}
-        <PricingTable />
+        <PricingTable productDetails={productDetails} />
         <ShadcnPricingTable />
         {/* </div> */}
       </main>

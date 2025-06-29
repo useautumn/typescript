@@ -18,12 +18,6 @@ export default function PricingTable({
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
 
-  // console.log("Products:", products);
-  // console.log(
-  //   "Has recommended:",
-  //   products?.some((p) => p.display?.recommend_text)
-  // );
-
   if (isLoading) {
     return (
       <div className="w-full h-full flex justify-center items-center min-h-[300px]">
@@ -60,10 +54,8 @@ export default function PricingTable({
     return true;
   };
 
-  const hasRecommended = products?.some((p) => p.display?.recommend_text);
-
   return (
-    <div className="root">
+    <div className={cn("root")}>
       {products && (
         <PricingTableContainer
           products={products as any}
@@ -146,11 +138,17 @@ export const PricingTableContainer = ({
     return <></>;
   }
 
+  const hasRecommended = products?.some((p) => p.display?.recommend_text);
   return (
     <PricingTableContext.Provider
       value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
-      <div className={cn("flex items-center flex-col")}>
+      <div
+        className={cn(
+          "flex items-center flex-col",
+          hasRecommended && "!py-10"
+        )}
+      >
         {multiInterval && (
           <div
             className={cn(
@@ -214,7 +212,7 @@ export const PricingCard = ({
   return (
     <div
       className={cn(
-        "w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
+        " w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
         isRecommended &&
           "lg:-translate-y-6 lg:shadow-lg dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-secondary/40",
         className

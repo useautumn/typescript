@@ -1,6 +1,7 @@
 import { defineConfig, Options } from "tsup";
 import * as path from "path";
 import alias from "esbuild-plugin-alias";
+import fs from "fs";
 
 // Path aliases that match tsconfig.json
 const pathAliases = {
