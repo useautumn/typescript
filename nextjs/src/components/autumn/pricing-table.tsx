@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
-import AttachDialog from "@/registry/attach-dialog/attach-dialog";
-import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
+import AttachDialog from "@/components/autumn/attach-dialog";
+import { getPricingTableContent } from "@/lib/autumn/pricing-table-content";
 import { Product, ProductItem } from "autumn-js";
 
 export default function PricingTable({
@@ -17,12 +17,6 @@ export default function PricingTable({
   const { attach } = useCustomer();
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
-
-  // console.log("Products:", products);
-  // console.log(
-  //   "Has recommended:",
-  //   products?.some((p) => p.display?.recommend_text)
-  // );
 
   if (isLoading) {
     return (
@@ -60,10 +54,8 @@ export default function PricingTable({
     return true;
   };
 
-  const hasRecommended = products?.some((p) => p.display?.recommend_text);
-
   return (
-    <div className="root">
+    <div>
       {products && (
         <PricingTableContainer
           products={products as any}
@@ -266,9 +258,7 @@ export const PricingCard = ({
             </div>
           )}
         </div>
-        <div
-          className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}
-        >
+        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
           <PricingCardButton
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
@@ -296,16 +286,11 @@ export const PricingFeatureList = ({
   return (
     <div className={cn("flex-grow", className)}>
       {everythingFrom && (
-        <p className="text-sm mb-4">
-          Everything from {everythingFrom}, plus:
-        </p>
+        <p className="text-sm mb-4">Everything from {everythingFrom}, plus:</p>
       )}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-start gap-2 text-sm"
-          >
+          <div key={index} className="flex items-start gap-2 text-sm">
             {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )}

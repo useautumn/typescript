@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.73",
+  "version": "0.0.74",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -70,6 +70,9 @@
   "author": "John Yeo",
   "license": "MIT",
   "devDependencies": {
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
     "@remix-run/node": "^2.16.6",
     "@supabase/ssr": "^0.6.1",
     "@tanstack/react-start": "^1.120.5",
@@ -77,7 +80,7 @@
     "@types/node": "^22.15.32",
     "@types/react": "^18.3.14",
     "autoprefixer": "^10.4.21",
-    "better-auth": "^1.2.7",
+    "better-auth": "^1.2.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "esbuild-plugin-alias": "^0.2.1",
@@ -90,18 +93,15 @@
     "next": "^15.2.3",
     "nodemon": "^3.1.10",
     "postcss": "^8.5.6",
+    "postcss-nested": "^7.0.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.1",
+    "tailwindcss-animate": "^1.0.7",
     "tailwindcss-scoped-preflight": "^3.4.12",
     "tsconfig-paths": "^4.2.0",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
-    "postcss-nested": "^7.0.2",
-    "tailwindcss-animate": "^1.0.7",
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.2.5"
+    "typescript": "^5.8.3"
   },
   "peerDependenciesMeta": {
     "react": {

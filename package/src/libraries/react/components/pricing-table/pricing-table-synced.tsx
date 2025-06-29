@@ -18,6 +18,12 @@ export default function PricingTable({
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
 
+  // console.log("Products:", products);
+  // console.log(
+  //   "Has recommended:",
+  //   products?.some((p) => p.display?.recommend_text)
+  // );
+
   if (isLoading) {
     return (
       <div className="au-w-full au-h-full au-flex au-justify-center au-items-center au-min-h-[300px]">
@@ -54,8 +60,10 @@ export default function PricingTable({
     return true;
   };
 
+  const hasRecommended = products?.some((p) => p.display?.recommend_text);
+
   return (
-    <div>
+    <div className="au-root">
       {products && (
         <PricingTableContainer
           products={products as any}
@@ -225,7 +233,7 @@ export const PricingCard = ({
           <div className="au-flex au-flex-col">
             <div className="au-pb-4">
               <h2 className="au-text-2xl au-font-semibold au-px-6 au-truncate">
-                {name}
+                {productDisplay?.name || name}
               </h2>
               {productDisplay?.description && (
                 <div className="au-text-sm au-text-muted-foreground au-px-6 au-h-8">

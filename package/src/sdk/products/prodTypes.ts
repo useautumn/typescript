@@ -53,6 +53,7 @@ export interface Product {
   free_trial: FreeTrial | null;
 
   scenario?: ProductScenario;
+  base_variant_id: string | null;
 
   properties?: {
     is_free?: boolean;
@@ -61,6 +62,7 @@ export interface Product {
   };
 
   display?: {
+    name?: string;
     description?: string;
     button_text?: string;
     recommend_text?: string;

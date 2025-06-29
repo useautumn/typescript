@@ -12,12 +12,27 @@ const mergeProductDetails = (
   }
 
   if (!productDetails) {
-    return products;
+    return products.map((product) => {
+      if (product.base_variant_id) {
+        let baseProduct = products.find(
+          (p) => p.id === product.base_variant_id
+        );
+        if (baseProduct) {
+          return {
+            ...product,
+            name: baseProduct.name,
+          };
+        }
+      }
+
+      return product;
+    });
   }
 
   let fetchedProducts = structuredClone(products);
 
   let mergedProducts: Product[] = [];
+
   for (const overrideDetails of productDetails) {
     if (!overrideDetails.id) {
       let properties: any = {};
@@ -27,6 +42,7 @@ const mergeProductDetails = (
           secondary_text: item.secondaryText,
         },
       }));
+
       let overridePrice = overrideDetails.price;
       if (overrideDetails.price) {
         properties.is_free = false;
@@ -41,8 +57,8 @@ const mergeProductDetails = (
         ];
       }
       mergedProducts.push({
-        name: overrideDetails.name || "",
         display: {
+          name: overrideDetails.name,
           description: overrideDetails.description,
           button_text: overrideDetails.buttonText,
           recommend_text: overrideDetails.recommendText,
@@ -62,6 +78,16 @@ const mergeProductDetails = (
     if (!fetchedProduct) {
       continue;
     }
+
+    let displayName = fetchedProduct.name;
+    let baseVariantId = fetchedProduct.base_variant_id;
+    if (baseVariantId) {
+      let baseProduct = fetchedProducts.find((p) => p.id === baseVariantId);
+      if (baseProduct) {
+        displayName = baseProduct.name;
+      }
+    }
+    displayName = overrideDetails.name || displayName;
 
     const originalIsFree = fetchedProduct.properties?.is_free;
     let overrideProperties = fetchedProduct.properties || {};
@@ -128,20 +154,16 @@ const mergeProductDetails = (
 
     const mergedProduct: Product = {
       ...fetchedProduct,
-      name: overrideDetails.name || fetchedProduct.name,
       items: mergedItems,
       properties: overrideProperties,
       display: {
+        name: displayName,
         description: overrideDetails.description,
         button_text: overrideDetails.buttonText,
         recommend_text: overrideDetails.recommendText,
         everything_from: overrideDetails.everythingFrom,
         button_url: overrideDetails.buttonUrl,
       },
-      // description: overrideDetails.description,
-      // button_text: overrideDetails.buttonText,
-      // recommend_text: overrideDetails.recommendText,
-      // everything_from: overrideDetails.everythingFrom,
     };
 
     mergedProducts.push(mergedProduct);

@@ -10,7 +10,16 @@ const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = DialogPrimitive.Portal;
+const DialogPortal = ({
+  children,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) => {
+  return (
+    <DialogPrimitive.Portal {...props}>
+      <div className="au-root">{children}</div>
+    </DialogPrimitive.Portal>
+  );
+};
 
 const DialogClose = DialogPrimitive.Close;
 
@@ -38,7 +47,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "au-fixed au-left-[50%] au-top-[50%] au-z-50 au-grid au-w-full au-max-w-lg au-translate-x-[-50%] au-translate-y-[-50%] au-gap-4 au-border au-bg-background au-p-6 au-shadow-lg au-duration-200 data-[state=open]:au-animate-in data-[state=closed]:au-animate-out data-[state=closed]:au-fade-out-0 data-[state=open]:au-fade-in-0 data-[state=closed]:au-zoom-out-95 data-[state=open]:au-zoom-in-95 data-[state=closed]:au-slide-out-to-left-1/2 data-[state=closed]:au-slide-out-to-top-[48%] data-[state=open]:au-slide-in-from-left-1/2 data-[state=open]:au-slide-in-from-top-[48%] sm:au-rounded-lg",
+        `au-fixed au-left-[50%] au-top-[50%] au-z-50 au-grid au-w-full au-max-w-lg au-translate-x-[-50%] au-translate-y-[-50%] au-gap-4 au-border au-bg-background au-p-6 au-shadow-lg au-duration-200 data-[state=open]:au-animate-in data-[state=closed]:au-animate-out data-[state=closed]:au-fade-out-0 data-[state=open]:au-fade-in-0 data-[state=closed]:au-zoom-out-95 data-[state=open]:au-zoom-in-95 data-[state=closed]:au-slide-out-to-left-1/2 data-[state=closed]:au-slide-out-to-top-[48%] data-[state=open]:au-slide-in-from-left-1/2 data-[state=open]:au-slide-in-from-top-[48%] sm:au-rounded-lg`,
         className
       )}
       {...props}

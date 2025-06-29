@@ -47,6 +47,7 @@ export class AutumnClient {
   protected readonly getBearerToken?: () => Promise<string | null | undefined>;
   protected readonly customerData?: CustomerData;
   protected readonly includeCredentials?: boolean;
+  // protected readonly pathPrefix?: string;
 
   constructor({
     backendUrl,
@@ -54,7 +55,9 @@ export class AutumnClient {
     customerData,
     includeCredentials,
   }: AutumnClientConfig) {
+    // How to detect if better auth is used...
     this.backendUrl = backendUrl;
+    // this.pathPrefix = "/api/autumn";
     this.getBearerToken = getBearerToken;
     this.customerData = customerData;
     this.includeCredentials = includeCredentials;

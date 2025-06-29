@@ -1,11 +1,13 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
-import { CheckDialog, PricingTable, useEntity } from "autumn-js/react";
+import { useCustomer } from "autumn-js/react";
+import { PricingTable } from "autumn-js/react";
+import ShadcnPricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
-  // const { attach } = useCustomer();
+  const { customer, attach } = useCustomer();
 
-  const { entity, allowed, attach, check } = useEntity("2");
+  console.log("Customer:", customer);
 
   const featureId = "messages";
   return (
@@ -15,7 +17,7 @@ export default function Home() {
           <button
             onClick={async () => {
               const res = await fetch(
-                "http://localhost:3001/api/auth/autumn/attach",
+                "http://localhost:3001/api/auth/autumn/customers",
                 {
                   method: "POST",
                   body: JSON.stringify({
@@ -61,11 +63,14 @@ export default function Home() {
         </div>
         <div className="bg-stone-50 max-h-[400px] p-4 overflow-auto text-xs">
           <pre className="whitespace-pre-wrap">
-            {JSON.stringify(entity, null, 2)}
+            {JSON.stringify(customer, null, 2)}
           </pre>
         </div>
 
+        {/* <div className="w-full p-10"> */}
         <PricingTable />
+        <ShadcnPricingTable />
+        {/* </div> */}
       </main>
     </div>
   );
