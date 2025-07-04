@@ -53,3 +53,10 @@ export interface OpenBillingPortalParams {
   returnUrl?: string;
   openInNewTab?: boolean;
 }
+
+export interface SetupPaymentParams {
+  successUrl?: string;
+  checkoutSessionParams?: Record<string, any>;
+  openInNewTab?: boolean;
+}
+

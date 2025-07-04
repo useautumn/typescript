@@ -8,6 +8,8 @@ import {
   CancelResult,
   CheckParams,
   CheckResult,
+  SetupPaymentParams,
+  SetupPaymentResult,
   TrackParams,
   TrackResult,
   UsageParams,
@@ -22,6 +24,16 @@ export const handleAttach = async ({
   params: AttachParams;
 }): AutumnPromise<AttachResult> => {
   return instance.post("/attach", params);
+};
+
+export const handleSetupPayment = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: SetupPaymentParams;
+}): AutumnPromise<SetupPaymentResult> => {
+  return instance.post("/setup_payment", params);
 };
 
 export const handleCancel = async ({

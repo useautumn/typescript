@@ -3,10 +3,11 @@ import { authClient } from "@/lib/auth-client";
 import { CheckDialog, useCustomer } from "autumn-js/react";
 import { PricingTable } from "autumn-js/react";
 import ShadcnPricingTable from "@/components/autumn/pricing-table";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { customer, attach, check, cancel } = useCustomer({
-    expand: ["invoices"],
+  const { customer, attach, check, cancel, setupPayment } = useCustomer({
+    expand: ["invoices", "referrals", "payment_method"],
   });
 
   console.log("Customer:", customer);
@@ -30,24 +31,6 @@ export default function Home() {
   return (
     <div className="w-screen h-screen flex justify-center items-start p-10">
       <main className="flex flex-col w-[800px] gap-4 overflow-hidden">
-        <div>
-          <button
-            onClick={async () => {
-              const res = await fetch(
-                "http://localhost:3001/api/auth/autumn/customers",
-                {
-                  method: "POST",
-                  body: JSON.stringify({
-                    productId: "premium",
-                  }),
-                }
-              );
-              console.log(res);
-            }}
-          >
-            Test better auth plugin
-          </button>
-        </div>
         <div className="flex gap-2">
           <button
             className="bg-blue-500 text-white p-2 rounded-md"
@@ -80,46 +63,60 @@ export default function Home() {
             {JSON.stringify(customer, null, 2)}
           </pre>
         </div>
-        {/* <button
-          onClick={async () => {
-            const { data, error } = await check({
-              featureId: "credits",
-              withPreview: true,
-              // dialog: CheckDialog,
-            });
 
-            console.log(data?.preview);
-          }}
-        >
-          Check
-        </button> */}
-        <button
-          onClick={async () => {
-            const res = await cancel({
-              productId: "pro",
-            });
-            console.log(res);
-          }}
-        >
-          Cancel
-        </button>
-        <button
-          onClick={async () => {
-            const res = await attach({
-              productId: "pro",
-              successUrl: "https://gmail.com",
-            });
-            console.log(res);
-          }}
-        >
-          Attach
-        </button>
+        <div className="flex gap-2">
+          <Button
+            onClick={async () => {
+              const res = await cancel({
+                productId: "pro",
+              });
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              const res = await attach({
+                productId: "pro",
+                successUrl: "https://gmail.com",
+              });
+              console.log(res);
+            }}
+          >
+            Attach
+          </Button>
+          <Button
+            onClick={async () => {
+              const res = await setupPayment();
+              console.log(res);
+            }}
+          >
+            Setup Payment
+          </Button>
+        </div>
 
         {/* <div className="w-full p-10"> */}
         <PricingTable />
-        {/* <ShadcnPricingTable /> */}
-        {/* </div> */}
       </main>
     </div>
   );
 }
+
+// <div>
+//           <button
+//             onClick={async () => {
+//               const res = await fetch(
+//                 "http://localhost:3001/api/auth/autumn/customers",
+//                 {
+//                   method: "POST",
+//                   body: JSON.stringify({
+//                     productId: "premium",
+//                   }),
+//                 }
+//               );
+//               console.log(res);
+//             }}
+//           >
+//             Test better auth plugin
+//           </button>
+//         </div>

@@ -18,6 +18,7 @@ import {
   cancelMethod,
   checkMethod,
   openBillingPortalMethod,
+  setupPaymentMethod,
   trackMethod,
 } from "./clientGenMethods";
 import { listProductsMethod } from "./clientProdMethods";
@@ -166,6 +167,7 @@ export class AutumnClient {
   check = checkMethod.bind(this);
   track = trackMethod.bind(this);
   openBillingPortal = openBillingPortalMethod.bind(this);
+  setupPayment = setupPaymentMethod.bind(this);
 
   entities = {
     create: createEntityMethod.bind(this),

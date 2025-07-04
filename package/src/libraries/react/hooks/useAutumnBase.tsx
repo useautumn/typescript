@@ -3,6 +3,7 @@ import {
   BillingPortalResult,
   CancelResult,
   CheckResult,
+  SetupPaymentResult,
   TrackResult,
 } from "../../../sdk";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
@@ -11,6 +12,7 @@ import {
   CancelParams,
   CheckParams,
   OpenBillingPortalParams,
+  SetupPaymentParams,
   TrackParams,
 } from "../client/types/clientGenTypes";
 import { AutumnPromise } from "../../../sdk";
@@ -198,11 +200,39 @@ export const useAutumnBase = ({
     }
   };
 
+  const setupPayment = async (
+    params?: SetupPaymentParams
+  ): AutumnPromise<SetupPaymentResult> => {
+    let defaultParams = {
+      openInNewTab: false,
+    };
+
+    let finalParams = {
+      ...defaultParams,
+      ...(params || {}),
+    };
+
+    const res = await client.setupPayment(finalParams);
+
+    if (res.data?.url && typeof window !== "undefined") {
+      if (finalParams.openInNewTab) {
+        window.open(res.data.url, "_blank");
+      } else {
+        window.open(res.data.url, "_self");
+      }
+
+      return res;
+    } else {
+      return res;
+    }
+  };
+
   return {
     attach,
     check,
     track,
     cancel,
     openBillingPortal,
+    setupPayment,
   };
 };

@@ -6,6 +6,7 @@ import {
   CheckParams,
   OpenBillingPortalParams,
   TrackParams,
+  SetupPaymentParams,
 } from "./types/clientGenTypes";
 import {
   AttachResult,
@@ -14,6 +15,7 @@ import {
   CheckFeatureResult,
   CheckProductResult,
   CheckResult,
+  SetupPaymentResult,
   TrackResult,
 } from "../../../sdk";
 import { AutumnPromise } from "../../../sdk/response";
@@ -27,6 +29,15 @@ export async function attachMethod(
   let snakeParams = toSnakeCase(rest, ["checkoutSessionparams"]);
 
   const res = await this.post("/api/autumn/attach", snakeParams);
+  return res;
+}
+export async function setupPaymentMethod(
+  this: AutumnClient,
+  params: SetupPaymentParams
+): AutumnPromise<SetupPaymentResult> {
+  let snakeParams = toSnakeCase(params, ["checkoutSessionParams"]);
+
+  const res = await this.post("/api/autumn/setup_payment", snakeParams);
   return res;
 }
 

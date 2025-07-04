@@ -553,8 +553,8 @@ importers:
         specifier: ^4.1.7
         version: 4.1.10(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
       autumn-js:
-        specifier: workspace:*
-        version: link:../../package
+        specifier: ^0.0.79
+        version: 0.0.79(react@18.3.1)
       better-auth:
         specifier: ^1.2.8
         version: 1.2.10
@@ -888,7 +888,7 @@ importers:
         version: 3.1.1(@babel/runtime@7.27.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       autumn-js:
         specifier: latest
-        version: 0.0.77(react@18.3.1)
+        version: 0.0.79(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -4819,16 +4819,16 @@ packages:
       react:
         optional: true
 
-  autumn-js@0.0.77:
-    resolution: {integrity: sha512-P5btZQjaq/y4A7lcd4aK3QgZBtLZKwwQypCvJrX8SmLG/Oe+wyuWzIhdNsa/fO5ATExNmAkdP344dSUlfbgQnQ==}
+  autumn-js@0.0.77-beta.1:
+    resolution: {integrity: sha512-1x6o1L3zuAOwclOwNrrWqmjQ2lVfRLn2dga0VMlXVKOiYq+C8q8gwV8NHEbFgjRzrHgomCnP+gn7B/AmrlCUzw==}
     peerDependencies:
       react: '*'
     peerDependenciesMeta:
       react:
         optional: true
 
-  autumn-js@0.0.77-beta.1:
-    resolution: {integrity: sha512-1x6o1L3zuAOwclOwNrrWqmjQ2lVfRLn2dga0VMlXVKOiYq+C8q8gwV8NHEbFgjRzrHgomCnP+gn7B/AmrlCUzw==}
+  autumn-js@0.0.79:
+    resolution: {integrity: sha512-dL35QUi4uril6c6VYgAH902745qowCbJZyxlV6heGsEy0fZtbR7yA+CIM8cFXPHFhi0LjSzdBN8kvmjWSpKfeg==}
     peerDependencies:
       react: '*'
     peerDependenciesMeta:
@@ -15104,7 +15104,7 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
 
-  autumn-js@0.0.77(react@18.3.1):
+  autumn-js@0.0.77-beta.1(react@18.3.1):
     dependencies:
       chalk: 5.4.1
       rou3: 0.6.3
@@ -15112,7 +15112,7 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
 
-  autumn-js@0.0.77-beta.1(react@18.3.1):
+  autumn-js@0.0.79(react@18.3.1):
     dependencies:
       chalk: 5.4.1
       rou3: 0.6.3

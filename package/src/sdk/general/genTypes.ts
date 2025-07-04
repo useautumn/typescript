@@ -100,3 +100,14 @@ export interface UsageResult {
   feature_id: string; // Feature ID
 }
 
+
+export interface SetupPaymentParams {
+  customer_id: string;
+  success_url?: string;
+  checkout_session_params?: Record<string, any>;
+}
+
+export interface SetupPaymentResult {
+  customer_id: string;
+  url: string;
+}

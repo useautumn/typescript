@@ -11,6 +11,7 @@ import {
   CheckResult,
   TrackResult,
   CancelResult,
+  SetupPaymentResult,
 } from "@sdk";
 import { CreateEntityParams } from "../client/types/clientEntTypes";
 import {
@@ -22,7 +23,7 @@ import React from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { useAutumnBase } from "./useAutumnBase";
-import { AttachParams, CancelParams, CheckParams, OpenBillingPortalParams, TrackParams } from "@/client/types/clientGenTypes";
+import { AttachParams, CancelParams, CheckParams, OpenBillingPortalParams, SetupPaymentParams, TrackParams } from "@/client/types/clientGenTypes";
 import { AllowedParams, handleAllowed } from "./handleAllowed";
 
 export interface UseCustomerResult {
@@ -35,6 +36,7 @@ export interface UseCustomerResult {
   check: (params: CheckParams) => AutumnPromise<CheckResult>;
   track: (params: TrackParams) => AutumnPromise<TrackResult>;
   cancel: (params: CancelParams) => AutumnPromise<CancelResult>;
+  setupPayment: (params: SetupPaymentParams) => AutumnPromise<SetupPaymentResult>;
   openBillingPortal: (params?: OpenBillingPortalParams) => AutumnPromise<BillingPortalResult>;
 
   refetch: () => Promise<Customer | null>;
@@ -63,6 +65,7 @@ const emptyDefaultFunctions = {
   track: "" as any,
   cancel: "" as any,
   openBillingPortal: "" as any,
+  setupPayment: "" as any,
 }
 
 export const useCustomerBase = ({
@@ -121,7 +124,6 @@ export const useCustomerBase = ({
     autumnFunctions = useAutumnBase({ AutumnContext })
   }
 
-  
 
   return {
     customer: error ? null : customer,

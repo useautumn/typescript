@@ -4,6 +4,7 @@ import {
   handleCheck,
   handleEntitled,
   handleEvent,
+  handleSetupPayment,
   handleTrack,
   handleUsage,
 } from "./general/genMethods";
@@ -11,6 +12,7 @@ import {
   AttachParams,
   CancelParams,
   CheckParams,
+  SetupPaymentParams,
   TrackParams,
   UsageParams,
 } from "./general/genTypes";
@@ -109,9 +111,19 @@ export class Autumn {
     staticWrapper(handleAttach, undefined, { params });
   static usage = (params: UsageParams) =>
     staticWrapper(handleUsage, undefined, { params });
+  
 
   async attach(params: AttachParams) {
     return handleAttach({
+      instance: this,
+      params,
+    });
+  }
+
+  static setupPayment = (params: SetupPaymentParams) =>
+    staticWrapper(handleSetupPayment, undefined, { params });
+  async setupPayment(params: SetupPaymentParams) {
+    return handleSetupPayment({
       instance: this,
       params,
     });

@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.78",
+  "version": "0.0.80",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
