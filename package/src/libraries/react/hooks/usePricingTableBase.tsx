@@ -184,6 +184,7 @@ export const usePricingTableBase = ({
 
   const fetcher = async () => {
     try {
+      console.log("listing products!");
       const { data, error } = await context.client.products.list();
       if (error) throw error;
 

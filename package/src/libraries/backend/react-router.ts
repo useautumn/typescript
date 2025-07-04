@@ -4,13 +4,14 @@ import { AuthResult } from "./utils/AuthFunction";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { autumnApiUrl } from "./constants";
 import { logger } from "../../utils/logger";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export function autumnHandler(options: {
-  secretKey?: string;
   identify: (args: {
     request: Request;
     params: Record<string, string>;
   }) => AuthResult;
+  secretKey?: string;
   version?: string;
 }) {
   const autumn = new Autumn({
@@ -20,10 +21,17 @@ export function autumnHandler(options: {
 
   const router = createRouterWithOptions();
 
+  let { found, error: resError } = secretKeyCheck(options?.secretKey);
   async function handleRequest(
     request: Request,
     params: Record<string, string> = {}
   ) {
+    if (!found && !options.secretKey) {
+      throw new Response(JSON.stringify(resError!), {
+        status: resError!.statusCode,
+      });
+    }
+
     const method = request.method;
     const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams);

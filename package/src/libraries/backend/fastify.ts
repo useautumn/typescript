@@ -3,10 +3,12 @@ import { Autumn } from "../../sdk";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export function autumnHandler(options: {
   identify: (request: any) => AuthResult;
   version?: string;
+  secretKey?: string;
 }) {
   const autumn = new Autumn({
     url: autumnApiUrl,
@@ -15,8 +17,14 @@ export function autumnHandler(options: {
 
   const router = createRouterWithOptions();
 
+  let { found, error: resError } = secretKeyCheck(options?.secretKey);
+
   return async function (request: any, reply: any) {
     try {
+      if (!found && !options.secretKey) {
+        return reply.code(resError!.statusCode).send(resError);
+      }
+
       const url = new URL(request.url, `http://${request.headers.host}`);
       const path = url.pathname;
 

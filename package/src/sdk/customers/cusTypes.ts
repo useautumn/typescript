@@ -1,3 +1,4 @@
+import { ProductItem } from "@sdk/products/prodTypes";
 import { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
 import { CustomerExpandOption, ProductStatus } from "./cusEnums";
@@ -48,6 +49,8 @@ export interface CustomerProduct {
 
   is_add_on: boolean;
   is_default: boolean;
+
+  items: ProductItem[];
 }
 
 export interface Customer {

@@ -10,4 +10,6 @@ export type CustomerExpandOption =
   | "invoices"
   | "rewards"
   | "trials_used"
-  | "entities";
+  | "entities" 
+  | "referrals" 
+  | "payment_method";

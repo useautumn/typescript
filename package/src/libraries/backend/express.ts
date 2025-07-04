@@ -12,9 +12,10 @@ export type AutumnRequestHandler = (req: any, res: any, next: any) => void;
 
 export type AutumnHandlerOptions = {
   identify: (req: any) => AuthResult;
-  autumn?: (req: any) => Autumn | Autumn;
   version?: string;
   secretKey?: string;
+  url?: string;
+  autumn?: (req: any) => Autumn | Autumn;
 };
 
 export const autumnHandler = (
@@ -25,7 +26,7 @@ export const autumnHandler = (
   let { found, error: resError } = secretKeyCheck(options?.secretKey);
 
   return async (req: any, res: any, next: any) => {
-    if (!found) {
+    if (!found && !options?.secretKey) {
       return res.status(resError!.statusCode).json(resError);
     }
 
@@ -34,7 +35,7 @@ export const autumnHandler = (
         ? options.autumn(req)
         : options?.autumn ||
           new Autumn({
-            url: autumnApiUrl,
+            url: options?.url || autumnApiUrl,
             version: options?.version,
           });
 

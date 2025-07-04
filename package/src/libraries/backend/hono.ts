@@ -4,19 +4,27 @@ import { createRouterWithOptions } from "./routes/backendRouter";
 import { Context, Next } from "hono";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export const autumnHandler = <ContextType extends Context = Context>(options: {
   identify: (c: ContextType) => AuthResult;
+  url?: string;
   version?: string;
+  secretKey?: string;
 }) => {
   const autumn = new Autumn({
-    url: autumnApiUrl,
+    url: options.url || autumnApiUrl,
     version: options.version,
   });
 
   const router = createRouterWithOptions();
 
+  let { found, error: resError } = secretKeyCheck(options?.secretKey);
   return async (c: Context, next: Next) => {
+    if (!found && !options.secretKey) {
+      return c.json(resError!, 500);
+    }
+
     const request = new URL(c.req.url);
     const path = request.pathname;
 

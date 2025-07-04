@@ -3,10 +3,12 @@ import { Autumn } from "../../sdk";
 import { AuthResult } from "./utils/AuthFunction";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { autumnApiUrl } from "./constants";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export function autumnHandler(options: {
   corsHeaders: Record<string, any>;
   identify: (request: Request) => AuthResult;
+  secretKey?: string;
 }) {
   // @ts-ignore
   const secretKey = Deno.env.get("AUTUMN_SECRET_KEY");
@@ -24,7 +26,14 @@ export function autumnHandler(options: {
 
   const router = createRouterWithOptions();
 
+  const { found, error: resError } = secretKeyCheck(options?.secretKey);
   return async function handler(request: Request): Promise<Response> {
+    if (!found && !options.secretKey) {
+      return new Response(JSON.stringify(resError!), {
+        status: resError!.statusCode,
+      });
+    }
+
     const method = request.method;
     const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams);

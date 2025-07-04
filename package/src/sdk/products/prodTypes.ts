@@ -22,7 +22,6 @@ export interface ProductItem {
   price?: number;
   billing_units?: number;
   entity_feature_id?: string;
-  reset_usage_on_billing?: boolean;
   reset_usage_when_enabled?: boolean;
 
   display?: {

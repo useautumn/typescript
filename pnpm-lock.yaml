@@ -33,8 +33,8 @@ importers:
         specifier: ^4.13.23
         version: 4.13.23(react@18.3.1)
       autumn-js:
-        specifier: ^0.0.41
-        version: 0.0.41(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1)
+        specifier: workspace:*
+        version: link:../../package
       better-auth:
         specifier: ^1.2.8
         version: 1.2.10
@@ -166,6 +166,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.14.1
         version: 1.14.4(hono@4.8.2)
+      autumn-js:
+        specifier: workspace:*
+        version: link:../../package
       better-auth:
         specifier: ^1.2.8
         version: 1.2.10
@@ -416,8 +419,8 @@ importers:
         specifier: ^7.5.3
         version: 7.6.2(react-router@7.6.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(typescript@5.8.3)
       autumn-js:
-        specifier: ^0.0.60
-        version: 0.0.60(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1)
+        specifier: 0.0.77-beta.1
+        version: 0.0.77-beta.1(react@18.3.1)
       isbot:
         specifier: ^5.1.27
         version: 5.1.28
@@ -549,6 +552,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.7
         version: 4.1.10(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
+      autumn-js:
+        specifier: workspace:*
+        version: link:../../package
       better-auth:
         specifier: ^1.2.8
         version: 1.2.10
@@ -826,6 +832,9 @@ importers:
       postcss-prefix-selector:
         specifier: ^2.1.1
         version: 2.1.1(postcss@8.5.6)
+      stripe:
+        specifier: ^18.3.0
+        version: 18.3.0(@types/node@22.15.32)
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
@@ -879,7 +888,7 @@ importers:
         version: 3.1.1(@babel/runtime@7.27.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       autumn-js:
         specifier: latest
-        version: 0.0.76(react@18.3.1)
+        version: 0.0.77(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -4801,24 +4810,6 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
 
-  autumn-js@0.0.41:
-    resolution: {integrity: sha512-oP6CMamBTm8LlJPZCt3JTdG2mRkY7NGKp4jgY5l2GY0LTtjtoKJsDyoNqL2nzWR30Sayct9EG4WDUFZQtrgAZA==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.76.1
-      react: 18.3.1
-    peerDependenciesMeta:
-      react:
-        optional: true
-
-  autumn-js@0.0.60:
-    resolution: {integrity: sha512-hVI14qBSlNcPgOKxzzEXXWnLghzeTGnPKRuJ1yVN8oUzx/h16LYfZGNk7kM2Jh0nccvrFcGTFCYPorJG6P0GAg==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.76.1
-      react: 18.3.1
-    peerDependenciesMeta:
-      react:
-        optional: true
-
   autumn-js@0.0.65:
     resolution: {integrity: sha512-YKR5kNDdpYvxGDNEmgqtqrDODyJG3frApR2HC9z05hazg94rEDSoatfUh7iweJUAGSauhqhjWADtgMvRRbSLfA==}
     peerDependencies:
@@ -4828,8 +4819,16 @@ packages:
       react:
         optional: true
 
-  autumn-js@0.0.76:
-    resolution: {integrity: sha512-Iw2/ByHq9Yb7+0OGgvHItOCj8lDsB8EVnArYrykgfG5JBfZv5Dj9MCa09PHIIWEV296rzHKOONStFJ/3KUxqLA==}
+  autumn-js@0.0.77:
+    resolution: {integrity: sha512-P5btZQjaq/y4A7lcd4aK3QgZBtLZKwwQypCvJrX8SmLG/Oe+wyuWzIhdNsa/fO5ATExNmAkdP344dSUlfbgQnQ==}
+    peerDependencies:
+      react: '*'
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  autumn-js@0.0.77-beta.1:
+    resolution: {integrity: sha512-1x6o1L3zuAOwclOwNrrWqmjQ2lVfRLn2dga0VMlXVKOiYq+C8q8gwV8NHEbFgjRzrHgomCnP+gn7B/AmrlCUzw==}
     peerDependencies:
       react: '*'
     peerDependenciesMeta:
@@ -9714,6 +9713,15 @@ packages:
 
   strip-literal@3.0.0:
     resolution: {integrity: sha512-TcccoMhJOM3OebGhSBEmp3UZ2SfDMZUEBdRA/9ynfLi8yYajyWX3JiXArcJt4Umh4vISpspkQIY8ZZoCqjbviA==}
+
+  stripe@18.3.0:
+    resolution: {integrity: sha512-FkxrTUUcWB4CVN2yzgsfF/YHD6WgYHduaa7VmokCy5TLCgl5UNJkwortxcedrxSavQ8Qfa4Ir4JxcbIYiBsyLg==}
+    engines: {node: '>=12.*'}
+    peerDependencies:
+      '@types/node': '>=12.x.x'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   style-to-js@1.1.17:
     resolution: {integrity: sha512-xQcBGDxJb6jjFCTzvQtfiPn6YvvP2O8U1MDIPNfJQlWMYfktPy+iGsHE7cssjs7y84d9fQaK4UF3RIJaAHSoYA==}
@@ -15088,21 +15096,6 @@ snapshots:
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
 
-  autumn-js@0.0.41(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1):
-    dependencies:
-      '@tanstack/react-query': 5.81.2(react@18.3.1)
-      rou3: 0.6.3
-    optionalDependencies:
-      react: 18.3.1
-
-  autumn-js@0.0.60(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1):
-    dependencies:
-      '@tanstack/react-query': 5.81.2(react@18.3.1)
-      rou3: 0.6.3
-      swr: 2.3.3(react@18.3.1)
-    optionalDependencies:
-      react: 18.3.1
-
   autumn-js@0.0.65(@tanstack/react-query@5.81.2(react@18.3.1))(react@18.3.1):
     dependencies:
       '@tanstack/react-query': 5.81.2(react@18.3.1)
@@ -15111,7 +15104,15 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
 
-  autumn-js@0.0.76(react@18.3.1):
+  autumn-js@0.0.77(react@18.3.1):
+    dependencies:
+      chalk: 5.4.1
+      rou3: 0.6.3
+      swr: 2.3.3(react@18.3.1)
+    optionalDependencies:
+      react: 18.3.1
+
+  autumn-js@0.0.77-beta.1(react@18.3.1):
     dependencies:
       chalk: 5.4.1
       rou3: 0.6.3
@@ -16410,7 +16411,7 @@ snapshots:
       tinyglobby: 0.2.14
       unrs-resolver: 1.9.2
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -21654,6 +21655,12 @@ snapshots:
   strip-literal@3.0.0:
     dependencies:
       js-tokens: 9.0.1
+
+  stripe@18.3.0(@types/node@22.15.32):
+    dependencies:
+      qs: 6.14.0
+    optionalDependencies:
+      '@types/node': 22.15.32
 
   style-to-js@1.1.17:
     dependencies:

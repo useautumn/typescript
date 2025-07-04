@@ -74,7 +74,7 @@ export const useCustomerBase = ({
   AutumnContext?: React.Context<any>;
   client?: AutumnClient;
 }): UseCustomerResult => {
-  const queryKey = ["customer"];
+  const queryKey = ["customer", params?.expand];
   
   let context: AutumnContextParams | undefined;
   if (AutumnContext) {
@@ -86,6 +86,7 @@ export const useCustomerBase = ({
   }
 
   const fetchCustomer = async () => {
+    
     const { data, error } = await client!.createCustomer({
       errorOnNotFound: params?.errorOnNotFound,
       expand: params?.expand,

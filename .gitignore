@@ -1,6 +1,9 @@
 node_modules/
 dist/
 
+# Generated CSS content
+package/src/generated/
+
 .env.*
 
 

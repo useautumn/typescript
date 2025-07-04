@@ -1,11 +1,13 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
-import { useCustomer } from "autumn-js/react";
+import { CheckDialog, useCustomer } from "autumn-js/react";
 import { PricingTable } from "autumn-js/react";
 import ShadcnPricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
-  const { customer, attach } = useCustomer();
+  const { customer, attach, check, cancel } = useCustomer({
+    expand: ["invoices"],
+  });
 
   console.log("Customer:", customer);
 
@@ -41,9 +43,6 @@ export default function Home() {
                 }
               );
               console.log(res);
-              // authClient.api.autumn.attach({
-              //   productId: "premium",
-              // });
             }}
           >
             Test better auth plugin
@@ -81,10 +80,44 @@ export default function Home() {
             {JSON.stringify(customer, null, 2)}
           </pre>
         </div>
+        {/* <button
+          onClick={async () => {
+            const { data, error } = await check({
+              featureId: "credits",
+              withPreview: true,
+              // dialog: CheckDialog,
+            });
+
+            console.log(data?.preview);
+          }}
+        >
+          Check
+        </button> */}
+        <button
+          onClick={async () => {
+            const res = await cancel({
+              productId: "pro",
+            });
+            console.log(res);
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            const res = await attach({
+              productId: "pro",
+              successUrl: "https://gmail.com",
+            });
+            console.log(res);
+          }}
+        >
+          Attach
+        </button>
 
         {/* <div className="w-full p-10"> */}
-        <PricingTable productDetails={productDetails} />
-        <ShadcnPricingTable />
+        <PricingTable />
+        {/* <ShadcnPricingTable /> */}
         {/* </div> */}
       </main>
     </div>

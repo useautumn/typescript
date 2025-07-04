@@ -94,7 +94,7 @@ export const useAutumnBase = ({
     if (!preview) {
       return await attachWithoutDialog(rest);
     } else {
-      setAttachProps({ preview });
+      setAttachProps({ preview, attachParams: rest });
       setAttachOpen(true);
     }
 
@@ -107,8 +107,8 @@ export const useAutumnBase = ({
     let finalDialog = dialog
       ? dialog
       : context.disableDialogs
-        ? undefined
-        : AttachDialog;
+      ? undefined
+      : AttachDialog;
 
     if (finalDialog && !attachOpen) {
       setAttachComponent(finalDialog);
