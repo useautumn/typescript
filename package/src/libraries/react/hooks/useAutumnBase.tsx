@@ -106,11 +106,11 @@ export const useAutumnBase = ({
   const attach = async (params: AttachParams) => {
     const { dialog, openInNewTab } = params;
 
-    let finalDialog = dialog
-      ? dialog
-      : context.disableDialogs
-      ? undefined
-      : AttachDialog;
+    let finalDialog = dialog;
+    //   ? dialog
+    //   : context.disableDialogs
+    //   ? undefined
+    //   : AttachDialog;
 
     if (finalDialog && !attachOpen) {
       setAttachComponent(finalDialog);

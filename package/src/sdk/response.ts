@@ -14,13 +14,23 @@ type Failure<E> = {
 };
 
 export const toContainerResult = async (
-  { response, logger }: { response: Response; logger: Console }
+  {
+    response,
+    logger,
+    logError = true
+  }: {
+    response: Response;
+    logger: Console;
+    logError?: boolean;
+  }
 ): Promise<Result<any, AutumnError>> => {
   if (response.status < 200 || response.status >= 300) {
     let error: any;
     try {
       error = await response.json();
-      logger.error(`[Autumn] ${error.message}`);
+      if (logError) {
+        logger.error(`[Autumn] ${error.message}`);
+      }
     } catch (error) {
       throw error;
       return {

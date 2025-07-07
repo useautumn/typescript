@@ -133,7 +133,9 @@ const openBillingPortalHandler = withAuth({
   },
 });
 
+
 const addGenRoutes = (router: RouterContext) => {
+
   addRoute(router, "POST", `${BASE_PATH}/attach`, {
     handler: attachHandler,
   });

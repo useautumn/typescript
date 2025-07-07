@@ -9,7 +9,7 @@ export const ReactAutumnProvider = ({
   getBearerToken,
   backendUrl,
   customerData,
-  includeCredentials = true,
+  includeCredentials,
   disableDialogs = false,
   authClient,
 }: {
@@ -31,16 +31,6 @@ export const ReactAutumnProvider = ({
     customerData,
     includeCredentials,
   });
-
-  const analyseAuthClient = async () => {
-    console.log("Auth client:", authClient);
-    // const result = await authClient.autumn.postCustomer();
-    // console.log("Result:", result);
-  };
-
-  useEffect(() => {
-    analyseAuthClient();
-  }, [authClient]);
 
   return (
     <BaseAutumnProvider

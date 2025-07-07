@@ -5,9 +5,10 @@ import { NextRequest } from "next/server";
 export const { GET, POST } = autumnHandler({
   url: "http://localhost:8080/v1",
   identify: async (request: NextRequest) => {
-    // const session = await auth.api.getSession({
-    //   headers: request.headers,
-    // });
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+    console.log("Session:", session);
 
     // if (!session) {
     //   return null;

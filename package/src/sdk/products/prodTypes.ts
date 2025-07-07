@@ -24,6 +24,9 @@ export interface ProductItem {
   entity_feature_id?: string;
   reset_usage_when_enabled?: boolean;
 
+  quantity?: number;
+  next_cycle_quantity?: number;
+
   display?: {
     primary_text?: string;
     secondary_text?: string;

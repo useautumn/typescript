@@ -58,7 +58,7 @@ export default function Home() {
             Sign up
           </button>
         </div>
-        <div className="bg-stone-50 max-h-[400px] p-4 overflow-auto text-xs">
+        <div className="bg-stone-50 dark:bg-stone-900 max-h-[400px] p-4 overflow-auto text-xs">
           <pre className="whitespace-pre-wrap">
             {JSON.stringify(customer, null, 2)}
           </pre>
@@ -87,7 +87,7 @@ export default function Home() {
           </Button>
           <Button
             onClick={async () => {
-              const res = await setupPayment();
+              const res = await setupPayment({});
               console.log(res);
             }}
           >
@@ -97,6 +97,7 @@ export default function Home() {
 
         {/* <div className="w-full p-10"> */}
         <PricingTable />
+        <ShadcnPricingTable />
       </main>
     </div>
   );

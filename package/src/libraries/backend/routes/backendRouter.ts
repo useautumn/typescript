@@ -69,6 +69,18 @@ const getPricingTableHandler = withAuth({
 export const createRouterWithOptions = () => {
   const router = createRouter<RouteData>();
 
+  addRoute(router, "POST", `${BASE_PATH}/cors`, {
+    handler: () => {
+
+      return {
+        body: {
+          message: "OK",
+        },
+        statusCode: 200,
+      }
+    },
+  });
+
   addRoute(router, "POST", `${BASE_PATH}/customers`, {
     handler: createCustomerHandler,
   });

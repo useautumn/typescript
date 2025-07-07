@@ -13,9 +13,15 @@ function processCssFiles() {
       console.log('📄 Processing CSS file:', cssFilePath);
       
       const builtCss = fs.readFileSync(cssFilePath, 'utf8');
-      const updatedCss = builtCss.replace(
+      let updatedCss = builtCss.replace(
         /(\*,\n::before,\n::after)/g,
         '.au-root *,\n.au-root ::before,\n.au-root ::after'
+      );
+      
+      // Also handle standalone * selectors (for custom base styles)
+      updatedCss = updatedCss.replace(
+        /^(\* \{[^}]*\})$/gm,
+        (match) => match.replace('* {', '.au-root * {')
       );
       
       fs.writeFileSync(cssFilePath, updatedCss);
@@ -58,6 +64,16 @@ function processInjectedCss() {
         updatedContent = updatedContent.replace(
           /(\*,::before,::after)/g,
           '.au-root *,.au-root ::before,.au-root ::after'
+        );
+        updated = true;
+      }
+      
+      // Pattern 3: standalone * selector (for custom base styles)
+      if (updatedContent.includes('\\* {')) {
+        console.log('📄 Processing standalone * selector in:', file);
+        updatedContent = updatedContent.replace(
+          /(\\\* \{[^}]*\})/g,
+          (match) => match.replace('\\* {', '.au-root * {')
         );
         updated = true;
       }

@@ -1,3 +1,4 @@
+
 export const logFetchError = ({
   method,
   backendUrl,
@@ -9,6 +10,7 @@ export const logFetchError = ({
   path: string;
   error: any;
 }) => {
+  
   console.error(`[Autumn] Fetch failed: ${method} ${backendUrl}${path}
 
 1. Check that backendUrl in <AutumnProvider/> is correctly set.

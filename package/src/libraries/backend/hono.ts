@@ -35,6 +35,8 @@ export const autumnHandler = <ContextType extends Context = Context>(options: {
       const { data, params: pathParams } = match;
       const { handler } = data;
 
+      
+
       let body = null;
       if (c.req.method === "POST") {
         try {

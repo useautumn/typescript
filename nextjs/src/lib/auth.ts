@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { organization } from "better-auth/plugins";
-import { autumn } from "autumn-js/better-auth";
+
 import { Pool } from "pg";
 
 export const auth = betterAuth({
@@ -12,5 +12,5 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  plugins: [organization(), autumn()],
+  plugins: [organization()],
 });
