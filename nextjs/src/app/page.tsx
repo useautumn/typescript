@@ -14,8 +14,8 @@ export default function Home() {
 
   const productDetails = [
     {
-      id: "free",
       name: "Free",
+      buttonText: "Contact Us",
     },
     {
       id: "pro",
@@ -30,7 +30,7 @@ export default function Home() {
   ];
   return (
     <div className="w-screen h-screen flex justify-center items-start p-10">
-      <main className="flex flex-col w-[800px] gap-4 overflow-hidden">
+      <main className="flex flex-col w-full gap-4 overflow-hidden">
         <div className="flex gap-2">
           <button
             className="bg-blue-500 text-white p-2 rounded-md"
@@ -97,7 +97,7 @@ export default function Home() {
 
         {/* <div className="w-full p-10"> */}
         <PricingTable />
-        <ShadcnPricingTable />
+        {/* <ShadcnPricingTable /> */}
       </main>
     </div>
   );

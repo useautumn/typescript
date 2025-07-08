@@ -4,6 +4,20 @@ import { CustomerData } from "../../sdk";
 import { AutumnContext } from "./AutumnContext";
 import { useEffect } from "react";
 
+const getBackendUrl = (backendUrl?: string) => {
+  
+  if (backendUrl) {
+    return backendUrl;
+  }
+  
+
+  if (backendUrl && !backendUrl.startsWith("http")) {
+    console.warn(`backendUrl is not a valid URL: ${backendUrl}`);
+  }
+
+  return "";
+};
+
 export const ReactAutumnProvider = ({
   children,
   getBearerToken,
@@ -21,12 +35,10 @@ export const ReactAutumnProvider = ({
   disableDialogs?: boolean;
   authClient?: any;
 }) => {
-  if (backendUrl && !backendUrl.startsWith("http")) {
-    console.warn(`backendUrl is not a valid URL: ${backendUrl}`);
-  }
+  
 
   let client = new AutumnClient({
-    backendUrl: backendUrl || "",
+    backendUrl: getBackendUrl(backendUrl),
     getBearerToken,
     customerData,
     includeCredentials,

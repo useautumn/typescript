@@ -156,7 +156,6 @@ export class AutumnClient {
         : undefined;
 
     const includeCredentials = await this.shouldIncludeCredentials();
-    // const includeCredentials = this.includeCredentials;
 
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
@@ -217,6 +216,7 @@ export class AutumnClient {
       errorOnNotFound?: boolean;
     }
   ) {
+    // console.log("Creating customer")
     return await createCustomerMethod({
       client: this,
       params,

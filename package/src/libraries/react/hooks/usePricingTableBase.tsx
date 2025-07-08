@@ -56,6 +56,17 @@ const mergeProductDetails = (
           ...(overrideItems || []),
         ];
       }
+
+      if (!overrideItems || overrideItems.length === 0) {
+        overrideItems = [
+          {
+            display: {
+              primary_text: "",
+            },
+          },
+        ] as any;
+      }
+
       mergedProducts.push({
         display: {
           name: overrideDetails.name,
@@ -184,7 +195,6 @@ export const usePricingTableBase = ({
 
   const fetcher = async () => {
     try {
-      console.log("listing products!");
       const { data, error } = await context.client.products.list();
       if (error) throw error;
 

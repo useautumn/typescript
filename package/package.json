@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.82",
+  "version": "0.0.84",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -60,6 +60,11 @@
       "types": "./dist/libraries/backend/react-router.d.ts",
       "require": "./dist/libraries/backend/react-router.js",
       "import": "./dist/libraries/backend/react-router.mjs"
+    },
+    "./convex": {
+      "types": "./dist/libraries/backend/convex.d.ts",
+      "require": "./dist/libraries/backend/convex.js",
+      "import": "./dist/libraries/backend/convex.mjs"
     }
   },
   "keywords": [
@@ -83,6 +88,7 @@
     "better-auth": "^1.2.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.25.2",
     "esbuild-plugin-alias": "^0.2.1",
     "esbuild-plugin-path-alias": "^1.0.7",
     "esbuild-postcss": "^0.0.4",

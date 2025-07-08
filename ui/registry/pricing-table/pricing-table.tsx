@@ -271,7 +271,7 @@ export const PricingCard = ({
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
           >
-            {buttonText}
+            {productDisplay?.button_text || buttonText}
           </PricingCardButton>
         </div>
       </div>

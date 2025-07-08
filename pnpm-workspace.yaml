@@ -4,3 +4,4 @@ packages:
   - 'ui'
   - 'frameworks/*' 
   - 'next-no-tw'
+  - 'conv'

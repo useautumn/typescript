@@ -11,7 +11,6 @@ import { getPricingTableContent } from "./lib/pricing-table-content";
 import { Product, ProductItem } from "@sdk";
 import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
 
-
 export default function PricingTable({
   productDetails,
 }: {
@@ -274,7 +273,7 @@ export const PricingCard = ({
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
           >
-            {buttonText}
+            {productDisplay?.button_text || buttonText}
           </PricingCardButton>
         </div>
       </div>

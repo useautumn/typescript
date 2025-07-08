@@ -16,20 +16,20 @@ export const spinnerStyles: React.CSSProperties = {
 };
 
 
-// // Inject keyframes immediately
-// if (typeof document !== 'undefined') {
-//   const styleId = 'au-spinner-keyframes';
-//   if (!document.getElementById(styleId)) {
-//     const style = document.createElement('style');
-//     style.id = styleId;
-//     style.textContent = `
-//       @keyframes spin {
-//         from { transform: rotate(0deg); }
-//         to { transform: rotate(360deg); }
-//       }
-//     `;
-//     document.head.appendChild(style);
-//   }
-// }
+// Inject keyframes immediately
+if (typeof document !== 'undefined') {
+  const styleId = 'au-spinner-keyframes';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
 
 
