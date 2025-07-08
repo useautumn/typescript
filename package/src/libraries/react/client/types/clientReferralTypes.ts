@@ -1,7 +1,13 @@
-export interface CreateReferralCodeParams {
-  programId: string;
-}
+import { z } from "zod";
 
-export interface RedeemReferralCodeParams {
-  code: string;
-}
+export const CreateReferralCodeParamsSchema = z.object({
+  programId: z.string()
+});
+
+export type CreateReferralCodeParams = z.infer<typeof CreateReferralCodeParamsSchema>;
+
+export const RedeemReferralCodeParamsSchema = z.object({
+  code: z.string()
+});
+
+export type RedeemReferralCodeParams = z.infer<typeof RedeemReferralCodeParamsSchema>;

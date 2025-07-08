@@ -33,7 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AutumnProvider>{children}</AutumnProvider>
+        <AutumnProvider backendUrl="http://localhost:3001">{children}</AutumnProvider>
       </body>
     </html>
   );

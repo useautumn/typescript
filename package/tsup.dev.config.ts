@@ -15,7 +15,7 @@ const reactConfigs: Options[] = [
   {
     entry: ["src/libraries/backend/**/*.{ts,tsx}"],
     format: ["cjs", "esm"],
-    dts: false,
+    dts: true,
     clean: false, // Don't clean on subsequent builds
     outDir: "./dist/libraries/backend",
     external: ["react", "react/jsx-runtime", "react-dom"],

@@ -1,10 +1,9 @@
 import { auth } from "@/lib/auth";
 import { autumnHandler } from "autumn-js/next";
-import { NextRequest } from "next/server";
 
 export const { GET, POST } = autumnHandler({
-  url: "http://localhost:8080/v1",
-  identify: async (request: NextRequest) => {
+  // url: "http://localhost:8080/v1",
+  identify: (request) => {
     // const session = await auth.api.getSession({
     //   headers: request.headers,
     // });
@@ -14,8 +13,8 @@ export const { GET, POST } = autumnHandler({
     // }
 
     // console.log("User:", session.user);
-    return {
+    return Promise.resolve({
       customerId: "123",
-    };
+    });
   },
 });
