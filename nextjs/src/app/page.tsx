@@ -1,123 +1,161 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
-import { CheckDialog, useCustomer } from "autumn-js/react";
-import { PricingTable } from "autumn-js/react";
-import ShadcnPricingTable from "@/components/autumn/pricing-table";
 import { Button } from "@/components/ui/button";
+import { useCustomer } from "autumn-js/react";
 
 export default function Home() {
-  const { customer, attach, check, cancel, setupPayment } = useCustomer({
-    expand: ["invoices", "referrals", "payment_method"],
-  });
+  const {
+    customer,
+    attach,
+    check,
+    track,
+    cancel,
+    openBillingPortal,
+    redeemReferralCode,
+    createReferralCode,
+    allowed,
+  } = useCustomer({ authClient, swrConfig: { refreshInterval: 0 } });
 
-  console.log("Customer:", customer);
-
-  const productDetails = [
-    {
-      name: "Free",
-      buttonText: "Contact Us",
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      recommendText: "Lit",
-    },
-    {
-      id: "premium",
-      name: "Premium",
-      price: 100,
-    },
-  ];
   return (
-    <div className="w-screen h-screen flex justify-center items-start p-10">
-      <main className="flex flex-col w-full gap-4 overflow-hidden">
-        <div className="flex gap-2">
-          <button
-            className="bg-blue-500 text-white p-2 rounded-md"
-            onClick={async () => {
-              const res = await authClient.signIn.email({
-                email: "johnyeo10@gmail.com",
-                password: "testing123",
-              });
-              console.log(res);
-            }}
-          >
-            Sign in
-          </button>
-          <button
-            className="bg-blue-500 text-white p-2 rounded-md"
-            onClick={async () => {
-              const res = await authClient.signUp.email({
-                name: "John Yeo",
-                email: "johnyeo10@gmail.com",
-                password: "testing123",
-              });
-              console.log(res);
-            }}
-          >
-            Sign up
-          </button>
-        </div>
-        <div className="bg-stone-50 dark:bg-stone-900 max-h-[400px] p-4 overflow-auto text-xs">
-          <pre className="whitespace-pre-wrap">
-            {JSON.stringify(customer, null, 2)}
+    <div className="min-h-screen bg-gradient-to-b p-10">
+      <main className="max-w-4xl mx-auto space-y-8">
+        <section className="space-y-4">
+          <div className="flex gap-3">
+            <Button
+              variant="default"
+              onClick={async () => {
+                const res = await fetch("http://localhost:3001/api/test", {
+                  method: "GET",
+                });
+                console.log(res);
+              }}
+            >
+              Test Better Auth Plugin
+            </Button>
+            <Button
+              onClick={async () => {
+                const res = await authClient.signIn.email({
+                  email: "johnyeo10@gmail.com",
+                  password: "testing123",
+                });
+                console.log(res);
+              }}
+            >
+              Sign In
+            </Button>
+            <Button
+              onClick={async () => {
+                const res = await authClient.signUp.email({
+                  name: "John Yeo",
+                  email: "johnyeo10@gmail.com",
+                  password: "testing123",
+                });
+                console.log(res);
+              }}
+            >
+              Sign Up
+            </Button>
+          </div>
+        </section>
+        <section className="space-y-4">
+          <h2 className="text-md font-semibold text-slate-800">Customer</h2>
+          <pre className="whitespace-pre-wrap text-blue-400 mt-4 text-xs">
+            {JSON.stringify(customer, null, 4)}
           </pre>
-        </div>
+        </section>
 
-        <div className="flex gap-2">
+        <div className="flex justify-start items-center gap-2">
+          <Button
+            onClick={async () => {
+              const res = await openBillingPortal({
+                openInNewTab: true,
+              });
+              console.log(res);
+            }}
+          >
+            Open Billing Portal
+          </Button>
+
           <Button
             onClick={async () => {
               const res = await cancel({
                 productId: "pro",
               });
+              console.log(res);
             }}
           >
             Cancel
           </Button>
+
+          <Button
+            onClick={async () => {
+              const res = await check({
+                featureId: "messages",
+              });
+              console.log(res);
+            }}
+          >
+            Check
+          </Button>
+
+          <Button
+            onClick={async () => {
+              const res = await track({
+                featureId: "messages",
+              });
+              console.log(res);
+            }}
+          >
+            Track
+          </Button>
+
           <Button
             onClick={async () => {
               const res = await attach({
                 productId: "pro",
-                successUrl: "https://gmail.com",
+                openInNewTab: true,
               });
               console.log(res);
             }}
           >
             Attach
           </Button>
+
           <Button
             onClick={async () => {
-              const res = await setupPayment({});
+              console.log(
+                "Allowed:",
+                allowed({
+                  featureId: "credits",
+                })
+              );
+            }}
+          >
+            Allowed
+          </Button>
+          <Button
+            onClick={async () => {
+              const res = await createReferralCode({
+                programId: "test",
+              });
               console.log(res);
             }}
           >
-            Setup Payment
+            Create Referral Code
+          </Button>
+
+          <Button
+            onClick={async () => {
+              const res = await redeemReferralCode({
+                code: "test",
+              });
+              console.log(res);
+            }}
+          >
+            Redeem Referral Code
           </Button>
         </div>
-
-        {/* <div className="w-full p-10"> */}
-        <PricingTable />
-        {/* <ShadcnPricingTable /> */}
       </main>
     </div>
   );
 }
-
-// <div>
-//           <button
-//             onClick={async () => {
-//               const res = await fetch(
-//                 "http://localhost:3001/api/auth/autumn/customers",
-//                 {
-//                   method: "POST",
-//                   body: JSON.stringify({
-//                     productId: "premium",
-//                   }),
-//                 }
-//               );
-//               console.log(res);
-//             }}
-//           >
-//             Test better auth plugin
-//           </button>
-//         </div>

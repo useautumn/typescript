@@ -46,16 +46,17 @@ export const AutumnContext = createContext<AutumnContextParams>({
 export const useAutumnContext = ({
   AutumnContext,
   name,
+  errorIfNotInitialized = true,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
   name: string;
+  errorIfNotInitialized?: boolean;
 }) => {
   const context = useContext(AutumnContext);
 
-  if (!context.initialized) {
-    // console.error(`${name} must be used within <AutumnProvider />`);
-    throw new Error(`${name} must be used within <AutumnProvider />`);
-  }
+  // if (!context.initialized && errorIfNotInitialized) {
+  //   throw new Error(`${name} must be used within <AutumnProvider />`);
+  // }
 
   return context;
 };

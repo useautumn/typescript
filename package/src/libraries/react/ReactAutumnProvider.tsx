@@ -5,11 +5,9 @@ import { AutumnContext } from "./AutumnContext";
 import { useEffect } from "react";
 
 const getBackendUrl = (backendUrl?: string) => {
-  
   if (backendUrl) {
     return backendUrl;
   }
-  
 
   if (backendUrl && !backendUrl.startsWith("http")) {
     console.warn(`backendUrl is not a valid URL: ${backendUrl}`);
@@ -24,7 +22,6 @@ export const ReactAutumnProvider = ({
   backendUrl,
   customerData,
   includeCredentials,
-  disableDialogs = false,
   authClient,
 }: {
   children: React.ReactNode;
@@ -32,10 +29,18 @@ export const ReactAutumnProvider = ({
   backendUrl?: string;
   customerData?: CustomerData;
   includeCredentials?: boolean;
-  disableDialogs?: boolean;
   authClient?: any;
 }) => {
-  
+  // const test = async () => {
+  //   console.log("authClient", authClient);
+  //   console.log("authClient.autumn", authClient.autumn);
+  //   const customer = await authClient.autumn.createCustomer();
+  //   console.log("Customer:", customer);
+  // };
+
+  // useEffect(() => {
+  //   test();
+  // }, []);
 
   let client = new AutumnClient({
     backendUrl: getBackendUrl(backendUrl),
@@ -45,11 +50,7 @@ export const ReactAutumnProvider = ({
   });
 
   return (
-    <BaseAutumnProvider
-      client={client}
-      AutumnContext={AutumnContext}
-      disableDialogs={disableDialogs}
-    >
+    <BaseAutumnProvider client={client} AutumnContext={AutumnContext}>
       {children}
     </BaseAutumnProvider>
   );

@@ -6,10 +6,12 @@
   "scripts": {
     "cli": "tsx src/cli/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish-beta": "pnpm publish --tag beta",
     "build": "rm -rf dist && tsup && node scripts/post-build.js",
+    "build:backend": "tsup \"src/libraries/backend/**/*.{ts,tsx}\" --format cjs,esm --clean=false --outDir=\"./dist/libraries/backend\"",
+    "publish-beta": "pnpm publish --tag beta",
     "dev-old": "tsx scripts/sync-registry.ts sync && (tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\")",
     "dev": "(tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts && node scripts/post-build.js\")",
+    "dev2": "nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts",
     "sync-registry": "tsx scripts/sync-registry.ts sync",
     "watch-registry": "tsx scripts/sync-registry.ts watch"
   },
@@ -61,6 +63,11 @@
       "require": "./dist/libraries/backend/react-router.js",
       "import": "./dist/libraries/backend/react-router.mjs"
     },
+    "./better-auth": {
+      "types": "./dist/libraries/backend/better-auth.d.ts",
+      "require": "./dist/libraries/backend/better-auth.js",
+      "import": "./dist/libraries/backend/better-auth.mjs"
+    },
     "./convex": {
       "types": "./dist/libraries/backend/convex.d.ts",
       "require": "./dist/libraries/backend/convex.js",
@@ -85,7 +92,7 @@
     "@types/node": "^22.15.32",
     "@types/react": "^18.3.14",
     "autoprefixer": "^10.4.21",
-    "better-auth": "^1.2.10",
+    "better-call": "^1.0.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.25.2",
@@ -118,9 +125,14 @@
     }
   },
   "dependencies": {
+    "@better-fetch/fetch": "^1.1.18",
+    "better-auth": "^1.2.10",
     "chalk": "^5.4.1",
+    "nanostores": "^1.0.1",
     "rou3": "^0.6.1",
-    "swr": "^2.3.3"
+    "swr": "^2.3.3",
+    "ts-to-zod": "^3.15.0",
+    "zod": "^3.24.1"
   },
   "typesVersions": {
     "*": {

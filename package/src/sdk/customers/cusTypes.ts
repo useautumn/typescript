@@ -1,7 +1,12 @@
 import { ProductItem } from "@sdk/products/prodTypes";
 import { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
-import { CustomerExpandOption, ProductStatus } from "./cusEnums";
+import {
+  CustomerExpandEnum,
+  CustomerExpandOption,
+  ProductStatus,
+} from "./cusEnums";
+import { z } from "zod";
 
 export interface CoreCustomerFeature {
   unlimited?: boolean;
@@ -80,14 +85,25 @@ export interface GetCustomerParams {
   expand?: CustomerExpandOption[];
 }
 
-export interface CreateCustomerParams {
-  id?: string | null;
-  email?: string | null;
-  name?: string | null;
-  fingerprint?: string | null;
-  metadata?: Record<string, any>;
-  expand?: CustomerExpandOption[];
-}
+export const CreateCustomerParamsSchema = z.object({
+  id: z.string().nullish(),
+  email: z.string().nullish(),
+  name: z.string().nullish(),
+  fingerprint: z.string().nullish(),
+  metadata: z.record(z.any()).optional(),
+  expand: z.array(CustomerExpandEnum).optional(),
+});
+
+export type CreateCustomerParams = z.infer<typeof CreateCustomerParamsSchema>;
+
+// export interface CreateCustomerParams {
+//   id?: string | null;
+//   email?: string | null;
+//   name?: string | null;
+//   fingerprint?: string | null;
+//   metadata?: Record<string, any>;
+//   expand?: CustomerExpandOption[];
+// }
 
 export interface UpdateCustomerParams {
   id?: string | null;
