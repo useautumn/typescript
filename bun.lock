@@ -249,7 +249,7 @@
         "@radix-ui/react-tooltip": "^1.2.6",
         "@supabase/supabase-js": "^2.49.4",
         "@tailwindcss/vite": "^4.1.7",
-        "autumn-js": "latest",
+        "autumn-js": "workspace:*",
         "better-auth": "^1.2.8",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -315,9 +315,8 @@
     },
     "package": {
       "name": "autumn-js",
-      "version": "0.0.86",
+      "version": "0.0.87",
       "dependencies": {
-        "better-auth": "^1.2.12",
         "chalk": "^5.4.1",
         "rou3": "^0.6.1",
         "swr": "^2.3.3",
@@ -334,8 +333,6 @@
         "@types/node": "^22.15.32",
         "@types/react": "^18.3.14",
         "autoprefixer": "^10.4.21",
-        "better-auth": "^1.2.12",
-        "better-call": "^1.0.12",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "convex": "^1.25.2",
@@ -362,6 +359,14 @@
         "tsx": "^4.19.3",
         "typescript": "^5.8.3",
       },
+      "peerDependencies": {
+        "better-auth": "^1.2.12",
+        "better-call": "^1.0.12",
+      },
+      "optionalPeers": [
+        "better-auth",
+        "better-call",
+      ],
     },
   },
   "packages": {
@@ -4040,8 +4045,6 @@
     "form-data/mime-types": ["mime-types@2.1.35", "", { "dependencies": { "mime-db": "1.52.0" } }, "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw=="],
 
     "frontend/@types/react": ["@types/react@19.1.8", "", { "dependencies": { "csstype": "^3.0.2" } }, "sha512-AwAfQ2Wa5bCx9WP8nZL2uMZWod7J7/JSplxbTmBQ5ms6QpqNYm672H0Vu9ZVKVngQ+ii4R/byguVEUZQyeg44g=="],
-
-    "frontend/autumn-js": ["autumn-js@0.0.84", "", { "dependencies": { "chalk": "^5.4.1", "rou3": "^0.6.1", "swr": "^2.3.3" } }, "sha512-zzX02bNBRzJXBgKtXEjl7JrrGPiEOZY8ioXO1EzqlW8D+YoamR+B/2YZekP9dZgC+zaSDMmI5Xpv+HsJNxfCnQ=="],
 
     "frontend/lucide-react": ["lucide-react@0.510.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-p8SQRAMVh7NhsAIETokSqDrc5CHnDLbV29mMnzaXx+Vc/hnqQzwI2r0FMWCcoTXnbw2KEjy48xwpGdEL+ck06Q=="],
 

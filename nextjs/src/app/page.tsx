@@ -2,6 +2,7 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useCustomer } from "autumn-js/react";
+import PricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
   const {
@@ -14,11 +15,12 @@ export default function Home() {
     redeemReferralCode,
     createReferralCode,
     allowed,
-  } = useCustomer({ authClient, swrConfig: { refreshInterval: 0 } });
+  } = useCustomer();
 
   return (
     <div className="min-h-screen bg-gradient-to-b p-10">
       <main className="max-w-4xl mx-auto space-y-8">
+        <PricingTable />
         <section className="space-y-4">
           <div className="flex gap-3">
             <Button
