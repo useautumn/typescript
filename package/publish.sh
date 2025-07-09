@@ -6,7 +6,7 @@ cp ../README.md ./
 # Copy LICENSE.md from ../ to ./
 cp ../LICENSE.md ./
 
-npm run build
+bun run build
 
 npm version patch
 

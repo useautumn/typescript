@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.84",
+  "version": "0.0.87",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
@@ -92,7 +92,6 @@
     "@types/node": "^22.15.32",
     "@types/react": "^18.3.14",
     "autoprefixer": "^10.4.21",
-    "better-call": "^1.0.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.25.2",
@@ -119,19 +118,25 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
+  "peerDependencies": {
+    "better-auth": "^1.2.12",
+    "better-call": "^1.0.12"
+  },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "better-auth": {
+      "optional": true
+    },
+    "better-call": {
       "optional": true
     }
   },
   "dependencies": {
-    "@better-fetch/fetch": "^1.1.18",
-    "better-auth": "^1.2.10",
     "chalk": "^5.4.1",
-    "nanostores": "^1.0.1",
     "rou3": "^0.6.1",
     "swr": "^2.3.3",
-    "ts-to-zod": "^3.15.0",
     "zod": "^3.24.1"
   },
   "typesVersions": {

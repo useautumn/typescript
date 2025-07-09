@@ -29,34 +29,13 @@ const reactConfigs: Options[] = [
   // React - Index file with CSS import (CommonJS)
   {
     entry: ["src/libraries/react/index.ts"],
-    format: ["cjs"],
+    format: ["cjs", "esm"],
     dts: true,
     clean: false,
     outDir: "./dist/libraries/react",
     external: ["react", "react/jsx-runtime", "react-dom"],
     bundle: true,
     banner: {
-      // js: '"use client";\nrequire("../../styles/global.css");',
-      js: '"use client";',
-    },
-    injectStyle: true,
-    esbuildOptions(options) {
-      options.plugins = options.plugins || [];
-      options.plugins.push(alias(pathAliases));
-    },
-  },
-
-  // React - Index file with CSS import (ESM)
-  {
-    entry: ["src/libraries/react/index.ts"],
-    format: ["esm"],
-    dts: false, // Only generate types once
-    clean: false,
-    outDir: "./dist/libraries/react",
-    external: ["react", "react/jsx-runtime", "react-dom"],
-    bundle: true,
-    banner: {
-      // js: '"use client";\nimport "../../styles/global.css";',
       js: '"use client";',
     },
     injectStyle: true,
