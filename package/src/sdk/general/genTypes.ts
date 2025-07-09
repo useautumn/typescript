@@ -1,7 +1,6 @@
 import { CustomerData } from "../customers/cusTypes";
 import { EntityData } from "../customers/entities/entTypes";
-import { CheckFeatureResult, CheckProductPreview, CheckProductResult } from "./checkTypes";
-import { CheckFeaturePreview } from "./checkTypes";
+import { CheckFeatureResult, CheckProductResult } from "./checkTypes";
 import { z } from "zod";
 
 // Attach
@@ -106,4 +105,16 @@ export interface UsageResult {
   code: string; // Success code
   customer_id: string; // Customer ID
   feature_id: string; // Feature ID
+}
+
+
+export interface SetupPaymentParams {
+  customer_id: string;
+  success_url?: string;
+  checkout_session_params?: Record<string, any>;
+}
+
+export interface SetupPaymentResult {
+  customer_id: string;
+  url: string;
 }

@@ -1,4 +1,5 @@
 import React from "react";
+
 import { useCustomer, usePricingTable } from "autumn-js/react";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,6 @@ import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "@/registry/attach-dialog/attach-dialog";
 import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
 import { Product, ProductItem } from "autumn-js";
-
 export default function PricingTable({
   productDetails,
 }: {
@@ -271,7 +271,7 @@ export const PricingCard = ({
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
           >
-            {buttonText}
+            {productDisplay?.button_text || buttonText}
           </PricingCardButton>
         </div>
       </div>

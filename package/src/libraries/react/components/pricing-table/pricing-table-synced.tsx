@@ -1,4 +1,5 @@
 import React from "react";
+
 import { useCustomer, usePricingTable } from "@/index";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,7 @@ import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "../attach-dialog/attach-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
 import { Product, ProductItem } from "@sdk";
+import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
 
 export default function PricingTable({
   productDetails,
@@ -20,8 +22,8 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div className="au-w-full au-h-full au-flex au-justify-center au-items-center au-min-h-[300px]">
-        <Loader2 className="au-w-6 au-h-6 au-text-zinc-400 au-animate-spin" />
+      <div style={loadingStyles}>
+        <Loader2 style={spinnerStyles} />
       </div>
     );
   }
@@ -271,7 +273,7 @@ export const PricingCard = ({
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
           >
-            {buttonText}
+            {productDisplay?.button_text || buttonText}
           </PricingCardButton>
         </div>
       </div>

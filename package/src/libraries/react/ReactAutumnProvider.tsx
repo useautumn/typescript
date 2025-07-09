@@ -4,13 +4,24 @@ import { CustomerData } from "../../sdk";
 import { AutumnContext } from "./AutumnContext";
 import { useEffect } from "react";
 
+const getBackendUrl = (backendUrl?: string) => {
+  if (backendUrl) {
+    return backendUrl;
+  }
+
+  if (backendUrl && !backendUrl.startsWith("http")) {
+    console.warn(`backendUrl is not a valid URL: ${backendUrl}`);
+  }
+
+  return "";
+};
+
 export const ReactAutumnProvider = ({
   children,
   getBearerToken,
   backendUrl,
   customerData,
-  includeCredentials = true,
-  disableDialogs = false,
+  includeCredentials,
   authClient,
 }: {
   children: React.ReactNode;
@@ -18,36 +29,28 @@ export const ReactAutumnProvider = ({
   backendUrl?: string;
   customerData?: CustomerData;
   includeCredentials?: boolean;
-  disableDialogs?: boolean;
   authClient?: any;
 }) => {
-  if (backendUrl && !backendUrl.startsWith("http")) {
-    console.warn(`backendUrl is not a valid URL: ${backendUrl}`);
-  }
+  // const test = async () => {
+  //   console.log("authClient", authClient);
+  //   console.log("authClient.autumn", authClient.autumn);
+  //   const customer = await authClient.autumn.createCustomer();
+  //   console.log("Customer:", customer);
+  // };
+
+  // useEffect(() => {
+  //   test();
+  // }, []);
 
   let client = new AutumnClient({
-    backendUrl: backendUrl || "",
+    backendUrl: getBackendUrl(backendUrl),
     getBearerToken,
     customerData,
     includeCredentials,
   });
 
-  const analyseAuthClient = async () => {
-    console.log("Auth client:", authClient);
-    // const result = await authClient.autumn.postCustomer();
-    // console.log("Result:", result);
-  };
-
-  useEffect(() => {
-    analyseAuthClient();
-  }, [authClient]);
-
   return (
-    <BaseAutumnProvider
-      client={client}
-      AutumnContext={AutumnContext}
-      disableDialogs={disableDialogs}
-    >
+    <BaseAutumnProvider client={client} AutumnContext={AutumnContext}>
       {children}
     </BaseAutumnProvider>
   );

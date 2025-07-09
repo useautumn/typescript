@@ -1,14 +1,14 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.76",
+  "version": "0.0.84",
   "main": "./dist/index.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish-beta": "npm run build && npm publish --tag beta",
-    "build": "tsup",
+    "build": "rm -rf dist && tsup && node scripts/post-build.js",
     "build:backend": "tsup \"src/libraries/backend/**/*.{ts,tsx}\" --format cjs,esm --clean=false --outDir=\"./dist/libraries/backend\"",
+    "publish-beta": "pnpm publish --tag beta",
     "dev-old": "tsx scripts/sync-registry.ts sync && (tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\")",
     "dev": "(tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts && node scripts/post-build.js\")",
     "dev2": "nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts",
@@ -67,6 +67,11 @@
       "types": "./dist/libraries/backend/better-auth.d.ts",
       "require": "./dist/libraries/backend/better-auth.js",
       "import": "./dist/libraries/backend/better-auth.mjs"
+    },
+    "./convex": {
+      "types": "./dist/libraries/backend/convex.d.ts",
+      "require": "./dist/libraries/backend/convex.js",
+      "import": "./dist/libraries/backend/convex.mjs"
     }
   },
   "keywords": [
@@ -87,8 +92,10 @@
     "@types/node": "^22.15.32",
     "@types/react": "^18.3.14",
     "autoprefixer": "^10.4.21",
+    "better-call": "^1.0.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.25.2",
     "esbuild-plugin-alias": "^0.2.1",
     "esbuild-plugin-path-alias": "^1.0.7",
     "esbuild-postcss": "^0.0.4",
@@ -102,6 +109,7 @@
     "postcss": "^8.5.6",
     "postcss-nested": "^7.0.2",
     "postcss-prefix-selector": "^2.1.1",
+    "stripe": "^18.3.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",

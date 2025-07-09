@@ -36,8 +36,10 @@ const reactConfigs: Options[] = [
     external: ["react", "react/jsx-runtime", "react-dom"],
     bundle: true,
     banner: {
-      js: '"use client";\nrequire("../../styles/global.css");',
+      // js: '"use client";\nrequire("../../styles/global.css");',
+      js: '"use client";',
     },
+    injectStyle: true,
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
@@ -54,8 +56,10 @@ const reactConfigs: Options[] = [
     external: ["react", "react/jsx-runtime", "react-dom"],
     bundle: true,
     banner: {
-      js: '"use client";\nimport "../../styles/global.css";',
+      // js: '"use client";\nimport "../../styles/global.css";',
+      js: '"use client";',
     },
+    injectStyle: true,
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));

@@ -9,6 +9,7 @@ export const createCustomerMethod = async ({
   client: AutumnClient;
   params: Omit<CreateCustomerParams, OmitCustomerType>;
 }): AutumnPromise<Customer> => {
+
   let result = await client.post("/api/autumn/customers", params);
   return result;
 };

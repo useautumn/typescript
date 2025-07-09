@@ -4,11 +4,13 @@ import { autumnApiUrl } from "./constants";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { AuthResult } from "./utils/AuthFunction";
 import { json } from "@tanstack/react-start";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 // Create a factory function for your Autumn handler
 export const autumnHandler = (options: {
   identify: (ctx: { request: any }) => AuthResult;
   version?: string;
+  secretKey?: string;
 }) => {
   const autumn = new Autumn({
     url: autumnApiUrl,
@@ -17,9 +19,17 @@ export const autumnHandler = (options: {
 
   const router = createRouterWithOptions();
 
+  let { found, error: resError } = secretKeyCheck(options?.secretKey);
+
   // Generic handler function that works with any HTTP method
   const handleRequest = async (ctx: { request: Request; params: any }) => {
     const { request } = ctx;
+
+    if (!found && !options.secretKey) {
+      return new Response(JSON.stringify(resError!), {
+        status: resError!.statusCode,
+      });
+    }
 
     const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams);

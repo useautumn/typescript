@@ -1,6 +1,9 @@
 node_modules/
 dist/
 
+# Generated CSS content
+package/src/generated/
+
 .env.*
 
 
@@ -22,3 +25,4 @@ nextjs/run.sh
 frameworks
 next-no-tw
 archives
+conv

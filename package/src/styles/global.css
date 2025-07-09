@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 :root {
   --au-background: 0 0% 100%;
   --au-foreground: 240 10% 3.9%;
@@ -70,4 +72,13 @@
   --au-sidebar-accent-foreground: 240 4.8% 95.9%;
   --au-sidebar-border: 240 3.7% 15.9%;
   --au-sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--au-border));
+  }
+  body {
+    @apply au-bg-background au-text-foreground;
+  }
 }

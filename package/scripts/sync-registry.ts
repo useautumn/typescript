@@ -59,6 +59,16 @@ function transformImportsToRegistry(content: string): string {
     'from "@/registry/$1/$1"'
   );
 
+  // Remove loading styles import and replace with CSS classes
+  if (content.includes('from "@/utils/inject-styles"')) {
+    // Remove the import line
+    content = content.replace(/import\s+{[^}]*loadingStyles[^}]*}\s+from\s+["']@\/utils\/inject-styles["'];?\s*\n/g, '');
+    
+    // Replace inline styles with CSS classes
+    content = content.replace(/style={loadingStyles}/g, 'className="w-full h-full flex justify-center items-center min-h-[300px]"');
+    content = content.replace(/style={spinnerStyles}/g, 'className="w-6 h-6 text-zinc-400 animate-spin"');
+  }
+
   // Keep @/lib/utils and @/components/ui imports as-is
 
   return content;

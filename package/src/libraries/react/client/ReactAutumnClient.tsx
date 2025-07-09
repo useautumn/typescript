@@ -1,3 +1,4 @@
+import { logAuthError } from "@/errorUtils/logAuthError";
 import {
   AutumnError,
   CreateCustomerParams,
@@ -18,6 +19,7 @@ import {
   cancelMethod,
   checkMethod,
   openBillingPortalMethod,
+  setupPaymentMethod,
   trackMethod,
 } from "./clientGenMethods";
 import { listProductsMethod } from "./clientProdMethods";
@@ -43,11 +45,12 @@ export interface AutumnClientConfig {
 }
 
 export class AutumnClient {
-  protected readonly backendUrl?: string;
+  public readonly backendUrl?: string;
   protected readonly getBearerToken?: () => Promise<string | null | undefined>;
   protected readonly customerData?: CustomerData;
-  protected readonly includeCredentials?: boolean;
-  // protected readonly pathPrefix?: string;
+  protected includeCredentials?: boolean;
+  private corsDetected?: boolean;
+  private corsSupportsCredentials?: boolean;
 
   constructor({
     backendUrl,
@@ -55,12 +58,67 @@ export class AutumnClient {
     customerData,
     includeCredentials,
   }: AutumnClientConfig) {
-    // How to detect if better auth is used...
     this.backendUrl = backendUrl;
-    // this.pathPrefix = "/api/autumn";
     this.getBearerToken = getBearerToken;
     this.customerData = customerData;
     this.includeCredentials = includeCredentials;
+  }
+
+  /**
+   * Detects if the backend supports CORS credentials by making an OPTIONS request
+   */
+  private async detectCors() {
+    const testEndpoint = `${this.backendUrl}/api/autumn/cors`;
+
+    // Test 1: With credentials
+    try {
+      await fetch(testEndpoint, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      return { valid: true, includeCredentials: true };
+    } catch (error: any) {
+      // Test 2: Without credentials
+      try {
+        await fetch(testEndpoint, {
+          method: "POST",
+          credentials: "omit",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        return { valid: true, includeCredentials: false };
+      } catch (error2: any) {
+        return { valid: false, includeCredentials: undefined };
+      }
+    }
+  }
+  /**
+   * Automatically determines whether to include credentials based on CORS detection
+   */
+  private async shouldIncludeCredentials(): Promise<boolean> {
+    if (this.includeCredentials !== undefined) {
+      return this.includeCredentials;
+    }
+
+    try {
+      const corsResult = await this.detectCors();
+      if (corsResult.valid) {
+        console.warn(
+          `[Autumn] Detected CORS credentials: ${corsResult.includeCredentials}`
+        );
+        console.warn(
+          `[Autumn] To disable this warning, you can set includeCredentials={${corsResult.includeCredentials ? "true" : "false"}} in <AutumnProvider />`
+        );
+        this.includeCredentials = corsResult.includeCredentials;
+      }
+
+      return corsResult.includeCredentials || false;
+    } catch (error: any) {
+      console.error(`[Autumn] Error detecting CORS: ${error.message}`);
+      return false;
+    }
   }
 
   async getHeaders() {
@@ -97,15 +155,23 @@ export class AutumnClient {
           })
         : undefined;
 
+    const includeCredentials = await this.shouldIncludeCredentials();
+
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
         method,
         body,
         headers: await this.getHeaders(),
-        credentials: this.includeCredentials ? "include" : undefined,
+        credentials: includeCredentials ? "include" : "omit",
       });
 
-      return await toContainerResult({ response, logger: console });
+      const loggedError = await logAuthError(response);
+
+      return await toContainerResult({
+        response,
+        logger: console,
+        logError: !loggedError,
+      });
     } catch (error: any) {
       logFetchError({
         method,
@@ -150,6 +216,7 @@ export class AutumnClient {
       errorOnNotFound?: boolean;
     }
   ) {
+    // console.log("Creating customer")
     return await createCustomerMethod({
       client: this,
       params,
@@ -165,6 +232,7 @@ export class AutumnClient {
   check = checkMethod.bind(this);
   track = trackMethod.bind(this);
   openBillingPortal = openBillingPortalMethod.bind(this);
+  setupPayment = setupPaymentMethod.bind(this);
 
   entities = {
     create: createEntityMethod.bind(this),

@@ -1,3 +1,6 @@
+// Import CSS for tsup injectStyle
+import "../../styles/global.css";
+
 export { ReactAutumnProvider as AutumnProvider } from "./ReactAutumnProvider";
 
 export type { PricingTableProduct } from "@sdk/components/componentTypes";

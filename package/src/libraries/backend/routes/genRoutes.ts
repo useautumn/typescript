@@ -7,6 +7,7 @@ import {
   CheckParams,
   TrackParams,
   BillingPortalParams,
+  SetupPaymentParams,
 } from "../../../sdk";
 import { addRoute, RouterContext } from "rou3";
 import { OpenBillingPortalParams } from "src/libraries/react/client/types/clientGenTypes";
@@ -31,6 +32,25 @@ const attachHandler = withAuth({
     body: AttachParams;
   }) => {
     return await autumn.attach({
+      ...sanitizeBody(body),
+      customer_id,
+      customer_data,
+    });
+  },
+});
+const setupPaymentHandler = withAuth({
+  fn: async ({
+    autumn,
+    customer_id,
+    customer_data,
+    body,
+  }: {
+    autumn: Autumn;
+    customer_id: string;
+    customer_data?: CustomerData;
+    body: SetupPaymentParams;
+  }) => {
+    return await autumn.setupPayment({
       ...sanitizeBody(body),
       customer_id,
       customer_data,
@@ -113,7 +133,9 @@ const openBillingPortalHandler = withAuth({
   },
 });
 
+
 const addGenRoutes = (router: RouterContext) => {
+
   addRoute(router, "POST", `${BASE_PATH}/attach`, {
     handler: attachHandler,
   });
@@ -128,6 +150,9 @@ const addGenRoutes = (router: RouterContext) => {
   });
   addRoute(router, "POST", `${BASE_PATH}/billing_portal`, {
     handler: openBillingPortalHandler,
+  });
+  addRoute(router, "POST", `${BASE_PATH}/setup_payment`, {
+    handler: setupPaymentHandler,
   });
 };
 

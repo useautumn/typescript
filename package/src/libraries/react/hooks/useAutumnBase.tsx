@@ -3,6 +3,7 @@ import {
   BillingPortalResult,
   CancelResult,
   CheckResult,
+  SetupPaymentResult,
   TrackResult,
 } from "../../../sdk";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
@@ -11,6 +12,7 @@ import {
   CancelParams,
   CheckParams,
   OpenBillingPortalParams,
+  SetupPaymentParams,
   TrackParams,
 } from "../client/types/clientGenTypes";
 import { AutumnPromise } from "../../../sdk";
@@ -21,15 +23,23 @@ import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
 
 export const useAutumnBase = ({
   AutumnContext,
+  authClient,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
+  authClient?: any;
 }) => {
-  const context = useAutumnContext({ AutumnContext, name: "useAutumn" });
+  const context = useAutumnContext({
+    AutumnContext,
+    name: "useAutumn",
+    errorIfNotInitialized: !authClient,
+  });
   const { attachDialog, paywallDialog } = context;
 
-  const client = context.client;
+  const client = authClient ? authClient.autumn : context.client;
+  const authClientExists = !!authClient;
   const { refetch: refetchPricingTable } = usePricingTableBase({
     AutumnContext,
+    authClient,
   });
 
   let {
@@ -94,7 +104,7 @@ export const useAutumnBase = ({
     if (!preview) {
       return await attachWithoutDialog(rest);
     } else {
-      setAttachProps({ preview });
+      setAttachProps({ preview, attachParams: rest });
       setAttachOpen(true);
     }
 
@@ -104,11 +114,13 @@ export const useAutumnBase = ({
   const attach = async (params: AttachParams) => {
     const { dialog, openInNewTab } = params;
 
-    let finalDialog = dialog
-      ? dialog
-      : context.disableDialogs
-        ? undefined
-        : AttachDialog;
+    let finalDialog = dialog;
+    if (dialog && authClientExists) {
+      console.error(
+        "[Autumn] Attach dialog cannot be used with better auth plugin. To use this, please switch to <AutumnProvider /> and autumnHandler. Learn more here: https://docs.useautumn.com/quickstart/quickstart"
+      );
+      return undefined as any;
+    }
 
     if (finalDialog && !attachOpen) {
       setAttachComponent(finalDialog);
@@ -130,6 +142,13 @@ export const useAutumnBase = ({
 
   const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
     let { dialog, withPreview } = params;
+
+    if (dialog && authClientExists) {
+      console.error(
+        "[Autumn] Check dialog cannot be used with better auth plugin. To use this, please switch to <AutumnProvider /> and autumnHandler. Learn more here: https://docs.useautumn.com/quickstart/quickstart"
+      );
+      return undefined as any;
+    }
 
     if (dialog) {
       setPaywallComponent(dialog);
@@ -198,11 +217,39 @@ export const useAutumnBase = ({
     }
   };
 
+  const setupPayment = async (
+    params?: SetupPaymentParams
+  ): AutumnPromise<SetupPaymentResult> => {
+    let defaultParams = {
+      openInNewTab: false,
+    };
+
+    let finalParams = {
+      ...defaultParams,
+      ...(params || {}),
+    };
+
+    const res = await client.setupPayment(finalParams);
+
+    if (res.data?.url && typeof window !== "undefined") {
+      if (finalParams.openInNewTab) {
+        window.open(res.data.url, "_blank");
+      } else {
+        window.open(res.data.url, "_self");
+      }
+
+      return res;
+    } else {
+      return res;
+    }
+  };
+
   return {
     attach,
     check,
     track,
     cancel,
     openBillingPortal,
+    setupPayment,
   };
 };
