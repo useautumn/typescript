@@ -2,7 +2,8 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useCustomer } from "autumn-js/react";
-import PricingTable from "@/components/autumn/pricing-table";
+import AttachDialog from "@/components/autumn/attach-dialog";
+// import PricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
   const {
@@ -20,7 +21,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b p-10">
       <main className="max-w-4xl mx-auto space-y-8">
-        <PricingTable />
+        {/* <PricingTable /> */}
         <section className="space-y-4">
           <div className="flex gap-3">
             <Button
@@ -58,6 +59,9 @@ export default function Home() {
               Sign Up
             </Button>
           </div>
+          <p>
+            Credits allowed: {allowed({ featureId: "credits" }) ? "Yes" : "No"}
+          </p>
         </section>
         <section className="space-y-4">
           <h2 className="text-md font-semibold text-slate-800">Customer</h2>
@@ -70,7 +74,8 @@ export default function Home() {
           <Button
             onClick={async () => {
               const res = await openBillingPortal({
-                openInNewTab: true,
+                // openInNewTab: true,
+                returnUrl: "https://facebook.com",
               });
               console.log(res);
             }}
@@ -116,6 +121,7 @@ export default function Home() {
               const res = await attach({
                 productId: "pro",
                 openInNewTab: true,
+                dialog: AttachDialog,
               });
               console.log(res);
             }}
