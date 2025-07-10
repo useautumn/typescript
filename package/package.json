@@ -1,8 +1,14 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.87",
+  "version": "0.0.95",
   "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md",
+    "tsup.config.ts"
+  ],
   "scripts": {
     "cli": "tsx src/cli/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",

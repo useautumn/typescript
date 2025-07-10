@@ -22,31 +22,21 @@ export const ReactAutumnProvider = ({
   backendUrl,
   customerData,
   includeCredentials,
-  authClient,
+  betterAuthUrl,
 }: {
   children: React.ReactNode;
   getBearerToken?: () => Promise<string | null | undefined>;
   backendUrl?: string;
   customerData?: CustomerData;
   includeCredentials?: boolean;
-  authClient?: any;
+  betterAuthUrl?: string;
 }) => {
-  // const test = async () => {
-  //   console.log("authClient", authClient);
-  //   console.log("authClient.autumn", authClient.autumn);
-  //   const customer = await authClient.autumn.createCustomer();
-  //   console.log("Customer:", customer);
-  // };
-
-  // useEffect(() => {
-  //   test();
-  // }, []);
-
   let client = new AutumnClient({
     backendUrl: getBackendUrl(backendUrl),
     getBearerToken,
     customerData,
     includeCredentials,
+    betterAuthUrl,
   });
 
   return (

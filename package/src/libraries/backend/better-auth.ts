@@ -8,7 +8,8 @@ import {
 import { APIError } from "better-call";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
-import { Autumn } from "@sdk";
+import { BillingPortalParamsSchema, CustomerExpandEnum } from "@sdk";
+import { Autumn } from "../../sdk/client";
 import { findRoute } from "rou3";
 import { sessionMiddleware } from "better-auth/api";
 import { z } from "zod";
@@ -18,18 +19,17 @@ import {
   TrackParamsSchema,
   CancelParamsSchema,
   CheckParamsSchema,
-} from "@/client/types/clientGenTypes";
+} from "@sdk/general/genTypes";
 import {
   CreateReferralCodeParamsSchema,
   RedeemReferralCodeParamsSchema,
-} from "@/client/types/clientReferralTypes";
-import { toSnakeCase } from "@/utils/toSnakeCase";
+} from "@sdk/referrals/referralTypes";
 
 const router = createRouterWithOptions();
 
 const betterAuthPathMap: Record<string, string> = {
-  "create-customer": "customers",
-  "customers/get": "customers",
+  // "create-customer": "customers",
+  // "customers/get": "customers",
   attach: "attach",
   check: "check",
   track: "track",
@@ -37,20 +37,29 @@ const betterAuthPathMap: Record<string, string> = {
   "referrals/redeem-code": "referrals/redeem",
   "referrals/create-code": "referrals/code",
   "open-billing-portal": "billing_portal",
-  "products/list": "products",
+  // "products/list": "products",
 };
 
 const handleReq = async ({
   ctx,
-  client,
+  options,
 }: {
   ctx: EndpointContext<any, any, AuthContext>;
-  client: Autumn;
+  options?: { url?: string; secretKey?: string };
 }) => {
   let { found, error: resError } = secretKeyCheck();
-  if (!found) {
-    return ctx.json({ error: resError }, { status: resError!.statusCode });
+
+  if (!found && !options?.secretKey) {
+    throw new APIError(resError!.statusCode as any, {
+      message: resError!.message,
+      code: resError!.code,
+    });
   }
+
+  const client = new Autumn({
+    url: options?.url,
+    secretKey: options?.secretKey,
+  });
 
   const req = ctx.request as Request;
   const method = req.method;
@@ -70,7 +79,8 @@ const handleReq = async ({
   const { data, params: pathParams } = match;
   const { handler } = data;
 
-  const body = toSnakeCase(ctx.body, ["checkoutSessionParams"]);
+  // const body = toSnakeCase(ctx.body, ["checkoutSessionParams"]);
+  const body = ctx.body;
   const session = ctx.context.session;
 
   const identify = async () => {
@@ -105,29 +115,35 @@ const handleReq = async ({
   return ctx.json(result.body, { status: result.statusCode });
 };
 
-export const autumn = (options?: { client?: Autumn }) => {
-  const client = options?.client ?? new Autumn();
+export const autumn = (options?: { url?: string; secretKey?: string }) => {
+  // let client = options?.url ? new Autumn({ url: options.url }) : undefined;
+  let secretKey = options?.secretKey;
+  let url = options?.url;
+
   return {
     id: "autumn",
     endpoints: {
       createCustomer: createAuthEndpoint(
-        "/autumn/create-customer",
+        "/autumn/customers",
         {
           method: "POST",
           use: [sessionMiddleware],
+          body: z.object({
+            expand: z.array(CustomerExpandEnum).optional(),
+          }),
         },
         async (ctx) => {
-          return await handleReq({ ctx, client });
+          return await handleReq({ ctx, options });
         }
       ),
       listProducts: createAuthEndpoint(
-        "/autumn/products/list",
+        "/autumn/products",
         {
           method: "GET",
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, client });
+          return await handleReq({ ctx, options });
         }
       ),
       attach: createAuthEndpoint(
@@ -135,12 +151,11 @@ export const autumn = (options?: { client?: Autumn }) => {
         {
           method: "POST",
           body: AttachParamsSchema.omit({
-            dialog: true,
-            openInNewTab: true,
+            customer_id: true,
           }),
           use: [sessionMiddleware],
         },
-        async (ctx) => handleReq({ ctx, client })
+        async (ctx) => handleReq({ ctx, options })
       ),
 
       check: createAuthEndpoint(
@@ -148,86 +163,74 @@ export const autumn = (options?: { client?: Autumn }) => {
         {
           method: "POST",
           body: CheckParamsSchema.omit({
-            dialog: true,
+            customer_id: true,
           }),
           use: [sessionMiddleware],
         },
-        async (ctx) => handleReq({ ctx, client })
+        async (ctx) => handleReq({ ctx, options })
       ),
       track: createAuthEndpoint(
         "/autumn/track",
         {
           method: "POST",
-          body: TrackParamsSchema,
+          body: TrackParamsSchema.omit({
+            customer_id: true,
+          }),
           use: [sessionMiddleware],
         },
-        async (ctx) => handleReq({ ctx, client })
+        async (ctx) => handleReq({ ctx, options })
       ),
       cancel: createAuthEndpoint(
         "/autumn/cancel",
         {
           method: "POST",
-          body: CancelParamsSchema,
+          body: CancelParamsSchema.omit({
+            customer_id: true,
+          }),
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, client });
+          return await handleReq({ ctx, options });
         }
       ),
       createReferralCode: createAuthEndpoint(
         "/autumn/referrals/create-code",
         {
           method: "POST",
-          body: CreateReferralCodeParamsSchema,
+          body: CreateReferralCodeParamsSchema.omit({
+            customer_id: true,
+          }),
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, client });
+          return await handleReq({ ctx, options });
         }
       ),
       redeemReferralCode: createAuthEndpoint(
         "/autumn/referrals/redeem-code",
         {
           method: "POST",
-          body: RedeemReferralCodeParamsSchema,
-          use: [sessionMiddleware],
-        },
-        async (ctx) => {
-          return await handleReq({ ctx, client });
-        }
-      ),
-      allowed: createAuthEndpoint(
-        "/autumn/allowed",
-        {
-          method: "POST",
-          metadata: {
-            isAction: false,
-          },
-          body: z.object({
-            featureId: z.string().optional(),
-            productId: z.string().optional(),
-            requiredBalance: z.number().optional(),
+          body: RedeemReferralCodeParamsSchema.omit({
+            customer_id: true,
           }),
           use: [sessionMiddleware],
         },
-        async (ctx) => {}
+        async (ctx) => {
+          return await handleReq({ ctx, options });
+        }
       ),
 
-      openBillingPortal: createAuthEndpoint(
-        "/autumn/open-billing-portal",
+      billingPortal: createAuthEndpoint(
+        "/autumn/billing_portal",
         {
           method: "POST",
-          body: z
-            .object({
-              returnUrl: z.string().optional(),
-            })
-            .optional(),
+          body: BillingPortalParamsSchema,
           metadata: {
             isAction: false,
           },
           use: [sessionMiddleware],
         },
-        async (ctx) => await handleReq({ ctx, client })
+        async (ctx) => await handleReq({ ctx, options })
       ),
     },
   } satisfies BetterAuthPlugin;

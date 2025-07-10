@@ -1,22 +1,27 @@
 import { CustomerData } from "../customers/cusTypes";
-import { EntityData } from "../customers/entities/entTypes";
+import { EntityData, EntityDataSchema } from "../customers/entities/entTypes";
 import { CheckFeatureResult, CheckProductResult } from "./checkTypes";
 import { z } from "zod";
 
 // Attach
-export interface AttachFeatureOptions {
-  feature_id: string;
-  quantity: number;
-}
+export const AttachFeatureOptionsSchema = z.object({
+  feature_id: z.string(),
+  quantity: z.number(),
+});
+export type AttachFeatureOptions = z.infer<typeof AttachFeatureOptionsSchema>;
 
 export const AttachParamsSchema = z.object({
   customer_id: z.string(),
   product_id: z.string().optional(),
   entity_id: z.string().optional(),
-  options: z.array(z.object({
-    feature_id: z.string(),
-    quantity: z.number()
-  })).optional(),
+  options: z
+    .array(
+      z.object({
+        feature_id: z.string(),
+        quantity: z.number(),
+      })
+    )
+    .optional(),
 
   product_ids: z.array(z.string()).optional(), // If set, will attach multiple products to the customer (cannot be used with product_id)
   free_trial: z.boolean().optional(), // Default is true -- if set to false, will bypass product free trial
@@ -28,23 +33,10 @@ export const AttachParamsSchema = z.object({
   entity_data: z.any().optional(),
 
   checkout_session_params: z.record(z.any()).optional(), // Passed to Stripe
-  reward: z.string().optional()
+  reward: z.string().optional(),
 });
 
 export type AttachParams = z.infer<typeof AttachParamsSchema>;
-
-export interface CancelParams {
-  customer_id: string;
-  product_id: string;
-  entity_id?: string;
-  cancel_immediately?: boolean;
-}
-
-export interface CancelResult {
-  success: boolean;
-  customer_id: string;
-  product_id: string;
-}
 
 export const AttachResultSchema = z.object({
   checkout_url: z.string().optional(),
@@ -52,45 +44,65 @@ export const AttachResultSchema = z.object({
   product_ids: z.array(z.string()),
   code: z.string(),
   message: z.string(),
-  customer_data: z.any().optional()
+  customer_data: z.any().optional(),
 });
 
 export type AttachResult = z.infer<typeof AttachResultSchema>;
 
+export const CancelParamsSchema = z.object({
+  customer_id: z.string(),
+  product_id: z.string(),
+  entity_id: z.string().optional(),
+  cancel_immediately: z.boolean().optional(),
+});
+
+export type CancelParams = z.infer<typeof CancelParamsSchema>;
+
+export const CancelResultSchema = z.object({
+  success: z.boolean(),
+  customer_id: z.string(),
+  product_id: z.string(),
+});
+
+export type CancelResult = z.infer<typeof CancelResultSchema>;
+
 // Events
-export interface TrackParams {
-  customer_id: string;
-  value?: number; // Defaults to 1
+export const TrackParamsSchema = z.object({
+  customer_id: z.string(),
+  value: z.number().optional(),
+  feature_id: z.string().optional(),
+  event_name: z.string().optional(),
+  entity_id: z.string().optional(),
+  customer_data: z.any().optional(),
+  idempotency_key: z.string().optional(),
+  entity_data: z.any().optional(),
+});
 
-  feature_id?: string;
-  event_name?: string;
-  entity_id?: string;
-  customer_data?: CustomerData;
-  idempotency_key?: string;
-  entity_data?: EntityData;
-}
+export type TrackParams = z.infer<typeof TrackParamsSchema>;
 
-export interface TrackResult {
-  id: string; // Event ID
-  code: string; // Success code
-  customer_id: string; // Customer ID
+export const TrackResultSchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  customer_id: z.string(),
+  feature_id: z.string().optional(),
+  event_name: z.string().optional(),
+});
 
-  feature_id?: string; // Feature ID
-  event_name?: string; // Event name
-}
+export type TrackResult = z.infer<typeof TrackResultSchema>;
 
-// Entitled
-export interface CheckParams {
-  customer_id: string;
-  feature_id?: string;
-  product_id?: string;
-  entity_id?: string;
-  customer_data?: CustomerData;
-  required_balance?: number;
-  send_event?: boolean;
-  with_preview?: boolean;
-  entity_data?: EntityData;
-}
+export const CheckParamsSchema = z.object({
+  customer_id: z.string(),
+  feature_id: z.string().optional(),
+  product_id: z.string().optional(),
+  entity_id: z.string().optional(),
+  customer_data: z.any().optional(),
+  required_balance: z.number().optional(),
+  send_event: z.boolean().optional(),
+  with_preview: z.boolean().optional(),
+  entity_data: EntityDataSchema.optional(),
+});
+
+export type CheckParams = z.infer<typeof CheckParamsSchema>;
 
 export type CheckResult = CheckFeatureResult & CheckProductResult;
 
@@ -106,7 +118,6 @@ export interface UsageResult {
   customer_id: string; // Customer ID
   feature_id: string; // Feature ID
 }
-
 
 export interface SetupPaymentParams {
   customer_id: string;

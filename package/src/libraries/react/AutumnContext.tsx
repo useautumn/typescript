@@ -54,9 +54,9 @@ export const useAutumnContext = ({
 }) => {
   const context = useContext(AutumnContext);
 
-  // if (!context.initialized && errorIfNotInitialized) {
-  //   throw new Error(`${name} must be used within <AutumnProvider />`);
-  // }
+  if (!context.initialized && errorIfNotInitialized) {
+    throw new Error(`${name} must be used within <AutumnProvider />`);
+  }
 
   return context;
 };

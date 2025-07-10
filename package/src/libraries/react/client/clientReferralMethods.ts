@@ -15,7 +15,7 @@ export async function createCode(
   params: CreateReferralCodeParams
 ): AutumnPromise<CreateReferralCodeResult> {
   let snakeParams = toSnakeCase(params);
-  const res = await this.post("/api/autumn/referrals/code", snakeParams);
+  const res = await this.post(`${this.prefix}/referrals/code`, snakeParams);
   return res;
 }
 
@@ -24,6 +24,6 @@ export async function redeemCode(
   params: RedeemReferralCodeParams
 ): AutumnPromise<RedeemReferralCodeResult> {
   let snakeParams = toSnakeCase(params);
-  const res = await this.post("/api/autumn/referrals/redeem", snakeParams);
+  const res = await this.post(`${this.prefix}/referrals/redeem`, snakeParams);
   return res;
 }

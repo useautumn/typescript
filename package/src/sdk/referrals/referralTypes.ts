@@ -1,7 +1,13 @@
-export interface CreateReferralCodeParams {
-  customer_id: string;
-  program_id: string;
-}
+import { z } from "zod";
+
+export const CreateReferralCodeParamsSchema = z.object({
+  customer_id: z.string(),
+  program_id: z.string(),
+});
+
+export type CreateReferralCodeParams = z.infer<
+  typeof CreateReferralCodeParamsSchema
+>;
 
 export interface CreateReferralCodeResult {
   code: string;
@@ -9,10 +15,14 @@ export interface CreateReferralCodeResult {
   created_at: number;
 }
 
-export interface RedeemReferralCodeParams {
-  code: string;
-  customer_id: string;
-}
+export const RedeemReferralCodeParamsSchema = z.object({
+  code: z.string(),
+  customer_id: z.string(),
+});
+
+export type RedeemReferralCodeParams = z.infer<
+  typeof RedeemReferralCodeParamsSchema
+>;
 
 export interface RedeemReferralCodeResult {
   id: string;

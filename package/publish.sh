@@ -8,11 +8,10 @@ cp ../LICENSE.md ./
 
 bun run build
 
-npm version patch
-
 if [ "$1" = "--tag" ] && [ "$2" = "beta" ]; then
   npm publish --tag beta
 else
+  npm version patch
   npm publish
 fi
 

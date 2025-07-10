@@ -6,3 +6,5 @@
 .gitignore
 
 tsconfig.json
+
+bun.lock

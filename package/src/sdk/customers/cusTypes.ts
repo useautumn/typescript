@@ -112,9 +112,11 @@ export interface UpdateCustomerParams {
   fingerprint?: string | null;
 }
 
-export interface BillingPortalParams {
-  return_url?: string;
-}
+export const BillingPortalParamsSchema = z.object({
+  return_url: z.string().optional(),
+});
+
+export type BillingPortalParams = z.infer<typeof BillingPortalParamsSchema>;
 
 export interface BillingPortalResult {
   customer_id: string;
@@ -128,4 +130,5 @@ export interface CustomerInvoice {
   total: number;
   currency: string;
   created_at: number;
+  hosted_invoice_url: string;
 }

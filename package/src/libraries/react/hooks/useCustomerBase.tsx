@@ -68,7 +68,7 @@ export interface UseCustomerParams {
   errorOnNotFound?: boolean;
   expand?: CustomerExpandOption[];
   swrConfig?: SWRConfiguration;
-  authClient?: any;
+  // authClient?: any;
 }
 
 const emptyDefaultFunctions = {
@@ -89,24 +89,27 @@ export const useCustomerBase = ({
   AutumnContext?: React.Context<any>;
   client?: AutumnClient;
 }): UseCustomerResult => {
-  const queryKey = ["customer", params?.expand];
-
   let context: AutumnContextParams | undefined;
-  let authClientExists = !!params?.authClient;
+  // let authClientExists = !!params?.authClient;
 
   if (AutumnContext) {
     context = useAutumnContext({
       AutumnContext,
       name: "useCustomer",
-      errorIfNotInitialized: !authClientExists,
+      // errorIfNotInitialized: !authClientExists,
     });
   }
 
-  if (authClientExists) {
-    client = params?.authClient?.autumn;
-  } else if (!client) {
+  // if (authClientExists) {
+  //   client = params?.authClient?.autumn;
+  // } else
+  if (!client) {
     client = context!.client;
   }
+
+  let baseUrl = client?.backendUrl || "";
+
+  const queryKey = ["customer", baseUrl, params?.expand];
 
   const fetchCustomer = async () => {
     const { data, error } = await client!.createCustomer({
@@ -136,10 +139,9 @@ export const useCustomerBase = ({
   });
 
   let autumnFunctions = emptyDefaultFunctions;
-  if (AutumnContext || params?.authClient) {
+  if (AutumnContext) {
     autumnFunctions = useAutumnBase({
       AutumnContext: AutumnContext!,
-      authClient: params?.authClient,
     });
   }
 
