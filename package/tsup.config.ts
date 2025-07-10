@@ -1,7 +1,6 @@
 import { defineConfig, Options } from "tsup";
-// @ts-ignore
 import * as path from "path";
-import alias from "esbuild-plugin-alias";
+import alias from "esbuild-plugin-path-alias";
 
 // Path aliases that match tsconfig.json
 const pathAliases = {
@@ -86,17 +85,16 @@ export default defineConfig([
     },
   },
   {
-    entry: ["./src/cli/cli.tsx"],
+    entry: ["./src/compose/index.ts"],
     format: ["cjs", "esm"],
     dts: true,
     clean: false,
-    outDir: "./dist/cli",
-    // esbuildOptions(options) {
-    //   options.plugins = options.plugins || [];
-    //   options.plugins.push(alias(pathAliases));
-    // },
+    outDir: "./dist/compose",
+    esbuildOptions(options) {
+      options.plugins = options.plugins || [];
+      options.plugins.push(alias(pathAliases));
+    },
   },
-
   // GLOBAL
   {
     entry: ["src/utils/*.{ts,tsx}"],

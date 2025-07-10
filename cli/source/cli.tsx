@@ -12,20 +12,24 @@ program
 	.command('push')
 	.description('Push changes to the remote repository')
 	.option('-p, --prod', 'Push to production')
-	.action(async (options) => {
+	.action(async options => {
 		const config = await loadAutumnConfig();
-		process.env['AUTUMN_API_KEY'] = options.prod ? config.auth.keys.prodKey : config.auth.keys.sandboxKey;
-		render(<Push config={config}/>);
+		process.env['AUTUMN_API_KEY'] = options.prod
+			? config.auth.keys.prodKey
+			: config.auth.keys.sandboxKey;
+		render(<Push config={config} />);
 	});
 
 program
 	.command('pull')
 	.description('Pull changes from Autumn')
 	.option('-p, --prod', 'Pull from production')
-	.action(async (options) => {
+	.action(async options => {
 		const config = await loadAutumnConfig();
-		process.env['AUTUMN_API_KEY'] = options.prod ? config.auth.keys.prodKey : config.auth.keys.sandboxKey;
-		render(<Pull config={config}/>);
+		process.env['AUTUMN_API_KEY'] = options.prod
+			? config.auth.keys.prodKey
+			: config.auth.keys.sandboxKey;
+		render(<Pull config={config} />);
 	});
 
 program
@@ -36,10 +40,18 @@ program
 	});
 
 program
+	.command('config')
+	.description('Show the current config')
+	.action(async () => {
+		const config = await loadAutumnConfig();
+		console.log(config);
+	});
+
+program
 	.command('dashboard')
 	.description('Open the Autumn dashboard in your browser')
 	.action(() => {
 		open(`https://app.useautumn.com`);
-	});	
+	});
 
 program.parse();

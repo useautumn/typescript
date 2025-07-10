@@ -4,3 +4,4 @@ packages:
   - "nextjs"
   - "compose"
   - "cli" 
+  - "atmn"

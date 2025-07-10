@@ -21,7 +21,7 @@ export enum UsageModel {
 
 export const ProductItemSchema = z.object({
   // Feature stuff
-  type: z.enum(["feature", "priced_feature"]),
+  type: z.enum(["feature", "priced_feature"]).nullish(),
   feature_id: z.string().nullish(),
   included_usage: z.union([z.number(), z.literal("inf")]).nullish(),
   interval: z.nativeEnum(ProductItemInterval).nullish(),
@@ -55,7 +55,7 @@ export const FeatureSchema = z.object({
       z.object({
         metered_feature_id: z.string(),
         credit_cost: z.number(),
-      }),
+      })
     )
     .nullish(),
 });

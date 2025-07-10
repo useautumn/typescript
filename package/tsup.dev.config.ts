@@ -1,7 +1,6 @@
 import { defineConfig, Options } from "tsup";
 import * as path from "path";
-import alias from "esbuild-plugin-alias";
-import fs from "fs";
+import alias from "esbuild-plugin-path-alias";
 
 // Path aliases that match tsconfig.json
 const pathAliases = {
@@ -26,17 +25,11 @@ const reactConfigs: Options[] = [
     },
   },
   {
-    entry: ["./src/cli/cli.tsx"],
+    entry: ["./src/compose/index.ts"],
     format: ["cjs", "esm"],
-    dts: false,
+    dts: true,
     clean: false,
-    outDir: "./dist/cli",
-    external: ["react", "react/jsx-runtime", "react-dom"],
-    bundle: true,
-    // esbuildOptions(options) {
-    //   options.plugins = options.plugins || [];
-    //   options.plugins.push(alias(pathAliases));
-    // },
+    outDir: "./dist/compose",
   },
 
   // React - Index file with CSS import (CommonJS)

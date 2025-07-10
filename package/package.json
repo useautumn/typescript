@@ -9,16 +9,19 @@
     "LICENSE.md",
     "tsup.config.ts"
   ],
-  "bin": "./dist/cli/cli.js",
+  "bin": {
+    "autumn": "./dist/cli/cli.mjs"
+  },
   "scripts": {
-    "cli": "tsx src/cli/index.ts",
+    
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf dist && tsup && node scripts/post-build.js",
     "build:backend": "tsup \"src/libraries/backend/**/*.ts\" --format cjs,esm --clean=false --outDir=\"./dist/libraries/backend\"",
     "build:cli": "tsup src/cli/index.ts --format cjs --outDir dist/cli",
     "publish-beta": "pnpm publish --tag beta",
-    "dev-old": "tsx scripts/sync-registry.ts sync && (tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\")",
     "dev": "(tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts && node scripts/post-build.js\")",
+    "cli": "tsx src/cli/index.ts",
+    "test-cli": "node ./dist/cli/cli.mjs",
     "dev2": "nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\"",
     "sync-registry": "tsx scripts/sync-registry.ts sync",
     "watch-registry": "tsx scripts/sync-registry.ts watch"
@@ -30,6 +33,11 @@
       "types": "./dist/sdk/index.d.ts",
       "require": "./dist/sdk/index.js",
       "import": "./dist/sdk/index.mjs"
+    },
+    "./compose": {
+      "types": "./dist/compose/index.d.ts",
+      "require": "./dist/compose/index.js",
+      "import": "./dist/compose/index.mjs"
     },
     "./next": {
       "types": "./dist/next/index.d.ts",
@@ -103,7 +111,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.25.2",
-    "esbuild-plugin-alias": "^0.2.1",
     "esbuild-plugin-path-alias": "^1.0.7",
     "esbuild-postcss": "^0.0.4",
     "express": "^5.1.0",

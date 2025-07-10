@@ -1,4 +1,4 @@
-import {Feature, Product} from 'autumn-compose';
+import {Feature, Product} from 'autumn-js/compose';
 import {request} from './api.js';
 import {getFeatures, getAllProducts} from './pull.js';
 

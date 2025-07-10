@@ -4,13 +4,14 @@ import {
   ProductItemInterval,
   Feature,
   UsageModel,
-} from ".pnpm/compose@file+..+compose/node_modules/compose/models/core";
-import { AuthInfo } from ".pnpm/compose@file+..+compose/node_modules/compose/models/auth";
+} from "../models/core";
+
+import { AuthInfo } from "../models/auth";
 
 export const product = (p: Product) => p;
 export const auth = (info: AuthInfo) => info;
 export function feature(
-  f: Omit<Feature, "display"> & { display?: Feature["display"] },
+  f: Omit<Feature, "display"> & { display?: Feature["display"] }
 ): Feature {
   let f_ = f as Feature;
   if (!f_.display) {

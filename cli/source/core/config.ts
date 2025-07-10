@@ -18,7 +18,9 @@ export async function loadAutumnConfig() {
 
 export function writeConfig(products: string[], features: string[]) {
 	const configPath = path.join(process.cwd(), '../autumn.config.ts');
-	fs.writeFileSync(configPath, `
+	fs.writeFileSync(
+		configPath,
+		`
 import { feature, product, auth, featureItem, priceItem, pricedFeatureItem, ProductItemInterval } from "./compose";
 
 // This is your Autumn Configuration File
@@ -28,5 +30,6 @@ ${features.join('\n\n')}
 
 // Then define your products
 ${products.join('\n\n')}
-	`);
+	`,
+	);
 }

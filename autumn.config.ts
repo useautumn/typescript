@@ -7,7 +7,7 @@ import {
   ProductItemInterval,
   UsageModel,
   priceItem,
-} from "./compose";
+} from "autumn-js/compose";
 
 // Features
 const messages = feature({
