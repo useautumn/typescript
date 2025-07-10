@@ -1,9 +1,4 @@
 {
   "name": "autumn-js-monorepo",
-  "private": true,
-  "workspaces": [
-    "package",
-    "frameworks/*",
-    "nextjs"
-  ]
+  "private": true
 }

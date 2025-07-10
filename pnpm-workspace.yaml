@@ -1,0 +1,6 @@
+packages:
+  - "package"
+  - "frameworks/*"
+  - "nextjs"
+  - "compose"
+  - "cli" 
