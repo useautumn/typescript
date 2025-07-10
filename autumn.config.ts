@@ -119,8 +119,8 @@ export default {
   features: [messages, taskRuns, canUseTokens],
   auth: auth({
     keys: {
-      prodKey: "am_sk_live_apnduXT2Z9EIeP6Ex7ChPJ4k3HG7venD9mPtBgpek9",
-      sandboxKey: "am_sk_test_U3iWnpEVyBMReYkESOhoTYAuS1wKSE2eBUAlaEItKo",
+      prodKey: "am_sk_live_vGqdZ9OtrJPewwhOXKKBWvUXwA30GI3Fnsvu3iMint",
+      sandboxKey: "am_sk_test_UwDTEeaakEsRr6eveTj9cyxNRMyQPQb3kFbKaDYkIg",
     },
   }),
 };

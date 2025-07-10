@@ -9,15 +9,17 @@
     "LICENSE.md",
     "tsup.config.ts"
   ],
+  "bin": "./dist/cli/cli.js",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf dist && tsup && node scripts/post-build.js",
-    "build:backend": "tsup \"src/libraries/backend/**/*.{ts,tsx}\" --format cjs,esm --clean=false --outDir=\"./dist/libraries/backend\"",
+    "build:backend": "tsup \"src/libraries/backend/**/*.ts\" --format cjs,esm --clean=false --outDir=\"./dist/libraries/backend\"",
+    "build:cli": "tsup src/cli/index.ts --format cjs --outDir dist/cli",
     "publish-beta": "pnpm publish --tag beta",
     "dev-old": "tsx scripts/sync-registry.ts sync && (tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\")",
     "dev": "(tsx scripts/sync-registry.ts watch & nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts && node scripts/post-build.js\")",
-    "dev2": "nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts",
+    "dev2": "nodemon --watch src --ext ts,tsx,css --exec \"tsup --config tsup.dev.config.ts\"",
     "sync-registry": "tsx scripts/sync-registry.ts sync",
     "watch-registry": "tsx scripts/sync-registry.ts watch"
   },
@@ -140,7 +142,12 @@
     }
   },
   "dependencies": {
+    "axios": "^1.10.0",
     "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "ink": "^6.0.1",
+    "jiti": "^2.4.2",
+    "open": "^10.1.2",
     "rou3": "^0.6.1",
     "swr": "^2.3.3",
     "zod": "^3.24.1"

@@ -5,8 +5,8 @@ import {
   feature,
   featureItem,
   pricedFeatureItem,
-} from "./builders/core";
-import { ProductItemInterval, Feature, Product, ProductItem, UsageModel } from "./models/core";
+} from ".pnpm/compose@file+..+compose/node_modules/compose/builders/core";
+import { ProductItemInterval, Feature, Product, ProductItem, UsageModel } from ".pnpm/compose@file+..+compose/node_modules/compose/models/core";
 
 export {
   product,

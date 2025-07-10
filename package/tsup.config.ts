@@ -85,6 +85,17 @@ export default defineConfig([
       options.plugins.push(alias(pathAliases));
     },
   },
+  {
+    entry: ["./src/cli/cli.tsx"],
+    format: ["cjs", "esm"],
+    dts: true,
+    clean: false,
+    outDir: "./dist/cli",
+    // esbuildOptions(options) {
+    //   options.plugins = options.plugins || [];
+    //   options.plugins.push(alias(pathAliases));
+    // },
+  },
 
   // GLOBAL
   {

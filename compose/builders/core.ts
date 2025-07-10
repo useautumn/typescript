@@ -4,8 +4,8 @@ import {
   ProductItemInterval,
   Feature,
   UsageModel,
-} from "../models/core";
-import { AuthInfo } from "../models/auth";
+} from ".pnpm/compose@file+..+compose/node_modules/compose/models/core";
+import { AuthInfo } from ".pnpm/compose@file+..+compose/node_modules/compose/models/auth";
 
 export const product = (p: Product) => p;
 export const auth = (info: AuthInfo) => info;

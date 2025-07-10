@@ -25,6 +25,19 @@ const reactConfigs: Options[] = [
       options.plugins.push(alias(pathAliases));
     },
   },
+  {
+    entry: ["./src/cli/cli.tsx"],
+    format: ["cjs", "esm"],
+    dts: false,
+    clean: false,
+    outDir: "./dist/cli",
+    external: ["react", "react/jsx-runtime", "react-dom"],
+    bundle: true,
+    // esbuildOptions(options) {
+    //   options.plugins = options.plugins || [];
+    //   options.plugins.push(alias(pathAliases));
+    // },
+  },
 
   // React - Index file with CSS import (CommonJS)
   {
