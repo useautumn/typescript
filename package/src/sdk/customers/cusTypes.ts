@@ -45,6 +45,7 @@ export interface CustomerProduct {
   status: ProductStatus;
   started_at: number;
   canceled_at: number | null;
+  version: number;
 
   subscription_ids?: string[] | null;
   current_period_start?: number | null;

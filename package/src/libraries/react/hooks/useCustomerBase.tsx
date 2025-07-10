@@ -142,6 +142,7 @@ export const useCustomerBase = ({
   if (AutumnContext) {
     autumnFunctions = useAutumnBase({
       AutumnContext: AutumnContext!,
+      refetchCustomer: mutate,
     });
   }
 

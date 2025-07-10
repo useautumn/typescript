@@ -16,6 +16,7 @@ import { product } from 'autumn-js/compose';
 const freeProduct = product({
 	id: 'free',
 	name: 'Free',
+	items: []
 })
 `;
 

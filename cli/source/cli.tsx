@@ -14,6 +14,7 @@ program
 	.option('-p, --prod', 'Push to production')
 	.action(async options => {
 		const config = await loadAutumnConfig();
+
 		process.env['AUTUMN_API_KEY'] = options.prod
 			? config.auth.keys.prodKey
 			: config.auth.keys.sandboxKey;
@@ -39,13 +40,13 @@ program
 		render(<Init />);
 	});
 
-program
-	.command('config')
-	.description('Show the current config')
-	.action(async () => {
-		const config = await loadAutumnConfig();
-		console.log(config);
-	});
+// program
+// 	.command('config')
+// 	.description('Show the current config')
+// 	.action(async () => {
+// 		const config = await loadAutumnConfig();
+// 		console.log(config);
+// 	});
 
 program
 	.command('dashboard')

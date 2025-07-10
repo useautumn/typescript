@@ -11,8 +11,8 @@
 	"scripts": {
 		"build": "tsc",
 		"dev": "tsc --watch",
-		"test": "prettier --check . && xo && ava",
-		"test-cli": "node ./dist/cli.js"
+		"test2": "prettier --check . && xo && ava",
+		"test": "node ./dist/cli.js"
 	},
 	"files": [
 		"dist"

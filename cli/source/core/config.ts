@@ -5,7 +5,7 @@ import {pathToFileURL} from 'url';
 import createJiti from 'jiti';
 
 export async function loadAutumnConfig() {
-	const configPath = path.join(process.cwd(), '../autumn.config.ts');
+	const configPath = path.join(process.cwd(), 'autumn.config.ts');
 	const absolutePath = resolve(configPath);
 	const fileUrl = pathToFileURL(absolutePath).href;
 

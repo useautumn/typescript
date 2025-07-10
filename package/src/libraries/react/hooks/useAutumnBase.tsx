@@ -24,9 +24,11 @@ import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
 export const useAutumnBase = ({
   AutumnContext,
   authClient,
+  refetchCustomer,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
   authClient?: any;
+  refetchCustomer?: () => Promise<any>;
 }) => {
   const context = useAutumnContext({
     AutumnContext,
@@ -73,6 +75,9 @@ export const useAutumnBase = ({
     }
 
     await refetchPricingTable();
+    if (refetchCustomer) {
+      await refetchCustomer();
+    }
 
     if (setAttachOpen) {
       setAttachOpen(false);

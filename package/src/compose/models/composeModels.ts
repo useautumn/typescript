@@ -1,0 +1,32 @@
+import { z } from "zod";
+import {
+  ProductItemSchema,
+  FeatureItemSchema,
+  PriceItemSchema,
+} from "./productItemModels";
+
+export const ProductSchema = z.object({
+  id: z.string().nonempty(),
+  name: z.string().nonempty(),
+  is_add_on: z.boolean().default(false).optional(),
+  is_default: z.boolean().default(false).optional(),
+  items: z.array(ProductItemSchema),
+});
+
+export const FeatureSchema = z.object({
+  id: z.string().nonempty(),
+  name: z.string().nonempty(),
+  type: z.enum(["boolean", "continuous_use", "credit_system", "metered"]),
+
+  credit_schema: z
+    .array(
+      z.object({
+        metered_feature_id: z.string(),
+        credit_cost: z.number(),
+      })
+    )
+    .nullish(),
+});
+
+export type Feature = z.infer<typeof FeatureSchema>;
+export type Product = z.infer<typeof ProductSchema>;
