@@ -6,7 +6,7 @@ cp ../README.md ./
 # Copy LICENSE.md from ../ to ./
 cp ../LICENSE.md ./
 
-bun run build
+npm run build
 
 if [ "$1" = "--tag" ] && [ "$2" = "beta" ]; then
   npm publish --tag beta
