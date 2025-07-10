@@ -25,17 +25,6 @@ export default function Home() {
         <section className="space-y-4">
           <div className="flex gap-3">
             <Button
-              variant="default"
-              onClick={async () => {
-                const res = await fetch("http://localhost:3001/api/test", {
-                  method: "GET",
-                });
-                console.log(res);
-              }}
-            >
-              Test Better Auth Plugin
-            </Button>
-            <Button
               onClick={async () => {
                 const res = await authClient.signIn.email({
                   email: "johnyeo10@gmail.com",
@@ -57,6 +46,16 @@ export default function Home() {
               }}
             >
               Sign Up
+            </Button>
+            <Button
+              onClick={async () => {
+                const res = await fetch("http://localhost:3001/api/test", {
+                  method: "GET",
+                });
+                console.log(res);
+              }}
+            >
+              Test Better Auth Plugin
             </Button>
           </div>
           <p>

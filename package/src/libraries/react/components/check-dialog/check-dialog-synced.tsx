@@ -10,8 +10,8 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCheckContent } from "./lib/check-content";
-import { type CheckFeaturePreview } from "@sdk";
 import { cn } from "@/lib/utils";
+import { type CheckFeaturePreview } from "@sdk";
 
 export interface CheckDialogProps {
   open: boolean;

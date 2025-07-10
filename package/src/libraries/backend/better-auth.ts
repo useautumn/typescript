@@ -5,7 +5,7 @@ import {
   type BetterAuthPlugin,
   type EndpointContext,
 } from "better-auth";
-import { APIError } from "better-call";
+import { APIError, createEndpoint } from "better-call";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 import { BillingPortalParamsSchema, CustomerExpandEnum } from "@sdk";
@@ -43,9 +43,11 @@ const betterAuthPathMap: Record<string, string> = {
 const handleReq = async ({
   ctx,
   options,
+  method,
 }: {
   ctx: EndpointContext<any, any, AuthContext>;
   options?: { url?: string; secretKey?: string };
+  method: string;
 }) => {
   let { found, error: resError } = secretKeyCheck();
 
@@ -61,14 +63,15 @@ const handleReq = async ({
     secretKey: options?.secretKey,
   });
 
-  const req = ctx.request as Request;
-  const method = req.method;
-  const url = new URL(req.url);
-  const searchParams = Object.fromEntries(url.searchParams);
-  let pathname = url.pathname;
-  pathname = pathname.replace("/api/auth", "/api");
-  const rest = pathname.split("/api/autumn/")[1];
-  pathname = `/api/autumn/${betterAuthPathMap[rest] || rest}`;
+  let searchParams: Record<string, string> = {};
+  try {
+    const req = ctx.request as Request;
+    const url = new URL(req.url);
+    searchParams = Object.fromEntries(url.searchParams);
+  } catch (error) {}
+
+  const rest = ctx.path.split("/autumn/")[1];
+  const pathname = `/api/autumn/${betterAuthPathMap[rest] || rest}`;
 
   const match = findRoute(router, method, pathname);
 
@@ -99,7 +102,7 @@ const handleReq = async ({
   const result = await handler({
     autumn: client,
     body,
-    path: url,
+    path: pathname,
     getCustomer: identify,
     pathParams,
     searchParams,
@@ -123,7 +126,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
   return {
     id: "autumn",
     endpoints: {
-      createCustomer: createAuthEndpoint(
+      createCustomer: createEndpoint(
         "/autumn/customers",
         {
           method: "POST",
@@ -131,9 +134,12 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           body: z.object({
             expand: z.array(CustomerExpandEnum).optional(),
           }),
+          metadata: {
+            isAction: false,
+          },
         },
         async (ctx) => {
-          return await handleReq({ ctx, options });
+          return await handleReq({ ctx, options, method: "POST" });
         }
       ),
       listProducts: createAuthEndpoint(
@@ -143,7 +149,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, options });
+          return await handleReq({ ctx, options, method: "GET" });
         }
       ),
       attach: createAuthEndpoint(
@@ -155,7 +161,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           }),
           use: [sessionMiddleware],
         },
-        async (ctx) => handleReq({ ctx, options })
+        async (ctx) => handleReq({ ctx, options, method: "POST" })
       ),
 
       check: createAuthEndpoint(
@@ -167,7 +173,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           }),
           use: [sessionMiddleware],
         },
-        async (ctx) => handleReq({ ctx, options })
+        async (ctx) => handleReq({ ctx, options, method: "POST" })
       ),
       track: createAuthEndpoint(
         "/autumn/track",
@@ -178,7 +184,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           }),
           use: [sessionMiddleware],
         },
-        async (ctx) => handleReq({ ctx, options })
+        async (ctx) => handleReq({ ctx, options, method: "POST" })
       ),
       cancel: createAuthEndpoint(
         "/autumn/cancel",
@@ -190,7 +196,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, options });
+          return await handleReq({ ctx, options, method: "POST" });
         }
       ),
       createReferralCode: createAuthEndpoint(
@@ -203,7 +209,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, options });
+          return await handleReq({ ctx, options, method: "POST" });
         }
       ),
       redeemReferralCode: createAuthEndpoint(
@@ -216,7 +222,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           use: [sessionMiddleware],
         },
         async (ctx) => {
-          return await handleReq({ ctx, options });
+          return await handleReq({ ctx, options, method: "POST" });
         }
       ),
 
@@ -230,7 +236,7 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           },
           use: [sessionMiddleware],
         },
-        async (ctx) => await handleReq({ ctx, options })
+        async (ctx) => await handleReq({ ctx, options, method: "POST" })
       ),
     },
   } satisfies BetterAuthPlugin;
