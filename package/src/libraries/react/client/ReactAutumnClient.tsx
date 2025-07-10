@@ -42,6 +42,7 @@ export interface AutumnClientConfig {
   getBearerToken?: () => Promise<string | null | undefined>;
   customerData?: CustomerData;
   includeCredentials?: boolean;
+  betterAuthUrl?: string;
 }
 
 export class AutumnClient {
@@ -49,25 +50,35 @@ export class AutumnClient {
   protected readonly getBearerToken?: () => Promise<string | null | undefined>;
   protected readonly customerData?: CustomerData;
   protected includeCredentials?: boolean;
-  private corsDetected?: boolean;
-  private corsSupportsCredentials?: boolean;
+  public readonly prefix: string;
 
   constructor({
     backendUrl,
     getBearerToken,
     customerData,
     includeCredentials,
+    betterAuthUrl,
   }: AutumnClientConfig) {
     this.backendUrl = backendUrl;
     this.getBearerToken = getBearerToken;
     this.customerData = customerData;
     this.includeCredentials = includeCredentials;
+    this.prefix = "/api/autumn";
+
+    if (betterAuthUrl) {
+      this.prefix = "/api/auth/autumn";
+      this.backendUrl = betterAuthUrl;
+    }
   }
 
   /**
    * Detects if the backend supports CORS credentials by making an OPTIONS request
    */
   private async detectCors() {
+    if (this.prefix?.includes("/api/auth")) {
+      return { valid: true, includeCredentials: true };
+    }
+
     const testEndpoint = `${this.backendUrl}/api/autumn/cors`;
 
     // Test 1: With credentials
@@ -156,7 +167,6 @@ export class AutumnClient {
         : undefined;
 
     const includeCredentials = await this.shouldIncludeCredentials();
-    // const includeCredentials = this.includeCredentials;
 
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
@@ -217,6 +227,7 @@ export class AutumnClient {
       errorOnNotFound?: boolean;
     }
   ) {
+    // console.log("Creating customer")
     return await createCustomerMethod({
       client: this,
       params,

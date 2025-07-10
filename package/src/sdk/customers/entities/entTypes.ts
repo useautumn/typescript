@@ -5,6 +5,7 @@ import {
   CustomerProduct,
 } from "../cusTypes";
 import { EntityExpandOption } from "./entEnums";
+import { z } from "zod";
 
 export interface CreateEntityParams {
   id: string;
@@ -36,7 +37,9 @@ export interface Entity {
   invoices?: CustomerInvoice[];
 }
 
-export interface EntityData {
-  name?: string;
-  feature_id: string;
-}
+export const EntityDataSchema = z.object({
+  name: z.string().optional(),
+  feature_id: z.string(),
+});
+
+export type EntityData = z.infer<typeof EntityDataSchema>;

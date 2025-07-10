@@ -1,7 +1,12 @@
 import { ProductItem } from "@sdk/products/prodTypes";
 import { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
-import { CustomerExpandOption, ProductStatus } from "./cusEnums";
+import {
+  CustomerExpandEnum,
+  CustomerExpandOption,
+  ProductStatus,
+} from "./cusEnums";
+import { z } from "zod";
 
 export interface CoreCustomerFeature {
   unlimited?: boolean;
@@ -11,6 +16,7 @@ export interface CoreCustomerFeature {
   included_usage?: number;
   next_reset_at?: number | null;
   overage_allowed?: boolean;
+  usage_limit?: number;
 
   breakdown?: {
     interval: ProductItemInterval;
@@ -79,14 +85,25 @@ export interface GetCustomerParams {
   expand?: CustomerExpandOption[];
 }
 
-export interface CreateCustomerParams {
-  id?: string | null;
-  email?: string | null;
-  name?: string | null;
-  fingerprint?: string | null;
-  metadata?: Record<string, any>;
-  expand?: CustomerExpandOption[];
-}
+export const CreateCustomerParamsSchema = z.object({
+  id: z.string().nullish(),
+  email: z.string().nullish(),
+  name: z.string().nullish(),
+  fingerprint: z.string().nullish(),
+  metadata: z.record(z.any()).optional(),
+  expand: z.array(CustomerExpandEnum).optional(),
+});
+
+export type CreateCustomerParams = z.infer<typeof CreateCustomerParamsSchema>;
+
+// export interface CreateCustomerParams {
+//   id?: string | null;
+//   email?: string | null;
+//   name?: string | null;
+//   fingerprint?: string | null;
+//   metadata?: Record<string, any>;
+//   expand?: CustomerExpandOption[];
+// }
 
 export interface UpdateCustomerParams {
   id?: string | null;
@@ -95,9 +112,11 @@ export interface UpdateCustomerParams {
   fingerprint?: string | null;
 }
 
-export interface BillingPortalParams {
-  return_url?: string;
-}
+export const BillingPortalParamsSchema = z.object({
+  return_url: z.string().optional(),
+});
+
+export type BillingPortalParams = z.infer<typeof BillingPortalParamsSchema>;
 
 export interface BillingPortalResult {
   customer_id: string;
@@ -111,4 +130,5 @@ export interface CustomerInvoice {
   total: number;
   currency: string;
   created_at: number;
+  hosted_invoice_url: string;
 }

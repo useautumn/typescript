@@ -11,7 +11,8 @@ export interface CheckFeatureResult extends CoreCustomerFeature {
   entity_id?: string;
   required_balance: number;
   code: string;
-
+  usage_limit?: number;
+  
   preview?: CheckFeaturePreview;
 }
 

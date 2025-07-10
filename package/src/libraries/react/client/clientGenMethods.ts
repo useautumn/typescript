@@ -28,7 +28,7 @@ export async function attachMethod(
 
   let snakeParams = toSnakeCase(rest, ["checkoutSessionparams"]);
 
-  const res = await this.post("/api/autumn/attach", snakeParams);
+  const res = await this.post(`${this.prefix}/attach`, snakeParams);
   return res;
 }
 export async function setupPaymentMethod(
@@ -37,7 +37,7 @@ export async function setupPaymentMethod(
 ): AutumnPromise<SetupPaymentResult> {
   let snakeParams = toSnakeCase(params, ["checkoutSessionParams"]);
 
-  const res = await this.post("/api/autumn/setup_payment", snakeParams);
+  const res = await this.post(`${this.prefix}/setup_payment`, snakeParams);
   return res;
 }
 
@@ -46,7 +46,7 @@ export async function cancelMethod(
   params: CancelParams
 ): AutumnPromise<CancelResult> {
   let snakeParams = toSnakeCase(params);
-  const res = await this.post("/api/autumn/cancel", snakeParams);
+  const res = await this.post(`${this.prefix}/cancel`, snakeParams);
   return res;
 }
 
@@ -58,7 +58,7 @@ export async function checkMethod(
   let { dialog, ...rest } = params;
   let snakeParams = toSnakeCase(rest);
 
-  const res = await this.post("/api/autumn/check", snakeParams);
+  const res = await this.post(`${this.prefix}/check`, snakeParams);
   return res;
 
   // if (params.featureId) {
@@ -73,7 +73,7 @@ export async function trackMethod(
   params: TrackParams
 ): AutumnPromise<TrackResult> {
   let snakeParams = toSnakeCase(params);
-  const res = await this.post("/api/autumn/track", snakeParams);
+  const res = await this.post(`${this.prefix}/track`, snakeParams);
   return res;
 }
 
@@ -83,6 +83,6 @@ export async function openBillingPortalMethod(
 ): AutumnPromise<BillingPortalResult> {
   let snakeParams = toSnakeCase(params || {});
 
-  const res = await this.post("/api/autumn/billing_portal", snakeParams);
+  const res = await this.post(`${this.prefix}/billing_portal`, snakeParams);
   return res;
 }

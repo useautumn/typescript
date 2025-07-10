@@ -24,6 +24,33 @@ function processCssFiles() {
         (match) => match.replace('* {', '.au-root * {')
       );
       
+      // Handle body selector
+      updatedCss = updatedCss.replace(
+        /^(body \{[^}]*\})$/gm,
+        (match) => match.replace('body {', '.au-root body {')
+      );
+      
+      // Handle ::backdrop selector
+      updatedCss = updatedCss.replace(
+        /^(::backdrop \{[^}]*\})$/gm,
+        (match) => match.replace('::backdrop {', '.au-root ::backdrop {')
+      );
+      
+      // Handle :root selector - scope to .au-root as the root container
+      updatedCss = updatedCss.replace(
+        /^(:root \{[^}]*\})$/gm,
+        (match) => match.replace(':root {', '.au-root {')
+      );
+      
+      // Handle .dark selector - support both .au-root.dark and .dark .au-root patterns
+      updatedCss = updatedCss.replace(
+        /^(\.dark \{[^}]*\})$/gm,
+        (match) => {
+          const content = match.replace('.dark {', '').replace(/^\s*\}$/, '');
+          return `.au-root.dark {\n${content}\n}\n.dark .au-root {\n${content}\n}`;
+        }
+      );
+      
       fs.writeFileSync(cssFilePath, updatedCss);
       console.log('✅ CSS selectors updated with .au-root prefix');
     } else {
@@ -69,11 +96,61 @@ function processInjectedCss() {
       }
       
       // Pattern 3: standalone * selector (for custom base styles)
-      if (updatedContent.includes('\\* {')) {
+      // Check for both escaped and unescaped versions
+      if (updatedContent.includes('\\* {') || updatedContent.includes('* {')) {
         console.log('📄 Processing standalone * selector in:', file);
+        // Handle escaped version
         updatedContent = updatedContent.replace(
           /(\\\* \{[^}]*\})/g,
           (match) => match.replace('\\* {', '.au-root * {')
+        );
+        // Handle unescaped version in JS strings
+        updatedContent = updatedContent.replace(
+          /(\* \{[^}]*\})/g,
+          (match) => match.replace('* {', '.au-root * {')
+        );
+        updated = true;
+      }
+      
+      // Pattern 4: body selector
+      if (updatedContent.includes('body {')) {
+        console.log('📄 Processing body selector in:', file);
+        updatedContent = updatedContent.replace(
+          /(body \{[^}]*\})/g,
+          (match) => match.replace('body {', '.au-root body {')
+        );
+        updated = true;
+      }
+      
+      // Pattern 5: ::backdrop selector
+      if (updatedContent.includes('::backdrop {')) {
+        console.log('📄 Processing ::backdrop selector in:', file);
+        updatedContent = updatedContent.replace(
+          /(::backdrop \{[^}]*\})/g,
+          (match) => match.replace('::backdrop {', '.au-root ::backdrop {')
+        );
+        updated = true;
+      }
+      
+      // Pattern 6: :root selector - scope to .au-root as the root container
+      if (updatedContent.includes(':root {')) {
+        console.log('📄 Processing :root selector in:', file);
+        updatedContent = updatedContent.replace(
+          /(:root \{[^}]*\})/g,
+          (match) => match.replace(':root {', '.au-root {')
+        );
+        updated = true;
+      }
+      
+      // Pattern 7: .dark selector - support both patterns
+      if (updatedContent.includes('.dark {')) {
+        console.log('📄 Processing .dark selector in:', file);
+        updatedContent = updatedContent.replace(
+          /(\.dark \{[^}]*\})/g,
+          (match) => {
+            const content = match.replace('.dark {', '').replace(/\}$/, '');
+            return `.au-root.dark {${content}}.dark .au-root {${content}}`;
+          }
         );
         updated = true;
       }

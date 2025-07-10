@@ -18,12 +18,19 @@ import {
   CreateReferralCodeParams,
   RedeemReferralCodeParams,
 } from "../client/types/clientReferralTypes";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import React from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { useAutumnBase } from "./useAutumnBase";
-import { AttachParams, CancelParams, CheckParams, OpenBillingPortalParams, SetupPaymentParams, TrackParams } from "@/client/types/clientGenTypes";
+import {
+  AttachParams,
+  CancelParams,
+  CheckParams,
+  OpenBillingPortalParams,
+  SetupPaymentParams,
+  TrackParams,
+} from "@/client/types/clientGenTypes";
 import { AllowedParams, handleAllowed } from "./handleAllowed";
 
 export interface UseCustomerResult {
@@ -36,8 +43,12 @@ export interface UseCustomerResult {
   check: (params: CheckParams) => AutumnPromise<CheckResult>;
   track: (params: TrackParams) => AutumnPromise<TrackResult>;
   cancel: (params: CancelParams) => AutumnPromise<CancelResult>;
-  setupPayment: (params: SetupPaymentParams) => AutumnPromise<SetupPaymentResult>;
-  openBillingPortal: (params?: OpenBillingPortalParams) => AutumnPromise<BillingPortalResult>;
+  setupPayment: (
+    params: SetupPaymentParams
+  ) => AutumnPromise<SetupPaymentResult>;
+  openBillingPortal: (
+    params?: OpenBillingPortalParams
+  ) => AutumnPromise<BillingPortalResult>;
 
   refetch: () => Promise<Customer | null>;
   createEntity: (
@@ -56,8 +67,9 @@ export interface UseCustomerResult {
 export interface UseCustomerParams {
   errorOnNotFound?: boolean;
   expand?: CustomerExpandOption[];
+  swrConfig?: SWRConfiguration;
+  // authClient?: any;
 }
-
 
 const emptyDefaultFunctions = {
   attach: "" as any,
@@ -66,7 +78,7 @@ const emptyDefaultFunctions = {
   cancel: "" as any,
   openBillingPortal: "" as any,
   setupPayment: "" as any,
-}
+};
 
 export const useCustomerBase = ({
   params,
@@ -77,25 +89,33 @@ export const useCustomerBase = ({
   AutumnContext?: React.Context<any>;
   client?: AutumnClient;
 }): UseCustomerResult => {
-  const queryKey = ["customer", params?.expand];
-  
   let context: AutumnContextParams | undefined;
+  // let authClientExists = !!params?.authClient;
+
   if (AutumnContext) {
-    context = useAutumnContext({ AutumnContext, name: "useCustomer" });
+    context = useAutumnContext({
+      AutumnContext,
+      name: "useCustomer",
+      // errorIfNotInitialized: !authClientExists,
+    });
   }
 
+  // if (authClientExists) {
+  //   client = params?.authClient?.autumn;
+  // } else
   if (!client) {
     client = context!.client;
   }
 
+  let baseUrl = client?.backendUrl || "";
+
+  const queryKey = ["customer", baseUrl, params?.expand];
+
   const fetchCustomer = async () => {
-    
     const { data, error } = await client!.createCustomer({
       errorOnNotFound: params?.errorOnNotFound,
       expand: params?.expand,
     });
-
-
 
     if (error) {
       throw error;
@@ -108,22 +128,22 @@ export const useCustomerBase = ({
     return data;
   };
 
-  const { data: customer, error, isLoading, mutate } = useSWR(queryKey, fetchCustomer, {
+  const {
+    data: customer,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(queryKey, fetchCustomer, {
     fallbackData: null,
-    onErrorRetry: (error: any, key: any, config: any) => {
-      if (error.code == "entity_not_found") {
-        return false;
-      }
-
-      return true;
-    },
+    ...params?.swrConfig,
   });
 
   let autumnFunctions = emptyDefaultFunctions;
   if (AutumnContext) {
-    autumnFunctions = useAutumnBase({ AutumnContext })
+    autumnFunctions = useAutumnBase({
+      AutumnContext: AutumnContext!,
+    });
   }
-
 
   return {
     customer: error ? null : customer,
@@ -135,6 +155,7 @@ export const useCustomerBase = ({
     createEntity: client!.entities.create,
     createReferralCode: client!.referrals.createCode,
     redeemReferralCode: client!.referrals.redeemCode,
-    allowed: (params: AllowedParams): boolean => handleAllowed({ customer, params }),
+    allowed: (params: AllowedParams): boolean =>
+      handleAllowed({ customer, params }),
   };
 };

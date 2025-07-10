@@ -23,15 +23,23 @@ import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
 
 export const useAutumnBase = ({
   AutumnContext,
+  authClient,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
+  authClient?: any;
 }) => {
-  const context = useAutumnContext({ AutumnContext, name: "useAutumn" });
+  const context = useAutumnContext({
+    AutumnContext,
+    name: "useAutumn",
+    errorIfNotInitialized: !authClient,
+  });
   const { attachDialog, paywallDialog } = context;
 
-  const client = context.client;
+  const client = authClient ? authClient.autumn : context.client;
+  const authClientExists = !!authClient;
   const { refetch: refetchPricingTable } = usePricingTableBase({
     AutumnContext,
+    authClient,
   });
 
   let {
@@ -107,10 +115,12 @@ export const useAutumnBase = ({
     const { dialog, openInNewTab } = params;
 
     let finalDialog = dialog;
-    //   ? dialog
-    //   : context.disableDialogs
-    //   ? undefined
-    //   : AttachDialog;
+    if (dialog && authClientExists) {
+      console.error(
+        "[Autumn] Attach dialog cannot be used with better auth plugin. To use this, please switch to <AutumnProvider /> and autumnHandler. Learn more here: https://docs.useautumn.com/quickstart/quickstart"
+      );
+      return undefined as any;
+    }
 
     if (finalDialog && !attachOpen) {
       setAttachComponent(finalDialog);
@@ -132,6 +142,13 @@ export const useAutumnBase = ({
 
   const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
     let { dialog, withPreview } = params;
+
+    if (dialog && authClientExists) {
+      console.error(
+        "[Autumn] Check dialog cannot be used with better auth plugin. To use this, please switch to <AutumnProvider /> and autumnHandler. Learn more here: https://docs.useautumn.com/quickstart/quickstart"
+      );
+      return undefined as any;
+    }
 
     if (dialog) {
       setPaywallComponent(dialog);

@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { AutumnError, Product } from "@sdk";
 import { ProductDetails } from "../client/types/clientPricingTableTypes";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
@@ -56,6 +56,17 @@ const mergeProductDetails = (
           ...(overrideItems || []),
         ];
       }
+
+      if (!overrideItems || overrideItems.length === 0) {
+        overrideItems = [
+          {
+            display: {
+              primary_text: "",
+            },
+          },
+        ] as any;
+      }
+
       mergedProducts.push({
         display: {
           name: overrideDetails.name,
@@ -171,21 +182,32 @@ const mergeProductDetails = (
   return mergedProducts;
 };
 
+const defaultSWRConfig: SWRConfiguration = {
+  refreshInterval: 0,
+};
+
 export const usePricingTableBase = ({
   AutumnContext,
   params,
+  authClient,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
   params?: {
     productDetails?: ProductDetails[];
   };
+  authClient?: any;
 }) => {
-  const context = useAutumnContext({ AutumnContext, name: "usePricingTable" });
+  const context = useAutumnContext({
+    AutumnContext,
+    name: "usePricingTable",
+    errorIfNotInitialized: !authClient,
+  });
+
+  const client = authClient ? authClient.autumn : context.client;
 
   const fetcher = async () => {
     try {
-      console.log("listing products!");
-      const { data, error } = await context.client.products.list();
+      const { data, error } = await client.products.list();
       if (error) throw error;
 
       return data?.list || [];
@@ -199,7 +221,8 @@ export const usePricingTableBase = ({
 
   const { data, error, mutate } = useSWR<Product[], AutumnError>(
     "pricing-table",
-    fetcher
+    fetcher,
+    { ...defaultSWRConfig }
   );
 
   return {
