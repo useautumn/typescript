@@ -107,10 +107,4 @@ export const ultraPlan = product({
 export default {
 	products: [freePlan, proPlan, ultraPlan],
 	features: [messages, taskRuns, canUseTokens],
-	auth: auth({
-		keys: {
-			prodKey: 'am_sk_live_vGqdZ9OtrJPewwhOXKKBWvUXwA30GI3Fnsvu3iMint',
-			sandboxKey: 'am_sk_test_wuNoYOfyRS8KtNBD0WLTpn3zUZ22lB7tsZrCz1O0hB',
-		},
-	}),
 };

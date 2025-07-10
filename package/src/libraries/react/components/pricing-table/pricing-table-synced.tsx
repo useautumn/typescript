@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2 } from "lucide-react";
+// import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "../attach-dialog/attach-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
 import { Product, ProductItem } from "@sdk";
@@ -22,9 +22,7 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div style={loadingStyles}>
-        <Loader2 style={spinnerStyles} />
-      </div>
+      <div style={loadingStyles}>{/* <Loader2 style={spinnerStyles} /> */}</div>
     );
   }
 
@@ -34,8 +32,8 @@ export default function PricingTable({
 
   const intervals = Array.from(
     new Set(
-      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
-    )
+      products?.map((p) => p.properties?.interval_group).filter((i) => !!i),
+    ),
   );
 
   const multiInterval = intervals.length > 1;
@@ -148,13 +146,13 @@ export const PricingTableContainer = ({
       <div
         className={cn(
           "au-flex au-items-center au-flex-col",
-          hasRecommended && "!au-py-10"
+          hasRecommended && "!au-py-10",
         )}
       >
         {multiInterval && (
           <div
             className={cn(
-              products.some((p) => p.display?.recommend_text) && "au-mb-8"
+              products.some((p) => p.display?.recommend_text) && "au-mb-8",
             )}
           >
             <AnnualSwitch
@@ -166,7 +164,7 @@ export const PricingTableContainer = ({
         <div
           className={cn(
             "au-grid au-grid-cols-1 sm:au-grid-cols-2 lg:au-grid-cols-[repeat(auto-fit,minmax(200px,1fr))] au-w-full au-gap-2",
-            className
+            className,
           )}
         >
           {children}
@@ -217,7 +215,7 @@ export const PricingCard = ({
         " au-w-full au-h-full au-py-6 au-text-foreground au-border au-rounded-lg au-shadow-sm au-max-w-xl",
         isRecommended &&
           "lg:au--translate-y-6 lg:au-shadow-lg dark:au-shadow-zinc-800/80 lg:au-h-[calc(100%+48px)] au-bg-secondary/40",
-        className
+        className,
       )}
     >
       {productDisplay?.recommend_text && (
@@ -226,7 +224,7 @@ export const PricingCard = ({
       <div
         className={cn(
           "au-flex au-flex-col au-h-full au-flex-grow",
-          isRecommended && "lg:au-translate-y-6"
+          isRecommended && "lg:au-translate-y-6",
         )}
       >
         <div className="au-h-full">
@@ -306,9 +304,9 @@ export const PricingFeatureList = ({
             key={index}
             className="au-flex au-items-start au-gap-2 au-text-sm"
           >
-            {showIcon && (
+            {/* {showIcon && (
               <Check className="au-h-4 au-w-4 au-text-primary au-flex-shrink-0 au-mt-0.5" />
-            )}
+            )} */}
             <div className="au-flex au-flex-col">
               <span>{item.display?.primary_text}</span>
               {item.display?.secondary_text && (
@@ -351,7 +349,7 @@ export const PricingCardButton = React.forwardRef<
     <Button
       className={cn(
         "au-w-full au-py-3 au-px-4 au-group au-overflow-hidden au-relative au-transition-all au-duration-300 hover:au-brightness-90 au-border au-rounded-lg",
-        className
+        className,
       )}
       {...props}
       variant={recommended ? "default" : "secondary"}
@@ -359,7 +357,7 @@ export const PricingCardButton = React.forwardRef<
       disabled={loading || props.disabled}
       onClick={handleClick}
     >
-      {loading ? (
+      {/* {loading ? (
         <Loader2 className="au-h-4 au-w-4 au-animate-spin" />
       ) : (
         <>
@@ -372,7 +370,7 @@ export const PricingCardButton = React.forwardRef<
             <span className="au-text-sm">→</span>
           </div>
         </>
-      )}
+      )} */}
     </Button>
   );
 });

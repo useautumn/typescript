@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+// import { ArrowRight } from "lucide-react";
 import { type CheckProductPreview } from "@sdk";
 import {
   Dialog,
@@ -25,7 +25,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
   const { attach } = useCustomer();
   const [loading, setLoading] = useState(false);
   const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
-    params?.preview?.options || []
+    params?.preview?.options || [],
   );
 
   const getTotalPrice = () => {
@@ -54,7 +54,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         className={cn(
-          "au-p-0 au-pt-4 au-gap-0 au-text-foreground au-overflow-hidden au-text-sm"
+          "au-p-0 au-pt-4 au-gap-0 au-text-foreground au-overflow-hidden au-text-sm",
         )}
       >
         <DialogTitle className={cn("au-px-6 au-mb-1 ")}>{title}</DialogTitle>
@@ -115,7 +115,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
             disabled={loading}
             className="au-min-w-16 au-flex au-items-center au-gap-2"
           >
-            {loading ? (
+            {/* {loading ? (
               <Loader2 className="au-w-4 au-h-4 au-animate-spin" />
             ) : (
               <>
@@ -123,7 +123,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
                   Confirm
                 </span>
               </>
-            )}
+            )} */}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -143,7 +143,7 @@ export const PriceItem = ({
     <div
       className={cn(
         "au-flex au-flex-col au-pb-4 sm:au-pb-0 au-gap-1 sm:au-flex-row au-justify-between sm:au-h-7 sm:au-gap-2 sm:au-items-center",
-        className
+        className,
       )}
       {...props}
     >
@@ -286,7 +286,7 @@ export const PricingDialogButton = ({
       className={cn(className, "au-shadow-sm au-shadow-stone-400")}
     >
       {children}
-      <ArrowRight className="!au-h-3" />
+      {/* <ArrowRight className="!au-h-3" /> */}
     </Button>
   );
 };
