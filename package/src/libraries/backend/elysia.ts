@@ -4,10 +4,10 @@ import { createRouterWithOptions } from "./routes/backendRouter";
 import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
-import type { Elysia } from "elysia";
+import type { Elysia, Context } from "elysia";
 
-export function autumnHandler(options: {
-  identify: (context: any) => AuthResult;
+export function autumnHandler<ContextType extends Context = Context>(options: {
+  identify: (context: ContextType) => AuthResult;
   version?: string;
   secretKey?: string;
   url?: string;
@@ -61,7 +61,7 @@ export function autumnHandler(options: {
           body,
           path: pathname,
           getCustomer: async () => {
-            return await options.identify(context);
+            return await options.identify(context as ContextType);
           },
           pathParams,
           searchParams,
