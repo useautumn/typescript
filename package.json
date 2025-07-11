@@ -5,5 +5,8 @@
     "package",
     "frameworks/*",
     "nextjs"
-  ]
+  ],
+  "dependencies": {
+    "elysia": "^1.3.5"
+  }
 }
