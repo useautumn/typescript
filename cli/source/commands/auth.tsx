@@ -52,14 +52,14 @@ export default async function AuthCommand(autumnConfig: Conf) {
 				mask: '*',	
 				theme: passwordTheme,
 			})
-			let stripeLiveKey = await password({
-				message: 'Enter Stripe Live Key:',
-				mask: '*',
-				theme: passwordTheme,
-			})
+			// let stripeLiveKey = await password({
+			// 	message: 'Enter Stripe Live Key:',
+			// 	mask: '*',
+			// 	theme: passwordTheme,
+			// })
 			await updateCLIStripeKeys(
 				stripeTestKey,
-				stripeLiveKey,
+				stripeTestKey,
 				keyInfo.stripeFlowAuthKey,
 			);
 		} else {
