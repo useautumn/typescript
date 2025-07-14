@@ -3,12 +3,12 @@ import { createAutumnClient } from "../server/cusActions";
 import { withAuth } from "./auth/withNextAuth";
 import { toServerResponse } from "./utils";
 import {
-  AttachParams,
   CancelParams,
   CheckParams,
   TrackParams,
 } from "../../libraries/react/client/types/clientGenTypes";
 import { toSnakeCase } from "../../utils/toSnakeCase";
+import { AttachParams } from "@/client/types/clientAttachTypes";
 
 export const attachAction = withAuth({
   fn: async (

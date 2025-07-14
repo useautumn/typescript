@@ -1,7 +1,6 @@
 import { withAuth } from "../utils/withAuth";
 import {
   Autumn,
-  AttachParams,
   CustomerData,
   CancelParams,
   CheckParams,
@@ -12,6 +11,7 @@ import {
 import { addRoute, RouterContext } from "rou3";
 import { OpenBillingPortalParams } from "src/libraries/react/client/types/clientGenTypes";
 import { BASE_PATH } from "../constants";
+import { AttachParams, CheckoutParams } from "@sdk/general/attachTypes";
 const sanitizeBody = (body: any) => {
   let bodyCopy = { ...body };
   delete bodyCopy.customer_id;
@@ -19,6 +19,25 @@ const sanitizeBody = (body: any) => {
   return bodyCopy;
 };
 
+const checkoutHandler = withAuth({
+  fn: async ({
+    autumn,
+    customer_id,
+    customer_data,
+    body,
+  }: {
+    autumn: Autumn;
+    customer_id: string;
+    customer_data?: CustomerData;
+    body: CheckoutParams;
+  }) => {
+    return await autumn.checkout({
+      ...sanitizeBody(body),
+      customer_id,
+      customer_data,
+    });
+  },
+});
 const attachHandler = withAuth({
   fn: async ({
     autumn,
@@ -133,9 +152,10 @@ const openBillingPortalHandler = withAuth({
   },
 });
 
-
 const addGenRoutes = (router: RouterContext) => {
-
+  addRoute(router, "POST", `${BASE_PATH}/checkout`, {
+    handler: checkoutHandler,
+  });
   addRoute(router, "POST", `${BASE_PATH}/attach`, {
     handler: attachHandler,
   });

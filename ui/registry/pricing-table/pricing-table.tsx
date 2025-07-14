@@ -14,7 +14,7 @@ export default function PricingTable({
 }: {
   productDetails?: any;
 }) {
-  const { attach } = useCustomer();
+  const { checkout } = useCustomer();
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
 
@@ -74,7 +74,8 @@ export default function PricingTable({
 
                 onClick: async () => {
                   if (product.id) {
-                    await attach({
+                    console.log("Checkout product:", product);
+                    await checkout({
                       productId: product.id,
                       dialog: AttachDialog,
                     });

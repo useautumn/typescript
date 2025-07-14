@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { type CheckProductPreview } from "autumn-js";
 import {
   Dialog,
   DialogContent,
@@ -12,82 +11,80 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getAttachContent } from "@/lib/autumn/attach-content";
+import type {
+  AttachFeatureOptions,
+  CheckoutResult,
+  ProductItem,
+} from "autumn-js";
 import { useCustomer } from "autumn-js/react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export interface AttachDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  preview: CheckProductPreview;
-  onClick: (options?: any) => Promise<void>;
+  preview: CheckoutResult;
+  onClick: (options?: AttachFeatureOptions) => Promise<void>;
 }
 
 export default function AttachDialog(params?: AttachDialogProps) {
   const { attach } = useCustomer();
   const [loading, setLoading] = useState(false);
-  const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
-    params?.preview?.options || []
-  );
-
-  const getTotalPrice = () => {
-    let sum = due_today?.price || 0;
-    optionsInput.forEach((option) => {
-      if (option.price && option.quantity) {
-        sum += option.price * (option.quantity / option.billing_units);
-      }
-    });
-    return sum;
-  };
-
-  useEffect(() => {
-    setOptionsInput(params?.preview?.options || []);
-  }, [params?.preview?.options]);
+  // const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
+  //   params?.preview?.options || []
+  // );
 
   if (!params || !params.preview) {
     return <></>;
   }
 
   const { open, setOpen, preview } = params;
-  const { items, due_today } = preview;
   const { title, message } = getAttachContent(preview);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className={cn(
-          "p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm"
-        )}
+        className={cn("p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm")}
       >
         <DialogTitle className={cn("px-6 mb-1 ")}>{title}</DialogTitle>
         <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
           {message}
         </div>
-        {(items || optionsInput.length > 0) && (
-          <div className="mb-6 px-6">
-            {items?.map((item) => (
-              <PriceItem key={item.description}>
-                <span className="truncate flex-1">
-                  {item.description}
-                </span>
-                <span>{item.price}</span>
-              </PriceItem>
-            ))}
+        <div className="px-6 mb-4 flex flex-col gap-2">
+          <p className="au-text-sm au-font-medium">Price</p>
+          {preview.product.items
+            .filter((item) => item.type !== "feature")
+            .map((item, index) => {
+              if (item.usage_model == "prepaid") {
+                return (
+                  <div key={index} className="flex justify-between">
+                    <p className="text-muted-foreground">
+                      {item.feature ? item.feature.name : "Subscription"}
+                    </p>
+                    <p>{item.display?.secondary_text}</p>
+                  </div>
+                );
+              }
 
-            {optionsInput?.map((option, index) => {
               return (
-                <OptionsInput
-                  key={option.feature_name}
-                  option={option as FeatureOptionWithRequiredPrice}
-                  optionsInput={optionsInput}
-                  setOptionsInput={setOptionsInput}
-                  index={index}
-                />
+                <div key={index} className="flex justify-between">
+                  <p className="text-muted-foreground">
+                    {item.feature ? item.feature.name : "Subscription"}
+                  </p>
+                  <p>
+                    {item.display?.primary_text} {item.display?.secondary_text}
+                  </p>
+                </div>
               );
             })}
-          </div>
-        )}
+        </div>
 
         <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
-          {due_today && (
+          {/* {due_today && (
             <TotalPrice>
               <span>Due Today</span>
               <span>
@@ -97,17 +94,14 @@ export default function AttachDialog(params?: AttachDialogProps) {
                 }).format(getTotalPrice())}
               </span>
             </TotalPrice>
-          )}
+          )} */}
           <Button
             size="sm"
             onClick={async () => {
               setLoading(true);
               await attach({
-                productId: preview.product_id,
-                options: optionsInput.map((option) => ({
-                  featureId: option.feature_id,
-                  quantity: option.quantity || 0,
-                })),
+                productId: preview.product.id,
+                options: [],
               });
               setOpen(false);
               setLoading(false);
@@ -119,9 +113,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span className="whitespace-nowrap flex gap-1">
-                  Confirm
-                </span>
+                <span className="whitespace-nowrap flex gap-1">Confirm</span>
               </>
             )}
           </Button>
@@ -130,6 +122,17 @@ export default function AttachDialog(params?: AttachDialogProps) {
     </Dialog>
   );
 }
+
+const FixedPrice = ({ item }: { item: ProductItem }) => {
+  return (
+    <div className="flex justify-between">
+      <p>Subscription</p>
+      <p>
+        {item.display?.primary_text} {item.display?.secondary_text}
+      </p>
+    </div>
+  );
+};
 
 export const PriceItem = ({
   children,
@@ -240,9 +243,7 @@ export const QuantityInput = ({
         >
           -
         </Button>
-        <span className="w-8 text-center text-foreground">
-          {currentValue}
-        </span>
+        <span className="w-8 text-center text-foreground">{currentValue}</span>
         <Button
           variant="outline"
           size="icon"

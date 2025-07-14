@@ -1,26 +1,24 @@
-import { type CheckProductPreview } from "autumn-js";
+import { type CheckoutResult } from "autumn-js";
 
-export const getAttachContent = (preview: CheckProductPreview) => {
-  const {
-    scenario,
-    product_name,
-    recurring,
-    current_product_name,
-    next_cycle_at,
-  } = preview;
+export const getAttachContent = (preview: CheckoutResult) => {
+  const { scenario, product } = preview;
 
-  const nextCycleAtStr = next_cycle_at
-    ? new Date(next_cycle_at).toLocaleDateString()
-    : undefined;
+  // const nextCycleAtStr = next_cycle_at
+  //   ? new Date(next_cycle_at).toLocaleDateString()
+  //   : undefined;
+
+  const productName = product.name;
+  const recurring = product.properties?.is_one_off === false;
 
   switch (scenario) {
     case "scheduled":
       return {
-        title: <p>{product_name} product already scheduled</p>,
+        title: <p>{productName} product already scheduled</p>,
         message: (
           <p>
-            You are currently on product {current_product_name} and are
-            scheduled to start {product_name} on {nextCycleAtStr}.
+            {/* You are currently on product {current_product_name} and are */}
+            scheduled to start {productName} on
+            {/* {nextCycleAtStr}. */}
           </p>
         ),
       };
@@ -34,21 +32,21 @@ export const getAttachContent = (preview: CheckProductPreview) => {
     case "new":
       if (recurring) {
         return {
-          title: <p>Subscribe to {product_name}</p>,
+          title: <p>Subscribe to {productName}</p>,
           message: (
             <p>
-              By clicking confirm, you will be subscribed to {product_name} and
+              By clicking confirm, you will be subscribed to {productName} and
               your card will be charged immediately.
             </p>
           ),
         };
       } else {
         return {
-          title: <p>Purchase {product_name}</p>,
+          title: <p>Purchase {productName}</p>,
           message: (
             <p>
-              By clicking confirm, you will purchase {product_name} and your
-              card will be charged immediately.
+              By clicking confirm, you will purchase {productName} and your card
+              will be charged immediately.
             </p>
           ),
         };
@@ -60,17 +58,17 @@ export const getAttachContent = (preview: CheckProductPreview) => {
         message: (
           <p>
             By clicking confirm, you will renew your subscription to{" "}
-            {product_name}.
+            {productName}.
           </p>
         ),
       };
 
     case "upgrade":
       return {
-        title: <p>Upgrade to {product_name}</p>,
+        title: <p>Upgrade to {productName}</p>,
         message: (
           <p>
-            By clicking confirm, you will upgrade to {product_name} and your
+            By clicking confirm, you will upgrade to {productName} and your
             payment method will be charged immediately.
           </p>
         ),
@@ -78,12 +76,12 @@ export const getAttachContent = (preview: CheckProductPreview) => {
 
     case "downgrade":
       return {
-        title: <p>Downgrade to {product_name}</p>,
+        title: <p>Downgrade to {productName}</p>,
         message: (
           <p>
             By clicking confirm, your current subscription to{" "}
-            {current_product_name} will be cancelled and a new subscription to{" "}
-            {product_name} will begin on {nextCycleAtStr}.
+            {/* {current_product_name} will be cancelled and a new subscription to{" "}
+            {product_name} will begin on {nextCycleAtStr}. */}
           </p>
         ),
       };
@@ -93,8 +91,8 @@ export const getAttachContent = (preview: CheckProductPreview) => {
         title: <p>Cancel</p>,
         message: (
           <p>
-            By clicking confirm, your subscription to {current_product_name}{" "}
-            will end on {nextCycleAtStr}.
+            {/* By clicking confirm, your subscription to {current_product_name}{" "}
+            will end on {nextCycleAtStr}. */}
           </p>
         ),
       };

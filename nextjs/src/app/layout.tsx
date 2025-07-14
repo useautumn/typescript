@@ -29,9 +29,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* <AutumnProvider betterAuthUrl="http://localhost:3001"> */}
-        <AutumnProvider betterAuthUrl="http://localhost:3001">
-          {children}
-        </AutumnProvider>
+        {/* <AutumnProvider betterAuthUrl="http://localhost:3001"> */}
+        <AutumnProvider>{children}</AutumnProvider>
       </body>
     </html>
   );

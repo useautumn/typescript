@@ -1,13 +1,44 @@
-import { CustomerData, CreateCustomerParams, AutumnPromise, TrackResult, CheckResult, CancelResult, AttachResult, Entity, DeleteEntityResult, RedeemReferralCodeParams} from "@sdk";
+import {
+  CustomerData,
+  CreateCustomerParams,
+  AutumnPromise,
+  TrackResult,
+  CheckResult,
+  CancelResult,
+  Entity,
+  DeleteEntityResult,
+  RedeemReferralCodeParams,
+} from "@sdk";
 import { AutumnClient } from "../../libraries/react/client/ReactAutumnClient";
 
-import { createCusAction, createEntityAction, deleteEntityAction, getEntityAction } from "../server/cusActions";
+import {
+  createCusAction,
+  createEntityAction,
+  deleteEntityAction,
+  getEntityAction,
+} from "../server/cusActions";
 import { getPricingTableAction } from "../server/componentActions";
 
-import { AttachParams, CancelParams, TrackParams,OpenBillingPortalParams, CheckParams } from "../../libraries/react/client/types/clientGenTypes";
-import { attachAction, cancelAction, checkAction, getBillingPortalAction, trackAction } from "../server/genActions";
-import { CreateEntityParams, GetEntityParams } from "../../libraries/react/client/types/clientEntTypes";
+import {
+  CancelParams,
+  TrackParams,
+  OpenBillingPortalParams,
+  CheckParams,
+} from "../../libraries/react/client/types/clientGenTypes";
+import { AttachParams } from "@/client/types/clientAttachTypes";
+import {
+  attachAction,
+  cancelAction,
+  checkAction,
+  getBillingPortalAction,
+  trackAction,
+} from "../server/genActions";
+import {
+  CreateEntityParams,
+  GetEntityParams,
+} from "../../libraries/react/client/types/clientEntTypes";
 import { CreateReferralCodeParams } from "../../libraries/react/client/types/clientReferralTypes";
+import { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
 
 export interface ErrorResponse {
   message: string;
@@ -42,7 +73,6 @@ export class NextAutumnClient extends AutumnClient {
       errorOnNotFound?: boolean;
     }
   ) {
-
     const res = await createCusAction({
       encryptedCustomerId: this.encryptedCustomerId,
       customerData: this.customerData,
@@ -67,44 +97,49 @@ export class NextAutumnClient extends AutumnClient {
       ...params,
     });
     return res;
-  }
+  };
 
   cancel = async (params: CancelParams): AutumnPromise<CancelResult> => {
     return await cancelAction({
       encryptedCustomerId: this.encryptedCustomerId,
       ...params,
     });
-  }
+  };
 
   check = async (params: CheckParams): AutumnPromise<CheckResult> => {
     return await checkAction({
       encryptedCustomerId: this.encryptedCustomerId,
       ...params,
     });
-  }
+  };
 
   track = async (params: TrackParams): AutumnPromise<TrackResult> => {
     return await trackAction({
       encryptedCustomerId: this.encryptedCustomerId,
       ...params,
     });
-  }
+  };
 
   openBillingPortal = async (params?: OpenBillingPortalParams | undefined) => {
     return await getBillingPortalAction({
       encryptedCustomerId: this.encryptedCustomerId,
       ...(params || {}),
     });
-  }
+  };
 
   entities = {
-    create: async (params: CreateEntityParams | CreateEntityParams[]): AutumnPromise<Entity | Entity[]> => {
+    create: async (
+      params: CreateEntityParams | CreateEntityParams[]
+    ): AutumnPromise<Entity | Entity[]> => {
       return await createEntityAction({
         encryptedCustomerId: this.encryptedCustomerId,
         entity: params,
       });
     },
-    get: async (entityId: string, params?: GetEntityParams): AutumnPromise<Entity> => {
+    get: async (
+      entityId: string,
+      params?: GetEntityParams
+    ): AutumnPromise<Entity> => {
       return await getEntityAction({
         encryptedCustomerId: this.encryptedCustomerId,
         entityId,
@@ -117,7 +152,7 @@ export class NextAutumnClient extends AutumnClient {
         entityId,
       });
     },
-  }
+  };
 
   referrals: any = {
     createCode: async (params: CreateReferralCodeParams) => {
@@ -126,7 +161,5 @@ export class NextAutumnClient extends AutumnClient {
     redeemCode: async (params: RedeemReferralCodeParams) => {
       throw new Error("Not implemented");
     },
-  }
-
-
+  };
 }

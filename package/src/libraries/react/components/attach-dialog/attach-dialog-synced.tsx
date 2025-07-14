@@ -13,41 +13,36 @@ import {
 } from "@/components/ui/dialog";
 import { getAttachContent } from "./lib/attach-content";
 import { useCustomer } from "@/index";
+import { CheckoutResult } from "@sdk/general/attachTypes";
 
 export interface AttachDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  preview: CheckProductPreview;
+  preview: CheckoutResult;
   onClick: (options?: any) => Promise<void>;
 }
 
 export default function AttachDialog(params?: AttachDialogProps) {
   const { attach } = useCustomer();
   const [loading, setLoading] = useState(false);
-  const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
-    params?.preview?.options || []
-  );
+  // const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
+  //   params?.preview?.options || []
+  // );
 
   const getTotalPrice = () => {
-    let sum = due_today?.price || 0;
-    optionsInput.forEach((option) => {
-      if (option.price && option.quantity) {
-        sum += option.price * (option.quantity / option.billing_units);
-      }
-    });
-    return sum;
+    return 0;
   };
 
-  useEffect(() => {
-    setOptionsInput(params?.preview?.options || []);
-  }, [params?.preview?.options]);
+  // useEffect(() => {
+  //   setOptionsInput(params?.preview?.options || []);
+  // }, [params?.preview?.options]);
 
   if (!params || !params.preview) {
     return <></>;
   }
 
   const { open, setOpen, preview } = params;
-  const { items, due_today } = preview;
+  // const { items, due_today } = preview;
   const { title, message } = getAttachContent(preview);
 
   return (
@@ -61,7 +56,10 @@ export default function AttachDialog(params?: AttachDialogProps) {
         <div className={cn("au-px-6 au-mt-1 au-mb-4 au-text-muted-foreground")}>
           {message}
         </div>
-        {(items || optionsInput.length > 0) && (
+        <div className="au-px-6 au-mb-4">
+          <p className="au-text-sm au-font-medium">Price</p>
+        </div>
+        {/* {(items || optionsInput.length > 0) && (
           <div className="au-mb-6 au-px-6">
             {items?.map((item) => (
               <PriceItem key={item.description}>
@@ -84,9 +82,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
               );
             })}
           </div>
-        )}
+        )} */}
 
-        <DialogFooter className="au-flex au-flex-col sm:au-flex-row au-justify-between au-gap-x-4 au-py-2 au-pl-6 au-pr-3 au-bg-secondary au-border-t au-shadow-inner">
+        {/* <DialogFooter className="au-flex au-flex-col sm:au-flex-row au-justify-between au-gap-x-4 au-py-2 au-pl-6 au-pr-3 au-bg-secondary au-border-t au-shadow-inner">
           {due_today && (
             <TotalPrice>
               <span>Due Today</span>
@@ -125,7 +123,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
               </>
             )}
           </Button>
-        </DialogFooter>
+        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   );

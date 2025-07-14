@@ -7,7 +7,6 @@ import {
   RedeemReferralCodeResult,
   CustomerExpandOption,
   BillingPortalResult,
-  AttachResult,
   CheckResult,
   TrackResult,
   CancelResult,
@@ -24,7 +23,6 @@ import { AutumnClient } from "../client/ReactAutumnClient";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { useAutumnBase } from "./useAutumnBase";
 import {
-  AttachParams,
   CancelParams,
   CheckParams,
   OpenBillingPortalParams,
@@ -32,6 +30,8 @@ import {
   TrackParams,
 } from "@/client/types/clientGenTypes";
 import { AllowedParams, handleAllowed } from "./handleAllowed";
+import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
+import { AttachResult } from "@sdk/general/attachTypes";
 
 export interface UseCustomerResult {
   customer: Customer | null;
@@ -49,7 +49,7 @@ export interface UseCustomerResult {
   openBillingPortal: (
     params?: OpenBillingPortalParams
   ) => AutumnPromise<BillingPortalResult>;
-
+  checkout: (params: CheckoutParams) => AutumnPromise<CheckResult>;
   refetch: () => Promise<Customer | null>;
   createEntity: (
     params: CreateEntityParams | CreateEntityParams[]
@@ -78,6 +78,7 @@ const emptyDefaultFunctions = {
   cancel: "" as any,
   openBillingPortal: "" as any,
   setupPayment: "" as any,
+  checkout: "" as any,
 };
 
 export const useCustomerBase = ({

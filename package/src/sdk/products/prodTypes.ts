@@ -1,5 +1,6 @@
 import { ProductScenario } from "@sdk/general/checkTypes";
 import { AppEnv } from "../general/genEnums";
+import { z } from "zod";
 import {
   FreeTrialDuration,
   Infinite,
@@ -12,10 +13,41 @@ export interface PriceTier {
   amount: number | "inf";
 }
 
+// export const ProductItemSchema = z.object({
+//   type: z.enum(["feature", "priced_feature", "price"]),
+//   feature_id: z.string().optional(),
+//   included_usage: z.number().optional(),
+//   interval: z.enum(["month", "year"]).optional(),
+//   usage_model: z.enum(["usage", "quantity"]).optional(),
+//   price: z.number().optional(),
+//   billing_units: z.number().optional(),
+//   entity_feature_id: z.string().optional(),
+//   reset_usage_when_enabled: z.boolean().optional(),
+
+//   quantity: z.number().optional(),
+//   next_cycle_quantity: z.number().optional(),
+
+//   display: z
+//     .object({
+//       primary_text: z.string().optional(),
+//       secondary_text: z.string().optional(),
+//     })
+//     .optional(),
+// });
+
+export interface Feature {
+  id: string;
+  name: string;
+  type: "boolean" | "continuous_use" | "single_use" | "credit_system";
+}
+
 export interface ProductItem {
+  type?: "feature" | "priced_feature" | "price";
   feature_id?: string;
   included_usage?: number | typeof Infinite;
   interval?: ProductItemIntervalType;
+
+  feature?: Feature;
 
   // Price config
   usage_model?: UsageModel;

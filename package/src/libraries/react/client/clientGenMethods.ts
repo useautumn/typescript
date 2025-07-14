@@ -1,7 +1,6 @@
 import { AutumnClient } from "./ReactAutumnClient";
 import { toSnakeCase } from "../utils/toSnakeCase";
 import {
-  AttachParams,
   CancelParams,
   CheckParams,
   OpenBillingPortalParams,
@@ -9,16 +8,25 @@ import {
   SetupPaymentParams,
 } from "./types/clientGenTypes";
 import {
-  AttachResult,
   BillingPortalResult,
   CancelResult,
-  CheckFeatureResult,
-  CheckProductResult,
   CheckResult,
   SetupPaymentResult,
   TrackResult,
-} from "../../../sdk";
-import { AutumnPromise } from "../../../sdk/response";
+  AutumnPromise,
+} from "@sdk";
+
+import { AttachParams, CheckoutParams } from "./types/clientAttachTypes";
+import { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
+
+export async function checkoutMethod(
+  this: AutumnClient,
+  params: CheckoutParams
+): AutumnPromise<CheckoutResult> {
+  let snakeParams = toSnakeCase(params);
+  const res = await this.post(`${this.prefix}/checkout`, snakeParams);
+  return res;
+}
 
 export async function attachMethod(
   this: AutumnClient,

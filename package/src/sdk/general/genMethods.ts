@@ -4,6 +4,10 @@ import { AutumnPromise } from "../response";
 import {
   AttachParams,
   AttachResult,
+  CheckoutParams,
+  CheckoutResult,
+} from "./attachTypes";
+import {
   CancelParams,
   CancelResult,
   CheckParams,
@@ -15,6 +19,16 @@ import {
   UsageParams,
   UsageResult,
 } from "./genTypes";
+
+export const handleCheckout = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: CheckoutParams;
+}): AutumnPromise<CheckoutResult> => {
+  return instance.post("/checkout", params);
+};
 
 export const handleAttach = async ({
   instance,

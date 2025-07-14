@@ -13,41 +13,36 @@ import {
 } from "@/components/ui/dialog";
 import { getAttachContent } from "@/registry/attach-dialog/lib/attach-content";
 import { useCustomer } from "autumn-js/react";
+import { CheckoutResult } from "@sdk/general/attachTypes";
 
 export interface AttachDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  preview: CheckProductPreview;
+  preview: CheckoutResult;
   onClick: (options?: any) => Promise<void>;
 }
 
 export default function AttachDialog(params?: AttachDialogProps) {
   const { attach } = useCustomer();
   const [loading, setLoading] = useState(false);
-  const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
-    params?.preview?.options || []
-  );
+  // const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
+  //   params?.preview?.options || []
+  // );
 
   const getTotalPrice = () => {
-    let sum = due_today?.price || 0;
-    optionsInput.forEach((option) => {
-      if (option.price && option.quantity) {
-        sum += option.price * (option.quantity / option.billing_units);
-      }
-    });
-    return sum;
+    return 0;
   };
 
-  useEffect(() => {
-    setOptionsInput(params?.preview?.options || []);
-  }, [params?.preview?.options]);
+  // useEffect(() => {
+  //   setOptionsInput(params?.preview?.options || []);
+  // }, [params?.preview?.options]);
 
   if (!params || !params.preview) {
     return <></>;
   }
 
   const { open, setOpen, preview } = params;
-  const { items, due_today } = preview;
+  // const { items, due_today } = preview;
   const { title, message } = getAttachContent(preview);
 
   return (
@@ -61,7 +56,10 @@ export default function AttachDialog(params?: AttachDialogProps) {
         <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
           {message}
         </div>
-        {(items || optionsInput.length > 0) && (
+        <div className="px-6 mb-4">
+          <p className="text-sm font-medium">Price</p>
+        </div>
+        {/* {(items || optionsInput.length > 0) && (
           <div className="mb-6 px-6">
             {items?.map((item) => (
               <PriceItem key={item.description}>
@@ -84,9 +82,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
               );
             })}
           </div>
-        )}
+        )} */}
 
-        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
+        {/* <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
           {due_today && (
             <TotalPrice>
               <span>Due Today</span>
@@ -125,7 +123,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
               </>
             )}
           </Button>
-        </DialogFooter>
+        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   );

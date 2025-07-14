@@ -1,25 +1,22 @@
 import {
-  AttachResult,
   BillingPortalResult,
   CancelResult,
   CheckResult,
   SetupPaymentResult,
   TrackResult,
-} from "../../../sdk";
+} from "@sdk";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import {
-  AttachParams,
   CancelParams,
   CheckParams,
   OpenBillingPortalParams,
   SetupPaymentParams,
   TrackParams,
 } from "../client/types/clientGenTypes";
-import { AutumnPromise } from "../../../sdk";
+import { AutumnPromise } from "@sdk";
 import { usePricingTableBase } from "./usePricingTableBase";
-import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
-// import AttachDialog from "@/components/attach-dialog/attach-dialog-synced";
-// import CheckDialog from "@/components/check-dialog/check-dialog-synced";
+import { AttachResult } from "@sdk/general/attachTypes";
+import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
 
 export const useAutumnBase = ({
   AutumnContext,
@@ -109,6 +106,19 @@ export const useAutumnBase = ({
     }
 
     return checkRes;
+  };
+
+  const checkout = async (params: CheckoutParams) => {
+    const { data, error } = await client.checkout(params);
+    const { dialog, ...rest } = params;
+
+    console.log("Checkout result:", data);
+
+    if (params.dialog) {
+      setAttachProps({ preview: data, attachParams: rest });
+      setAttachComponent(params.dialog);
+      setAttachOpen(true);
+    }
   };
 
   const attach = async (params: AttachParams) => {
@@ -251,5 +261,6 @@ export const useAutumnBase = ({
     cancel,
     openBillingPortal,
     setupPayment,
+    checkout,
   };
 };

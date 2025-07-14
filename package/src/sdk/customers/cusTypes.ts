@@ -45,6 +45,7 @@ export interface CustomerProduct {
   status: ProductStatus;
   started_at: number;
   canceled_at: number | null;
+  version: number;
 
   subscription_ids?: string[] | null;
   current_period_start?: number | null;
@@ -75,11 +76,13 @@ export interface Customer {
   invoices?: CustomerInvoice[];
 }
 
-export interface CustomerData {
-  name?: string;
-  email?: string;
-  fingerprint?: string;
-}
+export const CustomerDataSchema = z.object({
+  name: z.string().nullish(),
+  email: z.string().nullish(),
+  fingerprint: z.string().nullish(),
+});
+
+export type CustomerData = z.infer<typeof CustomerDataSchema>;
 
 export interface GetCustomerParams {
   expand?: CustomerExpandOption[];

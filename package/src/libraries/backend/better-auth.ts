@@ -15,7 +15,6 @@ import { sessionMiddleware } from "better-auth/api";
 import { z } from "zod";
 
 import {
-  AttachParamsSchema,
   TrackParamsSchema,
   CancelParamsSchema,
   CheckParamsSchema,
@@ -24,6 +23,7 @@ import {
   CreateReferralCodeParamsSchema,
   RedeemReferralCodeParamsSchema,
 } from "@sdk/referrals/referralTypes";
+import { AttachParamsSchema } from "@sdk/general/attachTypes";
 
 const router = createRouterWithOptions();
 

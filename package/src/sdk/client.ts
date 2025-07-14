@@ -2,20 +2,23 @@ import {
   handleAttach,
   handleCancel,
   handleCheck,
+  handleCheckout,
   handleEntitled,
   handleEvent,
   handleSetupPayment,
   handleTrack,
   handleUsage,
 } from "./general/genMethods";
+
 import {
-  AttachParams,
   CancelParams,
   CheckParams,
   SetupPaymentParams,
   TrackParams,
   UsageParams,
 } from "./general/genTypes";
+
+import { AttachParams, CheckoutParams } from "./general/attachTypes";
 
 import { autumnApiUrl } from "../libraries/backend/constants";
 import { customerMethods } from "./customers/cusMethods";
@@ -107,11 +110,21 @@ export class Autumn {
   entities = entityMethods(this);
   referrals = referralMethods(this);
 
+  static checkout = (params: CheckoutParams) =>
+    staticWrapper(handleCheckout, undefined, { params });
+
+  async checkout(params: CheckoutParams) {
+    return handleCheckout({
+      instance: this,
+      params,
+    });
+  }
+
   static attach = (params: AttachParams) =>
     staticWrapper(handleAttach, undefined, { params });
+
   static usage = (params: UsageParams) =>
     staticWrapper(handleUsage, undefined, { params });
-  
 
   async attach(params: AttachParams) {
     return handleAttach({
@@ -139,47 +152,11 @@ export class Autumn {
     });
   }
 
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Please use the new check() method instead.
-   */
-  static entitled = (params: CheckParams) =>
-    staticWrapper(handleEntitled, undefined, { params });
-
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Please use the new check() method instead.
-   */
-  async entitled(params: CheckParams) {
-    return handleEntitled({
-      instance: this,
-      params,
-    });
-  }
-
   static check = (params: CheckParams) =>
     staticWrapper(handleCheck, undefined, { params });
 
   async check(params: CheckParams) {
     return handleCheck({
-      instance: this,
-      params,
-    });
-  }
-
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Please use the new track() method instead.
-   */
-  static event = (params: TrackParams) =>
-    staticWrapper(handleEvent, undefined, { params });
-
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Please use the new track() method instead.
-   */
-  async event(params: TrackParams) {
-    return handleEvent({
       instance: this,
       params,
     });

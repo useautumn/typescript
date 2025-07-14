@@ -2,8 +2,7 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useCustomer } from "autumn-js/react";
-import AttachDialog from "@/components/autumn/attach-dialog";
-// import PricingTable from "@/components/autumn/pricing-table";
+import PricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
   const {
@@ -62,6 +61,7 @@ export default function Home() {
             Credits allowed: {allowed({ featureId: "credits" }) ? "Yes" : "No"}
           </p>
         </section>
+        <PricingTable />
         <section className="space-y-4">
           <h2 className="text-md font-semibold text-slate-800">Customer</h2>
           <pre className="whitespace-pre-wrap text-blue-400 mt-4 text-xs">
@@ -120,7 +120,6 @@ export default function Home() {
               const res = await attach({
                 productId: "pro",
                 openInNewTab: true,
-                dialog: AttachDialog,
               });
               console.log(res);
             }}

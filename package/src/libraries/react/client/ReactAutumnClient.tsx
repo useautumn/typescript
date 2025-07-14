@@ -18,6 +18,7 @@ import {
   attachMethod,
   cancelMethod,
   checkMethod,
+  checkoutMethod,
   openBillingPortalMethod,
   setupPaymentMethod,
   trackMethod,
@@ -239,6 +240,7 @@ export class AutumnClient {
   }
 
   attach = attachMethod.bind(this);
+  checkout = checkoutMethod.bind(this);
   cancel = cancelMethod.bind(this);
   check = checkMethod.bind(this);
   track = trackMethod.bind(this);

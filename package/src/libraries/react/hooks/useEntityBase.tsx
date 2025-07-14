@@ -5,11 +5,11 @@ import { AutumnContextParams } from "../AutumnContext";
 import { AllowedParams, handleAllowed } from "./handleAllowed";
 import { useAutumnBase } from "./useAutumnBase";
 import {
-  AttachParams,
   CancelParams,
   CheckParams,
   TrackParams,
 } from "@/client/types/clientGenTypes";
+import { AttachParams } from "@/client/types/clientAttachTypes";
 
 export const useEntityBase = ({
   entityId,
