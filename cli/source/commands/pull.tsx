@@ -1,26 +1,33 @@
-import React, {useEffect, useState} from 'react';
-import {Text} from 'ink';
 import {
-	getProducts,
+	getAllProducts,
 	getFeatures,
-	buildProductBuilderString,
 } from '../core/pull.js';
+import {productBuilder} from '../core/builders/products.js';
+import {featureBuilder} from '../core/builders/features.js';
 import {writeConfig} from '../core/config.js';
+import {importBuilder, exportBuilder} from '../core/builders/products.js';
+import {snakeCaseToCamelCase} from '../core/utils.js';
+import chalk from "chalk";
 
-export function Pull({config}: {config: any}) {
-	const [message, setMessage] = useState('Pulling products...');
+export default async function Pull({config}: {config: any}) {
+	const products = await getAllProducts();
+	const features = await getFeatures();
 
-	useEffect(() => {
-		(async () => {
-			const products = await getProducts(config.products.map((p: any) => p.id));
-			const features = await getFeatures();
+	const productSnippets = products.map(product => productBuilder(product));
+	const featureSnippets = features.map(feature => featureBuilder(feature));
+	const autumnConfig = `
+${importBuilder()}
 
-			const productStrings = products.map(buildProductBuilderString);
-			setMessage('Writing Config...');
-			writeConfig(productStrings, []);
-			setMessage('Config written successfully!');
-		})();
-	}, []);
+// Features
+${featureSnippets.join('\n')}
 
-	return <Text>{message}</Text>;
+// Products
+${productSnippets.join('\n')}
+
+// Remember to update this when you make changes!
+${exportBuilder(products.map(product => product.id), features.map(feature => snakeCaseToCamelCase(feature.id)))}
+	`
+	writeConfig(autumnConfig);
+
+	console.log(chalk.green('Success! Config has been updated.'));
 }

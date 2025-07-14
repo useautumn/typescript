@@ -10,6 +10,9 @@ importers:
 
   cli:
     dependencies:
+      '@inquirer/prompts':
+        specifier: ^7.6.0
+        version: 7.6.0(@types/node@24.0.12)
       autumn-js:
         specifier: workspace:*
         version: link:../package
