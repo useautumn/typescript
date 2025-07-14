@@ -3,5 +3,10 @@
   "private": true,
   "scripts": {
     "test-cli": "pnpm --filter atmn test-cli"
-  }
+  },
+  "workspaces": [
+    "package",
+    "frameworks/*",
+    "nextjs"
+  ]
 }
