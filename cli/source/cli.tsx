@@ -48,7 +48,7 @@ program
 		let key = getAuthKeys(options.prod);
 
 		process.env[API_KEY_VAR] = key as string;
-		await Push({config, yes: options.yes});
+		await Push({config, yes: options.yes, prod: options.prod});
 	});
 
 program

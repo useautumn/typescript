@@ -18,6 +18,10 @@ const freeProduct = product({
 	name: 'Free',
 	items: []
 })
+
+export default {
+	products: [freeProduct]
+}
 `;
 
 	try {

@@ -8,7 +8,7 @@ import {
 } from '../core/push.js';
 import {deleteFeature, deleteProduct} from '../core/api.js';
 
-export default async function Push({config, yes}: {config: any, yes?: boolean}) {
+export default async function Push({config, yes, prod}: {config: any, yes: boolean, prod: boolean}) {
 	let {features, products} = config;
 
 	let {featuresToDelete, productsToDelete} = await checkForDeletables(
@@ -47,5 +47,12 @@ export default async function Push({config, yes}: {config: any, yes?: boolean}) 
 		}
 	}
 
-	console.log(chalk.magentaBright('Success! Changes have been pushed.'));
+	const env = prod ? 'prod' : 'sandbox';
+	console.log(chalk.magentaBright(`Success! Changes have been pushed to ${env}.`));
+
+	if (prod) {
+		console.log(chalk.magentaBright(`You can view the products at https://app.autumn.dev/products`));
+	} else {
+		console.log(chalk.magentaBright(`You can view the products at https://app.autumn.dev/sandbox/products`));
+	}
 }

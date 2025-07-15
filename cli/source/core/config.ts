@@ -17,7 +17,7 @@ export async function loadAutumnConfig() {
 }
 
 export function writeConfig(config: string) {
-	const configPath = path.join(process.cwd(), '../autumn.config.ts');
+	const configPath = path.join(process.cwd(), 'autumn.config.ts');
 	fs.writeFileSync(
 		configPath,
 		config,
