@@ -23,6 +23,8 @@ function getAuthKeys(prod: boolean) {
 		? autumnConfig.get('keys.prodKey')
 		: autumnConfig.get('keys.sandboxKey');
 
+	console.log(autumnConfig.get('keys'));
+
 	if (!key) {
 		console.error(
 			'No API key found. Please run `npx atmn auth` to authenticate.',

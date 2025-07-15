@@ -70,10 +70,8 @@ export default async function AuthCommand(autumnConfig: Conf) {
 		}
 	}
 
-	autumnConfig.set('keys', {
-		sandboxKey: keyInfo.sandboxKey,
-		liveKey: keyInfo.liveKey,
-	});
+	autumnConfig.set("keys.sandboxKey", keyInfo.sandboxKey);
+	autumnConfig.set("keys.prodKey", keyInfo.prodKey);
 
 	console.log(
 		chalk.green('Success! Keys have been stored locally. You may now use the CLI.'),
