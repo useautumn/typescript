@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.96",
+  "version": "0.0.101-beta.1",
   "main": "./dist/index.js",
   "files": [
     "dist",
@@ -9,9 +9,6 @@
     "LICENSE.md",
     "tsup.config.ts"
   ],
-  "bin": {
-    "autumn": "./dist/cli/cli.mjs"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf dist && tsup && node scripts/post-build.js",
