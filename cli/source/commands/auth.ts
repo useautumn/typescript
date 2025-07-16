@@ -31,7 +31,7 @@ export default async function AuthCommand(autumnConfig: Conf) {
 			return;
 		}
 	}
-	open('http://152.67.152.51:3000/dev/cli');
+	open('http://app.useautumn.com/dev/cli');
 
 	const otp = await input({
 		message: 'Enter OTP:',
@@ -49,7 +49,7 @@ export default async function AuthCommand(autumnConfig: Conf) {
 		if (connectStripe) {
 			// Ask for stripe Keys
 			let stripeTestKey = await password({
-				message: 'Enter Stripe Test Key:',
+				message: 'Enter Stripe Test Secret Key:',
 				mask: '*',	
 				theme: passwordTheme,
 			})
