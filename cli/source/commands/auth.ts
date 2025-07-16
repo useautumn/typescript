@@ -1,7 +1,7 @@
 import open from 'open';
-import Conf from 'conf';
 import chalk from 'chalk';
 import {input, password, confirm} from '@inquirer/prompts';
+import {storeToEnv, readFromEnv} from '../core/utils.js';
 
 import {getOTP} from '../core/auth.js';
 import {updateCLIStripeKeys} from '../core/api.js';
@@ -22,8 +22,8 @@ const inputTheme = {
 	},
 };
 
-export default async function AuthCommand(autumnConfig: Conf) {
-	if (autumnConfig.get('keys')) {
+export default async function AuthCommand() {
+	if (readFromEnv()) {
 		let shouldReauth = await confirm({
 			message:
 				'You are already authenticated. Would you like to re-authenticate?',
@@ -74,8 +74,9 @@ export default async function AuthCommand(autumnConfig: Conf) {
 		}
 	}
 
-	autumnConfig.set('keys.sandboxKey', keyInfo.sandboxKey);
-	autumnConfig.set('keys.prodKey', keyInfo.prodKey);
+	// autumnConfig.set("keys.sandboxKey", keyInfo.sandboxKey);
+	// autumnConfig.set("keys.prodKey", keyInfo.prodKey);
+	storeToEnv(keyInfo.prodKey, keyInfo.sandboxKey);
 
 	console.log(
 		chalk.green(

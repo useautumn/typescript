@@ -6,39 +6,11 @@ import Push from './commands/push.js';
 import Pull from './commands/pull.js';
 import AuthCommand from './commands/auth.js';
 import open from 'open';
-import Conf from 'conf';
 import chalk from 'chalk';
+import {writeConfig} from './core/config.js';
 import {FRONTEND_URL} from './constants.js';
 
-const autumnStore = new Conf({
-	projectName: 'atmn',
-});
-
-export const API_KEY_VAR = '__AUTUMN_API_KEY__';
 const VERSION = '1.0.0b';
-
-function getAuthKeys(prod: boolean) {
-	let key = prod
-		? autumnStore.get('keys.prodKey')
-		: autumnStore.get('keys.sandboxKey');
-
-	if (!key) {
-		console.error(
-			'No API key found. Please run `npx atmn auth` to authenticate.',
-		);
-		process.exit(1);
-	}
-
-	return key;
-}
-
-program
-	.command('clear')
-	.description('Clear the config')
-	.action(() => {
-		autumnStore.clear();
-		console.log(chalk.green('Config cleared successfully.'));
-	});
 
 program
 	.command('push')
@@ -47,9 +19,6 @@ program
 	.option('-y, --yes', 'Confirm all deletions')
 	.action(async options => {
 		const config = await loadAutumnConfigFile();
-		let key = getAuthKeys(options.prod);
-
-		process.env[API_KEY_VAR] = key as string;
 		await Push({config, yes: options.yes, prod: options.prod});
 	});
 
@@ -57,11 +26,8 @@ program
 	.command('pull')
 	.description('Pull changes from Autumn')
 	.option('-p, --prod', 'Pull from production')
-	.action(async options => {
+	.action(async () => {
 		const config = await loadAutumnConfigFile();
-		let key = getAuthKeys(options.prod);
-
-		process.env[API_KEY_VAR] = key as string;
 		await Pull({config});
 	});
 
@@ -70,7 +36,7 @@ program
 	.description('Initialize an Autumn project.')
 	.action(async () => {
 		const config = await loadAutumnConfigFile();
-		await Init({config, autumnStore});
+		await Init({config});
 	});
 
 program
@@ -78,7 +44,7 @@ program
 	.description('Authenticate with Autumn')
 	.option('-p, --prod', 'Authenticate with production')
 	.action(async () => {
-		await AuthCommand(autumnStore);
+		await AuthCommand();
 	});
 
 program

@@ -1,8 +1,8 @@
 import axios from 'axios';
 import chalk from 'chalk';
 
-import {API_KEY_VAR} from '../cli.js';
 import {BACKEND_URL} from '../constants.js';
+import {readFromEnv} from './utils.js';
 
 const INTERNAL_BASE: string = BACKEND_URL;
 const EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
@@ -24,7 +24,7 @@ export async function request({
 	customAuth?: string;
 	throwOnError?: boolean;
 }) {
-	const apiKey = process.env[API_KEY_VAR];
+	const apiKey = readFromEnv();
 
 	try {
 		const response = await axios.request({
