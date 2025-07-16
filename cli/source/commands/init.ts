@@ -1,14 +1,12 @@
 import chalk from 'chalk';
-import Conf from 'conf';
 import Pull from './pull.js';
 import AuthCommand from './auth.js';
-import {storeToEnv, readFromEnv} from '../core/utils.js';
+import {readFromEnv} from '../core/utils.js';
 
 export default async function Init({config}: {config: any}) {
     // Try to read API key from .env first
     let apiKey = readFromEnv();
     if (apiKey) {
-        process.env['AUTUMN_SECRET_KEY'] = apiKey;
         console.log(chalk.green('API key found. Pulling latest config...'));
         await Pull({config});
         console.log(chalk.green('Project initialized and config pulled successfully!'));
@@ -21,7 +19,6 @@ export default async function Init({config}: {config: any}) {
     // After authentication, try to read the key again
     apiKey = readFromEnv();
     if (apiKey) {
-        process.env['AUTUMN_SECRET_KEY'] = apiKey;
         await Pull({config});
         console.log(chalk.green('Project initialized! You are now authenticated and config has been pulled.'));
     } else {
