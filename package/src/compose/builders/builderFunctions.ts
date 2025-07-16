@@ -1,6 +1,5 @@
 import { Product, Feature } from "../models/composeModels";
 
-import { AuthInfo } from "../models/auth";
 import {
   ProductItem,
   ProductItemInterval,
@@ -8,11 +7,7 @@ import {
 } from "../models/productItemModels";
 
 export const product = (p: Product) => p;
-export const auth = (info: AuthInfo) => info;
-
-export function feature(f: Feature): Feature {
-  return f;
-}
+export const feature = (f: Feature) => f;
 
 export const featureItem = ({
   feature_id,

@@ -10,7 +10,7 @@
     "tsup.config.ts"
   ],
   "bin": {
-    "autumn": "./dist/cli/cli.mjs"
+    "atmn": "./cli/dist/cli/cli.mjs"
   },
   "scripts": {
     

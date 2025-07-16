@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  ProductItemSchema,
-  FeatureItemSchema,
-  PriceItemSchema,
-} from "./productItemModels";
+import { ProductItemSchema } from "./productItemModels";
 
 export const ProductSchema = z.object({
   id: z.string().nonempty(),
