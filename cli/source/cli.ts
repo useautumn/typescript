@@ -7,7 +7,6 @@ import Pull from './commands/pull.js';
 import AuthCommand from './commands/auth.js';
 import open from 'open';
 import chalk from 'chalk';
-import {writeConfig} from './core/config.js';
 import {FRONTEND_URL} from './constants.js';
 
 const VERSION = '1.0.0b';
@@ -40,7 +39,7 @@ program
 	});
 
 program
-	.command('auth')
+	.command('login')
 	.description('Authenticate with Autumn')
 	.option('-p, --prod', 'Authenticate with production')
 	.action(async () => {
