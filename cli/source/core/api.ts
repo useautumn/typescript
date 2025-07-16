@@ -1,7 +1,6 @@
 import axios from 'axios';
 import chalk from 'chalk';
-
-import {API_KEY_VAR} from '../cli.js';
+import { readFromEnv } from './utils.js';
 
 const INTERNAL_BASE: string = "https://api.useautumn.com";
 const EXTERNAL_BASE: string = "https://api.useautumn.com/v1"
@@ -21,7 +20,7 @@ export async function request({
 	headers?: any;
 	customAuth?: string;
 }) {
-	const apiKey = process.env[API_KEY_VAR];
+	const apiKey = readFromEnv();
 
 	try {
 		const response = await axios.request({
