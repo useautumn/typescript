@@ -20,9 +20,7 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center min-h-[300px]">
-        {/* <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" /> */}
-      </div>
+      <div className="w-full h-full flex justify-center items-center min-h-[300px]">{/* <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" /> */}</div>
     );
   }
 
@@ -144,7 +142,10 @@ export const PricingTableContainer = ({
       value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
       <div
-        className={cn("flex items-center flex-col", hasRecommended && "!py-10")}
+        className={cn(
+          "flex items-center flex-col",
+          hasRecommended && "!py-10",
+        )}
       >
         {multiInterval && (
           <div
@@ -232,7 +233,9 @@ export const PricingCard = ({
               </h2>
               {productDisplay?.description && (
                 <div className="text-sm text-muted-foreground px-6 h-8">
-                  <p className="line-clamp-2">{productDisplay?.description}</p>
+                  <p className="line-clamp-2">
+                    {productDisplay?.description}
+                  </p>
                 </div>
               )}
             </div>
@@ -259,7 +262,9 @@ export const PricingCard = ({
             </div>
           )}
         </div>
-        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
+        <div
+          className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}
+        >
           <PricingCardButton
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
@@ -287,11 +292,16 @@ export const PricingFeatureList = ({
   return (
     <div className={cn("flex-grow", className)}>
       {everythingFrom && (
-        <p className="text-sm mb-4">Everything from {everythingFrom}, plus:</p>
+        <p className="text-sm mb-4">
+          Everything from {everythingFrom}, plus:
+        </p>
       )}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex items-start gap-2 text-sm">
+          <div
+            key={index}
+            className="flex items-start gap-2 text-sm"
+          >
             {/* {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )} */}

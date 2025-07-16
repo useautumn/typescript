@@ -8,20 +8,19 @@ import AuthCommand from './commands/auth.js';
 import open from 'open';
 import Conf from 'conf';
 import chalk from 'chalk';
+import {FRONTEND_URL} from './constants.js';
 
 const autumnStore = new Conf({
 	projectName: 'atmn',
 });
 
 export const API_KEY_VAR = '__AUTUMN_API_KEY__';
-const VERSION = "1.0.0b"
+const VERSION = '1.0.0b';
 
 function getAuthKeys(prod: boolean) {
 	let key = prod
 		? autumnStore.get('keys.prodKey')
 		: autumnStore.get('keys.sandboxKey');
-
-	console.log(autumnStore.get('keys'));
 
 	if (!key) {
 		console.error(
@@ -33,10 +32,13 @@ function getAuthKeys(prod: boolean) {
 	return key;
 }
 
-program.command('clear').description('Clear the config').action(() => {
-	autumnStore.clear();
-	console.log(chalk.green('Config cleared successfully.'));
-});
+program
+	.command('clear')
+	.description('Clear the config')
+	.action(() => {
+		autumnStore.clear();
+		console.log(chalk.green('Config cleared successfully.'));
+	});
 
 program
 	.command('push')
@@ -67,7 +69,6 @@ program
 	.command('init')
 	.description('Initialize an Autumn project.')
 	.action(async () => {
-
 		const config = await loadAutumnConfigFile();
 		await Init({config, autumnStore});
 	});
@@ -84,7 +85,7 @@ program
 	.command('dashboard')
 	.description('Open the Autumn dashboard in your browser')
 	.action(() => {
-		open(`https://app.useautumn.com`);
+		open(`${FRONTEND_URL}`);
 	});
 
 program

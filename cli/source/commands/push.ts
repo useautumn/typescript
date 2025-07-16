@@ -7,8 +7,17 @@ import {
 	upsertFeature,
 } from '../core/push.js';
 import {deleteFeature, deleteProduct} from '../core/api.js';
+import {FRONTEND_URL} from '../constants.js';
 
-export default async function Push({config, yes, prod}: {config: any, yes: boolean, prod: boolean}) {
+export default async function Push({
+	config,
+	yes,
+	prod,
+}: {
+	config: any;
+	yes: boolean;
+	prod: boolean;
+}) {
 	let {features, products} = config;
 
 	let {featuresToDelete, productsToDelete} = await checkForDeletables(
@@ -17,9 +26,11 @@ export default async function Push({config, yes, prod}: {config: any, yes: boole
 	);
 
 	for (let productId of productsToDelete) {
-		let shouldDelete = yes || await confirm({
-			message: `Delete product [${productId}]?`,
-		});
+		let shouldDelete =
+			yes ||
+			(await confirm({
+				message: `Delete product [${productId}]?`,
+			}));
 		if (shouldDelete) {
 			await deleteProduct(productId);
 			console.log(chalk.green(`Product [${productId}] deleted successfully!`));
@@ -38,9 +49,11 @@ export default async function Push({config, yes, prod}: {config: any, yes: boole
 	}
 
 	for (let featureId of featuresToDelete) {
-		let shouldDelete = yes || await confirm({
-			message: `Delete feature [${featureId}]?`,
-		});
+		let shouldDelete =
+			yes ||
+			(await confirm({
+				message: `Delete feature [${featureId}]?`,
+			}));
 		if (shouldDelete) {
 			await deleteFeature(featureId);
 			console.log(chalk.green(`Feature [${featureId}] deleted successfully!`));
@@ -48,11 +61,21 @@ export default async function Push({config, yes, prod}: {config: any, yes: boole
 	}
 
 	const env = prod ? 'prod' : 'sandbox';
-	console.log(chalk.magentaBright(`Success! Changes have been pushed to ${env}.`));
+	console.log(
+		chalk.magentaBright(`Success! Changes have been pushed to ${env}.`),
+	);
 
 	if (prod) {
-		console.log(chalk.magentaBright(`You can view the products at https://app.autumn.dev/products`));
+		console.log(
+			chalk.magentaBright(
+				`You can view the products at ${FRONTEND_URL}/products`,
+			),
+		);
 	} else {
-		console.log(chalk.magentaBright(`You can view the products at https://app.autumn.dev/sandbox/products`));
+		console.log(
+			chalk.magentaBright(
+				`You can view the products at ${FRONTEND_URL}/sandbox/products`,
+			),
+		);
 	}
 }

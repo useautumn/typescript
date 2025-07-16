@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+// import { ArrowRight } from "lucide-react";
 import { type CheckProductPreview } from "autumn-js";
 import {
   Dialog,
@@ -25,7 +25,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
   const { attach } = useCustomer();
   const [loading, setLoading] = useState(false);
   const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
-    params?.preview?.options || []
+    params?.preview?.options || [],
   );
 
   const getTotalPrice = () => {
@@ -54,7 +54,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         className={cn(
-          "p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm"
+          "p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm",
         )}
       >
         <DialogTitle className={cn("px-6 mb-1 ")}>{title}</DialogTitle>
@@ -115,7 +115,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
             disabled={loading}
             className="min-w-16 flex items-center gap-2"
           >
-            {loading ? (
+            {/* {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
@@ -123,7 +123,7 @@ export default function AttachDialog(params?: AttachDialogProps) {
                   Confirm
                 </span>
               </>
-            )}
+            )} */}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -143,7 +143,7 @@ export const PriceItem = ({
     <div
       className={cn(
         "flex flex-col pb-4 sm:pb-0 gap-1 sm:flex-row justify-between sm:h-7 sm:gap-2 sm:items-center",
-        className
+        className,
       )}
       {...props}
     >
@@ -286,7 +286,7 @@ export const PricingDialogButton = ({
       className={cn(className, "shadow-sm shadow-stone-400")}
     >
       {children}
-      <ArrowRight className="!h-3" />
+      {/* <ArrowRight className="!h-3" /> */}
     </Button>
   );
 };

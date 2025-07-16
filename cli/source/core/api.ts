@@ -2,9 +2,10 @@ import axios from 'axios';
 import chalk from 'chalk';
 
 import {API_KEY_VAR} from '../cli.js';
+import {BACKEND_URL} from '../constants.js';
 
-const INTERNAL_BASE: string = "https://api.useautumn.com";
-const EXTERNAL_BASE: string = "https://api.useautumn.com/v1"
+const INTERNAL_BASE: string = BACKEND_URL;
+const EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
 
 export async function request({
 	method,
@@ -13,6 +14,7 @@ export async function request({
 	data,
 	headers,
 	customAuth,
+	throwOnError = true,
 }: {
 	method: string;
 	base: string;
@@ -20,6 +22,7 @@ export async function request({
 	data?: any;
 	headers?: any;
 	customAuth?: string;
+	throwOnError?: boolean;
 }) {
 	const apiKey = process.env[API_KEY_VAR];
 
@@ -36,7 +39,13 @@ export async function request({
 		});
 		return response.data;
 	} catch (error) {
-		console.error(chalk.red("Error occured when making API request:"), chalk.red(error.response.data.message || error.response.data.error));
+		if (throwOnError) {
+			throw error;
+		}
+		console.error(
+			chalk.red('Error occured when making API request:'),
+			chalk.red(error.response.data.message || error.response.data.error),
+		);
 		process.exit(1);
 	}
 }
@@ -61,7 +70,7 @@ export async function internalRequest({
 		data,
 		headers,
 		customAuth,
-	})
+	});
 }
 
 export async function externalRequest({
@@ -70,12 +79,14 @@ export async function externalRequest({
 	data,
 	headers,
 	customAuth,
+	throwOnError = false,
 }: {
 	method: string;
 	path: string;
 	data?: any;
 	headers?: any;
 	customAuth?: string;
+	throwOnError?: boolean;
 }) {
 	return await request({
 		method,
@@ -84,18 +95,19 @@ export async function externalRequest({
 		data,
 		headers,
 		customAuth,
-	})
+		throwOnError,
+	});
 }
 
 export async function deleteFeature(id: string) {
 	return await externalRequest({
-		method: "DELETE",
+		method: 'DELETE',
 		path: `/features/${id}`,
 	});
 }
 export async function deleteProduct(id: string) {
 	return await externalRequest({
-		method: "DELETE",
+		method: 'DELETE',
 		path: `/products/${id}`,
 	});
 }
@@ -106,14 +118,14 @@ export async function updateCLIStripeKeys(
 	stripeFlowAuthKey: string,
 ) {
 	return await internalRequest({
-		method: "POST",
-		path: "/dev/cli/stripe",
+		method: 'POST',
+		path: '/dev/cli/stripe',
 		data: {
 			stripeTestKey,
 			stripeLiveKey,
 			successUrl: 'https://useautumn.com',
 			defaultCurrency: 'usd',
 		},
-		customAuth: stripeFlowAuthKey
-	})
+		customAuth: stripeFlowAuthKey,
+	});
 }

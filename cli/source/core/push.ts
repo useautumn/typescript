@@ -26,29 +26,34 @@ export async function checkForDeletables(
 export async function upsertFeature(feature: Feature) {
 	try {
 		const response = await externalRequest({
-			method: "POST",
+			method: 'POST',
 			path: `/features`,
-			data: {
-				...feature,
-				config: {
-					filters: [{property: '', operator: '', value: []}],
-					usage_type: 'single_use',
-				},
-			},
+			data: feature,
+			throwOnError: true,
+			// data: {
+			// 	...feature,
+			// 	config: {
+			// 		filters: [{property: '', operator: '', value: []}],
+			// 		usage_type: 'single_use',
+			// 	},
+			// },
 		});
+
 		return response.data;
 	} catch (error) {
 		// If the first request fails, try posting to the specific feature ID endpoint
 		const response = await externalRequest({
-			method: "POST",
+			method: 'POST',
 			path: `/features/${feature.id}`,
-			data: {
-				...feature,
-				config: {
-					filters: [{property: '', operator: '', value: []}],
-					usage_type: 'single_use',
-				},
-			},
+			data: feature,
+
+			// data: {
+			// 	...feature,
+			// 	config: {
+			// 		filters: [{property: '', operator: '', value: []}],
+			// 		usage_type: 'single_use',
+			// 	},
+			// },
 		});
 		return response.data;
 	}
@@ -57,15 +62,16 @@ export async function upsertFeature(feature: Feature) {
 export async function upsertProduct(product: Product) {
 	try {
 		const response = await externalRequest({
-			method: "POST",
+			method: 'POST',
 			path: `/products`,
 			data: product,
+			throwOnError: true,
 		});
 		return response.data;
 	} catch (error) {
 		// If the first request fails, try posting to the specific product ID endpoint
 		const response = await externalRequest({
-			method: "POST",
+			method: 'POST',
 			path: `/products/${product.id}`,
 			data: product,
 		});

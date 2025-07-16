@@ -12,7 +12,7 @@ export const ProductSchema = z.object({
 export const FeatureSchema = z.object({
   id: z.string().nonempty(),
   name: z.string().nonempty(),
-  type: z.enum(["boolean", "continuous_use", "credit_system", "metered"]),
+  type: z.enum(["boolean", "single_use", "continuous_use", "credit_system"]),
 
   credit_schema: z
     .array(
