@@ -2,12 +2,10 @@ import chalk from 'chalk';
 
 import Pull from './pull.js';
 import AuthCommand from './auth.js';
-import { writeConfig } from '../core/config.js';
 import { API_KEY_VAR } from '../cli.js';
 
 export default async function Init({config, autumnStore}: {config: any, autumnStore: any}) {
     // Check if keys exist in autumnStore
-    writeConfig("");
     const keys = autumnStore.get('keys');
     let apiKey = keys && (keys.sandboxKey || keys.prodKey);
     if (apiKey) {

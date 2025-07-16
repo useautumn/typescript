@@ -8,6 +8,7 @@ import AuthCommand from './commands/auth.js';
 import open from 'open';
 import Conf from 'conf';
 import chalk from 'chalk';
+import { writeConfig } from './core/config.js';
 
 const autumnStore = new Conf({
 	projectName: 'atmn',
@@ -67,7 +68,7 @@ program
 	.command('init')
 	.description('Initialize an Autumn project.')
 	.action(async () => {
-
+		writeConfig("// Hello World");
 		const config = await loadAutumnConfigFile();
 		await Init({config, autumnStore});
 	});
