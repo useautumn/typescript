@@ -45,11 +45,11 @@ export const ${product.id}Plan = product({
 // Item Builders
 
 export function pricedFeatureItemBuilder(item: ProductItem) {
+	const intervalLine = item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const snippet = `
         pricedFeatureItem({
             feature_id: ${snakeCaseToCamelCase(item.feature_id)}.id,
-            price: ${item.price},
-            interval: '${item.interval}',
+            price: ${item.price},${intervalLine}
             included_usage: ${item.included_usage},
             billing_units: ${item.billing_units},
             usage_model: '${item.usage_model}',
@@ -59,21 +59,21 @@ export function pricedFeatureItemBuilder(item: ProductItem) {
 }
 
 export function featureItemBuilder(item: ProductItem) {
+	const intervalLine = item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const snippet = `
         featureItem({
             feature_id: ${snakeCaseToCamelCase(item.feature_id)}.id,
-            included_usage: ${item.included_usage},
-            interval: '${item.interval}',
+            included_usage: ${item.included_usage},${intervalLine}
         }),
 `;
 	return snippet;
 }
 
 export function priceItemBuilder(item: ProductItem) {
+	const intervalLine = item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const snippet = `
         priceItem({
-            price: ${item.price},
-            interval: '${item.interval}',
+            price: ${item.price},${intervalLine}
         }),
 `;
 	return snippet;
