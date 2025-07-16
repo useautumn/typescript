@@ -15,7 +15,7 @@ const VERSION = '1.0.0b';
 
 program
 	.command('push')
-	.description('Push changes to the remote repository')
+	.description('Push changes to Autumn')
 	.option('-p, --prod', 'Push to production')
 	.option('-y, --yes', 'Confirm all deletions')
 	.action(async options => {
