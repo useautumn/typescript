@@ -74,8 +74,6 @@ export default async function AuthCommand() {
 		}
 	}
 
-	// autumnConfig.set("keys.sandboxKey", keyInfo.sandboxKey);
-	// autumnConfig.set("keys.prodKey", keyInfo.prodKey);
 	storeToEnv(keyInfo.prodKey, keyInfo.sandboxKey);
 
 	console.log(
