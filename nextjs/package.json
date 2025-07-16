@@ -11,12 +11,12 @@
     "atmn:dev": "pnpm --filter atmn build && atmn"
   },
   "dependencies": {
-    "atmn": "workspace:*",
-    "autumn-js": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
     "@tailwindcss/cli": "^4.1.11",
+    "atmn": "0.0.7-beta.1",
+    "autumn-js": "workspace:*",
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
