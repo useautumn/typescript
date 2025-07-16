@@ -1,11 +1,11 @@
 import { type CheckoutResult } from "autumn-js";
 
 export const getAttachContent = (preview: CheckoutResult) => {
-  const { scenario, product } = preview;
+  const { scenario, product, current_product, next_cycle_at } = preview;
 
-  // const nextCycleAtStr = next_cycle_at
-  //   ? new Date(next_cycle_at).toLocaleDateString()
-  //   : undefined;
+  const nextCycleAtStr = next_cycle_at
+    ? new Date(next_cycle_at).toLocaleDateString()
+    : undefined;
 
   const productName = product.name;
   const recurring = product.properties?.is_one_off === false;
@@ -16,9 +16,8 @@ export const getAttachContent = (preview: CheckoutResult) => {
         title: <p>{productName} product already scheduled</p>,
         message: (
           <p>
-            {/* You are currently on product {current_product_name} and are */}
-            scheduled to start {productName} on
-            {/* {nextCycleAtStr}. */}
+            You are currently on product {current_product.name} and are
+            scheduled to start {productName} on {nextCycleAtStr}.
           </p>
         ),
       };
@@ -80,8 +79,8 @@ export const getAttachContent = (preview: CheckoutResult) => {
         message: (
           <p>
             By clicking confirm, your current subscription to{" "}
-            {/* {current_product_name} will be cancelled and a new subscription to{" "}
-            {product_name} will begin on {nextCycleAtStr}. */}
+            {current_product.name} will be cancelled and a new subscription to{" "}
+            {productName} will begin on {nextCycleAtStr}.
           </p>
         ),
       };
@@ -91,8 +90,8 @@ export const getAttachContent = (preview: CheckoutResult) => {
         title: <p>Cancel</p>,
         message: (
           <p>
-            {/* By clicking confirm, your subscription to {current_product_name}{" "}
-            will end on {nextCycleAtStr}. */}
+            By clicking confirm, your subscription to {current_product.name}{" "}
+            will end on {nextCycleAtStr}.
           </p>
         ),
       };

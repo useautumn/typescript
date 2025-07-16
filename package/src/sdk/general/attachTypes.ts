@@ -60,5 +60,6 @@ export type CheckoutResult = {
     amount: number;
     item: ProductItem;
   }[];
+  options: AttachFeatureOptions[];
   product: Product;
 };

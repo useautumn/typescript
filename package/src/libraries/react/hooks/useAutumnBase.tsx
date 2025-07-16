@@ -112,13 +112,13 @@ export const useAutumnBase = ({
     const { data, error } = await client.checkout(params);
     const { dialog, ...rest } = params;
 
-    console.log("Checkout result:", data);
-
     if (params.dialog) {
       setAttachProps({ preview: data, attachParams: rest });
       setAttachComponent(params.dialog);
       setAttachOpen(true);
     }
+
+    return { data, error };
   };
 
   const attach = async (params: AttachParams) => {

@@ -3,7 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  ChevronDownIcon,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,15 +20,20 @@ import { getAttachContent } from "@/lib/autumn/attach-content";
 import type {
   AttachFeatureOptions,
   CheckoutResult,
+  CheckResult,
   ProductItem,
 } from "autumn-js";
 import { useCustomer } from "autumn-js/react";
+
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Input } from "../ui/input";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "../ui/accordion";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 
 export interface AttachDialogProps {
   open: boolean;
@@ -33,10 +44,17 @@ export interface AttachDialogProps {
 
 export default function AttachDialog(params?: AttachDialogProps) {
   const { attach } = useCustomer();
+  const [checkoutResult, setCheckoutResult] = useState<
+    CheckoutResult | undefined
+  >(params?.preview);
+
+  useEffect(() => {
+    if (params?.preview) {
+      setCheckoutResult(params?.preview);
+    }
+  }, [params?.preview]);
+
   const [loading, setLoading] = useState(false);
-  // const [optionsInput, setOptionsInput] = useState<FeatureOption[]>(
-  //   params?.preview?.options || []
-  // );
 
   if (!params || !params.preview) {
     return <></>;
@@ -44,6 +62,10 @@ export default function AttachDialog(params?: AttachDialogProps) {
 
   const { open, setOpen, preview } = params;
   const { title, message } = getAttachContent(preview);
+
+  const isFree = checkoutResult?.product.properties?.is_free;
+
+  console.log("Product properties:", checkoutResult?.product.properties);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -54,54 +76,22 @@ export default function AttachDialog(params?: AttachDialogProps) {
         <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
           {message}
         </div>
-        <div className="px-6 mb-4 flex flex-col gap-2">
-          <p className="au-text-sm au-font-medium">Price</p>
-          {preview.product.items
-            .filter((item) => item.type !== "feature")
-            .map((item, index) => {
-              if (item.usage_model == "prepaid") {
-                return (
-                  <div key={index} className="flex justify-between">
-                    <p className="text-muted-foreground">
-                      {item.feature ? item.feature.name : "Subscription"}
-                    </p>
-                    <p>{item.display?.secondary_text}</p>
-                  </div>
-                );
-              }
 
-              return (
-                <div key={index} className="flex justify-between">
-                  <p className="text-muted-foreground">
-                    {item.feature ? item.feature.name : "Subscription"}
-                  </p>
-                  <p>
-                    {item.display?.primary_text} {item.display?.secondary_text}
-                  </p>
-                </div>
-              );
-            })}
-        </div>
+        {isFree === false && checkoutResult && (
+          <PriceInformation
+            checkoutResult={checkoutResult}
+            setCheckoutResult={setCheckoutResult}
+          />
+        )}
 
         <DialogFooter className="flex flex-col sm:flex-row justify-between gap-x-4 py-2 pl-6 pr-3 bg-secondary border-t shadow-inner">
-          {/* {due_today && (
-            <TotalPrice>
-              <span>Due Today</span>
-              <span>
-                {new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: due_today.currency,
-                }).format(getTotalPrice())}
-              </span>
-            </TotalPrice>
-          )} */}
           <Button
             size="sm"
             onClick={async () => {
               setLoading(true);
               await attach({
                 productId: preview.product.id,
-                options: [],
+                options: checkoutResult?.options,
               });
               setOpen(false);
               setLoading(false);
@@ -123,10 +113,209 @@ export default function AttachDialog(params?: AttachDialogProps) {
   );
 }
 
-const FixedPrice = ({ item }: { item: ProductItem }) => {
+function PriceInformation({
+  checkoutResult,
+  setCheckoutResult,
+}: {
+  checkoutResult: CheckoutResult;
+  setCheckoutResult: (checkoutResult: CheckoutResult) => void;
+}) {
+  return (
+    <div className="px-6 mb-4 flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <p className="au-text-sm au-font-medium">Price</p>
+        {checkoutResult?.product.items
+          .filter((item) => item.type !== "feature")
+          .map((item, index) => {
+            if (item.usage_model == "prepaid") {
+              return (
+                <PrepaidItem
+                  key={index}
+                  item={item}
+                  checkoutResult={checkoutResult!}
+                  setCheckoutResult={setCheckoutResult}
+                />
+              );
+            }
+
+            return (
+              <div key={index} className="flex justify-between">
+                <p className="text-muted-foreground">
+                  {item.feature ? item.feature.name : "Subscription"}
+                </p>
+                <p>
+                  {item.display?.primary_text} {item.display?.secondary_text}
+                </p>
+              </div>
+            );
+          })}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {/* <p className="font-medium">Due Today</p> */}
+
+        <div className="flex justify-between">
+          <p className="font-medium text-md">Total due today</p>
+
+          <p className="font-medium text-md">
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: checkoutResult?.currency,
+            }).format(checkoutResult?.total)}
+          </p>
+        </div>
+        <Accordion type="single" collapsible>
+          <AccordionItem value="total">
+            <CustomAccordionTrigger className="justify-between w-full my-0 py-0">
+              <div className="cursor-pointer flex items-center gap-1 w-full justify-end">
+                <p className="font-light text-muted-foreground">View details</p>
+                <ChevronDown
+                  className="text-muted-foreground mt-1 rotate-90 transition-transform duration-200 ease-in-out"
+                  size={14}
+                />
+              </div>
+
+              {/* <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" /> */}
+            </CustomAccordionTrigger>
+            <AccordionContent className="my-2 flex flex-col gap-2">
+              {checkoutResult?.lines
+                .filter((line) => line.amount != 0)
+                .map((line, index) => {
+                  return (
+                    <div key={index} className="flex justify-between">
+                      <p className="text-muted-foreground">
+                        {line.description}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: checkoutResult?.currency,
+                        }).format(line.amount)}
+                      </p>
+                    </div>
+                  );
+                })}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}
+
+function CustomAccordionTrigger({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+  return (
+    <AccordionPrimitive.Header className="flex">
+      <AccordionPrimitive.Trigger
+        data-slot="accordion-trigger"
+        className={cn(
+          "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]_svg]:rotate-0",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  );
+}
+
+const PrepaidItem = ({
+  item,
+  checkoutResult,
+  setCheckoutResult,
+}: {
+  item: ProductItem;
+  checkoutResult: CheckoutResult;
+  setCheckoutResult: (checkoutResult: CheckoutResult) => void;
+}) => {
+  const { quantity = 0, billing_units: billingUnits = 1 } = item;
+  const [quantityInput, setQuantityInput] = useState<string>(
+    (quantity / billingUnits).toString()
+  );
+  const { checkout } = useCustomer();
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const newOptions = [...checkoutResult.options].filter(
+        (option) => option.feature_id !== item.feature_id
+      );
+      newOptions.push({
+        featureId: item.feature_id,
+        quantity: Number(quantityInput) * billingUnits,
+      });
+      const { data, error } = await checkout({
+        productId: checkoutResult.product.id,
+        options: newOptions,
+      });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+      setCheckoutResult(data!);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setOpen(false);
+    }
+  };
+
   return (
     <div className="flex justify-between">
-      <p>Subscription</p>
+      <div className="flex gap-2">
+        <p className="text-muted-foreground">{item.feature?.name}</p>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger
+            className="text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1
+             bg-accent/80 hover:bg-accent hover:text-foreground"
+          >
+            Qty: {quantity}
+            <ChevronDown size={12} />
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-80 text-sm p-4 pt-3 flex flex-col gap-4"
+          >
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium">{item.feature?.name}</p>
+              <p className="text-muted-foreground">
+                {item.display?.primary_text} {item.display?.secondary_text}
+              </p>
+            </div>
+
+            <div className="flex justify-between items-end">
+              <div className="flex gap-2 items-center">
+                <Input
+                  className="h-7 w-16 focus:!ring-2"
+                  value={quantityInput}
+                  onChange={(e) => setQuantityInput(e.target.value)}
+                />
+                <p className="text-muted-foreground">
+                  {billingUnits > 1 && `x ${billingUnits} `}
+                  {item.feature?.name}
+                </p>
+              </div>
+
+              <Button onClick={handleSave} className="w-14">
+                {loading ? (
+                  <Loader2 className="text-muted-foreground animate-spin !w-4 !h-4" />
+                ) : (
+                  "Save"
+                )}
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
       <p>
         {item.display?.primary_text} {item.display?.secondary_text}
       </p>
