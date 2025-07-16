@@ -1,10 +1,10 @@
 import path from 'path';
-import {resolve} from 'path';
 import fs from 'fs';
-import {pathToFileURL} from 'url';
 import createJiti from 'jiti';
+import {pathToFileURL} from 'url';
+import {resolve} from 'path';
 
-export async function loadAutumnConfig() {
+export async function loadAutumnConfigFile() {
 	const configPath = path.join(process.cwd(), 'autumn.config.ts');
 	const absolutePath = resolve(configPath);
 	const fileUrl = pathToFileURL(absolutePath).href;

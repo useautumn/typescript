@@ -1,9 +1,10 @@
 import open from 'open';
-import {getOTP} from '../core/auth.js';
 import Conf from 'conf';
-import {updateCLIStripeKeys} from '../core/api.js';
 import chalk from 'chalk';
 import { input, password, confirm } from '@inquirer/prompts';
+
+import {getOTP} from '../core/auth.js';
+import {updateCLIStripeKeys} from '../core/api.js';
 
 const passwordTheme = {
 	style: {

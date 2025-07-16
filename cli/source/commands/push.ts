@@ -1,5 +1,5 @@
-import {confirm} from '@inquirer/prompts';
 import chalk from 'chalk';
+import {confirm} from '@inquirer/prompts';
 
 import {
 	upsertProduct,

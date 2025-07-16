@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import {
 	getAllProducts,
 	getFeatures,
@@ -7,7 +8,6 @@ import {featureBuilder} from '../core/builders/features.js';
 import {writeConfig} from '../core/config.js';
 import {importBuilder, exportBuilder} from '../core/builders/products.js';
 import {snakeCaseToCamelCase} from '../core/utils.js';
-import chalk from "chalk";
 
 export default async function Pull({config}: {config: any}) {
 	console.log(chalk.green('Pulling products and features from Autumn...'));
@@ -28,7 +28,6 @@ ${productSnippets.join('\n')}
 // Remember to update this when you make changes!
 ${exportBuilder(products.map(product => product.id), features.map(feature => snakeCaseToCamelCase(feature.id)))}
 	`
-	console.log(autumnConfig);
 	writeConfig(autumnConfig);
 
 	console.log(chalk.green('Success! Config has been updated.'));

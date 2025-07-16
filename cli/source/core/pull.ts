@@ -1,4 +1,4 @@
-import {Feature, Product, ProductItem} from 'autumn-js/compose';
+import {Feature, Product} from 'autumn-js/compose';
 import {externalRequest} from './api.js';
 
 export async function getProducts(ids: string[]) {

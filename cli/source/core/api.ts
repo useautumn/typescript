@@ -1,4 +1,6 @@
 import axios from 'axios';
+import chalk from 'chalk';
+
 import {API_KEY_VAR} from '../cli.js';
 
 export async function request({
@@ -18,17 +20,22 @@ export async function request({
 }) {
 	const apiKey = process.env[API_KEY_VAR];
 
-	const response = await axios.request({
-		method,
-		url: `${base}${path}`,
-		data,
-		headers: {
-			'Content-Type': 'application/json',
-			...headers,
-			Authorization: customAuth || `Bearer ${apiKey}`,
-		},
-	});
-	return response.data;
+	try {
+		const response = await axios.request({
+			method,
+			url: `${base}${path}`,
+			data,
+			headers: {
+				'Content-Type': 'application/json',
+				...headers,
+				Authorization: customAuth || `Bearer ${apiKey}`,
+			},
+		});
+		return response.data;
+	} catch (error) {
+		console.error(chalk.red("Error occured when making API request:"), chalk.red(error.response.data.message || error.response.data.error));
+		process.exit(1);
+	}
 }
 
 export async function internalRequest({

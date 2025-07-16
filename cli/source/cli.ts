@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-import React from 'react';
 import {program} from 'commander';
-import {render} from 'ink';
 import Init from './commands/init.js';
-import {loadAutumnConfig} from './core/config.js';
+import {loadAutumnConfigFile} from './core/config.js';
 import Push from './commands/push.js';
 import Pull from './commands/pull.js';
 import AuthCommand from './commands/auth.js';
@@ -11,7 +9,7 @@ import open from 'open';
 import Conf from 'conf';
 import chalk from 'chalk';
 
-const autumnConfig = new Conf({
+const autumnStore = new Conf({
 	projectName: 'atmn',
 });
 
@@ -20,10 +18,10 @@ const VERSION = "1.0.0b"
 
 function getAuthKeys(prod: boolean) {
 	let key = prod
-		? autumnConfig.get('keys.prodKey')
-		: autumnConfig.get('keys.sandboxKey');
+		? autumnStore.get('keys.prodKey')
+		: autumnStore.get('keys.sandboxKey');
 
-	console.log(autumnConfig.get('keys'));
+	console.log(autumnStore.get('keys'));
 
 	if (!key) {
 		console.error(
@@ -36,7 +34,7 @@ function getAuthKeys(prod: boolean) {
 }
 
 program.command('clear').description('Clear the config').action(() => {
-	autumnConfig.clear();
+	autumnStore.clear();
 	console.log(chalk.green('Config cleared successfully.'));
 });
 
@@ -46,7 +44,7 @@ program
 	.option('-p, --prod', 'Push to production')
 	.option('-y, --yes', 'Confirm all deletions')
 	.action(async options => {
-		const config = await loadAutumnConfig();
+		const config = await loadAutumnConfigFile();
 		let key = getAuthKeys(options.prod);
 
 		process.env[API_KEY_VAR] = key as string;
@@ -58,7 +56,7 @@ program
 	.description('Pull changes from Autumn')
 	.option('-p, --prod', 'Pull from production')
 	.action(async options => {
-		const config = await loadAutumnConfig();
+		const config = await loadAutumnConfigFile();
 		let key = getAuthKeys(options.prod);
 
 		process.env[API_KEY_VAR] = key as string;
@@ -68,8 +66,10 @@ program
 program
 	.command('init')
 	.description('Initialize an Autumn project.')
-	.action(() => {
-		render(<Init />);
+	.action(async () => {
+
+		const config = await loadAutumnConfigFile();
+		await Init({config, autumnStore});
 	});
 
 program
@@ -77,16 +77,8 @@ program
 	.description('Authenticate with Autumn')
 	.option('-p, --prod', 'Authenticate with production')
 	.action(async () => {
-		await AuthCommand(autumnConfig);
+		await AuthCommand(autumnStore);
 	});
-
-// program
-// 	.command('config')
-// 	.description('Show the current config')
-// 	.action(async () => {
-// 		const config = await loadAutumnConfig();
-// 		console.log(config);
-// 	});
 
 program
 	.command('dashboard')
