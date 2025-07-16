@@ -1,4 +1,4 @@
-import {Feature, Product} from 'autumn-js/compose';
+import {Feature, Product} from '../compose/models/composeModels.js';
 import {externalRequest} from './api.js';
 
 export async function getProducts(ids: string[]) {
@@ -18,7 +18,7 @@ export async function getAllProducts() {
 		method: 'GET',
 		path: '/products',
 	});
-	return list.map(product => product as Product);
+	return list.map((product: Product) => product as Product);
 }
 
 export async function getFeatures() {
@@ -27,5 +27,5 @@ export async function getFeatures() {
 		path: '/features',
 	});
 
-	return list.map(feature => feature as Feature);
+	return list.map((feature: Feature) => feature as Feature);
 }

@@ -5,6 +5,13 @@ export function snakeCaseToCamelCase(value: string) {
     return value.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
 }
 
+export function idToVar(id: string): string {
+    return id
+        .replace(/[-_](.)/g, (_, letter) => letter.toUpperCase())
+        .replace(/^[^a-zA-Z_$]/, '_') // Handle leading non-letter characters
+        .replace(/[^a-zA-Z0-9_$]/g, ''); // Remove invalid JavaScript identifier characters
+}
+
 export function storeToEnv(prodKey: string, sandboxKey: string) {
 	const envPath = `${process.cwd()}/.env`;
 	const envVars = `# AUTUMN_SECRET_KEY=${prodKey}\nAUTUMN_SECRET_KEY=${sandboxKey}\n`;

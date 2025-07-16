@@ -1,5 +1,5 @@
-import {ProductItem, Product} from 'autumn-js/compose';
-import {snakeCaseToCamelCase} from '../utils.js';
+import {ProductItem, Product} from '../../compose/index.js';
+import {idToVar} from '../utils.js';
 
 const ItemBuilders = {
 	priced_feature: pricedFeatureItemBuilder,
@@ -15,27 +15,32 @@ import {
 	featureItem,
 	pricedFeatureItem,
 	priceItem,
-} from 'autumn-js/compose';
+} from 'atmn';
     `;
 }
 
 export function exportBuilder(productIds: string[], featureIds: string[]) {
 	const snippet = `
-export default {
-    products: [${productIds.map(id => `${id}Plan`).join(', ')}],
-    features: [${featureIds.map(id => `${id}`).join(', ')}]
+const autumnConfig = {
+    products: [${productIds.map(id => `${idToVar(id)}`).join(', ')}],
+    features: [${featureIds.map(id => `${idToVar(id)}`).join(', ')}]
 }
+
+export default autumnConfig;
     `;
 	return snippet;
 }
 
 export function productBuilder(product: Product) {
 	const snippet = `
-export const ${product.id}Plan = product({
+export const ${idToVar(product.id)} = product({
     id: '${product.id}',
     name: '${product.name}',
     items: [${product.items
-			.map((item: ProductItem) => `${ItemBuilders[item.type](item)}`)
+			.map(
+				(item: ProductItem) =>
+					`${ItemBuilders[item.type as keyof typeof ItemBuilders](item)}`,
+			)
 			.join('           ')}     ]
 })
 `;
@@ -45,10 +50,11 @@ export const ${product.id}Plan = product({
 // Item Builders
 
 export function pricedFeatureItemBuilder(item: ProductItem) {
-	const intervalLine = item.interval == null ? '' : `\n            interval: '${item.interval}',`;
+	const intervalLine =
+		item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const snippet = `
         pricedFeatureItem({
-            feature_id: ${snakeCaseToCamelCase(item.feature_id)}.id,
+            feature_id: ${idToVar(item.feature_id!)}.id,
             price: ${item.price},${intervalLine}
             included_usage: ${item.included_usage},
             billing_units: ${item.billing_units},
@@ -59,10 +65,11 @@ export function pricedFeatureItemBuilder(item: ProductItem) {
 }
 
 export function featureItemBuilder(item: ProductItem) {
-	const intervalLine = item.interval == null ? '' : `\n            interval: '${item.interval}',`;
+	const intervalLine =
+		item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const snippet = `
         featureItem({
-            feature_id: ${snakeCaseToCamelCase(item.feature_id)}.id,
+            feature_id: ${idToVar(item.feature_id!)}.id,
             included_usage: ${item.included_usage},${intervalLine}
         }),
 `;
@@ -70,7 +77,8 @@ export function featureItemBuilder(item: ProductItem) {
 }
 
 export function priceItemBuilder(item: ProductItem) {
-	const intervalLine = item.interval == null ? '' : `\n            interval: '${item.interval}',`;
+	const intervalLine =
+		item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const snippet = `
         priceItem({
             price: ${item.price},${intervalLine}

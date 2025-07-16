@@ -2,7 +2,7 @@
 	"extends": "@sindresorhus/tsconfig",
 	"compilerOptions": {
 		"outDir": "dist",
-		"strict": false,
+		"strict": true,
 		"noUnusedLocals": false,
 		"noUnusedParameters": false
 	},
