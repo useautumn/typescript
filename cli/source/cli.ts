@@ -9,6 +9,7 @@ import open from 'open';
 import chalk from 'chalk';
 import { writeConfig } from './core/config.js';
 import {FRONTEND_URL} from './constants.js';
+import { DEFAULT_CONFIG } from './constants.js';
 
 const VERSION = '1.0.0b';
 
@@ -35,7 +36,7 @@ program
 	.command('init')
 	.description('Initialize an Autumn project.')
 	.action(async () => {
-		writeConfig(""); // just write an empty config to make the config file.
+		writeConfig(DEFAULT_CONFIG); // just write an empty config to make the config file.
 		const config = await loadAutumnConfigFile();
 		await Init({config});
 	});
