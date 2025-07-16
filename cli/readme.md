@@ -12,7 +12,7 @@ Features
 ## Usage
 
 ```sh
-Usage: cli [options] [command]
+Usage: atmn [options] [command]
 
 Options:
   -h, --help      display help for command
