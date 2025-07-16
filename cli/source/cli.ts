@@ -6,7 +6,6 @@ import Push from './commands/push.js';
 import Pull from './commands/pull.js';
 import AuthCommand from './commands/auth.js';
 import open from 'open';
-import Conf from 'conf';
 import chalk from 'chalk';
 import { writeConfig } from './core/config.js';
 
