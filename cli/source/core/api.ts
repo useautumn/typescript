@@ -3,6 +3,9 @@ import chalk from 'chalk';
 
 import {API_KEY_VAR} from '../cli.js';
 
+const INTERNAL_BASE: string = "https://api.useautumn.com";
+const EXTERNAL_BASE: string = "https://api.useautumn.com/v1"
+
 export async function request({
 	method,
 	base,
@@ -53,7 +56,7 @@ export async function internalRequest({
 }) {
 	return await request({
 		method,
-		base: 'http://152.67.152.51:8080',
+		base: INTERNAL_BASE,
 		path,
 		data,
 		headers,
@@ -76,7 +79,7 @@ export async function externalRequest({
 }) {
 	return await request({
 		method,
-		base: 'http://152.67.152.51:8080/v1',
+		base: EXTERNAL_BASE,
 		path,
 		data,
 		headers,
