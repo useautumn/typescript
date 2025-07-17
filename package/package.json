@@ -1,8 +1,8 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.102",
-  "main": "./dist/index.js",
+  "version": "0.0.103",
+  "main": "./dist/sdk/index.js",
   "files": [
     "dist",
     "README.md",
@@ -22,18 +22,13 @@
     "sync-registry": "tsx scripts/sync-registry.ts sync",
     "watch-registry": "tsx scripts/sync-registry.ts watch"
   },
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/sdk/index.mjs",
+  "types": "./dist/sdk/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/sdk/index.d.ts",
       "require": "./dist/sdk/index.js",
       "import": "./dist/sdk/index.mjs"
-    },
-    "./compose": {
-      "types": "./dist/compose/index.d.ts",
-      "require": "./dist/compose/index.js",
-      "import": "./dist/compose/index.mjs"
     },
     "./next": {
       "types": "./dist/next/index.d.ts",
