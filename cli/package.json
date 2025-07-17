@@ -1,6 +1,6 @@
 {
 	"name": "atmn",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"license": "MIT",
 	"bin": "dist/cli.js",
 	"main": "dist/index.js",
@@ -27,7 +27,8 @@
 		"dotenv": "^17.2.0",
 		"inquirer": "^12.7.0",
 		"jiti": "^2.4.2",
-		"open": "^10.1.2"
+		"open": "^10.1.2",
+		"yocto-spinner": "^1.0.0"
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^3.0.1",

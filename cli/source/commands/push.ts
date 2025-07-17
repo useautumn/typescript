@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import {confirm} from '@inquirer/prompts';
+import yoctoSpinner from 'yocto-spinner';
 
 import {
 	upsertProduct,
@@ -8,6 +9,15 @@ import {
 } from '../core/push.js';
 import {deleteFeature, deleteProduct} from '../core/api.js';
 import {FRONTEND_URL} from '../constants.js';
+
+const spinner = (message: string) => {
+	const spinner = yoctoSpinner({
+		text: message
+	});
+	spinner.start();
+
+	return spinner;
+};
 
 export default async function Push({
 	config,
@@ -32,20 +42,21 @@ export default async function Push({
 				message: `Delete product [${productId}]?`,
 			}));
 		if (shouldDelete) {
+			const s = spinner(`Deleting product [${productId}]`);
 			await deleteProduct(productId);
-			console.log(chalk.green(`Product [${productId}] deleted successfully!`));
+			s.success(`Product [${productId}] deleted successfully!`);
 		}
 	}
 
 	for (let feature of features) {
-		console.log(chalk.green(`Pushing feature [${feature.id}]`));
+		const s = spinner(`Pushing feature [${feature.id}]`);
 		await upsertFeature(feature);
-		console.log(chalk.green(`Pushed feature [${feature.id}]`));
+		s.success(`Pushed feature [${feature.id}]`);
 	}
 	for (let product of products) {
-		console.log(chalk.green(`Pushing product [${product.id}]`));
+		const s = spinner(`Pushing product [${product.id}]`);
 		await upsertProduct(product);
-		console.log(chalk.green(`Pushed product [${product.id}]`));
+		s.success(`Pushed product [${product.id}]`);
 	}
 
 	for (let featureId of featuresToDelete) {
@@ -55,8 +66,9 @@ export default async function Push({
 				message: `Delete feature [${featureId}]?`,
 			}));
 		if (shouldDelete) {
+			const s = spinner(`Deleting feature [${featureId}]`);
 			await deleteFeature(featureId);
-			console.log(chalk.green(`Feature [${featureId}] deleted successfully!`));
+			s.success(`Feature [${featureId}] deleted successfully!`);
 		}
 	}
 
