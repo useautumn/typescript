@@ -9,9 +9,6 @@
     "LICENSE.md",
     "tsup.config.ts"
   ],
-  "bin": {
-    "atmn": "./cli/dist/cli/cli.mjs"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf dist && tsup && node scripts/post-build.js",
