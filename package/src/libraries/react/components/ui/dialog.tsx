@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+// import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close className="au-absolute au-right-4 au-top-4 au-rounded-sm au-opacity-70 au-ring-offset-background au-transition-opacity hover:au-opacity-100 focus:au-outline-none focus:au-ring-2 focus:au-ring-ring focus:au-ring-offset-2 disabled:au-pointer-events-none data-[state=open]:au-bg-accent data-[state=open]:au-text-muted-foreground">
-        <X className="au-h-4 au-w-4" />
+        {/* <X className="au-h-4 au-w-4" /> */}
         <span className="au-sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

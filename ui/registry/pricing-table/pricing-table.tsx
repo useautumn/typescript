@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2 } from "lucide-react";
+// import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "@/registry/attach-dialog/attach-dialog";
 import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
 import { Product, ProductItem } from "autumn-js";
@@ -20,9 +20,7 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center min-h-[300px]">
-        <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
-      </div>
+      <div className="w-full h-full flex justify-center items-center min-h-[300px]">{/* <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" /> */}</div>
     );
   }
 
@@ -32,8 +30,8 @@ export default function PricingTable({
 
   const intervals = Array.from(
     new Set(
-      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
-    )
+      products?.map((p) => p.properties?.interval_group).filter((i) => !!i),
+    ),
   );
 
   const multiInterval = intervals.length > 1;
@@ -147,13 +145,13 @@ export const PricingTableContainer = ({
       <div
         className={cn(
           "flex items-center flex-col",
-          hasRecommended && "!py-10"
+          hasRecommended && "!py-10",
         )}
       >
         {multiInterval && (
           <div
             className={cn(
-              products.some((p) => p.display?.recommend_text) && "mb-8"
+              products.some((p) => p.display?.recommend_text) && "mb-8",
             )}
           >
             <AnnualSwitch
@@ -165,7 +163,7 @@ export const PricingTableContainer = ({
         <div
           className={cn(
             "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-2",
-            className
+            className,
           )}
         >
           {children}
@@ -216,7 +214,7 @@ export const PricingCard = ({
         " w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
         isRecommended &&
           "lg:-translate-y-6 lg:shadow-lg dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-secondary/40",
-        className
+        className,
       )}
     >
       {productDisplay?.recommend_text && (
@@ -225,7 +223,7 @@ export const PricingCard = ({
       <div
         className={cn(
           "flex flex-col h-full flex-grow",
-          isRecommended && "lg:translate-y-6"
+          isRecommended && "lg:translate-y-6",
         )}
       >
         <div className="h-full">
@@ -305,9 +303,9 @@ export const PricingFeatureList = ({
             key={index}
             className="flex items-start gap-2 text-sm"
           >
-            {showIcon && (
+            {/* {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-            )}
+            )} */}
             <div className="flex flex-col">
               <span>{item.display?.primary_text}</span>
               {item.display?.secondary_text && (
@@ -350,7 +348,7 @@ export const PricingCardButton = React.forwardRef<
     <Button
       className={cn(
         "w-full py-3 px-4 group overflow-hidden relative transition-all duration-300 hover:brightness-90 border rounded-lg",
-        className
+        className,
       )}
       {...props}
       variant={recommended ? "default" : "secondary"}
@@ -358,7 +356,7 @@ export const PricingCardButton = React.forwardRef<
       disabled={loading || props.disabled}
       onClick={handleClick}
     >
-      {loading ? (
+      {/* {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
         <>
@@ -371,7 +369,7 @@ export const PricingCardButton = React.forwardRef<
             <span className="text-sm">→</span>
           </div>
         </>
-      )}
+      )} */}
     </Button>
   );
 });

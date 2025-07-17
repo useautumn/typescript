@@ -1,5 +1,5 @@
-import {Feature, Product} from 'autumn-js/compose';
-import {request} from './api.js';
+import {Feature, Product} from '../compose/index.js';
+import {externalRequest} from './api.js';
 import {getFeatures, getAllProducts} from './pull.js';
 
 export async function checkForDeletables(
@@ -25,22 +25,35 @@ export async function checkForDeletables(
 
 export async function upsertFeature(feature: Feature) {
 	try {
-		const response = await request('POST', `/features`, {
-			...feature,
-			config: {
-				filters: [{property: '', operator: '', value: []}],
-				usage_type: 'single_use',
-			},
+		const response = await externalRequest({
+			method: 'POST',
+			path: `/features`,
+			data: feature,
+			throwOnError: true,
+			// data: {
+			// 	...feature,
+			// 	config: {
+			// 		filters: [{property: '', operator: '', value: []}],
+			// 		usage_type: 'single_use',
+			// 	},
+			// },
 		});
+
 		return response.data;
 	} catch (error) {
 		// If the first request fails, try posting to the specific feature ID endpoint
-		const response = await request('POST', `/features/${feature.id}`, {
-			...feature,
-			config: {
-				filters: [{property: '', operator: '', value: []}],
-				usage_type: 'single_use',
-			},
+		const response = await externalRequest({
+			method: 'POST',
+			path: `/features/${feature.id}`,
+			data: feature,
+
+			// data: {
+			// 	...feature,
+			// 	config: {
+			// 		filters: [{property: '', operator: '', value: []}],
+			// 		usage_type: 'single_use',
+			// 	},
+			// },
 		});
 		return response.data;
 	}
@@ -48,11 +61,20 @@ export async function upsertFeature(feature: Feature) {
 
 export async function upsertProduct(product: Product) {
 	try {
-		const response = await request('POST', `/products`, product);
+		const response = await externalRequest({
+			method: 'POST',
+			path: `/products`,
+			data: product,
+			throwOnError: true,
+		});
 		return response.data;
 	} catch (error) {
 		// If the first request fails, try posting to the specific product ID endpoint
-		const response = await request('POST', `/products/${product.id}`, product);
+		const response = await externalRequest({
+			method: 'POST',
+			path: `/products/${product.id}`,
+			data: product,
+		});
 		return response.data;
 	}
 }

@@ -13,11 +13,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  plugins: [
-    organization(),
-    autumn({
-      url: "http://localhost:8080/v1",
-      secretKey: process.env.AUTUMN_SECRET_KEY,
-    }),
-  ],
+  plugins: [organization(), autumn()],
 });
+
+// {
+//   url: "http://localhost:8080/v1",
+//   secretKey: process.env.AUTUMN_SECRET_KEY,
+// }

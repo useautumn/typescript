@@ -4,7 +4,7 @@ import {
   CreateCustomerParams,
   UpdateCustomerParams,
   BillingPortalParams,
-  BillingPortalResponse,
+  BillingPortalResult,
   GetCustomerParams,
 } from "./cusTypes";
 import { staticWrapper } from "../utils";
@@ -94,6 +94,6 @@ export const billingPortal = async ({
   instance: Autumn;
   id: string;
   params?: BillingPortalParams;
-}): AutumnPromise<BillingPortalResponse> => {
+}): AutumnPromise<BillingPortalResult> => {
   return instance.post(`/customers/${id}/billing_portal`, params);
 };

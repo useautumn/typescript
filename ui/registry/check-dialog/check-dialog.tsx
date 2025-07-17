@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+// import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCheckContent } from "@/registry/check-dialog/lib/check-content";
 import { cn } from "@/lib/utils";
@@ -45,9 +45,9 @@ export default function CheckDialog(params?: CheckDialogProps) {
               setOpen(false);
             }}
           >
-            {loading && (
+            {/* {loading && (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            )}
+            )} */}
             Confirm
           </Button>
         </DialogFooter>

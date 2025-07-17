@@ -6,7 +6,9 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "atmn": "atmn",
+    "atmn:dev": "pnpm --filter atmn build && atmn"
   },
   "dependencies": {
     "autumn-js": "workspace:*",
@@ -16,6 +18,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
     "@tailwindcss/cli": "^4.1.11",
+    "atmn": "0.0.7-beta.1",
+
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
