@@ -11,9 +11,8 @@ export const ProductSchema = z.object({
 
 export const FeatureSchema = z.object({
 	id: z.string().min(1),
-	name: z.string().min(1),
+	name: z.string().optional(),
 	type: z.enum(['boolean', 'single_use', 'continuous_use', 'credit_system']),
-
 	credit_schema: z
 		.array(
 			z.object({

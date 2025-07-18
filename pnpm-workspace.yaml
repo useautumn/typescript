@@ -5,3 +5,4 @@ packages:
   - "compose"
   - "cli" 
   - "atmn"
+  - "ui"

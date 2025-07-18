@@ -38,7 +38,7 @@ export async function request({
 			},
 		});
 		return response.data;
-	} catch (error) {
+	} catch (error: any) {
 		if (throwOnError) {
 			throw error;
 		}
