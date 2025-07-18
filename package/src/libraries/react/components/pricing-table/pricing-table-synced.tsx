@@ -56,7 +56,6 @@ export default function PricingTable({
     return true;
   };
 
-  console.log("Products: ", products);
   return (
     <div className={cn("au-root")}>
       {products && (
