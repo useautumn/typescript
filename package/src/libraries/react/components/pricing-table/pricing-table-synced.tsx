@@ -22,7 +22,9 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div style={loadingStyles}><Loader2 style={spinnerStyles} /></div>
+      <div style={loadingStyles}>
+        <Loader2 style={spinnerStyles} />
+      </div>
     );
   }
 
@@ -32,8 +34,8 @@ export default function PricingTable({
 
   const intervals = Array.from(
     new Set(
-      products?.map((p) => p.properties?.interval_group).filter((i) => !!i),
-    ),
+      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
+    )
   );
 
   const multiInterval = intervals.length > 1;
@@ -69,7 +71,8 @@ export default function PricingTable({
               productId={product.id}
               buttonProps={{
                 disabled:
-                  product.scenario === "active" ||
+                  (product.scenario === "active" &&
+                    !product.properties.has_prepaid) ||
                   product.scenario === "scheduled",
 
                 onClick: async () => {
@@ -146,13 +149,13 @@ export const PricingTableContainer = ({
       <div
         className={cn(
           "au-flex au-items-center au-flex-col",
-          hasRecommended && "!au-py-10",
+          hasRecommended && "!au-py-10"
         )}
       >
         {multiInterval && (
           <div
             className={cn(
-              products.some((p) => p.display?.recommend_text) && "au-mb-8",
+              products.some((p) => p.display?.recommend_text) && "au-mb-8"
             )}
           >
             <AnnualSwitch
@@ -164,7 +167,7 @@ export const PricingTableContainer = ({
         <div
           className={cn(
             "au-grid au-grid-cols-1 sm:au-grid-cols-2 lg:au-grid-cols-[repeat(auto-fit,minmax(200px,1fr))] au-w-full au-gap-2",
-            className,
+            className
           )}
         >
           {children}
@@ -216,7 +219,7 @@ export const PricingCard = ({
         " au-w-full au-h-full au-py-6 au-text-foreground au-border au-rounded-lg au-shadow-sm au-max-w-xl",
         isRecommended &&
           "lg:au--translate-y-6 lg:au-shadow-lg dark:au-shadow-zinc-800/80 lg:au-h-[calc(100%+48px)] au-bg-secondary/40",
-        className,
+        className
       )}
     >
       {productDisplay?.recommend_text && (
@@ -225,7 +228,7 @@ export const PricingCard = ({
       <div
         className={cn(
           "au-flex au-flex-col au-h-full au-flex-grow",
-          isRecommended && "lg:au-translate-y-6",
+          isRecommended && "lg:au-translate-y-6"
         )}
       >
         <div className="au-h-full">
@@ -350,7 +353,7 @@ export const PricingCardButton = React.forwardRef<
     <Button
       className={cn(
         "au-w-full au-py-3 au-px-4 au-group au-overflow-hidden au-relative au-transition-all au-duration-300 hover:au-brightness-90 au-border au-rounded-lg",
-        className,
+        className
       )}
       {...props}
       variant={recommended ? "default" : "secondary"}

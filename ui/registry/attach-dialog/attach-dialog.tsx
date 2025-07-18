@@ -72,7 +72,9 @@ export default function AttachDialog(params: AttachDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm">
         <DialogTitle className="px-6 mb-1">{title}</DialogTitle>
-        <div className="px-6 mt-1 mb-4 text-muted-foreground">{message}</div>
+        <div className="px-6 mt-1 mb-4 text-muted-foreground">
+          {message}
+        </div>
 
         {isPaid && checkoutResult && (
           <PriceInformation
@@ -108,7 +110,9 @@ export default function AttachDialog(params: AttachDialogProps) {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span className="whitespace-nowrap flex gap-1">Confirm</span>
+                <span className="whitespace-nowrap flex gap-1">
+                  Confirm
+                </span>
               </>
             )}
           </Button>
@@ -238,7 +242,9 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
       <AccordionItem value="total" className="border-b-0">
         <CustomAccordionTrigger className="justify-between w-full my-0 py-0 border-none">
           <div className="cursor-pointer flex items-center gap-1 w-full justify-end">
-            <p className="font-light text-muted-foreground">View details</p>
+            <p className="font-light text-muted-foreground">
+              View details
+            </p>
             <ChevronDown
               className="text-muted-foreground mt-0.5 rotate-90 transition-transform duration-200 ease-in-out"
               size={14}
