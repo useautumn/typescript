@@ -1,15 +1,8 @@
 "use client";
-
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  ChevronDown,
-  ChevronDownIcon,
-  ChevronRight,
-  Loader2,
-} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,67 +10,73 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getAttachContent } from "@/lib/autumn/attach-content";
-import type {
-  AttachFeatureOptions,
-  CheckoutResult,
-  CheckResult,
-  ProductItem,
-} from "autumn-js";
 import { useCustomer } from "autumn-js/react";
-
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Input } from "../ui/input";
+import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
+import type { CheckoutResult, ProductItem } from "autumn-js";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
+} from "@/components/ui/accordion";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 
 export interface AttachDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  preview: CheckoutResult;
-  onClick: (options?: AttachFeatureOptions) => Promise<void>;
+  checkoutResult: CheckoutResult;
 }
 
-export default function AttachDialog(params?: AttachDialogProps) {
+const formatCurrency = ({
+  amount,
+  currency,
+}: {
+  amount: number;
+  currency: string;
+}) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency,
+  }).format(amount);
+};
+
+export default function AttachDialog(params: AttachDialogProps) {
   const { attach } = useCustomer();
   const [checkoutResult, setCheckoutResult] = useState<
     CheckoutResult | undefined
-  >(params?.preview);
+  >(params?.checkoutResult);
 
   useEffect(() => {
-    if (params?.preview) {
-      setCheckoutResult(params?.preview);
+    if (params.checkoutResult) {
+      setCheckoutResult(params.checkoutResult);
     }
-  }, [params?.preview]);
+  }, [params.checkoutResult]);
 
   const [loading, setLoading] = useState(false);
 
-  if (!params || !params.preview) {
+  if (!checkoutResult) {
     return <></>;
   }
 
-  const { open, setOpen, preview } = params;
-  const { title, message } = getAttachContent(preview);
+  const { open, setOpen } = params;
+  const { title, message } = getAttachContent(checkoutResult as any);
 
   const isFree = checkoutResult?.product.properties?.is_free;
-
-  console.log("Product properties:", checkoutResult?.product.properties);
+  const isPaid = isFree === false;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        className={cn("p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm")}
-      >
-        <DialogTitle className={cn("px-6 mb-1 ")}>{title}</DialogTitle>
-        <div className={cn("px-6 mt-1 mb-4 text-muted-foreground")}>
+      <DialogContent className="p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm">
+        <DialogTitle className="px-6 mb-1">{title}</DialogTitle>
+        <div className="px-6 mt-1 mb-4 text-muted-foreground">
           {message}
         </div>
 
-        {isFree === false && checkoutResult && (
+        {isPaid && checkoutResult && (
           <PriceInformation
             checkoutResult={checkoutResult}
             setCheckoutResult={setCheckoutResult}
@@ -90,8 +89,8 @@ export default function AttachDialog(params?: AttachDialogProps) {
             onClick={async () => {
               setLoading(true);
               await attach({
-                productId: preview.product.id,
-                options: checkoutResult?.options,
+                productId: checkoutResult.product.id,
+                options: checkoutResult?.options as any,
               });
               setOpen(false);
               setLoading(false);
@@ -103,7 +102,9 @@ export default function AttachDialog(params?: AttachDialogProps) {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span className="whitespace-nowrap flex gap-1">Confirm</span>
+                <span className="whitespace-nowrap flex gap-1">
+                  Confirm
+                </span>
               </>
             )}
           </Button>
@@ -122,84 +123,145 @@ function PriceInformation({
 }) {
   return (
     <div className="px-6 mb-4 flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <p className="au-text-sm au-font-medium">Price</p>
-        {checkoutResult?.product.items
-          .filter((item) => item.type !== "feature")
-          .map((item, index) => {
-            if (item.usage_model == "prepaid") {
-              return (
-                <PrepaidItem
-                  key={index}
-                  item={item}
-                  checkoutResult={checkoutResult!}
-                  setCheckoutResult={setCheckoutResult}
-                />
-              );
-            }
-
-            return (
-              <div key={index} className="flex justify-between">
-                <p className="text-muted-foreground">
-                  {item.feature ? item.feature.name : "Subscription"}
-                </p>
-                <p>
-                  {item.display?.primary_text} {item.display?.secondary_text}
-                </p>
-              </div>
-            );
-          })}
-      </div>
+      <ProductItems
+        checkoutResult={checkoutResult}
+        setCheckoutResult={setCheckoutResult}
+      />
 
       <div className="flex flex-col gap-2">
-        {/* <p className="font-medium">Due Today</p> */}
-
-        <div className="flex justify-between">
-          <p className="font-medium text-md">Total due today</p>
-
-          <p className="font-medium text-md">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: checkoutResult?.currency,
-            }).format(checkoutResult?.total)}
-          </p>
-        </div>
-        <Accordion type="single" collapsible>
-          <AccordionItem value="total">
-            <CustomAccordionTrigger className="justify-between w-full my-0 py-0">
-              <div className="cursor-pointer flex items-center gap-1 w-full justify-end">
-                <p className="font-light text-muted-foreground">View details</p>
-                <ChevronDown
-                  className="text-muted-foreground mt-1 rotate-90 transition-transform duration-200 ease-in-out"
-                  size={14}
-                />
-              </div>
-
-              {/* <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" /> */}
-            </CustomAccordionTrigger>
-            <AccordionContent className="my-2 flex flex-col gap-2">
-              {checkoutResult?.lines
-                .filter((line) => line.amount != 0)
-                .map((line, index) => {
-                  return (
-                    <div key={index} className="flex justify-between">
-                      <p className="text-muted-foreground">
-                        {line.description}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: checkoutResult?.currency,
-                        }).format(line.amount)}
-                      </p>
-                    </div>
-                  );
-                })}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+        {checkoutResult?.has_prorations && checkoutResult.lines.length > 0 && (
+          <CheckoutLines checkoutResult={checkoutResult} />
+        )}
+        <DueAmounts checkoutResult={checkoutResult} />
       </div>
     </div>
+  );
+}
+
+function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
+  const { next_cycle, product } = checkoutResult;
+  const nextCycleAtStr = next_cycle
+    ? new Date(next_cycle.starts_at).toLocaleDateString()
+    : undefined;
+
+  const hasUsagePrice = product.items.some(
+    (item) => item.usage_model === "pay_per_use"
+  );
+
+  const showNextCycle = next_cycle && next_cycle.total !== checkoutResult.total;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex justify-between">
+        <div>
+          <p className="font-medium text-md">Total due today</p>
+        </div>
+
+        <p className="font-medium text-md">
+          {formatCurrency({
+            amount: checkoutResult?.total,
+            currency: checkoutResult?.currency,
+          })}
+        </p>
+      </div>
+      {showNextCycle && (
+        <div className="flex justify-between text-muted-foreground">
+          <div>
+            <p className="text-md">Due next cycle ({nextCycleAtStr})</p>
+          </div>
+          <p className="text-md">
+            {formatCurrency({
+              amount: next_cycle.total,
+              currency: checkoutResult?.currency,
+            })}
+            {hasUsagePrice && <span> + usage prices</span>}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductItems({
+  checkoutResult,
+  setCheckoutResult,
+}: {
+  checkoutResult: CheckoutResult;
+  setCheckoutResult: (checkoutResult: CheckoutResult) => void;
+}) {
+  const isUpdateQuantity =
+    checkoutResult?.product.scenario === "active" &&
+    checkoutResult.product.properties.has_prepaid;
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium">Price</p>
+      {checkoutResult?.product.items
+        .filter((item) => item.type !== "feature")
+        .map((item, index) => {
+          if (item.usage_model == "prepaid") {
+            return (
+              <PrepaidItem
+                key={index}
+                item={item}
+                checkoutResult={checkoutResult!}
+                setCheckoutResult={setCheckoutResult}
+              />
+            );
+          }
+
+          if (isUpdateQuantity) {
+            return null;
+          }
+
+          return (
+            <div key={index} className="flex justify-between">
+              <p className="text-muted-foreground">
+                {item.feature ? item.feature.name : "Subscription"}
+              </p>
+              <p>
+                {item.display?.primary_text} {item.display?.secondary_text}
+              </p>
+            </div>
+          );
+        })}
+    </div>
+  );
+}
+
+function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
+  return (
+    <Accordion type="single" collapsible>
+      <AccordionItem value="total" className="border-b-0">
+        <CustomAccordionTrigger className="justify-between w-full my-0 py-0 border-none">
+          <div className="cursor-pointer flex items-center gap-1 w-full justify-end">
+            <p className="font-light text-muted-foreground">
+              View details
+            </p>
+            <ChevronDown
+              className="text-muted-foreground mt-0.5 rotate-90 transition-transform duration-200 ease-in-out"
+              size={14}
+            />
+          </div>
+        </CustomAccordionTrigger>
+        <AccordionContent className="mt-2 mb-0 pb-2 flex flex-col gap-2">
+          {checkoutResult?.lines
+            .filter((line) => line.amount != 0)
+            .map((line, index) => {
+              return (
+                <div key={index} className="flex justify-between">
+                  <p className="text-muted-foreground">{line.description}</p>
+                  <p className="text-muted-foreground">
+                    {new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: checkoutResult?.currency,
+                    }).format(line.amount)}
+                  </p>
+                </div>
+              );
+            })}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }
 
@@ -240,11 +302,12 @@ const PrepaidItem = ({
   const { checkout } = useCustomer();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const scenario = checkoutResult.product.scenario;
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const newOptions = [...checkoutResult.options].filter(
+      const newOptions: any = [...checkoutResult.options].filter(
         (option) => option.feature_id !== item.feature_id
       );
       newOptions.push({
@@ -269,14 +332,18 @@ const PrepaidItem = ({
     }
   };
 
+  const disableSelection = scenario === "renew";
+
   return (
     <div className="flex justify-between">
       <div className="flex gap-2">
         <p className="text-muted-foreground">{item.feature?.name}</p>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
-            className="text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1
-             bg-accent/80 hover:bg-accent hover:text-foreground"
+            className={cn(
+              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80 hover:bg-accent hover:text-foreground"
+            )}
+            disabled={disableSelection}
           >
             Qty: {quantity}
             <ChevronDown size={12} />
@@ -339,117 +406,6 @@ export const PriceItem = ({
       )}
       {...props}
     >
-      {children}
-    </div>
-  );
-};
-
-interface FeatureOption {
-  feature_id: string;
-  feature_name: string;
-  billing_units: number;
-  price?: number;
-  quantity?: number;
-}
-
-interface FeatureOptionWithRequiredPrice
-  extends Omit<FeatureOption, "price" | "quantity"> {
-  price: number;
-  quantity: number;
-}
-
-export const OptionsInput = ({
-  className,
-  option,
-  optionsInput,
-  setOptionsInput,
-  index,
-  ...props
-}: {
-  className?: string;
-  option: FeatureOptionWithRequiredPrice;
-  optionsInput: FeatureOption[];
-  setOptionsInput: (options: FeatureOption[]) => void;
-  index: number;
-} & React.HTMLAttributes<HTMLDivElement>) => {
-  const { feature_name, billing_units, quantity, price } = option;
-  return (
-    <PriceItem key={feature_name}>
-      <span>{feature_name}</span>
-      <QuantityInput
-        key={feature_name}
-        value={quantity ? quantity / billing_units : ""}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          const newOptions = [...optionsInput];
-          newOptions[index].quantity = parseInt(e.target.value) * billing_units;
-          setOptionsInput(newOptions);
-        }}
-      >
-        <span className="">
-          × ${price} per {billing_units === 1 ? " " : billing_units}{" "}
-          {feature_name}
-        </span>
-      </QuantityInput>
-    </PriceItem>
-  );
-};
-
-export const QuantityInput = ({
-  children,
-  onChange,
-  value,
-  className,
-  ...props
-}: {
-  children: React.ReactNode;
-  value: string | number;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string;
-} & React.HTMLAttributes<HTMLDivElement>) => {
-  const currentValue = Number(value) || 0;
-
-  const handleValueChange = (newValue: number) => {
-    const syntheticEvent = {
-      target: { value: String(newValue) },
-    } as React.ChangeEvent<HTMLInputElement>;
-    onChange(syntheticEvent);
-  };
-
-  return (
-    <div
-      className={cn(className, "flex flex-row items-center gap-4")}
-      {...props}
-    >
-      <div className="flex items-center gap-1">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() =>
-            currentValue > 0 && handleValueChange(currentValue - 1)
-          }
-          disabled={currentValue <= 0}
-          className="h-6 w-6 pb-0.5"
-        >
-          -
-        </Button>
-        <span className="w-8 text-center text-foreground">{currentValue}</span>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handleValueChange(currentValue + 1)}
-          className="h-6 w-6 pb-0.5"
-        >
-          +
-        </Button>
-      </div>
-      {children}
-    </div>
-  );
-};
-
-export const TotalPrice = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="w-full font-semibold flex justify-between items-center">
       {children}
     </div>
   );

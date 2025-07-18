@@ -189,21 +189,18 @@ const defaultSWRConfig: SWRConfiguration = {
 export const usePricingTableBase = ({
   AutumnContext,
   params,
-  authClient,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
   params?: {
     productDetails?: ProductDetails[];
   };
-  authClient?: any;
 }) => {
   const context = useAutumnContext({
     AutumnContext,
     name: "usePricingTable",
-    errorIfNotInitialized: !authClient,
   });
 
-  const client = authClient ? authClient.autumn : context.client;
+  const client = context.client;
 
   const fetcher = async () => {
     try {
@@ -227,7 +224,6 @@ export const usePricingTableBase = ({
 
   return {
     products: mergeProductDetails(data || [], params?.productDetails),
-    // products: data || [],
     isLoading: !error && !data,
     error,
     refetch: mutate,

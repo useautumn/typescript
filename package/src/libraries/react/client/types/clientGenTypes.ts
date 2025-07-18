@@ -16,11 +16,7 @@ export const CheckParamsSchema = z.object({
   requiredBalance: z.number().optional(),
   sendEvent: z.boolean().optional(),
   withPreview: z.boolean().optional(),
-  dialog: z
-    .function()
-    .args(z.any())
-    .returns(z.union([z.custom<JSX.Element>(), z.custom<React.ReactNode>()]))
-    .optional(),
+  dialog: z.any().optional(),
   entityData: z.any().optional(),
 });
 

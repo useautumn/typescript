@@ -5,11 +5,11 @@ import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-// import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "../attach-dialog/attach-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
-import { Product, ProductItem } from "@sdk";
+import type { Product, ProductItem } from "@sdk";
 import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
+import { Loader2 } from "lucide-react";
 
 export default function PricingTable({
   productDetails,
@@ -22,7 +22,7 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div style={loadingStyles}>{/* <Loader2 style={spinnerStyles} /> */}</div>
+      <div style={loadingStyles}><Loader2 style={spinnerStyles} /></div>
     );
   }
 
@@ -74,7 +74,6 @@ export default function PricingTable({
 
                 onClick: async () => {
                   if (product.id) {
-                    console.log("Checkout product:", product);
                     await checkout({
                       productId: product.id,
                       dialog: AttachDialog,
@@ -199,6 +198,7 @@ export const PricingCard = ({
   const { name, display: productDisplay, items } = product;
 
   const { buttonText } = getPricingTableContent(product);
+
   const isRecommended = productDisplay?.recommend_text ? true : false;
   const mainPriceDisplay = product.properties?.is_free
     ? {
@@ -358,7 +358,7 @@ export const PricingCardButton = React.forwardRef<
       disabled={loading || props.disabled}
       onClick={handleClick}
     >
-      {/* {loading ? (
+      {loading ? (
         <Loader2 className="au-h-4 au-w-4 au-animate-spin" />
       ) : (
         <>
@@ -371,7 +371,7 @@ export const PricingCardButton = React.forwardRef<
             <span className="au-text-sm">→</span>
           </div>
         </>
-      )} */}
+      )}
     </Button>
   );
 });

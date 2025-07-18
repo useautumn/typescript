@@ -1,21 +1,53 @@
-import { CheckoutResult } from "@sdk/general/attachTypes";
+import { type CheckoutResult } from "autumn-js";
 
-export const getAttachContent = (preview: CheckoutResult) => {
-  const {
-    scenario,
-    // product_name,
-    // recurring,
-    // current_product_name,
-    // next_cycle_at,
-    product,
-  } = preview;
+export const getAttachContent = (checkoutResult: CheckoutResult) => {
+  const { product, current_product, next_cycle } = checkoutResult;
+  const { is_one_off, is_free, has_trial, has_prepaid } = product.properties;
+  const scenario = product.scenario;
+
+  const nextCycleAtStr = next_cycle
+    ? new Date(next_cycle.starts_at).toLocaleDateString()
+    : undefined;
 
   const productName = product.name;
-  const recurring = product.properties?.is_one_off === false;
 
-  // const nextCycleAtStr = next_cycle_at
-  //   ? new Date(next_cycle_at).toLocaleDateString()
-  //   : undefined;
+  if (is_one_off) {
+    return {
+      title: <p>Purchase {productName}</p>,
+      message: (
+        <p>
+          By clicking confirm, you will purchase {productName} and your card
+          will be charged immediately.
+        </p>
+      ),
+    };
+  }
+
+  if (scenario == "active" && has_prepaid) {
+    if (has_prepaid) {
+      return {
+        title: <p>Update Plan</p>,
+        message: (
+          <p>
+            Update your prepaid quantity. You&apos;ll be charged or credited the
+            prorated difference based on your current billing cycle.
+          </p>
+        ),
+      };
+    }
+  }
+
+  if (has_trial) {
+    return {
+      title: <p>Start trial for {productName}</p>,
+      message: (
+        <p>
+          By clicking confirm, you will start a free trial of {productName}{" "}
+          which ends on {nextCycleAtStr}.
+        </p>
+      ),
+    };
+  }
 
   switch (scenario) {
     case "scheduled":
@@ -23,9 +55,8 @@ export const getAttachContent = (preview: CheckoutResult) => {
         title: <p>{productName} product already scheduled</p>,
         message: (
           <p>
-            {/* You are currently on product {current_product_name} and are */}
-            scheduled to start {productName} on
-            {/* {nextCycleAtStr}. */}
+            You are currently on product {current_product.name} and are
+            scheduled to start {productName} on {nextCycleAtStr}.
           </p>
         ),
       };
@@ -37,28 +68,26 @@ export const getAttachContent = (preview: CheckoutResult) => {
       };
 
     case "new":
-      if (recurring) {
+      if (is_free) {
         return {
-          title: <p>Subscribe to {productName}</p>,
+          title: <p>Enable {productName}</p>,
           message: (
             <p>
-              By clicking confirm, you will be subscribed to {productName} and
-              your card will be charged immediately.
-            </p>
-          ),
-        };
-      } else {
-        return {
-          title: <p>Purchase {productName}</p>,
-          message: (
-            <p>
-              By clicking confirm, you will purchase {productName} and your card
-              will be charged immediately.
+              By clicking confirm, {productName} will be enabled immediately.
             </p>
           ),
         };
       }
 
+      return {
+        title: <p>Subscribe to {productName}</p>,
+        message: (
+          <p>
+            By clicking confirm, you will be subscribed to {productName} and
+            your card will be charged immediately.
+          </p>
+        ),
+      };
     case "renew":
       return {
         title: <p>Renew</p>,
@@ -87,8 +116,8 @@ export const getAttachContent = (preview: CheckoutResult) => {
         message: (
           <p>
             By clicking confirm, your current subscription to{" "}
-            {/* {current_product_name} will be cancelled and a new subscription to{" "}
-            {product_name} will begin on {nextCycleAtStr}. */}
+            {current_product.name} will be cancelled and a new subscription to{" "}
+            {productName} will begin on {nextCycleAtStr}.
           </p>
         ),
       };
@@ -98,8 +127,8 @@ export const getAttachContent = (preview: CheckoutResult) => {
         title: <p>Cancel</p>,
         message: (
           <p>
-            {/* By clicking confirm, your subscription to {current_product_name}{" "}
-            will end on {nextCycleAtStr}. */}
+            By clicking confirm, your subscription to {current_product.name}{" "}
+            will end on {nextCycleAtStr}.
           </p>
         ),
       };

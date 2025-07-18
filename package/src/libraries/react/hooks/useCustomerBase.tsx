@@ -31,7 +31,7 @@ import {
 } from "@/client/types/clientGenTypes";
 import { AllowedParams, handleAllowed } from "./handleAllowed";
 import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
-import { AttachResult } from "@sdk/general/attachTypes";
+import { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
 
 export interface UseCustomerResult {
   customer: Customer | null;
@@ -49,7 +49,7 @@ export interface UseCustomerResult {
   openBillingPortal: (
     params?: OpenBillingPortalParams
   ) => AutumnPromise<BillingPortalResult>;
-  checkout: (params: CheckoutParams) => AutumnPromise<CheckResult>;
+  checkout: (params: CheckoutParams) => AutumnPromise<CheckoutResult>;
   refetch: () => Promise<Customer | null>;
   createEntity: (
     params: CreateEntityParams | CreateEntityParams[]

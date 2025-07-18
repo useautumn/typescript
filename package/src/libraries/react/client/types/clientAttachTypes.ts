@@ -16,11 +16,16 @@ export const AttachParamsSchema = z.object({
   successUrl: z.string().optional(),
   metadata: z.record(z.string()).optional(),
   forceCheckout: z.boolean().optional(),
+
+  /**
+   * @deprecated This field is deprecated and will be removed in a future version.
+   */
   dialog: z
-    .function()
-    .args(z.any())
-    .returns(z.union([z.custom<JSX.Element>(), z.custom<React.ReactNode>()]))
-    .optional(),
+    .any()
+    .optional()
+    .describe(
+      "DEPRECATED: This field is deprecated and will be removed in a future version. Please use the checkout() method instead."
+    ),
   entityData: z.any().optional(),
   openInNewTab: z.boolean().optional(),
   reward: z.string().optional(),
@@ -33,7 +38,18 @@ export const CheckoutParamsSchema = z.object({
   productId: z.string(),
   entityId: z.string().optional(),
   options: z.array(AttachFeatureOptionsSchema).optional(),
+  successUrl: z.string().optional(),
+  openInNewTab: z.boolean().optional(),
   dialog: z.any().optional(),
 });
 
 export type CheckoutParams = z.infer<typeof CheckoutParamsSchema>;
+
+// export type CheckoutParams = {
+//   productId: string;
+//   entityId?: string;
+//   options?: AttachFeatureOptions[];
+//   successUrl?: string;
+//   dialog?: any;
+//   openInNewTab?: boolean;
+// };

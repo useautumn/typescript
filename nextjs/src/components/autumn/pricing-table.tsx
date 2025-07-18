@@ -1,13 +1,14 @@
 import React from "react";
+
 import { useCustomer, usePricingTable } from "autumn-js/react";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "@/components/autumn/attach-dialog";
 import { getPricingTableContent } from "@/lib/autumn/pricing-table-content";
-import { Product, ProductItem } from "autumn-js";
+import type { Product, ProductItem } from "autumn-js";
+import { Loader2 } from "lucide-react";
 
 export default function PricingTable({
   productDetails,
@@ -20,9 +21,7 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center min-h-[300px]">
-        <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
-      </div>
+      <div className="w-full h-full flex justify-center items-center min-h-[300px]"><Loader2 className="w-6 h-6 text-zinc-400 animate-spin" /></div>
     );
   }
 
@@ -32,8 +31,8 @@ export default function PricingTable({
 
   const intervals = Array.from(
     new Set(
-      products?.map((p) => p.properties?.interval_group).filter((i) => !!i)
-    )
+      products?.map((p) => p.properties?.interval_group).filter((i) => !!i),
+    ),
   );
 
   const multiInterval = intervals.length > 1;
@@ -55,7 +54,7 @@ export default function PricingTable({
   };
 
   return (
-    <div>
+    <div className={cn("root")}>
       {products && (
         <PricingTableContainer
           products={products as any}
@@ -138,15 +137,21 @@ export const PricingTableContainer = ({
     return <></>;
   }
 
+  const hasRecommended = products?.some((p) => p.display?.recommend_text);
   return (
     <PricingTableContext.Provider
       value={{ isAnnualToggle, setIsAnnualToggle, products, showFeatures }}
     >
-      <div className={cn("flex items-center flex-col")}>
+      <div
+        className={cn(
+          "flex items-center flex-col",
+          hasRecommended && "!py-10",
+        )}
+      >
         {multiInterval && (
           <div
             className={cn(
-              products.some((p) => p.display?.recommend_text) && "mb-8"
+              products.some((p) => p.display?.recommend_text) && "mb-8",
             )}
           >
             <AnnualSwitch
@@ -158,7 +163,7 @@ export const PricingTableContainer = ({
         <div
           className={cn(
             "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full gap-2",
-            className
+            className,
           )}
         >
           {children}
@@ -192,6 +197,7 @@ export const PricingCard = ({
   const { name, display: productDisplay, items } = product;
 
   const { buttonText } = getPricingTableContent(product);
+
   const isRecommended = productDisplay?.recommend_text ? true : false;
   const mainPriceDisplay = product.properties?.is_free
     ? {
@@ -206,10 +212,10 @@ export const PricingCard = ({
   return (
     <div
       className={cn(
-        "w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
+        " w-full h-full py-6 text-foreground border rounded-lg shadow-sm max-w-xl",
         isRecommended &&
           "lg:-translate-y-6 lg:shadow-lg dark:shadow-zinc-800/80 lg:h-[calc(100%+48px)] bg-secondary/40",
-        className
+        className,
       )}
     >
       {productDisplay?.recommend_text && (
@@ -218,7 +224,7 @@ export const PricingCard = ({
       <div
         className={cn(
           "flex flex-col h-full flex-grow",
-          isRecommended && "lg:translate-y-6"
+          isRecommended && "lg:translate-y-6",
         )}
       >
         <div className="h-full">
@@ -230,7 +236,7 @@ export const PricingCard = ({
               {productDisplay?.description && (
                 <div className="text-sm text-muted-foreground px-6 h-8">
                   <p className="line-clamp-2">
-                    Everything from {productDisplay?.description}, plus:
+                    {productDisplay?.description}
                   </p>
                 </div>
               )}
@@ -258,12 +264,14 @@ export const PricingCard = ({
             </div>
           )}
         </div>
-        <div className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}>
+        <div
+          className={cn(" px-6 ", isRecommended && "lg:-translate-y-12")}
+        >
           <PricingCardButton
             recommended={productDisplay?.recommend_text ? true : false}
             {...buttonProps}
           >
-            {buttonText}
+            {productDisplay?.button_text || buttonText}
           </PricingCardButton>
         </div>
       </div>
@@ -286,14 +294,19 @@ export const PricingFeatureList = ({
   return (
     <div className={cn("flex-grow", className)}>
       {everythingFrom && (
-        <p className="text-sm mb-4">Everything from {everythingFrom}, plus:</p>
+        <p className="text-sm mb-4">
+          Everything from {everythingFrom}, plus:
+        </p>
       )}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex items-start gap-2 text-sm">
-            {showIcon && (
+          <div
+            key={index}
+            className="flex items-start gap-2 text-sm"
+          >
+            {/* {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-            )}
+            )} */}
             <div className="flex flex-col">
               <span>{item.display?.primary_text}</span>
               {item.display?.secondary_text && (
@@ -336,7 +349,7 @@ export const PricingCardButton = React.forwardRef<
     <Button
       className={cn(
         "w-full py-3 px-4 group overflow-hidden relative transition-all duration-300 hover:brightness-90 border rounded-lg",
-        className
+        className,
       )}
       {...props}
       variant={recommended ? "default" : "secondary"}

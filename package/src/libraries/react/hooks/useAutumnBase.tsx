@@ -20,25 +20,21 @@ import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
 
 export const useAutumnBase = ({
   AutumnContext,
-  authClient,
   refetchCustomer,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
-  authClient?: any;
   refetchCustomer?: () => Promise<any>;
 }) => {
   const context = useAutumnContext({
     AutumnContext,
     name: "useAutumn",
-    errorIfNotInitialized: !authClient,
   });
   const { attachDialog, paywallDialog } = context;
 
-  const client = authClient ? authClient.autumn : context.client;
-  const authClientExists = !!authClient;
+  const client = context.client;
+
   const { refetch: refetchPricingTable } = usePricingTableBase({
     AutumnContext,
-    authClient,
   });
 
   let {
@@ -83,10 +79,37 @@ export const useAutumnBase = ({
     return result;
   };
 
+  const checkout = async (params: CheckoutParams) => {
+    const { data, error } = await client.checkout(params);
+    const { dialog, ...rest } = params;
+
+    if (error) {
+      return { data, error };
+    }
+
+    if (data.url) {
+      if (params.openInNewTab) {
+        window.open(data.url, "_blank");
+      } else {
+        window.location.href = data.url;
+      }
+
+      return { data, error };
+    }
+
+    if (params.dialog) {
+      setAttachProps({ checkoutResult: data, attachParams: rest });
+      setAttachComponent(params.dialog);
+      setAttachOpen(true);
+    }
+
+    return { data, error };
+  };
+
   const attachWithDialog = async (
     params: AttachParams
   ): AutumnPromise<AttachResult | CheckResult> => {
-    let { dialog, ...rest } = params;
+    let { ...rest } = params;
 
     const { productId, entityId, entityData } = params;
 
@@ -113,30 +136,10 @@ export const useAutumnBase = ({
     return checkRes;
   };
 
-  const checkout = async (params: CheckoutParams) => {
-    const { data, error } = await client.checkout(params);
-    const { dialog, ...rest } = params;
-
-    if (params.dialog) {
-      setAttachProps({ preview: data, attachParams: rest });
-      setAttachComponent(params.dialog);
-      setAttachOpen(true);
-    }
-
-    return { data, error };
-  };
-
   const attach = async (params: AttachParams) => {
-    const { dialog, openInNewTab } = params;
+    const { dialog } = params;
 
     let finalDialog = dialog;
-    if (dialog && authClientExists) {
-      console.error(
-        "[Autumn] Attach dialog cannot be used with better auth plugin. To use this, please switch to <AutumnProvider /> and autumnHandler. Learn more here: https://docs.useautumn.com/quickstart/quickstart"
-      );
-      return undefined as any;
-    }
-
     if (finalDialog && !attachOpen) {
       setAttachComponent(finalDialog);
       return await attachWithDialog(params);
@@ -157,13 +160,6 @@ export const useAutumnBase = ({
 
   const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
     let { dialog, withPreview } = params;
-
-    if (dialog && authClientExists) {
-      console.error(
-        "[Autumn] Check dialog cannot be used with better auth plugin. To use this, please switch to <AutumnProvider /> and autumnHandler. Learn more here: https://docs.useautumn.com/quickstart/quickstart"
-      );
-      return undefined as any;
-    }
 
     if (dialog) {
       setPaywallComponent(dialog);

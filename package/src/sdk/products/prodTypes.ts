@@ -89,10 +89,12 @@ export interface Product {
   scenario?: ProductScenario;
   base_variant_id: string | null;
 
-  properties?: {
-    is_free?: boolean;
-    is_one_off?: boolean;
-    interval_group?: string;
+  properties: {
+    is_free: boolean;
+    is_one_off: boolean;
+    interval_group: string;
+    has_trial: boolean;
+    has_prepaid: boolean;
   };
 
   display?: {

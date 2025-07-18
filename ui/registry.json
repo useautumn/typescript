@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "pricecn",
-  "homepage": "https://pricecn.com",
+  "name": "autumn",
+  "homepage": "https://useautumn.com",
   "items": [
     {
       "name": "pricing-table",
@@ -36,7 +36,7 @@
       "name": "check-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["button", "dialog"],
+      "registryDependencies": ["button", "dialog", "popover", "input", "accordion"],
       "files": [
         {
           "path": "registry/check-dialog/check-dialog.tsx",

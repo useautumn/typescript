@@ -44,6 +44,7 @@ export const CheckoutParamsSchema = z.object({
   customer_id: z.string(),
   product_id: z.string(),
   entity_id: z.string().optional(),
+  success_url: z.string().optional(),
 
   customer_data: CustomerDataSchema.optional(),
   options: z.array(AttachFeatureOptionsSchema).optional(),
@@ -52,14 +53,21 @@ export const CheckoutParamsSchema = z.object({
 export type CheckoutParams = z.infer<typeof CheckoutParamsSchema>;
 
 export type CheckoutResult = {
-  customer_id: string;
   url?: string;
-  scenario: string;
+  customer_id: string;
+  has_prorations: boolean;
   lines: {
     description: string;
     amount: number;
     item: ProductItem;
   }[];
+  total: number;
+  currency: string;
   options: AttachFeatureOptions[];
   product: Product;
+  current_product: Product;
+  next_cycle?: {
+    starts_at: number;
+    total: number;
+  };
 };

@@ -1,14 +1,53 @@
 import { type CheckoutResult } from "autumn-js";
 
-export const getAttachContent = (preview: CheckoutResult) => {
-  const { scenario, product, current_product, next_cycle_at } = preview;
+export const getAttachContent = (checkoutResult: CheckoutResult) => {
+  const { product, current_product, next_cycle } = checkoutResult;
+  const { is_one_off, is_free, has_trial, has_prepaid } = product.properties;
+  const scenario = product.scenario;
 
-  const nextCycleAtStr = next_cycle_at
-    ? new Date(next_cycle_at).toLocaleDateString()
+  const nextCycleAtStr = next_cycle
+    ? new Date(next_cycle.starts_at).toLocaleDateString()
     : undefined;
 
   const productName = product.name;
-  const recurring = product.properties?.is_one_off === false;
+
+  if (is_one_off) {
+    return {
+      title: <p>Purchase {productName}</p>,
+      message: (
+        <p>
+          By clicking confirm, you will purchase {productName} and your card
+          will be charged immediately.
+        </p>
+      ),
+    };
+  }
+
+  if (scenario == "active" && has_prepaid) {
+    if (has_prepaid) {
+      return {
+        title: <p>Update Plan</p>,
+        message: (
+          <p>
+            Update your prepaid quantity. You&apos;ll be charged or credited the
+            prorated difference based on your current billing cycle.
+          </p>
+        ),
+      };
+    }
+  }
+
+  if (has_trial) {
+    return {
+      title: <p>Start trial for {productName}</p>,
+      message: (
+        <p>
+          By clicking confirm, you will start a free trial of {productName}{" "}
+          which ends on {nextCycleAtStr}.
+        </p>
+      ),
+    };
+  }
 
   switch (scenario) {
     case "scheduled":
@@ -29,28 +68,26 @@ export const getAttachContent = (preview: CheckoutResult) => {
       };
 
     case "new":
-      if (recurring) {
+      if (is_free) {
         return {
-          title: <p>Subscribe to {productName}</p>,
+          title: <p>Enable {productName}</p>,
           message: (
             <p>
-              By clicking confirm, you will be subscribed to {productName} and
-              your card will be charged immediately.
-            </p>
-          ),
-        };
-      } else {
-        return {
-          title: <p>Purchase {productName}</p>,
-          message: (
-            <p>
-              By clicking confirm, you will purchase {productName} and your card
-              will be charged immediately.
+              By clicking confirm, {productName} will be enabled immediately.
             </p>
           ),
         };
       }
 
+      return {
+        title: <p>Subscribe to {productName}</p>,
+        message: (
+          <p>
+            By clicking confirm, you will be subscribed to {productName} and
+            your card will be charged immediately.
+          </p>
+        ),
+      };
     case "renew":
       return {
         title: <p>Renew</p>,

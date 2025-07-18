@@ -8,7 +8,7 @@
     "css": "src/styles/global.css",
     "baseColor": "neutral",
     "cssVariables": true,
-    "prefix": "au"
+    "prefix": "au-"
   },
   "aliases": {
     "components": "@/components",

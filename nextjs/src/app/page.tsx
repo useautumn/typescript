@@ -2,7 +2,8 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useCustomer } from "autumn-js/react";
-import PricingTable from "@/components/autumn/pricing-table";
+// import PricingTable from "@/components/autumn/pricing-table";
+import { PricingTable } from "autumn-js/react";
 
 export default function Home() {
   const {
@@ -11,6 +12,7 @@ export default function Home() {
     check,
     track,
     cancel,
+    checkout,
     openBillingPortal,
     redeemReferralCode,
     createReferralCode,
@@ -115,6 +117,17 @@ export default function Home() {
             Track
           </Button>
 
+          <Button
+            onClick={async () => {
+              const res = await checkout({
+                productId: "pro",
+                successUrl: "https://facebook.com",
+              });
+              console.log(res);
+            }}
+          >
+            Checkout
+          </Button>
           <Button
             onClick={async () => {
               const res = await attach({

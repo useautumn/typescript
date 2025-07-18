@@ -5,10 +5,11 @@ import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-// import { Check, Loader2 } from "lucide-react";
 import AttachDialog from "@/registry/attach-dialog/attach-dialog";
 import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
-import { Product, ProductItem } from "autumn-js";
+import type { Product, ProductItem } from "autumn-js";
+import { Loader2 } from "lucide-react";
+
 export default function PricingTable({
   productDetails,
 }: {
@@ -20,7 +21,7 @@ export default function PricingTable({
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center min-h-[300px]">{/* <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" /> */}</div>
+      <div className="w-full h-full flex justify-center items-center min-h-[300px]"><Loader2 className="w-6 h-6 text-zinc-400 animate-spin" /></div>
     );
   }
 
@@ -72,7 +73,6 @@ export default function PricingTable({
 
                 onClick: async () => {
                   if (product.id) {
-                    console.log("Checkout product:", product);
                     await checkout({
                       productId: product.id,
                       dialog: AttachDialog,
@@ -197,6 +197,7 @@ export const PricingCard = ({
   const { name, display: productDisplay, items } = product;
 
   const { buttonText } = getPricingTableContent(product);
+
   const isRecommended = productDisplay?.recommend_text ? true : false;
   const mainPriceDisplay = product.properties?.is_free
     ? {
@@ -356,7 +357,7 @@ export const PricingCardButton = React.forwardRef<
       disabled={loading || props.disabled}
       onClick={handleClick}
     >
-      {/* {loading ? (
+      {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
         <>
@@ -369,7 +370,7 @@ export const PricingCardButton = React.forwardRef<
             <span className="text-sm">→</span>
           </div>
         </>
-      )} */}
+      )}
     </Button>
   );
 });
