@@ -34,6 +34,9 @@ importers:
       open:
         specifier: ^10.1.2
         version: 10.1.2
+      yocto-spinner:
+        specifier: ^1.0.0
+        version: 1.0.0
     devDependencies:
       '@sindresorhus/tsconfig':
         specifier: ^3.0.1
@@ -69,7 +72,7 @@ importers:
         specifier: ^10.9.1
         version: 10.9.2(@types/node@24.0.12)(typescript@5.8.3)
       tsup:
-        specifier: ^8.4.0
+        specifier: ^8.5.0
         version: 8.5.0(jiti@2.4.2)(postcss@8.5.6)(tsx@4.20.3)(typescript@5.8.3)(yaml@2.8.0)
       typescript:
         specifier: ^5.0.3
@@ -11083,8 +11086,16 @@ packages:
     resolution: {integrity: sha512-AyeEbWOu/TAXdxlV9wmGcR0+yh2j3vYPGOECcIj2S7MkrLyC7ne+oye2BKTItt0ii2PHk4cDy+95+LshzbXnGg==}
     engines: {node: '>=12.20'}
 
+  yocto-spinner@1.0.0:
+    resolution: {integrity: sha512-VPX8P/+Z2Fnpx8PC/JELbxp3QRrBxjAekio6yulGtA5gKt9YyRc5ycCb+NHgZCbZ0kx9KxwZp7gC6UlrCcCdSQ==}
+    engines: {node: '>=18.19'}
+
   yoctocolors-cjs@2.1.2:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
+    engines: {node: '>=18'}
+
+  yoctocolors@2.1.1:
+    resolution: {integrity: sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ==}
     engines: {node: '>=18'}
 
   yoga-layout@3.2.1:
@@ -17520,6 +17531,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+<<<<<<< HEAD
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@7.18.0(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.29.0(jiti@2.4.2)))(eslint@9.29.0(jiti@2.4.2)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
@@ -17535,6 +17547,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> main
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@7.18.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2)))(eslint@9.30.1(jiti@2.4.2)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
@@ -17550,6 +17566,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+<<<<<<< HEAD
+=======
+>>>>>>> b6813b39e9b6d32cf5ddfc488144083a5a5400e5
+>>>>>>> main
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
@@ -17565,6 +17585,25 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+<<<<<<< HEAD
+=======
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.29.0(jiti@2.4.2)):
+    dependencies:
+      '@nolyfill/is-core-module': 1.0.39
+      debug: 4.4.1(supports-color@5.5.0)
+      eslint: 9.29.0(jiti@2.4.2)
+      get-tsconfig: 4.10.1
+      is-bun-module: 2.0.0
+      stable-hash: 0.0.5
+      tinyglobby: 0.2.14
+      unrs-resolver: 1.9.2
+    optionalDependencies:
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@7.18.0(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.29.0(jiti@2.4.2))
+    transitivePeerDependencies:
+      - supports-color
+
+<<<<<<< HEAD
+>>>>>>> main
   eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.30.1(jiti@2.4.2)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
@@ -17580,6 +17619,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+=======
+>>>>>>> b6813b39e9b6d32cf5ddfc488144083a5a5400e5
   eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.32.0(eslint@8.57.1))(webpack@5.100.0(esbuild@0.25.5)):
     dependencies:
       debug: 3.2.7
@@ -19981,7 +20022,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 22.16.2
+      '@types/node': 24.0.12
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -21003,15 +21044,27 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
+<<<<<<< HEAD
   next@15.4.1(@babel/core@7.27.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+=======
+  next@15.4.1(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+<<<<<<< HEAD
+=======
+>>>>>>> main
     dependencies:
       '@next/env': 15.4.1
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001727
       postcss: 8.4.31
+<<<<<<< HEAD
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       styled-jsx: 5.1.6(@babel/core@7.27.4)(react@18.3.1)
+=======
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+      styled-jsx: 5.1.6(@babel/core@7.27.4)(react@19.1.0)
+>>>>>>> main
     optionalDependencies:
       '@next/swc-darwin-arm64': 15.4.1
       '@next/swc-darwin-x64': 15.4.1
@@ -21027,6 +21080,10 @@ snapshots:
       - babel-plugin-macros
 
   next@15.4.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+<<<<<<< HEAD
+=======
+>>>>>>> b6813b39e9b6d32cf5ddfc488144083a5a5400e5
+>>>>>>> main
     dependencies:
       '@next/env': 15.4.1
       '@swc/helpers': 0.5.15
@@ -22996,6 +23053,7 @@ snapshots:
     dependencies:
       '@tokenizer/token': 0.3.0
 
+<<<<<<< HEAD
   style-to-js@1.1.17:
     dependencies:
       style-to-object: 1.0.9
@@ -23008,10 +23066,22 @@ snapshots:
     dependencies:
       client-only: 0.0.1
       react: 18.3.1
+=======
+  styled-jsx@5.1.6(@babel/core@7.27.4)(react@19.1.0):
+<<<<<<< HEAD
+=======
+    dependencies:
+      client-only: 0.0.1
+      react: 19.1.0
+>>>>>>> main
     optionalDependencies:
       '@babel/core': 7.27.4
 
   styled-jsx@5.1.6(react@19.1.0):
+<<<<<<< HEAD
+=======
+>>>>>>> b6813b39e9b6d32cf5ddfc488144083a5a5400e5
+>>>>>>> main
     dependencies:
       client-only: 0.0.1
       react: 19.1.0
@@ -24472,7 +24542,13 @@ snapshots:
 
   yocto-queue@1.2.1: {}
 
+  yocto-spinner@1.0.0:
+    dependencies:
+      yoctocolors: 2.1.1
+
   yoctocolors-cjs@2.1.2: {}
+
+  yoctocolors@2.1.1: {}
 
   yoga-layout@3.2.1: {}
 
