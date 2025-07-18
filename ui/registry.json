@@ -7,7 +7,7 @@
       "name": "pricing-table",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["switch", "button", "dialog"],
+      "registryDependencies": ["switch", "button", "dialog", "popover", "input", "accordion"],
       "files": [
         {
           "path": "registry/attach-dialog/attach-dialog.tsx",
