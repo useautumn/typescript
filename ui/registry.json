@@ -36,7 +36,7 @@
       "name": "check-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["button", "dialog", "popover", "input", "accordion"],
+      "registryDependencies": ["button", "dialog"],
       "files": [
         {
           "path": "registry/check-dialog/check-dialog.tsx",
@@ -55,7 +55,7 @@
       "name": "attach-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
-      "registryDependencies": ["button", "dialog"],
+      "registryDependencies": ["button", "dialog", "popover", "input", "accordion"],
       "files": [
         {
           "path": "registry/attach-dialog/attach-dialog.tsx",
