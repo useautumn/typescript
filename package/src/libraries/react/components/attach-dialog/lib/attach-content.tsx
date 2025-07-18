@@ -2,7 +2,7 @@ import { type CheckoutResult } from "@sdk";
 
 export const getAttachContent = (checkoutResult: CheckoutResult) => {
   const { product, current_product, next_cycle } = checkoutResult;
-  const { is_one_off, is_free, has_trial, has_prepaid } = product.properties;
+  const { is_one_off, is_free, has_trial, updateable } = product.properties;
   const scenario = product.scenario;
 
   const nextCycleAtStr = next_cycle
@@ -23,8 +23,8 @@ export const getAttachContent = (checkoutResult: CheckoutResult) => {
     };
   }
 
-  if (scenario == "active" && has_prepaid) {
-    if (has_prepaid) {
+  if (scenario == "active" && updateable) {
+    if (updateable) {
       return {
         title: <p>Update Plan</p>,
         message: (

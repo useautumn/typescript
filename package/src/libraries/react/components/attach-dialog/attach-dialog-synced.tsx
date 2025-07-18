@@ -199,7 +199,7 @@ function ProductItems({
 }) {
   const isUpdateQuantity =
     checkoutResult?.product.scenario === "active" &&
-    checkoutResult.product.properties.has_prepaid;
+    checkoutResult.product.properties.updateable;
   return (
     <div className="au-flex au-flex-col au-gap-2">
       <p className="au-text-sm au-font-medium">Price</p>
@@ -356,7 +356,9 @@ const PrepaidItem = ({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
-              "au-text-muted-foreground au-text-xs au-px-1 au-py-0.5 au-rounded-md au-flex au-items-center au-gap-1 au-bg-accent/80 hover:au-bg-accent hover:au-text-foreground"
+              "au-text-muted-foreground au-text-xs au-px-1 au-py-0.5 au-rounded-md au-flex au-items-center au-gap-1 au-bg-accent/80",
+              disableSelection !== true &&
+                "hover:au-bg-accent hover:au-text-foreground"
             )}
             disabled={disableSelection}
           >
@@ -387,7 +389,11 @@ const PrepaidItem = ({
                 </p>
               </div>
 
-              <Button onClick={handleSave} className="au-w-14">
+              <Button
+                onClick={handleSave}
+                className="au-w-14 !au-h-7 au-text-sm au-items-center au-bg-white au-text-foreground au-shadow-sm au-border au-border-zinc-200 hover:au-bg-zinc-100"
+                disabled={loading}
+              >
                 {loading ? (
                   <Loader2 className="au-text-muted-foreground au-animate-spin !au-w-4 !au-h-4" />
                 ) : (

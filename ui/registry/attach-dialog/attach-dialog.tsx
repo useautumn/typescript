@@ -199,7 +199,7 @@ function ProductItems({
 }) {
   const isUpdateQuantity =
     checkoutResult?.product.scenario === "active" &&
-    checkoutResult.product.properties.has_prepaid;
+    checkoutResult.product.properties.updateable;
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium">Price</p>
@@ -356,7 +356,9 @@ const PrepaidItem = ({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
-              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80 hover:bg-accent hover:text-foreground"
+              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80",
+              disableSelection !== true &&
+                "hover:bg-accent hover:text-foreground"
             )}
             disabled={disableSelection}
           >
@@ -387,7 +389,11 @@ const PrepaidItem = ({
                 </p>
               </div>
 
-              <Button onClick={handleSave} className="w-14">
+              <Button
+                onClick={handleSave}
+                className="w-14 !h-7 text-sm items-center bg-white text-foreground shadow-sm border border-zinc-200 hover:bg-zinc-100"
+                disabled={loading}
+              >
                 {loading ? (
                   <Loader2 className="text-muted-foreground animate-spin !w-4 !h-4" />
                 ) : (

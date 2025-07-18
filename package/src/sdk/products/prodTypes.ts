@@ -94,7 +94,7 @@ export interface Product {
     is_one_off: boolean;
     interval_group: string;
     has_trial: boolean;
-    has_prepaid: boolean;
+    updateable: boolean;
   };
 
   display?: {

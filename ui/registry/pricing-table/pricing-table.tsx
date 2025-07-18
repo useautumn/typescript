@@ -55,6 +55,7 @@ export default function PricingTable({
     return true;
   };
 
+  console.log("Products: ", products);
   return (
     <div className={cn("root")}>
       {products && (
@@ -71,7 +72,7 @@ export default function PricingTable({
               buttonProps={{
                 disabled:
                   (product.scenario === "active" &&
-                    !product.properties.has_prepaid) ||
+                    !product.properties.updateable) ||
                   product.scenario === "scheduled",
 
                 onClick: async () => {

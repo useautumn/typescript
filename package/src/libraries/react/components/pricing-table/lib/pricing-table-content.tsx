@@ -2,9 +2,7 @@ import { type Product } from "@sdk";
 
 export const getPricingTableContent = (product: Product) => {
   const { scenario, free_trial, properties } = product;
-  const { is_one_off, has_prepaid, has_trial } = properties;
-
-
+  const { is_one_off, updateable, has_trial } = properties;
 
   if (has_trial) {
     return {
@@ -19,7 +17,7 @@ export const getPricingTableContent = (product: Product) => {
       };
 
     case "active":
-      if (has_prepaid) {
+      if (updateable) {
         return {
           buttonText: <p>Update Plan</p>,
         };
