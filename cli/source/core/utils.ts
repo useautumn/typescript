@@ -69,15 +69,15 @@ export function readFromEnv() {
     // Check .env first (has priority)
     if (fs.existsSync(envPath)) {
         const envContent = fs.readFileSync(envPath, 'utf-8');
-        const match = envContent.match(/^AUTUMN_SECRET_KEY=(.*)$/m);
-        if (match) return match[1];
+        const match = envContent.match(/^AUTUMN_SECRET_KEY=(?:"([^"]*)"|(.*))$/m);
+        if (match) return match[1] !== undefined ? match[1] : match[2];
     }
     
     // If not found in .env, check .env.local
     if (fs.existsSync(envLocalPath)) {
         const envLocalContent = fs.readFileSync(envLocalPath, 'utf-8');
-        const match = envLocalContent.match(/^AUTUMN_SECRET_KEY=(.*)$/m);
-        if (match) return match[1];
+        const match = envLocalContent.match(/^AUTUMN_SECRET_KEY=(?:"([^"]*)"|(.*))$/m);
+        if (match) return match[1] !== undefined ? match[1] : match[2];
     }
     
     return undefined;
