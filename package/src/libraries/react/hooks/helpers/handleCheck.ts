@@ -1,6 +1,7 @@
 import { AutumnContextParams } from "@/AutumnContext";
 import { CheckParams } from "@/client/types/clientGenTypes";
 import {
+  AutumnError,
   CheckFeatureResult,
   CheckFeatureResultSchema,
   CheckProductResult,
@@ -9,6 +10,7 @@ import {
   CustomerFeature,
   Entity,
 } from "@sdk";
+import { Result } from "@sdk/response";
 
 export interface AllowedParams {
   featureId?: string;
@@ -131,11 +133,11 @@ export const openDialog = ({
   params,
   context,
 }: {
-  result: CheckResult;
+  result: CheckResult | null;
   params: CheckParams;
   context: AutumnContextParams;
 }) => {
-  let open = result.allowed === false && params.dialog && context;
+  let open = result?.allowed === false && params.dialog && context;
 
   if (!open) return;
 
@@ -175,14 +177,20 @@ export const handleCheck = ({
   isEntity?: boolean;
   params: CheckParams;
   context?: AutumnContextParams;
-}): CheckResult => {
+}): {
+  data: CheckResult;
+  error: null;
+} => {
   if (!customer) {
     return {
-      allowed: false,
-      feature_id: "",
-      customer_id: "",
-      required_balance: 0,
-    } as CheckResult;
+      data: {
+        allowed: false,
+        feature_id: "",
+        customer_id: "",
+        required_balance: 0,
+      } as CheckResult,
+      error: null,
+    };
   }
 
   if (!params.featureId && !params.productId) {
@@ -196,5 +204,8 @@ export const handleCheck = ({
   if (params.productId)
     result = handleProductCheck({ customer, params, isEntity });
 
-  return result as CheckResult;
+  return {
+    data: result as CheckResult,
+    error: null,
+  };
 };

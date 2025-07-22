@@ -2,7 +2,7 @@ import useSWR from "swr";
 import { GetEntityParams } from "../../../libraries/react/client/types/clientEntTypes";
 import { useContext } from "react";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
-import { AllowedParams, handleCheck } from "./helpers/handleCheck";
+import { AllowedParams, handleCheck, openDialog } from "./helpers/handleCheck";
 import { useAutumnBase } from "./helpers/useAutumnBase";
 import {
   CancelParams,
@@ -63,8 +63,18 @@ export const useEntityBase = ({
     track: trackAutumn,
   } = useAutumnBase({ context, client });
 
-  const check = (params: CheckParams) =>
-    handleCheck({ customer: data, params, isEntity: true });
+  const check = (params: CheckParams) => {
+    const result = handleCheck({ customer: data, params, isEntity: true });
+
+    openDialog({
+      result: result.data,
+      params,
+      context: context!,
+    });
+
+    return result;
+  };
+
   const attach = (params: AttachParams) =>
     attachAutumn({ ...params, entityId: entityId || undefined });
   const cancel = (params: CancelParams) =>

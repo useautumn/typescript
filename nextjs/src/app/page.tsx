@@ -1,7 +1,7 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { useCustomer } from "autumn-js/react";
+import { CheckDialog, useCustomer, useEntity } from "autumn-js/react";
 import { PricingTable } from "autumn-js/react";
 
 export default function Home() {
@@ -18,14 +18,7 @@ export default function Home() {
     // allowed,
   } = useCustomer();
 
-  // const { data, isLoading, error } = useAnalytics({
-  //   featureId: ["chat-messages"],
-  // });
-  // const checkRes = check({
-  //   featureId: "credits",
-  //   dialog: CheckDialog,
-  // });
-  const checkRes = null;
+  check({ featureId: "credits", dialog: CheckDialog });
 
   return (
     <div className="min-h-screen bg-gradient-to-b p-10">
@@ -71,7 +64,7 @@ export default function Home() {
               onClick={async () => {
                 const res = check({
                   featureId: "credits",
-                  // dialog: CheckDialog,
+                  dialog: CheckDialog,
                 });
                 console.log(res);
               }}

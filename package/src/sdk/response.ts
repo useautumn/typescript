@@ -1,7 +1,6 @@
-
 import { AutumnError } from "./error";
 
-type Success<T> = {
+export type Success<T> = {
   data: T;
   error: null;
   statusCode?: number;
@@ -13,17 +12,15 @@ type Failure<E> = {
   statusCode?: number;
 };
 
-export const toContainerResult = async (
-  {
-    response,
-    logger,
-    logError = true
-  }: {
-    response: Response;
-    logger: Console;
-    logError?: boolean;
-  }
-): Promise<Result<any, AutumnError>> => {
+export const toContainerResult = async ({
+  response,
+  logger,
+  logError = true,
+}: {
+  response: Response;
+  logger: Console;
+  logError?: boolean;
+}): Promise<Result<any, AutumnError>> => {
   if (response.status < 200 || response.status >= 300) {
     let error: any;
     try {

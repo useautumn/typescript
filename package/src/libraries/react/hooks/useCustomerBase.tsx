@@ -32,6 +32,7 @@ import {
 import { AllowedParams, handleCheck, openDialog } from "./helpers/handleCheck";
 import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
 import { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
+import { Result, Success } from "@sdk/response";
 
 export interface UseCustomerResult {
   customer: Customer | null;
@@ -61,7 +62,7 @@ export interface UseCustomerResult {
     params: RedeemReferralCodeParams
   ) => AutumnPromise<RedeemReferralCodeResult>;
 
-  check: (params: CheckParams) => CheckResult;
+  check: (params: CheckParams) => Success<CheckResult>;
   allowed: (params: AllowedParams) => boolean;
 }
 
@@ -147,7 +148,7 @@ export const useCustomerBase = ({
     createReferralCode: client!.referrals.createCode,
     redeemReferralCode: client!.referrals.redeemCode,
     check: (params: CheckParams) => {
-      const result = handleCheck({
+      const res = handleCheck({
         customer,
         params,
         isEntity: false,
@@ -155,12 +156,12 @@ export const useCustomerBase = ({
       });
 
       openDialog({
-        result,
+        result: res.data,
         params,
         context: context!,
       });
 
-      return result;
+      return res;
     },
 
     /** @deprecated Use check() instead */
@@ -172,7 +173,7 @@ export const useCustomerBase = ({
         context,
       });
 
-      return result.allowed;
+      return result.data!.allowed;
     },
   };
 };
