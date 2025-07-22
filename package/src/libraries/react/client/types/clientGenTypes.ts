@@ -1,3 +1,4 @@
+import { QueryRangeEnum } from "@sdk";
 import { z } from "zod";
 
 export const CancelParamsSchema = z.object({
@@ -43,3 +44,10 @@ export interface SetupPaymentParams {
   checkoutSessionParams?: Record<string, any>;
   openInNewTab?: boolean;
 }
+
+export const QueryParamsSchema = z.object({
+  featureId: z.string().or(z.array(z.string())),
+  range: QueryRangeEnum.optional(),
+});
+
+export type QueryParams = z.infer<typeof QueryParamsSchema>;

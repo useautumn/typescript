@@ -7,28 +7,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-// import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePaywall } from "@/index";
 import { getCheckContent } from "./lib/check-content";
 import { cn } from "@/lib/utils";
-import { type CheckFeaturePreview } from "@sdk";
 
 export interface CheckDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  preview: CheckFeaturePreview;
+  featureId: string;
+  entityId?: string;
 }
 
 export default function CheckDialog(params?: CheckDialogProps) {
-  const [loading] = useState(false);
+  const { data: preview } = usePaywall({
+    featureId: params?.featureId,
+    entityId: params?.entityId,
+  });
 
-  if (!params || !params.preview) {
+  if (!params || !preview) {
     return <></>;
   }
 
   const { open, setOpen } = params;
-  const { products } = params.preview;
-  const { title, message } = getCheckContent(params.preview);
+  const { title, message } = getCheckContent(preview);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -45,9 +47,6 @@ export default function CheckDialog(params?: CheckDialogProps) {
               setOpen(false);
             }}
           >
-            {/* {loading && (
-              <Loader2 className="au-w-4 au-h-4 au-mr-2 au-animate-spin" />
-            )} */}
             Confirm
           </Button>
         </DialogFooter>

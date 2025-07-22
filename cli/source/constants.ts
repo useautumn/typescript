@@ -11,19 +11,19 @@ export const DEFAULT_CONFIG = `import {
 	pricedFeatureItem,
 } from 'atmn';
 
-const seats = feature({
+export const seats = feature({
 	id: 'seats',
 	name: 'Seats',
 	type: 'continuous_use',
 });
 
-const messages = feature({
+export const messages = feature({
 	id: 'messages',
 	name: 'Messages',
 	type: 'single_use',
 });
 
-const pro = product({
+export const pro = product({
 	id: 'pro',
 	name: 'Pro',
 	items: [
@@ -48,11 +48,4 @@ const pro = product({
 		}),
 	],
 });
-
-const autumnConfig = {
-	features: [seats, messages],
-	products: [pro],
-};
-
-export default autumnConfig;
 `;

@@ -6,6 +6,12 @@ import {resolve} from 'path';
 import {execSync} from 'child_process';
 import chalk from 'chalk';
 import {confirm, select} from '@inquirer/prompts';
+import {
+	ProductSchema,
+	FeatureSchema,
+	type Product,
+	type Feature,
+} from '../compose/models/composeModels.js';
 
 function checkAtmnInstalled(): boolean {
 	try {
@@ -13,9 +19,11 @@ function checkAtmnInstalled(): boolean {
 		const packageJsonPath = path.join(process.cwd(), 'package.json');
 		if (fs.existsSync(packageJsonPath)) {
 			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-			return !!(packageJson.dependencies?.atmn || packageJson.devDependencies?.atmn);
+			return !!(
+				packageJson.dependencies?.atmn || packageJson.devDependencies?.atmn
+			);
 		}
-		
+
 		// Check if atmn can be resolved
 		execSync('node -e "require.resolve(\'atmn\')"', {stdio: 'ignore'});
 		return true;
@@ -26,12 +34,17 @@ function checkAtmnInstalled(): boolean {
 
 async function installAtmn(): Promise<boolean> {
 	const shouldInstall = await confirm({
-		message: 'The atmn package is not installed. Would you like to install it now?',
+		message:
+			'The atmn package is not installed. Would you like to install it now?',
 		default: true,
 	});
 
 	if (!shouldInstall) {
-		console.log(chalk.yellow('Skipping installation. You can install atmn manually with your preferred package manager.'));
+		console.log(
+			chalk.yellow(
+				'Skipping installation. You can install atmn manually with your preferred package manager.',
+			),
+		);
 		return false;
 	}
 
@@ -47,18 +60,37 @@ async function installAtmn(): Promise<boolean> {
 
 	try {
 		console.log(chalk.blue(`Installing atmn with ${packageManager}...`));
-		
-		const installCommand = packageManager === 'npm' 
-			? 'npm install atmn' 
-			: packageManager === 'pnpm'
-			? 'pnpm add atmn'
-			: 'bun add atmn';
+
+		const installCommand =
+			packageManager === 'npm'
+				? 'npm install atmn'
+				: packageManager === 'pnpm'
+				? 'pnpm add atmn'
+				: 'bun add atmn';
 
 		execSync(installCommand, {stdio: 'inherit'});
 		console.log(chalk.green('atmn installed successfully!'));
 		return true;
 	} catch (error) {
 		console.error(chalk.red('Failed to install atmn:'), error);
+		return false;
+	}
+}
+
+function isProduct(value: any): value is Product {
+	try {
+		ProductSchema.parse(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function isFeature(value: any): value is Feature {
+	try {
+		FeatureSchema.parse(value);
+		return true;
+	} catch {
 		return false;
 	}
 }
@@ -72,7 +104,9 @@ export async function loadAutumnConfigFile() {
 	if (!checkAtmnInstalled()) {
 		const installed = await installAtmn();
 		if (!installed) {
-			throw new Error('atmn package is required but not installed. Please install it manually.');
+			throw new Error(
+				'atmn package is required but not installed. Please install it manually.',
+			);
 		}
 	}
 
@@ -80,21 +114,44 @@ export async function loadAutumnConfigFile() {
 	const jiti = createJiti(import.meta.url);
 	const mod = await jiti.import(fileUrl);
 
-	const def = (mod as any).default || mod;
+	const products: Product[] = [];
+	const features: Feature[] = [];
 
-	if (!def.products || !Array.isArray(def.products)) {
-		throw new Error(
-			'You must export a products field that is an array of products.',
-		);
+	// Check for old-style default export first
+	const defaultExport = (mod as any).default;
+	if (defaultExport && defaultExport.products && defaultExport.features) {
+		// Old format: default export with products and features arrays
+		if (Array.isArray(defaultExport.products)) {
+			products.push(...defaultExport.products);
+		}
+		if (Array.isArray(defaultExport.features)) {
+			features.push(...defaultExport.features);
+		}
+	} else {
+		// New format: individual named exports
+		for (const [key, value] of Object.entries(mod as Record<string, any>)) {
+			if (key === 'default') continue;
+
+			if (isProduct(value)) {
+				products.push(value as Product);
+			} else if (isFeature(value)) {
+				features.push(value as Feature);
+			}
+		}
 	}
 
-	if (!def.features || !Array.isArray(def.features)) {
-		throw new Error(
-			'You must export a features field that is an array of products.',
-		);
-	}
+	// if (products.length === 0) {
+	// 	throw new Error('No valid products found in autumn.config.ts exports.');
+	// }
 
-	return def;
+	// if (features.length === 0) {
+	// 	throw new Error('No valid features found in autumn.config.ts exports.');
+	// }
+
+	return {
+		products,
+		features,
+	};
 }
 
 export function writeConfig(config: string) {

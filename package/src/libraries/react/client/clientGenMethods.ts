@@ -6,6 +6,7 @@ import {
   OpenBillingPortalParams,
   TrackParams,
   SetupPaymentParams,
+  QueryParams,
 } from "./types/clientGenTypes";
 import {
   BillingPortalResult,
@@ -14,6 +15,7 @@ import {
   SetupPaymentResult,
   TrackResult,
   AutumnPromise,
+  QueryResult,
 } from "@sdk";
 
 import { AttachParams, CheckoutParams } from "./types/clientAttachTypes";
@@ -90,5 +92,14 @@ export async function openBillingPortalMethod(
   let snakeParams = toSnakeCase(params || {});
 
   const res = await this.post(`${this.prefix}/billing_portal`, snakeParams);
+  return res;
+}
+
+export async function queryMethod(
+  this: AutumnClient,
+  params: QueryParams
+): AutumnPromise<QueryResult> {
+  let snakeParams = toSnakeCase(params);
+  const res = await this.post(`${this.prefix}/query`, snakeParams);
   return res;
 }

@@ -1,9 +1,9 @@
 import useSWR from "swr";
 import { GetEntityParams } from "../../../libraries/react/client/types/clientEntTypes";
 import { useContext } from "react";
-import { AutumnContextParams } from "../AutumnContext";
-import { AllowedParams, handleAllowed } from "./handleAllowed";
-import { useAutumnBase } from "./useAutumnBase";
+import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
+import { AllowedParams, handleCheck } from "./helpers/handleCheck";
+import { useAutumnBase } from "./helpers/useAutumnBase";
 import {
   CancelParams,
   CheckParams,
@@ -22,6 +22,11 @@ export const useEntityBase = ({
 }) => {
   const { client } = useContext(AutumnContext);
   const queryKey = ["entity", entityId, params?.expand];
+
+  const context = useAutumnContext({
+    AutumnContext,
+    name: "useEntity",
+  });
 
   const fetchEntity = async () => {
     if (!entityId) {
@@ -53,19 +58,13 @@ export const useEntityBase = ({
   });
 
   const {
-    check: checkAutumn,
     attach: attachAutumn,
     cancel: cancelAutumn,
     track: trackAutumn,
-  } = useAutumnBase({
-    AutumnContext,
-  });
-
-  const allowed = (params: AllowedParams): boolean =>
-    handleAllowed({ customer: data, params });
+  } = useAutumnBase({ context, client });
 
   const check = (params: CheckParams) =>
-    checkAutumn({ ...params, entityId: entityId || undefined });
+    handleCheck({ customer: data, params, isEntity: true });
   const attach = (params: AttachParams) =>
     attachAutumn({ ...params, entityId: entityId || undefined });
   const cancel = (params: CancelParams) =>
@@ -79,7 +78,6 @@ export const useEntityBase = ({
       isLoading: false,
       error: null,
       refetch: mutate,
-      allowed,
       check,
       attach,
       cancel,
@@ -92,7 +90,6 @@ export const useEntityBase = ({
     isLoading,
     error,
     refetch: mutate,
-    allowed,
     check,
     attach,
     cancel,

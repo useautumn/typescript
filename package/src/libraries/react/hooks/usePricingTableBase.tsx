@@ -2,6 +2,7 @@ import useSWR, { SWRConfiguration } from "swr";
 import { AutumnError, Product } from "@sdk";
 import { ProductDetails } from "../client/types/clientPricingTableTypes";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
+import { AutumnClient } from "@/client/ReactAutumnClient";
 
 const mergeProductDetails = (
   products: Product[] | undefined,
@@ -187,21 +188,14 @@ const defaultSWRConfig: SWRConfiguration = {
 };
 
 export const usePricingTableBase = ({
-  AutumnContext,
+  client,
   params,
 }: {
-  AutumnContext: React.Context<AutumnContextParams>;
+  client: AutumnClient;
   params?: {
     productDetails?: ProductDetails[];
   };
 }) => {
-  const context = useAutumnContext({
-    AutumnContext,
-    name: "usePricingTable",
-  });
-
-  const client = context.client;
-
   const fetcher = async () => {
     try {
       const { data, error } = await client.products.list();

@@ -18,10 +18,10 @@ import {
   RedeemReferralCodeParams,
 } from "../client/types/clientReferralTypes";
 import useSWR, { SWRConfiguration } from "swr";
-import React from "react";
+import React, { useEffect } from "react";
 import { AutumnClient } from "../client/ReactAutumnClient";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
-import { useAutumnBase } from "./useAutumnBase";
+import { useAutumnBase } from "./helpers/useAutumnBase";
 import {
   CancelParams,
   CheckParams,
@@ -29,7 +29,7 @@ import {
   SetupPaymentParams,
   TrackParams,
 } from "@/client/types/clientGenTypes";
-import { AllowedParams, handleAllowed } from "./handleAllowed";
+import { AllowedParams, handleCheck, openDialog } from "./helpers/handleCheck";
 import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
 import { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
 
@@ -39,8 +39,8 @@ export interface UseCustomerResult {
   error: AutumnError | null;
 
   // Autumn functions
-  attach: (params: AttachParams) => AutumnPromise<AttachResult>;
-  check: (params: CheckParams) => AutumnPromise<CheckResult>;
+  attach: (params: AttachParams) => AutumnPromise<AttachResult | CheckResult>;
+  // check: (params: CheckParams) => AutumnPromise<CheckResult>;
   track: (params: TrackParams) => AutumnPromise<TrackResult>;
   cancel: (params: CancelParams) => AutumnPromise<CancelResult>;
   setupPayment: (
@@ -61,6 +61,7 @@ export interface UseCustomerResult {
     params: RedeemReferralCodeParams
   ) => AutumnPromise<RedeemReferralCodeResult>;
 
+  check: (params: CheckParams) => CheckResult;
   allowed: (params: AllowedParams) => boolean;
 }
 
@@ -68,18 +69,7 @@ export interface UseCustomerParams {
   errorOnNotFound?: boolean;
   expand?: CustomerExpandOption[];
   swrConfig?: SWRConfiguration;
-  // authClient?: any;
 }
-
-const emptyDefaultFunctions = {
-  attach: "" as any,
-  check: "" as any,
-  track: "" as any,
-  cancel: "" as any,
-  openBillingPortal: "" as any,
-  setupPayment: "" as any,
-  checkout: "" as any,
-};
 
 export const useCustomerBase = ({
   params,
@@ -91,25 +81,19 @@ export const useCustomerBase = ({
   client?: AutumnClient;
 }): UseCustomerResult => {
   let context: AutumnContextParams | undefined;
-  // let authClientExists = !!params?.authClient;
 
   if (AutumnContext) {
     context = useAutumnContext({
       AutumnContext,
       name: "useCustomer",
-      // errorIfNotInitialized: !authClientExists,
     });
   }
 
-  // if (authClientExists) {
-  //   client = params?.authClient?.autumn;
-  // } else
   if (!client) {
     client = context!.client;
   }
 
   let baseUrl = client?.backendUrl || "";
-
   const queryKey = ["customer", baseUrl, params?.expand];
 
   const fetchCustomer = async () => {
@@ -139,13 +123,18 @@ export const useCustomerBase = ({
     ...params?.swrConfig,
   });
 
-  let autumnFunctions = emptyDefaultFunctions;
-  if (AutumnContext) {
-    autumnFunctions = useAutumnBase({
-      AutumnContext: AutumnContext!,
-      refetchCustomer: mutate,
-    });
-  }
+  const autumnFunctions = useAutumnBase({
+    context,
+    client,
+    refetchCustomer: mutate,
+  });
+
+  useEffect(() => {
+    // console.log("Paywall ref:", context?.paywallRef.current);
+    // context?.paywallDialog.setOpen(true);
+    // context?.paywallDialog.setProps(params);
+    // context?.paywallDialog.setOpen(true);
+  }, [context?.paywallRef.current]);
 
   return {
     customer: error ? null : customer,
@@ -157,7 +146,33 @@ export const useCustomerBase = ({
     createEntity: client!.entities.create,
     createReferralCode: client!.referrals.createCode,
     redeemReferralCode: client!.referrals.redeemCode,
-    allowed: (params: AllowedParams): boolean =>
-      handleAllowed({ customer, params }),
+    check: (params: CheckParams) => {
+      const result = handleCheck({
+        customer,
+        params,
+        isEntity: false,
+        context,
+      });
+
+      openDialog({
+        result,
+        params,
+        context: context!,
+      });
+
+      return result;
+    },
+
+    /** @deprecated Use check() instead */
+    allowed: (params: AllowedParams): boolean => {
+      const result = handleCheck({
+        customer,
+        params,
+        isEntity: false,
+        context,
+      });
+
+      return result.allowed;
+    },
   };
 };

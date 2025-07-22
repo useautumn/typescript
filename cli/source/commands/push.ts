@@ -12,7 +12,7 @@ import {FRONTEND_URL} from '../constants.js';
 
 const spinner = (message: string) => {
 	const spinner = yoctoSpinner({
-		text: message
+		text: message,
 	});
 	spinner.start();
 
@@ -55,8 +55,7 @@ export default async function Push({
 	}
 	for (let product of products) {
 		const s = spinner(`Pushing product [${product.id}]`);
-		await upsertProduct(product);
-		s.success(`Pushed product [${product.id}]`);
+		await upsertProduct({product, spinner: s});
 	}
 
 	for (let featureId of featuresToDelete) {

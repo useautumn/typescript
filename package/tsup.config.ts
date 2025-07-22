@@ -84,17 +84,7 @@ export default defineConfig([
       options.plugins.push(alias(pathAliases));
     },
   },
-  {
-    entry: ["./src/compose/index.ts"],
-    format: ["cjs", "esm"],
-    dts: true,
-    clean: false,
-    outDir: "./dist/compose",
-    esbuildOptions(options) {
-      options.plugins = options.plugins || [];
-      options.plugins.push(alias(pathAliases));
-    },
-  },
+
   // GLOBAL
   {
     entry: ["src/utils/*.{ts,tsx}"],

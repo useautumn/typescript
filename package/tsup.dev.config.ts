@@ -24,13 +24,6 @@ const reactConfigs: Options[] = [
       options.plugins.push(alias(pathAliases));
     },
   },
-  {
-    entry: ["./src/compose/index.ts"],
-    format: ["cjs", "esm"],
-    dts: true,
-    clean: false,
-    outDir: "./dist/compose",
-  },
 
   // React - Index file with CSS import (CommonJS)
   {

@@ -9,9 +9,11 @@ export type { ProductDetails } from "./client/types/clientPricingTableTypes";
 export { useCustomer } from "./hooks/useCustomer";
 export { usePricingTable } from "./hooks/usePricingTable";
 export { useEntity } from "./hooks/useEntity";
+export { useAnalytics } from "./hooks/useAnalytics";
+export { usePaywall } from "./hooks/usePaywall";
 
-/** @deprecated Functions exported from useAutumn have been moved to useCustomer */
-export { useAutumn } from "./hooks/useAutumn";
+/** @deprecated */
+export const useAutumn = () => {};
 
 // Auto-synced components
 export { default as AttachDialog } from "./components/attach-dialog/attach-dialog-synced";

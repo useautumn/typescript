@@ -6,3 +6,4 @@ packages:
   - "cli" 
   - "atmn"
   - "ui"
+  - "test-worker"

@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { useState, useEffect } from "react";
 import { AutumnClient } from "./client/ReactAutumnClient";
-import { useDialog } from "./hooks/useDialog";
+import { useDialog } from "./hooks/helpers/useDialog";
 import { useCustomerBase } from "./hooks/useCustomerBase";
 
 export function BaseAutumnProvider({
@@ -32,7 +32,10 @@ export function BaseAutumnProvider({
 
   useCustomerBase({ client, params: { errorOnNotFound: false } });
 
-  // AutumnContext = AutumnContext as React.Context<AutumnContextParams>;
+  const paywallRef = useRef<any>(null);
+
+  const [refresh, setRefresh] = useState(0);
+
   return (
     <AutumnContext.Provider
       value={{
@@ -63,8 +66,18 @@ export function BaseAutumnProvider({
             });
           },
         },
+        paywallRef,
+        refresh,
+        setRefresh,
       }}
     >
+      {paywallRef.current && (
+        <paywallRef.current.component
+          open={paywallRef.current.open}
+          setOpen={paywallRef.current.setOpen}
+          {...paywallRef.current.props}
+        />
+      )}
       {components.paywallDialog && (
         <components.paywallDialog
           open={paywallOpen}

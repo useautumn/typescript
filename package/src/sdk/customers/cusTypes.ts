@@ -8,29 +8,63 @@ import {
 } from "./cusEnums";
 import { z } from "zod";
 
-export interface CoreCustomerFeature {
-  unlimited?: boolean;
-  interval?: ProductItemInterval | null;
-  balance?: number;
-  usage?: number;
-  included_usage?: number;
-  next_reset_at?: number | null;
-  overage_allowed?: boolean;
-  usage_limit?: number;
+export const CoreCusFeatureSchema = z.object({
+  unlimited: z.boolean().optional(),
+  interval: z.nativeEnum(ProductItemInterval).optional(),
+  balance: z.number().optional(),
+  usage: z.number().optional(),
+  included_usage: z.number().optional(),
+  next_reset_at: z.number().optional(),
+  overage_allowed: z.boolean().optional(),
+  usage_limit: z.number().optional(),
 
-  breakdown?: {
-    interval: ProductItemInterval;
-    balance?: number;
-    usage?: number;
-    included_usage?: number;
-    next_reset_at?: number;
-  }[];
+  breakdown: z
+    .array(
+      z.object({
+        interval: z.nativeEnum(ProductItemInterval),
+        balance: z.number().optional(),
+        usage: z.number().optional(),
+        included_usage: z.number().optional(),
+        next_reset_at: z.number().optional(),
+      })
+    )
+    .optional(),
 
-  credit_schema?: {
-    feature_id: string;
-    credit_amount: number;
-  }[];
-}
+  credit_schema: z
+    .array(
+      z.object({
+        feature_id: z.string(),
+        credit_amount: z.number(),
+      })
+    )
+    .optional(),
+});
+
+export type CoreCustomerFeature = z.infer<typeof CoreCusFeatureSchema>;
+
+// export interface CoreCustomerFeature {
+//   unlimited?: boolean;
+//   interval?: ProductItemInterval | null;
+//   balance?: number;
+//   usage?: number;
+//   included_usage?: number;
+//   next_reset_at?: number | null;
+//   overage_allowed?: boolean;
+//   usage_limit?: number;
+
+//   breakdown?: {
+//     interval: ProductItemInterval;
+//     balance?: number;
+//     usage?: number;
+//     included_usage?: number;
+//     next_reset_at?: number;
+//   }[];
+
+//   credit_schema?: {
+//     feature_id: string;
+//     credit_amount: number;
+//   }[];
+// }
 
 export interface CustomerFeature extends CoreCustomerFeature {
   id: string;

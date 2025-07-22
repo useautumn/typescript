@@ -5,6 +5,7 @@ import {
   handleCheckout,
   handleEntitled,
   handleEvent,
+  handleQuery,
   handleSetupPayment,
   handleTrack,
   handleUsage,
@@ -13,6 +14,7 @@ import {
 import {
   CancelParams,
   CheckParams,
+  QueryParams,
   SetupPaymentParams,
   TrackParams,
   UsageParams,
@@ -174,6 +176,16 @@ export class Autumn {
 
   async usage(params: UsageParams) {
     return handleUsage({
+      instance: this,
+      params,
+    });
+  }
+
+  static query = (params: QueryParams) =>
+    staticWrapper(handleQuery, undefined, { params });
+
+  async query(params: QueryParams) {
+    return handleQuery({
       instance: this,
       params,
     });

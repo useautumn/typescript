@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.107",
+  "version": "0.0.109",
   "main": "./dist/sdk/index.js",
   "files": [
     "dist",
@@ -94,7 +94,6 @@
   "author": "John Yeo",
   "license": "MIT",
   "devDependencies": {
-    "autumn-js": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
@@ -105,6 +104,7 @@
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "autoprefixer": "^10.4.21",
+    "autumn-js": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.25.2",
@@ -121,6 +121,7 @@
     "postcss": "^8.5.6",
     "postcss-nested": "^7.0.2",
     "postcss-prefix-selector": "^2.1.1",
+    "react-dom": "^19.1.0",
     "stripe": "^18.3.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.1",

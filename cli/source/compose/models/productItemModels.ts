@@ -24,6 +24,9 @@ export const ProductItemSchema = z.object({
 	usage_model: UsageModelEnum.nullish(),
 	price: z.number().nullish(),
 	billing_units: z.number().nullish(), // amount per billing unit (eg. $9 / 250 units)
+
+	reset_usage_when_enabled: z.boolean().optional(),
+	entity_feature_id: z.string().optional(),
 });
 
 export const FeatureItemSchema = z.object({

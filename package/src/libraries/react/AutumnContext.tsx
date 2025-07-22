@@ -18,6 +18,7 @@ export interface AutumnContextParams {
   // Internal
   paywallDialog: AutumnDialogContext;
   attachDialog: AutumnDialogContext;
+  paywallRef: React.RefObject<any>;
 }
 
 export const AutumnContext = createContext<AutumnContextParams>({
@@ -41,6 +42,8 @@ export const AutumnContext = createContext<AutumnContextParams>({
     setOpen: () => {},
     setComponent: () => {},
   },
+
+  paywallRef: { current: null },
 });
 
 export const useAutumnContext = ({

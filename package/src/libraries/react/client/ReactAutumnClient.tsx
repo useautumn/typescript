@@ -20,6 +20,7 @@ import {
   checkMethod,
   checkoutMethod,
   openBillingPortalMethod,
+  queryMethod,
   setupPaymentMethod,
   trackMethod,
 } from "./clientGenMethods";
@@ -121,7 +122,9 @@ export class AutumnClient {
           `[Autumn] Detected CORS credentials: ${corsResult.includeCredentials}`
         );
         console.warn(
-          `[Autumn] To disable this warning, you can set includeCredentials={${corsResult.includeCredentials ? "true" : "false"}} in <AutumnProvider />`
+          `[Autumn] To disable this warning, you can set includeCredentials={${
+            corsResult.includeCredentials ? "true" : "false"
+          }} in <AutumnProvider />`
         );
         this.includeCredentials = corsResult.includeCredentials;
       }
@@ -246,6 +249,7 @@ export class AutumnClient {
   track = trackMethod.bind(this);
   openBillingPortal = openBillingPortalMethod.bind(this);
   setupPayment = setupPaymentMethod.bind(this);
+  query = queryMethod.bind(this);
 
   entities = {
     create: createEntityMethod.bind(this),

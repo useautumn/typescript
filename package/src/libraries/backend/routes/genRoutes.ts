@@ -9,9 +9,10 @@ import {
   SetupPaymentParams,
 } from "../../../sdk";
 import { addRoute, RouterContext } from "rou3";
-import { OpenBillingPortalParams } from "src/libraries/react/client/types/clientGenTypes";
+import { QueryParams } from "@/client/types/clientGenTypes";
 import { BASE_PATH } from "../constants";
 import { AttachParams, CheckoutParams } from "@sdk/general/attachTypes";
+import { toSnakeCase } from "@/utils/toSnakeCase";
 const sanitizeBody = (body: any) => {
   let bodyCopy = { ...body };
   delete bodyCopy.customer_id;
@@ -152,6 +153,20 @@ const openBillingPortalHandler = withAuth({
   },
 });
 
+const queryHandler = withAuth({
+  fn: async ({
+    autumn,
+    customer_id,
+    body,
+  }: {
+    autumn: Autumn;
+    customer_id: string;
+    body: QueryParams;
+  }) => {
+    return await autumn.query({ customer_id, ...toSnakeCase(body) });
+  },
+});
+
 const addGenRoutes = (router: RouterContext) => {
   addRoute(router, "POST", `${BASE_PATH}/checkout`, {
     handler: checkoutHandler,
@@ -173,6 +188,9 @@ const addGenRoutes = (router: RouterContext) => {
   });
   addRoute(router, "POST", `${BASE_PATH}/setup_payment`, {
     handler: setupPaymentHandler,
+  });
+  addRoute(router, "POST", `${BASE_PATH}/query`, {
+    handler: queryHandler,
   });
 };
 

@@ -1,20 +1,32 @@
-import { CoreCustomerFeature } from "@sdk/customers/cusTypes";
+import {
+  CoreCusFeatureSchema,
+  CoreCustomerFeature,
+} from "@sdk/customers/cusTypes";
 import { UsageModelType } from "../products/prodEnums";
 import { Product } from "../products/prodTypes";
+import { z } from "zod";
 
 export type CheckFeatureScenario = "usage_limit" | "feature_flag";
 
-export interface CheckFeatureResult extends CoreCustomerFeature {
-  allowed: boolean;
-  feature_id: string;
-  customer_id: string;
-  entity_id?: string;
-  required_balance: number;
-  code: string;
-  usage_limit?: number;
-  
-  preview?: CheckFeaturePreview;
-}
+export const CheckFeatureResultSchema = z
+  .object({
+    allowed: z.boolean(),
+    feature_id: z.string(),
+    customer_id: z.string(),
+    entity_id: z.string().optional(),
+    required_balance: z.number(),
+  })
+  .extend(CoreCusFeatureSchema.shape);
+
+export type CheckFeatureResult = z.infer<typeof CheckFeatureResultSchema>;
+// export interface CheckFeatureResult extends CoreCustomerFeature {
+//   allowed: boolean;
+//   feature_id: string;
+//   customer_id: string;
+//   entity_id?: string;
+//   required_balance: number;
+//   preview?: CheckFeaturePreview;
+// }
 
 export interface CheckFeaturePreview {
   scenario: CheckFeatureScenario;
@@ -38,8 +50,7 @@ export interface CheckProductResult {
   allowed: boolean;
   customer_id: string;
   product_id: string;
-  code: string;
-
+  entity_id?: string;
   status?: string;
   preview?: CheckProductPreview;
 }

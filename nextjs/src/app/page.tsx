@@ -2,7 +2,6 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useCustomer } from "autumn-js/react";
-// import PricingTable from "@/components/autumn/pricing-table";
 import { PricingTable } from "autumn-js/react";
 
 export default function Home() {
@@ -16,8 +15,17 @@ export default function Home() {
     openBillingPortal,
     redeemReferralCode,
     createReferralCode,
-    allowed,
+    // allowed,
   } = useCustomer();
+
+  // const { data, isLoading, error } = useAnalytics({
+  //   featureId: ["chat-messages"],
+  // });
+  // const checkRes = check({
+  //   featureId: "credits",
+  //   dialog: CheckDialog,
+  // });
+  const checkRes = null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b p-10">
@@ -31,6 +39,7 @@ export default function Home() {
                   email: "johnyeo10@gmail.com",
                   password: "testing123",
                 });
+
                 console.log(res);
               }}
             >
@@ -58,20 +67,35 @@ export default function Home() {
             >
               Test Better Auth Plugin
             </Button>
+            <Button
+              onClick={async () => {
+                const res = check({
+                  featureId: "credits",
+                  // dialog: CheckDialog,
+                });
+                console.log(res);
+              }}
+            >
+              Test Paywall Dialog
+            </Button>
           </div>
-          <p>
-            Credits allowed: {allowed({ featureId: "credits" }) ? "Yes" : "No"}
-          </p>
         </section>
-        <PricingTable />
         <section className="space-y-4">
+          <h2 className="text-md font-semibold text-slate-800">Check result</h2>
+          <pre className="whitespace-pre-wrap text-blue-400 mt-4 text-xs">
+            {JSON.stringify(checkRes, null, 4)}
+          </pre>
+        </section>
+        {/* <section className="space-y-4">
           <h2 className="text-md font-semibold text-slate-800">Customer</h2>
           <pre className="whitespace-pre-wrap text-blue-400 mt-4 text-xs">
             {JSON.stringify(customer, null, 4)}
           </pre>
-        </section>
+        </section> */}
 
-        <div className="flex justify-start items-center gap-2">
+        <PricingTable />
+
+        {/* <div className="flex justify-start items-center gap-2">
           <Button
             onClick={async () => {
               const res = await openBillingPortal({
@@ -173,7 +197,7 @@ export default function Home() {
           >
             Redeem Referral Code
           </Button>
-        </div>
+        </div> */}
       </main>
     </div>
   );

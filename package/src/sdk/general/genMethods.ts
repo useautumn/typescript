@@ -12,6 +12,8 @@ import {
   CancelResult,
   CheckParams,
   CheckResult,
+  QueryParams,
+  QueryResult,
   SetupPaymentParams,
   SetupPaymentResult,
   TrackParams,
@@ -108,4 +110,14 @@ export const handleCheck = async ({
   params: CheckParams;
 }): AutumnPromise<CheckResult> => {
   return instance.post("/check", params);
+};
+
+export const handleQuery = async ({
+  instance,
+  params,
+}: {
+  instance: Autumn;
+  params: QueryParams;
+}): AutumnPromise<QueryResult> => {
+  return instance.post("/query", params);
 };

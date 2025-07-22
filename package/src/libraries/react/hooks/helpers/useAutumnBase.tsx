@@ -5,50 +5,34 @@ import {
   SetupPaymentResult,
   TrackResult,
 } from "@sdk";
-import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
+import { AutumnContextParams } from "@/AutumnContext";
 import {
   CancelParams,
   CheckParams,
   OpenBillingPortalParams,
   SetupPaymentParams,
   TrackParams,
-} from "../client/types/clientGenTypes";
+} from "@/client/types/clientGenTypes";
 import { AutumnPromise } from "@sdk";
-import { usePricingTableBase } from "./usePricingTableBase";
+import { usePricingTableBase } from "../usePricingTableBase";
 import { AttachResult } from "@sdk/general/attachTypes";
 import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
+import { AutumnClient } from "@/client/ReactAutumnClient";
 
 export const useAutumnBase = ({
-  AutumnContext,
+  // AutumnContext,
+  context,
+  client,
   refetchCustomer,
 }: {
-  AutumnContext: React.Context<AutumnContextParams>;
+  // AutumnContext: React.Context<AutumnContextParams>;
+  context?: AutumnContextParams;
+  client: AutumnClient;
   refetchCustomer?: () => Promise<any>;
 }) => {
-  const context = useAutumnContext({
-    AutumnContext,
-    name: "useAutumn",
-  });
-  const { attachDialog, paywallDialog } = context;
+  const { attachDialog, paywallDialog } = context || {};
 
-  const client = context.client;
-
-  const { refetch: refetchPricingTable } = usePricingTableBase({
-    AutumnContext,
-  });
-
-  let {
-    open: attachOpen,
-    setProps: setAttachProps,
-    setOpen: setAttachOpen,
-    setComponent: setAttachComponent,
-  } = attachDialog;
-
-  let {
-    setProps: setCheckProps,
-    setOpen: setCheckOpen,
-    setComponent: setPaywallComponent,
-  } = paywallDialog;
+  const { refetch: refetchPricingTable } = usePricingTableBase({ client });
 
   const attachWithoutDialog = async (params: AttachParams) => {
     const result = await client.attach(params);
@@ -72,9 +56,7 @@ export const useAutumnBase = ({
       await refetchCustomer();
     }
 
-    if (setAttachOpen) {
-      setAttachOpen(false);
-    }
+    attachDialog?.setOpen(false);
 
     return result;
   };
@@ -98,9 +80,9 @@ export const useAutumnBase = ({
     }
 
     if (params.dialog) {
-      setAttachProps({ checkoutResult: data, attachParams: rest });
-      setAttachComponent(params.dialog);
-      setAttachOpen(true);
+      attachDialog?.setProps({ checkoutResult: data, attachParams: rest });
+      attachDialog?.setComponent(params.dialog);
+      attachDialog?.setOpen(true);
     }
 
     return { data, error };
@@ -129,8 +111,8 @@ export const useAutumnBase = ({
     if (!preview) {
       return await attachWithoutDialog(rest);
     } else {
-      setAttachProps({ preview, attachParams: rest });
-      setAttachOpen(true);
+      attachDialog?.setProps({ preview, attachParams: rest });
+      attachDialog?.setOpen(true);
     }
 
     return checkRes;
@@ -139,9 +121,8 @@ export const useAutumnBase = ({
   const attach = async (params: AttachParams) => {
     const { dialog } = params;
 
-    let finalDialog = dialog;
-    if (finalDialog && !attachOpen) {
-      setAttachComponent(finalDialog);
+    if (dialog && !attachDialog?.open) {
+      attachDialog?.setComponent(dialog);
       return await attachWithDialog(params);
     }
 
@@ -158,32 +139,32 @@ export const useAutumnBase = ({
     return res;
   };
 
-  const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
-    let { dialog, withPreview } = params;
+  // const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
+  //   let { dialog, withPreview } = params;
 
-    if (dialog) {
-      setPaywallComponent(dialog);
-    }
+  //   if (dialog) {
+  //     paywallDialog?.setComponent(dialog);
+  //   }
 
-    const res = await client.check({
-      ...params,
-      withPreview: withPreview || dialog ? true : false,
-    });
+  //   const res = await client.check({
+  //     ...params,
+  //     withPreview: withPreview || dialog ? true : false,
+  //   });
 
-    if (res.error) {
-      return res;
-    }
+  //   if (res.error) {
+  //     return res;
+  //   }
 
-    let data = res.data;
+  //   let data = res.data;
 
-    if (data && data.preview && dialog) {
-      let preview = data.preview;
-      setCheckProps({ preview });
-      setCheckOpen(true);
-    }
+  //   if (data && data.preview && dialog) {
+  //     let preview = data.preview;
+  //     paywallDialog?.setProps({ preview });
+  //     paywallDialog?.setOpen(true);
+  //   }
 
-    return res;
-  };
+  //   return res;
+  // };
 
   const track = async (params: TrackParams): AutumnPromise<TrackResult> => {
     const res = await client.track(params);
@@ -257,7 +238,7 @@ export const useAutumnBase = ({
 
   return {
     attach,
-    check,
+    // check,
     track,
     cancel,
     openBillingPortal,

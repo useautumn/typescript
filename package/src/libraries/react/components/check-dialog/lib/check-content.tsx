@@ -1,6 +1,13 @@
-import { type CheckFeaturePreview } from '@sdk';
+import { type CheckFeaturePreview } from "@sdk";
 
-export const getCheckContent = (preview: CheckFeaturePreview) => {
+export const getCheckContent = (preview?: CheckFeaturePreview) => {
+  if (!preview) {
+    return {
+      title: "Feature Unavailable",
+      message: "This feature is not available for your account.",
+    };
+  }
+
   const { scenario, products, feature_name } = preview;
 
   if (products.length == 0) {

@@ -1,7 +1,8 @@
+import {Spinner} from 'yocto-spinner';
 import {Feature, Product} from '../compose/index.js';
 import {externalRequest} from './api.js';
 import {getFeatures, getAllProducts} from './pull.js';
-
+import {confirm} from '@inquirer/prompts';
 export async function checkForDeletables(
 	currentFeatures: Feature[],
 	currentProducts: Product[],
@@ -25,6 +26,15 @@ export async function checkForDeletables(
 	return {featuresToDelete, productsToDelete};
 }
 
+const isDuplicate = (error: any) => {
+	return (
+		error.response &&
+		error.response.data &&
+		(error.response.data.code === 'duplicate_feature_id' ||
+			error.response.data.code === 'product_already_exists')
+	);
+};
+
 export async function upsertFeature(feature: Feature) {
 	try {
 		const response = await externalRequest({
@@ -36,11 +46,7 @@ export async function upsertFeature(feature: Feature) {
 
 		return response.data;
 	} catch (error: any) {
-		if (
-			error.response &&
-			error.response.data &&
-			error.response.data.code === 'duplicate_feature_id'
-		) {
+		if (isDuplicate(error)) {
 			const response = await externalRequest({
 				method: 'POST',
 				path: `/features/${feature.id}`,
@@ -58,7 +64,14 @@ export async function upsertFeature(feature: Feature) {
 	}
 }
 
-export async function upsertProduct(product: Product) {
+export async function upsertProduct({
+	product,
+	spinner,
+}: {
+	product: Product;
+	spinner: Spinner;
+}) {
+	// spinner.start();
 	try {
 		const response = await externalRequest({
 			method: 'POST',
@@ -66,20 +79,42 @@ export async function upsertProduct(product: Product) {
 			data: product,
 			throwOnError: true,
 		});
-		return response.data;
+		spinner.success(`Pushed product [${product.id}]`);
 	} catch (error: any) {
-		if (
-			error.response &&
-			error.response.data &&
-			error.response.data.code === 'product_already_exists'
-		) {
-			// If the first request fails, try posting to the specific product ID endpoint
-			const response = await externalRequest({
-				method: 'POST',
-				path: `/products/${product.id}`,
+		if (isDuplicate(error)) {
+			const res1 = await externalRequest({
+				method: 'GET',
+				path: `/products/${product.id}/has_customers`,
 				data: product,
 			});
-			return response.data;
+
+			const {current_version, will_version} = res1;
+
+			let shouldUpdate = true;
+			if (will_version) {
+				spinner.stop();
+				// Clear the line to remove any spinner artifacts
+				process.stdout.write('\r\x1b[K');
+				shouldUpdate = await confirm({
+					message: `Product ${product.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
+				});
+			}
+
+			if (shouldUpdate) {
+				// If the first request fails, try posting to the specific product ID endpoint
+				spinner.start();
+				const response = await externalRequest({
+					method: 'POST',
+					path: `/products/${product.id}`,
+					data: product,
+				});
+
+				spinner.success(`Pushed product [${product.id}]`);
+				return response;
+			} else {
+				spinner.info(`Skipping update to product ${product.id}`);
+				return;
+			}
 		}
 
 		console.error(

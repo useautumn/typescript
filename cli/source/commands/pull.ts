@@ -13,7 +13,7 @@ export default async function Pull({config}: {config: any}) {
 	const features = await getFeatures();
 
 	const productSnippets = products.map((product: Product) =>
-		productBuilder(product),
+		productBuilder({product, features}),
 	);
 	const featureSnippets = features.map((feature: Feature) =>
 		featureBuilder(feature),
@@ -21,19 +21,18 @@ export default async function Pull({config}: {config: any}) {
 	const autumnConfig = `
 ${importBuilder()}
 
-// Features
-${featureSnippets.join('\n')}
+// Features${featureSnippets.join('\n')}
 
-// Products
-${productSnippets.join('\n')}
-
-// Remember to update this when you make changes!
-${exportBuilder(
-	products.map((product: Product) => product.id),
-	features.map((feature: Feature) => snakeCaseToCamelCase(feature.id)),
-)}
+// Products${productSnippets.join('\n')}
 	`;
+
 	writeConfig(autumnConfig);
+
+	// 	// Remember to update this when you make changes!
+	// ${exportBuilder(
+	// 	products.map((product: Product) => product.id),
+	// 	features.map((feature: Feature) => snakeCaseToCamelCase(feature.id)),
+	// )}
 
 	console.log(chalk.green('Success! Config has been updated.'));
 }
