@@ -11,10 +11,10 @@ import { z } from "zod";
 export const CoreCusFeatureSchema = z.object({
   unlimited: z.boolean().optional(),
   interval: z.nativeEnum(ProductItemInterval).optional(),
-  balance: z.number().optional(),
+  balance: z.number().nullish(),
   usage: z.number().optional(),
   included_usage: z.number().optional(),
-  next_reset_at: z.number().optional(),
+  next_reset_at: z.number().nullish(),
   overage_allowed: z.boolean().optional(),
   usage_limit: z.number().optional(),
 

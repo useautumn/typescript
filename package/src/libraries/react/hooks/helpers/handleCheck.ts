@@ -97,7 +97,11 @@ const handleFeatureCheck = ({
     result.entity_id = (customer as Entity).id;
   }
 
-  return CheckFeatureResultSchema.parse(result);
+  try {
+    return CheckFeatureResultSchema.parse(result);
+  } catch (error) {
+    return result;
+  }
 };
 
 const handleProductCheck = ({

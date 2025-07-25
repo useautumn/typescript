@@ -7,3 +7,6 @@ packages:
   - "atmn"
   - "ui"
   - "test-worker"
+  - "next15"
+  - "next-bug"
+  - "vite-spa"

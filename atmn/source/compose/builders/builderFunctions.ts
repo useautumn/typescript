@@ -13,7 +13,7 @@ export const featureItem = ({
 	feature_id,
 	included_usage,
 	interval,
-	reset_usage_when_enabled = false,
+	reset_usage_when_enabled,
 	entity_feature_id,
 }: {
 	feature_id: string;

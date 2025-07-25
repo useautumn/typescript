@@ -87,7 +87,7 @@ const getResetUsageStr = ({
 };
 
 const getIntervalStr = ({item}: {item: ProductItem}) => {
-	if (item.interval == null) return `${getItemFieldPrefix()}interval: null,`;
+	if (item.interval == null) return ``;
 	return `${getItemFieldPrefix()}interval: '${item.interval}',`;
 };
 

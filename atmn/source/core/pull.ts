@@ -18,6 +18,7 @@ export async function getAllProducts() {
 		method: 'GET',
 		path: '/products',
 	});
+
 	return list.map((product: Product) => product as Product);
 }
 

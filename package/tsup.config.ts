@@ -19,9 +19,13 @@ const reactConfigs: Options[] = [
     outDir: "./dist/libraries/backend",
     external: ["react", "react/jsx-runtime", "react-dom"],
     bundle: true,
+    skipNodeModulesBundle: true,
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
+      options.define = {
+        ...options.define,
+      };
     },
   },
 
@@ -41,6 +45,11 @@ const reactConfigs: Options[] = [
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
+      options.define = {
+        ...options.define,
+        __dirname: "import.meta.dirname",
+        __filename: "import.meta.filename",
+      };
     },
   },
 
@@ -62,6 +71,11 @@ const reactConfigs: Options[] = [
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
+      options.define = {
+        ...options.define,
+        __dirname: "import.meta.dirname",
+        __filename: "import.meta.filename",
+      };
     },
   },
 ];
@@ -82,6 +96,11 @@ export default defineConfig([
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
+      options.define = {
+        ...options.define,
+        __dirname: "import.meta.dirname",
+        __filename: "import.meta.filename",
+      };
     },
   },
 
@@ -97,6 +116,11 @@ export default defineConfig([
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
+      options.define = {
+        ...options.define,
+        __dirname: "import.meta.dirname",
+        __filename: "import.meta.filename",
+      };
     },
   },
 
@@ -112,6 +136,11 @@ export default defineConfig([
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
+      options.define = {
+        ...options.define,
+        __dirname: "import.meta.dirname",
+        __filename: "import.meta.filename",
+      };
     },
   },
   ...reactConfigs,

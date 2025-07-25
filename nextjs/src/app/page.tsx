@@ -1,12 +1,11 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { CheckDialog, useCustomer, useEntity } from "autumn-js/react";
+import { CheckDialog, useCustomer } from "autumn-js/react";
 import { PricingTable } from "autumn-js/react";
 
 export default function Home() {
   const {
-    customer,
     attach,
     check,
     track,
@@ -15,6 +14,7 @@ export default function Home() {
     openBillingPortal,
     redeemReferralCode,
     createReferralCode,
+    allowed,
     // allowed,
   } = useCustomer();
 
@@ -73,22 +73,10 @@ export default function Home() {
             </Button>
           </div>
         </section>
-        <section className="space-y-4">
-          <h2 className="text-md font-semibold text-slate-800">Check result</h2>
-          <pre className="whitespace-pre-wrap text-blue-400 mt-4 text-xs">
-            {JSON.stringify(checkRes, null, 4)}
-          </pre>
-        </section>
-        {/* <section className="space-y-4">
-          <h2 className="text-md font-semibold text-slate-800">Customer</h2>
-          <pre className="whitespace-pre-wrap text-blue-400 mt-4 text-xs">
-            {JSON.stringify(customer, null, 4)}
-          </pre>
-        </section> */}
 
         <PricingTable />
 
-        {/* <div className="flex justify-start items-center gap-2">
+        <div className="flex justify-start items-center gap-2">
           <Button
             onClick={async () => {
               const res = await openBillingPortal({
@@ -190,7 +178,7 @@ export default function Home() {
           >
             Redeem Referral Code
           </Button>
-        </div> */}
+        </div>
       </main>
     </div>
   );

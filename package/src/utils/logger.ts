@@ -1,4 +1,4 @@
-import chalk from "chalk";
+
 
 // Alternative: Use pino without worker thread transport
 const getTime = () => {
@@ -17,25 +17,25 @@ export const logger = {
   level: "info",
   debug: (...args: any[]) => {
     if (greaterThanLevel("debug")) {
-      console.log(getTime(), chalk.gray('DEBUG'), ...args);
+      console.log(getTime(), 'DEBUG', ...args);
     }
   },
   log: (...args: any[]) => {
-    console.log(getTime(), chalk.blue('INFO'), ...args);
+    console.log(getTime(), 'INFO', ...args);
   },
   info: (...args: any[]) => {
     if (greaterThanLevel("info")) {
-      console.log(getTime(), chalk.blue('INFO'), ...args);
+      console.log(getTime(), 'INFO', ...args);
     }
   }, 
   warn: (...args: any[]) => {
     if (greaterThanLevel("warn")) {
-      console.log(getTime(), chalk.yellow('WARN'), ...args);
+      console.log(getTime(), 'WARN', ...args);
     }
   },
   error: (...args: any[]) => {
     if (greaterThanLevel("error")) {
-      console.log(getTime(), chalk.red('ERROR'), ...args);
+      console.log(getTime(), 'ERROR', ...args);
     }
   }
 };
