@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getAttachContent } from "@/lib/autumn/attach-content";
+import { getCheckoutContent } from "@/registry/checkout-dialog/lib/checkout-content";
 import { useCustomer } from "autumn-js/react";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
 import type { CheckoutResult, ProductItem } from "autumn-js";
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 
-export interface AttachDialogProps {
+export interface CheckoutDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   checkoutResult: CheckoutResult;
@@ -44,7 +44,7 @@ const formatCurrency = ({
   }).format(amount);
 };
 
-export default function AttachDialog(params: AttachDialogProps) {
+export default function CheckoutDialog(params: CheckoutDialogProps) {
   const { attach } = useCustomer();
   const [checkoutResult, setCheckoutResult] = useState<
     CheckoutResult | undefined
@@ -63,7 +63,7 @@ export default function AttachDialog(params: AttachDialogProps) {
   }
 
   const { open, setOpen } = params;
-  const { title, message } = getAttachContent(checkoutResult as any);
+  const { title, message } = getCheckoutContent(checkoutResult as any);
 
   const isFree = checkoutResult?.product.properties?.is_free;
   const isPaid = isFree === false;
@@ -72,7 +72,9 @@ export default function AttachDialog(params: AttachDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="p-0 pt-4 gap-0 text-foreground overflow-hidden text-sm">
         <DialogTitle className="px-6 mb-1">{title}</DialogTitle>
-        <div className="px-6 mt-1 mb-4 text-muted-foreground">{message}</div>
+        <div className="px-6 mt-1 mb-4 text-muted-foreground">
+          {message}
+        </div>
 
         {isPaid && checkoutResult && (
           <PriceInformation
@@ -86,9 +88,17 @@ export default function AttachDialog(params: AttachDialogProps) {
             size="sm"
             onClick={async () => {
               setLoading(true);
+
+              const options = checkoutResult.options.map((option) => {
+                return {
+                  featureId: option.feature_id,
+                  quantity: option.quantity,
+                };
+              });
+
               await attach({
                 productId: checkoutResult.product.id,
-                options: checkoutResult?.options as any,
+                options,
               });
               setOpen(false);
               setLoading(false);
@@ -100,7 +110,9 @@ export default function AttachDialog(params: AttachDialogProps) {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span className="whitespace-nowrap flex gap-1">Confirm</span>
+                <span className="whitespace-nowrap flex gap-1">
+                  Confirm
+                </span>
               </>
             )}
           </Button>
@@ -230,7 +242,9 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
       <AccordionItem value="total" className="border-b-0">
         <CustomAccordionTrigger className="justify-between w-full my-0 py-0 border-none">
           <div className="cursor-pointer flex items-center gap-1 w-full justify-end">
-            <p className="font-light text-muted-foreground">View details</p>
+            <p className="font-light text-muted-foreground">
+              View details
+            </p>
             <ChevronDown
               className="text-muted-foreground mt-0.5 rotate-90 transition-transform duration-200 ease-in-out"
               size={14}
@@ -301,13 +315,20 @@ const PrepaidItem = ({
   const handleSave = async () => {
     setLoading(true);
     try {
-      const newOptions: any = [...checkoutResult.options].filter(
-        (option) => option.feature_id !== item.feature_id
-      );
+      const newOptions = checkoutResult.options
+        .filter((option) => option.feature_id !== item.feature_id)
+        .map((option) => {
+          return {
+            featureId: option.feature_id,
+            quantity: option.quantity,
+          };
+        });
+
       newOptions.push({
-        featureId: item.feature_id,
+        featureId: item.feature_id!,
         quantity: Number(quantityInput) * billingUnits,
       });
+
       const { data, error } = await checkout({
         productId: checkoutResult.product.id,
         options: newOptions,
@@ -335,7 +356,9 @@ const PrepaidItem = ({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
-              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80 hover:bg-accent hover:text-foreground"
+              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80",
+              disableSelection !== true &&
+                "hover:bg-accent hover:text-foreground"
             )}
             disabled={disableSelection}
           >
@@ -366,7 +389,11 @@ const PrepaidItem = ({
                 </p>
               </div>
 
-              <Button onClick={handleSave} className="w-14">
+              <Button
+                onClick={handleSave}
+                className="w-14 !h-7 text-sm items-center bg-white text-foreground shadow-sm border border-zinc-200 hover:bg-zinc-100"
+                disabled={loading}
+              >
                 {loading ? (
                   <Loader2 className="text-muted-foreground animate-spin !w-4 !h-4" />
                 ) : (

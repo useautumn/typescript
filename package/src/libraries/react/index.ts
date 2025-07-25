@@ -16,6 +16,6 @@ export { usePaywall } from "./hooks/usePaywall";
 export const useAutumn = () => {};
 
 // Auto-synced components
-export { default as AttachDialog } from "./components/attach-dialog/attach-dialog-synced";
-export { default as CheckDialog } from "./components/check-dialog/check-dialog-synced";
+export { default as CheckoutDialog } from "./components/checkout-dialog/checkout-dialog-synced";
+export { default as PaywallDialog } from "./components/paywall-dialog/paywall-dialog-synced";
 export { default as PricingTable } from "./components/pricing-table/pricing-table-synced";

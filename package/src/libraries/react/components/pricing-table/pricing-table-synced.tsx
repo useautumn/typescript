@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import AttachDialog from "../attach-dialog/attach-dialog-synced";
+import CheckoutDialog from "../checkout-dialog/checkout-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
 import type { Product, ProductItem } from "@sdk";
 import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
@@ -79,7 +79,7 @@ export default function PricingTable({
                   if (product.id) {
                     await checkout({
                       productId: product.id,
-                      dialog: AttachDialog,
+                      dialog: CheckoutDialog,
                     });
                   } else if (product.display?.button_url) {
                     window.open(product.display?.button_url, "_blank");

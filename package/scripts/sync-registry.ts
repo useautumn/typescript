@@ -15,18 +15,18 @@ interface ComponentConfig {
 
 const COMPONENTS: ComponentConfig[] = [
   {
-    syncedName: "attach-dialog",
-    registryName: "attach-dialog",
-    dependencies: ["attach-content"],
+    syncedName: "checkout-dialog",
+    registryName: "checkout-dialog",
+    dependencies: ["checkout-content"],
   },
   {
-    syncedName: "check-dialog", 
-    registryName: "check-dialog",
-    dependencies: ["check-content"],
+    syncedName: "paywall-dialog",
+    registryName: "paywall-dialog",
+    dependencies: ["paywall-content"],
   },
   {
     syncedName: "pricing-table",
-    registryName: "pricing-table", 
+    registryName: "pricing-table",
     dependencies: ["pricing-table-content"],
   },
 ];
@@ -62,11 +62,20 @@ function transformImportsToRegistry(content: string): string {
   // Remove loading styles import and replace with CSS classes
   if (content.includes('from "@/utils/inject-styles"')) {
     // Remove the import line
-    content = content.replace(/import\s+{[^}]*loadingStyles[^}]*}\s+from\s+["']@\/utils\/inject-styles["'];?\s*\n/g, '');
-    
+    content = content.replace(
+      /import\s+{[^}]*loadingStyles[^}]*}\s+from\s+["']@\/utils\/inject-styles["'];?\s*\n/g,
+      ""
+    );
+
     // Replace inline styles with CSS classes
-    content = content.replace(/style={loadingStyles}/g, 'className="w-full h-full flex justify-center items-center min-h-[300px]"');
-    content = content.replace(/style={spinnerStyles}/g, 'className="w-6 h-6 text-zinc-400 animate-spin"');
+    content = content.replace(
+      /style={loadingStyles}/g,
+      'className="w-full h-full flex justify-center items-center min-h-[300px]"'
+    );
+    content = content.replace(
+      /style={spinnerStyles}/g,
+      'className="w-6 h-6 text-zinc-400 animate-spin"'
+    );
   }
 
   // Keep @/lib/utils and @/components/ui imports as-is
@@ -83,21 +92,31 @@ async function syncComponentToRegistry(config: ComponentConfig): Promise<void> {
 
   try {
     // Read the synced component file
-    const syncedFilePath = path.join(syncedDir, `${config.syncedName}-synced.tsx`);
+    const syncedFilePath = path.join(
+      syncedDir,
+      `${config.syncedName}-synced.tsx`
+    );
     const syncedContent = await fs.readFile(syncedFilePath, "utf-8");
-    
+
     // Transform content: remove au- prefixes and transform imports
     let transformedContent = removeAuPrefixes(syncedContent);
     transformedContent = transformImportsToRegistry(transformedContent);
-    
+
     // Replace the placeholder with actual component name
-    transformedContent = transformedContent.replace(/\$COMPONENT_NAME/g, config.registryName);
+    transformedContent = transformedContent.replace(
+      /\$COMPONENT_NAME/g,
+      config.registryName
+    );
 
     // Determine target path (handle subdirectory structure)
     let targetFilePath = path.join(registryDir, `${config.registryName}.tsx`);
-    
+
     // Check if registry uses subdirectory structure
-    const subDirPath = path.join(registryDir, config.registryName, `${config.registryName}.tsx`);
+    const subDirPath = path.join(
+      registryDir,
+      config.registryName,
+      `${config.registryName}.tsx`
+    );
     try {
       await fs.access(subDirPath);
       targetFilePath = subDirPath;
@@ -117,11 +136,16 @@ async function syncComponentToRegistry(config: ComponentConfig): Promise<void> {
         for (const dep of config.dependencies) {
           const syncedDepPath = path.join(syncedLibDir, `${dep}.tsx`);
           const syncedDepContent = await fs.readFile(syncedDepPath, "utf-8");
-          
+
           // Transform the dependency content
           let transformedDepContent = removeAuPrefixes(syncedDepContent);
-          transformedDepContent = transformImportsToRegistry(transformedDepContent);
-          transformedDepContent = transformedDepContent.replace(/\$COMPONENT_NAME/g, config.registryName);
+          transformedDepContent = transformImportsToRegistry(
+            transformedDepContent
+          );
+          transformedDepContent = transformedDepContent.replace(
+            /\$COMPONENT_NAME/g,
+            config.registryName
+          );
 
           await fs.writeFile(
             path.join(registryLibDir, `${dep}.tsx`),
@@ -133,7 +157,9 @@ async function syncComponentToRegistry(config: ComponentConfig): Promise<void> {
       }
     }
 
-    console.log(`✅ Synced ${config.syncedName} -> registry/${config.registryName}`);
+    console.log(
+      `✅ Synced ${config.syncedName} -> registry/${config.registryName}`
+    );
   } catch (error) {
     console.error(`❌ Failed to sync ${config.syncedName}:`, error);
   }
@@ -159,9 +185,9 @@ function watchSyncedComponents(): void {
   console.log("👀 Watching synced components for changes...");
 
   // Watch each component directory
-  COMPONENTS.forEach(config => {
+  COMPONENTS.forEach((config) => {
     const componentDir = path.join(SYNCED_COMPONENTS_PATH, config.syncedName);
-    
+
     watch(componentDir, { recursive: true }, (_: any, filename: any) => {
       if (filename && filename.endsWith(".tsx")) {
         console.log(`📝 Detected change in ${config.syncedName}: ${filename}`);

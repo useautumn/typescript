@@ -6,20 +6,20 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { usePaywall } from "autumn-js/react";
-import { getCheckContent } from "@/registry/check-dialog/lib/check-content";
+import { getPaywallContent } from "@/registry/paywall-dialog/lib/paywall-content";
 import { cn } from "@/lib/utils";
 
-export interface CheckDialogProps {
+export interface PaywallDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   featureId: string;
   entityId?: string;
 }
 
-export default function CheckDialog(params?: CheckDialogProps) {
+export default function PaywallDialog(params?: PaywallDialogProps) {
   const { data: preview } = usePaywall({
     featureId: params?.featureId,
     entityId: params?.entityId,
@@ -30,7 +30,7 @@ export default function CheckDialog(params?: CheckDialogProps) {
   }
 
   const { open, setOpen } = params;
-  const { title, message } = getCheckContent(preview);
+  const { title, message } = getPaywallContent(preview);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

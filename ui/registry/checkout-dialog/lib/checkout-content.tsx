@@ -1,6 +1,6 @@
-import { type CheckoutResult } from "@sdk";
+import { type CheckoutResult } from "autumn-js";
 
-export const getAttachContent = (checkoutResult: CheckoutResult) => {
+export const getCheckoutContent = (checkoutResult: CheckoutResult) => {
   const { product, current_product, next_cycle } = checkoutResult;
   const { is_one_off, is_free, has_trial, updateable } = product.properties;
   const scenario = product.scenario;

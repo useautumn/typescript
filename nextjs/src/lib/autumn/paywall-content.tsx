@@ -1,6 +1,6 @@
-import { type CheckFeaturePreview } from "@sdk";
+import { type CheckFeaturePreview } from "autumn-js";
 
-export const getCheckContent = (preview?: CheckFeaturePreview) => {
+export const getPaywallContent = (preview?: CheckFeaturePreview) => {
   if (!preview) {
     return {
       title: "Feature Unavailable",

@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import AttachDialog from "@/registry/attach-dialog/attach-dialog";
+import CheckoutDialog from "@/registry/checkout-dialog/checkout-dialog";
 import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
 import type { Product, ProductItem } from "autumn-js";
 import { Loader2 } from "lucide-react";
@@ -78,7 +78,7 @@ export default function PricingTable({
                   if (product.id) {
                     await checkout({
                       productId: product.id,
-                      dialog: AttachDialog,
+                      dialog: CheckoutDialog,
                     });
                   } else if (product.display?.button_url) {
                     window.open(product.display?.button_url, "_blank");

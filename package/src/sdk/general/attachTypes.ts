@@ -44,10 +44,15 @@ export const CheckoutParamsSchema = z.object({
   customer_id: z.string(),
   product_id: z.string(),
   entity_id: z.string().optional(),
+  options: z.array(AttachFeatureOptionsSchema).optional(),
+
   success_url: z.string().optional(),
 
   customer_data: CustomerDataSchema.optional(),
-  options: z.array(AttachFeatureOptionsSchema).optional(),
+  entity_data: z.any().optional(),
+
+  checkout_session_params: z.record(z.any()).optional(),
+  reward: z.string().optional(),
 });
 
 export type CheckoutParams = z.infer<typeof CheckoutParamsSchema>;

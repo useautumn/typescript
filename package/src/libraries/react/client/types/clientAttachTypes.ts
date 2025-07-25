@@ -37,10 +37,15 @@ export type AttachParams = z.infer<typeof AttachParamsSchema>;
 export const CheckoutParamsSchema = z.object({
   productId: z.string(),
   entityId: z.string().optional(),
+  entityData: z.any().optional(),
+
   options: z.array(AttachFeatureOptionsSchema).optional(),
   successUrl: z.string().optional(),
   openInNewTab: z.boolean().optional(),
   dialog: z.any().optional(),
+
+  checkoutSessionParams: z.record(z.any()).optional(),
+  reward: z.string().optional(),
 });
 
 export type CheckoutParams = z.infer<typeof CheckoutParamsSchema>;

@@ -1,8 +1,9 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { CheckDialog, useCustomer } from "autumn-js/react";
-import { PricingTable } from "autumn-js/react";
+import { useCustomer } from "autumn-js/react";
+import { PaywallDialog } from "autumn-js/react";
+import PricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
   const {
@@ -18,7 +19,7 @@ export default function Home() {
     // allowed,
   } = useCustomer();
 
-  check({ featureId: "credits", dialog: CheckDialog });
+  // check({ featureId: "credits", dialog: PaywallDialog });
 
   return (
     <div className="min-h-screen bg-gradient-to-b p-10">
@@ -64,7 +65,7 @@ export default function Home() {
               onClick={async () => {
                 const res = check({
                   featureId: "credits",
-                  dialog: CheckDialog,
+                  dialog: PaywallDialog,
                 });
                 console.log(res);
               }}

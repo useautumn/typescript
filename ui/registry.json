@@ -10,14 +10,14 @@
       "registryDependencies": ["switch", "button", "dialog", "popover", "input", "accordion"],
       "files": [
         {
-          "path": "registry/attach-dialog/attach-dialog.tsx",
+          "path": "registry/checkout-dialog/checkout-dialog.tsx",
           "type": "registry:component",
-          "target": "components/autumn/attach-dialog.tsx"
+          "target": "components/autumn/checkout-dialog.tsx"
         },
         {
-          "path": "registry/attach-dialog/lib/attach-content.tsx",
+          "path": "registry/checkout-dialog/lib/checkout-content.tsx",
           "type": "registry:lib",
-          "target": "lib/autumn/attach-content.tsx"
+          "target": "lib/autumn/checkout-content.tsx"
         },
         {
           "path": "registry/pricing-table/pricing-table.tsx",
@@ -33,39 +33,39 @@
     },
 
     {
-      "name": "check-dialog",
+      "name": "paywall-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
       "registryDependencies": ["button", "dialog"],
       "files": [
         {
-          "path": "registry/check-dialog/check-dialog.tsx",
+          "path": "registry/paywall-dialog/paywall-dialog.tsx",
           "type": "registry:component",
-          "target": "components/autumn/check-dialog.tsx"
+          "target": "components/autumn/paywall-dialog.tsx"
         },
         {
-          "path": "registry/check-dialog/lib/check-content.tsx",
+          "path": "registry/paywall-dialog/lib/paywall-content.tsx",
           "type": "registry:lib",
-          "target": "lib/autumn/check-content.tsx"
+          "target": "lib/autumn/paywall-content.tsx"
         }
       ]
     },
 
     {
-      "name": "attach-dialog",
+      "name": "checkout-dialog",
       "type": "registry:component",
       "dependencies": ["autumn-js"],
       "registryDependencies": ["button", "dialog", "popover", "input", "accordion"],
       "files": [
         {
-          "path": "registry/attach-dialog/attach-dialog.tsx",
+          "path": "registry/checkout-dialog/checkout-dialog.tsx",
           "type": "registry:component",
-          "target": "components/autumn/attach-dialog.tsx"
+          "target": "components/autumn/checkout-dialog.tsx"
         },
         {
-          "path": "registry/attach-dialog/lib/attach-content.tsx",
+          "path": "registry/checkout-dialog/lib/checkout-content.tsx",
           "type": "registry:lib",
-          "target": "lib/autumn/attach-content.tsx"
+          "target": "lib/autumn/checkout-content.tsx"
         }
       ]
     }
