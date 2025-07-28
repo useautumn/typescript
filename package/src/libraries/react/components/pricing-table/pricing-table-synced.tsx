@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useCustomer, usePricingTable } from "@/index";
+import { useCustomer, usePricingTable, ProductDetails } from "@/index";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 export default function PricingTable({
   productDetails,
 }: {
-  productDetails?: any;
+  productDetails?: ProductDetails[];
 }) {
   const { checkout } = useCustomer();
   const [isAnnual, setIsAnnual] = useState(false);
@@ -40,7 +40,7 @@ export default function PricingTable({
 
   const multiInterval = intervals.length > 1;
 
-  const intervalFilter = (product: any) => {
+  const intervalFilter = (product: Product) => {
     if (!product.properties?.interval_group) {
       return true;
     }
@@ -60,7 +60,7 @@ export default function PricingTable({
     <div className={cn("au-root")}>
       {products && (
         <PricingTableContainer
-          products={products as any}
+          products={products}
           isAnnualToggle={isAnnual}
           setIsAnnualToggle={setIsAnnual}
           multiInterval={multiInterval}
@@ -198,7 +198,7 @@ export const PricingCard = ({
     throw new Error(`Product with id ${productId} not found`);
   }
 
-  const { name, display: productDisplay, items } = product;
+  const { name, display: productDisplay } = product;
 
   const { buttonText } = getPricingTableContent(product);
 
@@ -262,7 +262,6 @@ export const PricingCard = ({
             <div className="au-flex-grow au-px-6 au-mb-6">
               <PricingFeatureList
                 items={featureItems}
-                showIcon={true}
                 everythingFrom={product.display?.everything_from}
               />
             </div>
@@ -286,12 +285,10 @@ export const PricingCard = ({
 // Pricing Feature List
 export const PricingFeatureList = ({
   items,
-  showIcon = true,
   everythingFrom,
   className,
 }: {
   items: ProductItem[];
-  showIcon?: boolean;
   everythingFrom?: string;
   className?: string;
 }) => {

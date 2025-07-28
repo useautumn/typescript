@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useCustomer, usePricingTable } from "autumn-js/react";
+import { useCustomer, usePricingTable, ProductDetails } from "autumn-js/react";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 export default function PricingTable({
   productDetails,
 }: {
-  productDetails?: any;
+  productDetails?: ProductDetails[];
 }) {
   const { checkout } = useCustomer();
   const [isAnnual, setIsAnnual] = useState(false);
@@ -39,7 +39,7 @@ export default function PricingTable({
 
   const multiInterval = intervals.length > 1;
 
-  const intervalFilter = (product: any) => {
+  const intervalFilter = (product: Product) => {
     if (!product.properties?.interval_group) {
       return true;
     }
@@ -59,7 +59,7 @@ export default function PricingTable({
     <div className={cn("root")}>
       {products && (
         <PricingTableContainer
-          products={products as any}
+          products={products}
           isAnnualToggle={isAnnual}
           setIsAnnualToggle={setIsAnnual}
           multiInterval={multiInterval}

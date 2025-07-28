@@ -6,9 +6,12 @@ import {
 	upsertProduct,
 	checkForDeletables,
 	upsertFeature,
+	checkProductForConfirmation,
 } from '../core/push.js';
 import {deleteFeature, deleteProduct} from '../core/api.js';
 import {FRONTEND_URL} from '../constants.js';
+import {initSpinner} from '../core/utils.js';
+import {Feature, product, Product} from '../compose/index.js';
 
 const spinner = (message: string) => {
 	const spinner = yoctoSpinner({
@@ -28,12 +31,22 @@ export default async function Push({
 	yes: boolean;
 	prod: boolean;
 }) {
-	let {features, products} = config;
+	let {features, products, env} = config;
 
-	let {featuresToDelete, productsToDelete} = await checkForDeletables(
-		features,
-		products,
-	);
+	if (env === 'prod') {
+		const shouldProceed = await confirm({
+			message:
+				'You are about to push products to your prod environment. Are you sure you want to proceed?',
+			default: false,
+		});
+		if (!shouldProceed) {
+			console.log(chalk.yellow('Aborting...'));
+			process.exit(1);
+		}
+	}
+
+	let {curFeatures, curProducts, featuresToDelete, productsToDelete} =
+		await checkForDeletables(features, products);
 
 	for (let productId of productsToDelete) {
 		let shouldDelete =
@@ -48,15 +61,65 @@ export default async function Push({
 		}
 	}
 
+	const batchFeatures = [];
+	const s = initSpinner(`Pushing features`);
 	for (let feature of features) {
-		const s = spinner(`Pushing feature [${feature.id}]`);
-		await upsertFeature(feature);
-		s.success(`Pushed feature [${feature.id}]`);
+		batchFeatures.push(upsertFeature(feature, s));
 	}
+	await Promise.all(batchFeatures);
+	s.success(`Features pushed successfully!`);
+	console.log(chalk.dim('\nFeatures pushed:'));
+	features.forEach((feature: Feature) => {
+		console.log(chalk.cyan(`  • ${feature.id}`));
+	});
+	console.log(); // Empty line for spacing
+
+	// Handle confirmations sequentially first
+
+	const productDecisions = new Map();
+	const batchCheckProducts = [];
 	for (let product of products) {
-		const s = spinner(`Pushing product [${product.id}]`);
-		await upsertProduct({product, spinner: s});
+		batchCheckProducts.push(
+			checkProductForConfirmation({
+				curProducts,
+				product,
+			}),
+		);
 	}
+
+	const checkProductResults = await Promise.all(batchCheckProducts);
+	for (let result of checkProductResults) {
+		if (result.will_version) {
+			const shouldUpdate = await confirm({
+				message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
+			});
+			productDecisions.set(result.id, shouldUpdate);
+		} else {
+			productDecisions.set(result.id, true);
+		}
+	}
+
+	// Now batch process all products with their decisions
+	const s2 = initSpinner(`Pushing products`);
+	const batchProducts = [];
+	for (let product of products) {
+		const shouldUpdate = productDecisions.get(product.id);
+		batchProducts.push(
+			upsertProduct({curProducts, product, spinner: s2, shouldUpdate}),
+		);
+	}
+	const prodResults = await Promise.all(batchProducts);
+	s2.success(`Products pushed successfully!`);
+	console.log(chalk.dim('\nProducts pushed:'));
+	prodResults.forEach((result: any) => {
+		let action = result.action;
+		console.log(
+			chalk.cyan(
+				`  • ${result.id} ${action == 'skipped' ? `(${action})` : ''}`,
+			),
+		);
+	});
+	console.log(); // Empty line for spacing
 
 	for (let featureId of featuresToDelete) {
 		let shouldDelete =
@@ -71,7 +134,6 @@ export default async function Push({
 		}
 	}
 
-	const env = prod ? 'prod' : 'sandbox';
 	console.log(
 		chalk.magentaBright(`Success! Changes have been pushed to ${env}.`),
 	);

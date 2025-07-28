@@ -1,6 +1,6 @@
 {
 	"name": "atmn",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"license": "MIT",
 	"bin": "dist/cli.js",
 	"main": "dist/index.js",

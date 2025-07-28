@@ -197,7 +197,7 @@ export const PricingCard = ({
     throw new Error(`Product with id ${productId} not found`);
   }
 
-  const { name, display: productDisplay, items } = product;
+  const { name, display: productDisplay } = product;
 
   const { buttonText } = getPricingTableContent(product);
 
@@ -261,7 +261,6 @@ export const PricingCard = ({
             <div className="flex-grow px-6 mb-6">
               <PricingFeatureList
                 items={featureItems}
-                showIcon={true}
                 everythingFrom={product.display?.everything_from}
               />
             </div>
@@ -285,12 +284,10 @@ export const PricingCard = ({
 // Pricing Feature List
 export const PricingFeatureList = ({
   items,
-  showIcon = true,
   everythingFrom,
   className,
 }: {
   items: ProductItem[];
-  showIcon?: boolean;
   everythingFrom?: string;
   className?: string;
 }) => {

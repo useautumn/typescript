@@ -12,6 +12,7 @@ import {
 	type Product,
 	type Feature,
 } from '../compose/models/composeModels.js';
+import {readFromEnv} from './utils.js';
 
 function checkAtmnInstalled(): boolean {
 	try {
@@ -148,9 +149,18 @@ export async function loadAutumnConfigFile() {
 	// 	throw new Error('No valid features found in autumn.config.ts exports.');
 	// }
 
+	const secretKey = readFromEnv();
+	if (secretKey?.includes('live')) {
+		// Confirm with user whether they want to proceed with prod environment
+		console.log(chalk.magentaBright('Running in production environment...'));
+	} else {
+		console.log(chalk.yellow('Running in sandbox environment...'));
+	}
+
 	return {
 		products,
 		features,
+		env: secretKey?.includes('live') ? 'prod' : 'sandbox',
 	};
 }
 

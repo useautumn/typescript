@@ -2,8 +2,8 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useCustomer } from "autumn-js/react";
-import { PaywallDialog } from "autumn-js/react";
-import PricingTable from "@/components/autumn/pricing-table";
+import { PaywallDialog, PricingTable } from "autumn-js/react";
+// import PricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
   const {

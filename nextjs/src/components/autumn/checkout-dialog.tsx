@@ -63,7 +63,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
   }
 
   const { open, setOpen } = params;
-  const { title, message } = getCheckoutContent(checkoutResult as any);
+  const { title, message } = getCheckoutContent(checkoutResult);
 
   const isFree = checkoutResult?.product.properties?.is_free;
   const isPaid = isFree === false;

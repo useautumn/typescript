@@ -2,6 +2,7 @@ import fs from 'fs';
 import chalk from 'chalk';
 import {confirm} from '@inquirer/prompts';
 import dotenv from 'dotenv';
+import yoctoSpinner from 'yocto-spinner';
 
 export const notNullish = (value: any) => value !== null && value !== undefined;
 export const nullish = (value: any) => value === null || value === undefined;
@@ -101,4 +102,13 @@ export function readFromEnv() {
 	}
 
 	return undefined;
+}
+
+export function initSpinner(message: string) {
+	const spinner = yoctoSpinner({
+		text: message,
+	});
+	spinner.start();
+
+	return spinner;
 }
