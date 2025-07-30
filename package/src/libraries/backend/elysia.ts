@@ -5,7 +5,7 @@ import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 import type { Elysia, Context } from "elysia";
-import { toSnakeCase } from "src/utils/toSnakeCase";
+import { toSnakeCase } from "../../utils/toSnakeCase";
 
 export function autumnHandler<ContextType extends Context = Context>(options: {
   identify: (context: ContextType) => AuthResult | Promise<AuthResult>;
