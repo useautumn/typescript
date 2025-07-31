@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import prettier from 'prettier';
 import {getAllProducts, getFeatures} from '../core/pull.js';
 import {productBuilder} from '../core/builders/products.js';
 import {featureBuilder} from '../core/builders/features.js';
@@ -26,7 +27,13 @@ ${importBuilder()}
 // Products${productSnippets.join('\n')}
 	`;
 
-	writeConfig(autumnConfig);
+	const formattedConfig = await prettier.format(autumnConfig, {
+		parser: 'typescript',
+		useTabs: true,
+		singleQuote: false,
+	});
+
+	writeConfig(formattedConfig);
 
 	// 	// Remember to update this when you make changes!
 	// ${exportBuilder(

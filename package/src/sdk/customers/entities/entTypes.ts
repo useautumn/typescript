@@ -43,3 +43,15 @@ export const EntityDataSchema = z.object({
 });
 
 export type EntityData = z.infer<typeof EntityDataSchema>;
+
+export const TransferProductParamsSchema = z.object({
+  from_entity_id: z.string(),
+  to_entity_id: z.string(),
+  product_id: z.string(),
+});
+
+export type TransferProductParams = z.infer<typeof TransferProductParamsSchema>;
+
+export type TransferProductResult = {
+  success: boolean;
+};

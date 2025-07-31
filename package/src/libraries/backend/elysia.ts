@@ -5,10 +5,10 @@ import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 import type { Elysia, Context } from "elysia";
-import { toSnakeCase } from "src/utils/toSnakeCase";
+import { toSnakeCase } from "../../utils/toSnakeCase";
 
-export function autumnHandler<ContextType extends Context = Context>(options: {
-  identify: (context: ContextType) => AuthResult | Promise<AuthResult>;
+export function autumnHandler(options: {
+  identify: (context: any) => AuthResult | Promise<AuthResult>;
   version?: string;
   secretKey?: string;
   url?: string;
@@ -21,13 +21,41 @@ export function autumnHandler<ContextType extends Context = Context>(options: {
   const router = createRouterWithOptions();
 
   return function plugin(app: Elysia) {
-    const autumn = new Autumn({
-      url: options.url || autumnApiUrl,
-      version: options.version,
-      secretKey: options.secretKey,
+    // Handle GET/DELETE requests (no body parsing)
+    app.get("/api/autumn/*", async (context: any) => {
+      return handleRequest(context);
     });
 
-    app.all("/api/autumn/*", async (context: ContextType) => {
+    app.delete("/api/autumn/*", async (context: any) => {
+      return handleRequest(context);
+    });
+
+    // Handle POST/PUT/PATCH requests (with body parsing)
+    app.post("/api/autumn/*", async (context: any) => {
+      return handleRequest(context);
+    });
+
+    app.put("/api/autumn/*", async (context: any) => {
+      return handleRequest(context);
+    });
+
+    app.patch("/api/autumn/*", async (context: any) => {
+      return handleRequest(context);
+    });
+
+    async function handleRequest(context: any) {
+      let { found, error: resError } = secretKeyCheck(options.secretKey);
+      if (!found) {
+        context.set.status = resError!.statusCode;
+        return resError;
+      }
+
+      const autumn = new Autumn({
+        url: options.url || autumnApiUrl,
+        version: options.version,
+        secretKey: options.secretKey,
+      });
+
       const request = context.request;
       const url = new URL(request.url);
       const path = url.pathname;
@@ -44,10 +72,13 @@ export function autumnHandler<ContextType extends Context = Context>(options: {
       const { data, params: pathParams } = match;
       const { handler } = data;
 
-      // Get the body from context.body instead of parsing it from request
       let body = null;
       if (["POST", "PUT", "PATCH"].includes(method)) {
-        body = context.body;
+        try {
+          body = context.body;
+        } catch (error) {
+          body = null;
+        }
       }
 
       try {
@@ -69,7 +100,7 @@ export function autumnHandler<ContextType extends Context = Context>(options: {
           message: error?.message || "Unknown error",
         };
       }
-    });
+    }
 
     return app;
   };

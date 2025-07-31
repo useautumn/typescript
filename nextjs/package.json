@@ -11,7 +11,6 @@
     "atmn:dev": "pnpm --filter atmn build && atmn"
   },
   "dependencies": {
-    "autumn-js": "workspace:*",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
@@ -19,7 +18,7 @@
     "@radix-ui/react-switch": "^1.2.5",
     "@tailwindcss/cli": "^4.1.11",
     "atmn": "workspace:*",
-
+    "autumn-js": "workspace:*",
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -28,6 +27,7 @@
     "pg": "^8.16.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "2.15.4",
     "tailwind-merge": "^3.3.1",
     "zod": "^3.24.1"
   },

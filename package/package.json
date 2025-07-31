@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.0.115",
+  "version": "0.0.116",
   "main": "./dist/sdk/index.js",
   "files": [
     "dist",
@@ -181,6 +181,9 @@
       ],
       "react": [
         "./dist/libraries/react/index.d.ts"
+      ],
+      "elysia": [
+        "./dist/libraries/backend/elysia.d.ts"
       ],
       "supabase": [
         "./dist/libraries/backend/supabase.d.ts"

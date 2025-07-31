@@ -14,7 +14,8 @@ export const { GET, POST } = autumnHandler({
 
     // console.log("User:", session.user);
     return {
-      customerId: "123",
+      // customerId: "123",
+      customerId: "intern",
     };
   },
 });

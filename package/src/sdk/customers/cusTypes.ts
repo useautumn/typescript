@@ -18,6 +18,11 @@ export const CoreCusFeatureSchema = z.object({
   overage_allowed: z.boolean().optional(),
   usage_limit: z.number().optional(),
 
+  rollovers: z.object({
+    balance: z.number(),
+    expires_at: z.number(),
+  }).optional(),
+
   breakdown: z
     .array(
       z.object({
