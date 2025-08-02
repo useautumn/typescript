@@ -109,7 +109,7 @@ export interface Customer {
   products: CustomerProduct[];
   features: Record<string, CustomerFeature>;
   invoices?: CustomerInvoice[];
-  payment_methods?: CustomerPaymentMethod;
+  payment_method?: CustomerPaymentMethod;
 }
 
 export const CustomerDataSchema = z.object({
