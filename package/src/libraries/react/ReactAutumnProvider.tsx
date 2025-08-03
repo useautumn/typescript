@@ -40,6 +40,7 @@ export const ReactAutumnProvider = ({
     includeCredentials,
     betterAuthUrl,
     customHeaders,
+    corsOrigin,
   });
 
   return (
