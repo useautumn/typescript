@@ -121,7 +121,13 @@ export const useCustomerBase = ({
     mutate,
   } = useSWR(queryKey, fetchCustomer, {
     fallbackData: null,
-    ...params?.swrConfig,
+    // Default to 5 minutes
+    swrConfig: {
+      shouldRetryOnError: false,
+      // refreshInterval: 1000 * 60 * 5,
+      refreshInterval: 0,
+      ...params?.swrConfig,
+    },
   });
 
   const autumnFunctions = useAutumnBase({

@@ -6,6 +6,8 @@ import {
   BillingPortalParams,
   BillingPortalResult,
   GetCustomerParams,
+  UpdateBalancesParams,
+  UpdateBalancesResult,
 } from "./cusTypes";
 import { staticWrapper } from "../utils";
 import { AutumnPromise } from "../response";
@@ -20,8 +22,12 @@ export const customerMethods = (instance?: Autumn) => {
     update: (id: string, params: UpdateCustomerParams) =>
       staticWrapper(updateCustomer, instance, { id, params }),
     delete: (id: string) => staticWrapper(deleteCustomer, instance, { id }),
+
     billingPortal: (id: string, params?: BillingPortalParams) =>
       staticWrapper(billingPortal, instance, { id, params }),
+
+    updateBalances: (id: string, params: UpdateBalancesParams) =>
+      staticWrapper(updateBalances, instance, { id, params }),
   };
 };
 
@@ -96,4 +102,18 @@ export const billingPortal = async ({
   params?: BillingPortalParams;
 }): AutumnPromise<BillingPortalResult> => {
   return instance.post(`/customers/${id}/billing_portal`, params);
+};
+
+export const updateBalances = async ({
+  instance,
+  id,
+  params,
+}: {
+  instance: Autumn;
+  id: string;
+  params: UpdateBalancesParams;
+}): AutumnPromise<UpdateBalancesResult> => {
+  return instance.post(`/customers/${id}/balances`, {
+    balances: Array.isArray(params) ? params : [params],
+  });
 };

@@ -9,7 +9,7 @@ import { secretKeyCheck } from "./utils/secretKeyCheck";
 export type AutumnRequestHandler = (req: any, res: any, next: any) => void;
 
 export type AutumnHandlerOptions = {
-  identify: (req: any) => AuthResult;
+  identify: (req: any, res: any) => AuthResult;
   version?: string;
   secretKey?: string;
   url?: string;
@@ -63,7 +63,7 @@ export const autumnHandler = (
           body,
           path: req.path,
           getCustomer: async () => {
-            return await options?.identify(req);
+            return await options?.identify(req, res);
           },
           pathParams,
           searchParams,

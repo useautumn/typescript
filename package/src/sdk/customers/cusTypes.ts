@@ -18,10 +18,12 @@ export const CoreCusFeatureSchema = z.object({
   overage_allowed: z.boolean().optional(),
   usage_limit: z.number().optional(),
 
-  rollovers: z.object({
-    balance: z.number(),
-    expires_at: z.number(),
-  }).optional(),
+  rollovers: z
+    .object({
+      balance: z.number(),
+      expires_at: z.number(),
+    })
+    .optional(),
 
   breakdown: z
     .array(
@@ -174,3 +176,20 @@ export interface CustomerInvoice {
   created_at: number;
   hosted_invoice_url: string;
 }
+
+export const UpdateBalancesParamsSchema = z
+  .object({
+    feature_id: z.string(),
+    value: z.number(),
+  })
+  .or(
+    z.array(
+      z.object({
+        feature_id: z.string(),
+        value: z.number(),
+      })
+    )
+  );
+
+export type UpdateBalancesParams = z.infer<typeof UpdateBalancesParamsSchema>;
+export type UpdateBalancesResult = { success: boolean };

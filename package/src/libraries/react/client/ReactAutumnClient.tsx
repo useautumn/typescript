@@ -172,6 +172,8 @@ export class AutumnClient {
 
     const includeCredentials = await this.shouldIncludeCredentials();
 
+    
+
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
         method,

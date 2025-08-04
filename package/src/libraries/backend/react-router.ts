@@ -3,14 +3,10 @@ import { Autumn } from "../../sdk";
 import { AuthResult } from "./utils/AuthFunction";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import { autumnApiUrl } from "./constants";
-import { logger } from "../../utils/logger";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export function autumnHandler(options: {
-  identify: (args: {
-    request: Request;
-    params: Record<string, string>;
-  }) => AuthResult;
+  identify: (args: any) => AuthResult;
   secretKey?: string;
   version?: string;
 }) {
@@ -22,18 +18,15 @@ export function autumnHandler(options: {
   const router = createRouterWithOptions();
 
   let { found, error: resError } = secretKeyCheck(options?.secretKey);
-  async function handleRequest(
-    request: Request,
-    params: Record<string, string> = {}
-  ) {
+  async function handleRequest(args: any) {
     if (!found && !options.secretKey) {
       throw new Response(JSON.stringify(resError!), {
         status: resError!.statusCode,
       });
     }
 
-    const method = request.method;
-    const url = new URL(request.url);
+    const method = args.request.method;
+    const url = new URL(args.request.url);
     const searchParams = Object.fromEntries(url.searchParams);
     const pathname = url.pathname;
 
@@ -49,7 +42,7 @@ export function autumnHandler(options: {
     let body = null;
     if (method === "POST" || method === "PUT" || method === "PATCH") {
       try {
-        body = await request.json();
+        body = await args.request.json();
       } catch (error) {
         // Body parsing failed, leave as null
       }
@@ -59,8 +52,8 @@ export function autumnHandler(options: {
       autumn,
       body,
       path: url.pathname,
-      getCustomer: async () => await options.identify({ request, params }),
-      pathParams: { ...pathParams, ...params },
+      getCustomer: async () => await options.identify(args),
+      pathParams: { ...pathParams, ...args.params },
       searchParams,
     });
 
@@ -72,18 +65,12 @@ export function autumnHandler(options: {
     });
   }
 
-  async function loader({
-    request,
-    params,
-  }: {
-    request: Request;
-    params: Record<string, string>;
-  }) {
-    if (request.method !== "GET") {
+  async function loader(args: any) {
+    if (args.request.method !== "GET") {
       throw new Response("Method not allowed", { status: 405 });
     }
 
-    const response = await handleRequest(request, params);
+    const response = await handleRequest(args);
     const data = await response.json();
 
     if (!response.ok) {
@@ -93,18 +80,12 @@ export function autumnHandler(options: {
     return data;
   }
 
-  async function action({
-    request,
-    params,
-  }: {
-    request: Request;
-    params: Record<string, string>;
-  }) {
-    if (request.method === "GET") {
+  async function action(args: any) {
+    if (args.request.method === "GET") {
       throw new Response("Method not allowed", { status: 405 });
     }
 
-    const response = await handleRequest(request, params);
+    const response = await handleRequest(args);
     const data = await response.json();
 
     if (!response.ok) {
