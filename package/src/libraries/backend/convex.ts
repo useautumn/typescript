@@ -10,7 +10,6 @@ export function autumnHandler(options: {
   identify: (ctx: any, request: any) => AuthResult;
   url?: string;
   secretKey?: string;
-  clientOrigin?: string;
 }) {
   const router = createRouterWithOptions();
 
@@ -25,9 +24,7 @@ export function autumnHandler(options: {
         headers: new Headers({
           // e.g. https://mywebsite.com, configured on your Convex dashboard, or passed in as an option
           "Access-Control-Allow-Origin":
-            options.clientOrigin ??
-            process.env.CLIENT_ORIGIN ??
-            "http://localhost:3000",
+            process.env.CLIENT_ORIGIN ?? "http://localhost:3000",
           "Access-Control-Allow-Methods": "POST, GET, PATCH, DELETE, OPTIONS",
           "Access-Control-Allow-Headers":
             "Content-Type, Digest, Authorization, Cookie",
@@ -81,9 +78,7 @@ export function autumnHandler(options: {
       status: result.statusCode,
       headers: new Headers({
         "Access-Control-Allow-Origin":
-          options.clientOrigin ??
-          process.env.CLIENT_ORIGIN ??
-          "http://localhost:3000",
+          process.env.CLIENT_ORIGIN ?? "http://localhost:3000",
         "Access-Control-Allow-Credentials": "true",
         Vary: "origin",
       }),
