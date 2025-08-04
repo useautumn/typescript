@@ -1,13 +1,16 @@
-import { autumnHandler } from "autumn-js/next";
+// // import { autumnHandler } from "autumn-js/next";
+// import { autumnHandler } from 'autumn-js/backend'
 
-import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
+// const handler = autumnHandler({
 
-export const { GET, POST } = autumnHandler({
-  identify: async () => {
-    return {
-      customerId: "123",
-      // customerId: undefined,
-    };
-  },
-});
+// // import dotenv from "dotenv";
+// // dotenv.config({ path: "../.env" });
+
+// // export const { GET, POST } = autumnHandler({
+// //   identify: async () => {
+// //     return {
+// //       customerId: "123",
+// //       // customerId: undefined,
+// //     };
+// //   },
+// // });

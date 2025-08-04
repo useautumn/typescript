@@ -200,6 +200,9 @@ function ProductItems({
   const isUpdateQuantity =
     checkoutResult?.product.scenario === "active" &&
     checkoutResult.product.properties.updateable;
+
+  const isOneOff = checkoutResult?.product.properties.is_one_off;
+
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium">Price</p>
@@ -224,7 +227,11 @@ function ProductItems({
           return (
             <div key={index} className="flex justify-between">
               <p className="text-muted-foreground">
-                {item.feature ? item.feature.name : "Subscription"}
+                {item.feature
+                  ? item.feature.name
+                  : isOneOff
+                    ? "Price"
+                    : "Subscription"}
               </p>
               <p>
                 {item.display?.primary_text} {item.display?.secondary_text}

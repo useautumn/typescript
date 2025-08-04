@@ -11,6 +11,7 @@
     "atmn:dev": "pnpm --filter atmn build && atmn"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.28.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
