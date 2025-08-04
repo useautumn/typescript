@@ -23,13 +23,14 @@ import {
   CreateReferralCodeParamsSchema,
   RedeemReferralCodeParamsSchema,
 } from "@sdk/referrals/referralTypes";
-import { AttachParamsSchema } from "@sdk/general/attachTypes";
+import { AttachParamsSchema, CheckoutParamsSchema } from "@sdk/general/attachTypes";
 
 const router = createRouterWithOptions();
 
 const betterAuthPathMap: Record<string, string> = {
   // "create-customer": "customers",
   // "customers/get": "customers",
+  "checkout": "checkout",
   attach: "attach",
   check: "check",
   track: "track",
@@ -151,6 +152,17 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
         async (ctx) => {
           return await handleReq({ ctx, options, method: "GET" });
         }
+      ),
+      checkout: createAuthEndpoint(
+        "/autumn/checkout",
+        {
+          method: "POST",
+          body: CheckoutParamsSchema.omit({
+            customer_id: true,
+          }),
+          use: [sessionMiddleware],
+        },
+        async (ctx) => handleReq({ ctx, options, method: "POST" })
       ),
       attach: createAuthEndpoint(
         "/autumn/attach",
