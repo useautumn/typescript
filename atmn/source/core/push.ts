@@ -2,8 +2,7 @@ import {Spinner} from 'yocto-spinner';
 import {Feature, Product} from '../compose/index.js';
 import {externalRequest} from './api.js';
 import {getFeatures, getAllProducts} from './pull.js';
-import {confirm} from '@inquirer/prompts';
-import {initSpinner} from './utils.js';
+
 export async function checkForDeletables(
 	currentFeatures: Feature[],
 	currentProducts: Product[],
@@ -43,6 +42,7 @@ const isDuplicate = (error: any) => {
 
 export async function upsertFeature(feature: Feature, s: Spinner) {
 	// const s = initSpinner(`Pushing feature [${feature.id}]`);
+	console.log(feature);
 	try {
 		const response = await externalRequest({
 			method: 'POST',
@@ -50,7 +50,6 @@ export async function upsertFeature(feature: Feature, s: Spinner) {
 			data: feature,
 			throwOnError: true,
 		});
-
 		return response.data;
 	} catch (error: any) {
 		if (isDuplicate(error)) {

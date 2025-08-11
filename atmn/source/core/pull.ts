@@ -28,11 +28,5 @@ export async function getFeatures() {
 		path: '/features',
 	});
 
-	for (const feature of list) {
-		if (feature.type == 'credit_system') {
-			console.log(feature.credit_schema);
-		}
-	}
-
 	return list.map((feature: Feature) => feature as Feature);
 }
