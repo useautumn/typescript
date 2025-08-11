@@ -8,7 +8,7 @@ export default async function Init({config}: {config: any}) {
 	let apiKey = readFromEnv();
 	if (apiKey) {
 		console.log(chalk.green('API key found. Pulling latest config...'));
-		await Pull({config});
+		await Pull();
 		console.log(
 			chalk.green('Project initialized and config pulled successfully!'),
 		);
@@ -21,7 +21,7 @@ export default async function Init({config}: {config: any}) {
 	// After authentication, try to read the key again
 	apiKey = readFromEnv();
 	if (apiKey) {
-		await Pull({config});
+		await Pull();
 		console.log(
 			chalk.green(
 				'Project initialized! You are now authenticated and config has been pulled.',

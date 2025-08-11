@@ -3,11 +3,10 @@ import {getAllProducts, getFeatures} from '../core/pull.js';
 import {productBuilder} from '../core/builders/products.js';
 import {featureBuilder} from '../core/builders/features.js';
 import {writeConfig} from '../core/config.js';
-import {importBuilder, exportBuilder} from '../core/builders/products.js';
-import {snakeCaseToCamelCase} from '../core/utils.js';
+import {importBuilder} from '../core/builders/products.js';
 import {Feature, Product} from '../compose/models/composeModels.js';
 
-export default async function Pull({config}: {config: any}) {
+export default async function Pull() {
 	console.log(chalk.green('Pulling products and features from Autumn...'));
 	const products = await getAllProducts();
 	const features = await getFeatures();
@@ -27,12 +26,5 @@ ${importBuilder()}
 	`;
 
 	writeConfig(autumnConfig);
-
-	// 	// Remember to update this when you make changes!
-	// ${exportBuilder(
-	// 	products.map((product: Product) => product.id),
-	// 	features.map((feature: Feature) => snakeCaseToCamelCase(feature.id)),
-	// )}
-
 	console.log(chalk.green('Success! Config has been updated.'));
 }
