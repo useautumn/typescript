@@ -1,11 +1,11 @@
-import {z} from 'zod';
+import {z} from 'zod/v4';
 import {ProductItemSchema} from './productItemModels.js';
 
 export const ProductSchema = z.object({
 	id: z.string().min(1),
 	name: z.string().min(1),
-	is_add_on: z.boolean().default(false).optional(),
-	is_default: z.boolean().default(false).optional(),
+	is_add_on: z.boolean().prefault(false).optional(),
+	is_default: z.boolean().prefault(false).optional(),
 	items: z.array(ProductItemSchema),
 });
 
