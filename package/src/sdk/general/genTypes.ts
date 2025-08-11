@@ -1,7 +1,7 @@
-import { CustomerData } from "../customers/cusTypes";
-import { EntityData, EntityDataSchema } from "../customers/entities/entTypes";
-import { CheckFeatureResult, CheckProductResult } from "./checkTypes";
-import { z } from "zod";
+import type { CustomerData } from "../customers/cusTypes";
+import { EntityDataSchema } from "../customers/entities/entTypes";
+import type { CheckFeatureResult, CheckProductResult } from "./checkTypes";
+import { z } from "zod/v4";
 
 export const CancelParamsSchema = z.object({
   customer_id: z.string(),

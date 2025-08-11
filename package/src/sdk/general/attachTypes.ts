@@ -1,6 +1,6 @@
 import { CustomerDataSchema } from "@sdk/customers/cusTypes";
-import { Product, ProductItem } from "@sdk/products/prodTypes";
-import { z } from "zod";
+import type { Product, ProductItem } from "@sdk/products/prodTypes";
+import { z } from "zod/v4";
 // Attach
 export const AttachFeatureOptionsSchema = z.object({
   feature_id: z.string(),
@@ -17,13 +17,13 @@ export const AttachParamsSchema = z.object({
   product_ids: z.array(z.string()).optional(),
   free_trial: z.boolean().optional(),
   success_url: z.string().optional(),
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
   force_checkout: z.boolean().optional(),
 
   customer_data: CustomerDataSchema.optional(),
   entity_data: z.any().optional(),
 
-  checkout_session_params: z.record(z.any()).optional(),
+  checkout_session_params: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
 });
 
@@ -51,7 +51,7 @@ export const CheckoutParamsSchema = z.object({
   customer_data: CustomerDataSchema.optional(),
   entity_data: z.any().optional(),
 
-  checkout_session_params: z.record(z.any()).optional(),
+  checkout_session_params: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
 });
 

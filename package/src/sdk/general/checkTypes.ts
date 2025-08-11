@@ -1,10 +1,7 @@
-import {
-  CoreCusFeatureSchema,
-  CoreCustomerFeature,
-} from "@sdk/customers/cusTypes";
-import { UsageModelType } from "../products/prodEnums";
-import { Product } from "../products/prodTypes";
-import { z } from "zod";
+import { CoreCusFeatureSchema } from "@sdk/customers/cusTypes";
+import type { UsageModelType } from "../products/prodEnums";
+import type { Product } from "../products/prodTypes";
+import { z } from "zod/v4";
 
 export type CheckFeatureScenario = "usage_limit" | "feature_flag";
 

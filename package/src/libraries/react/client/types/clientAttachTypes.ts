@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const AttachFeatureOptionsSchema = z.object({
   featureId: z.string(),
@@ -14,7 +14,7 @@ export const AttachParamsSchema = z.object({
   productIds: z.array(z.string()).optional(),
   freeTrial: z.boolean().optional(),
   successUrl: z.string().optional(),
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
   forceCheckout: z.boolean().optional(),
 
   /**
@@ -29,7 +29,7 @@ export const AttachParamsSchema = z.object({
   entityData: z.any().optional(),
   openInNewTab: z.boolean().optional(),
   reward: z.string().optional(),
-  checkoutSessionParams: z.record(z.any()).optional(),
+  checkoutSessionParams: z.record(z.string(), z.any()).optional(),
 });
 
 export type AttachParams = z.infer<typeof AttachParamsSchema>;
@@ -44,7 +44,7 @@ export const CheckoutParamsSchema = z.object({
   openInNewTab: z.boolean().optional(),
   dialog: z.any().optional(),
 
-  checkoutSessionParams: z.record(z.any()).optional(),
+  checkoutSessionParams: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
 });
 
