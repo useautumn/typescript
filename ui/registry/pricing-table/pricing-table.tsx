@@ -15,7 +15,8 @@ export default function PricingTable({
 }: {
   productDetails?: ProductDetails[];
 }) {
-  const { checkout } = useCustomer();
+  const { customer, checkout } = useCustomer({ errorOnNotFound: false });
+
   const [isAnnual, setIsAnnual] = useState(false);
   const { products, isLoading, error } = usePricingTable({ productDetails });
 
@@ -75,7 +76,7 @@ export default function PricingTable({
                   product.scenario === "scheduled",
 
                 onClick: async () => {
-                  if (product.id) {
+                  if (product.id && customer) {
                     await checkout({
                       productId: product.id,
                       dialog: CheckoutDialog,

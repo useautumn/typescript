@@ -63,13 +63,20 @@ export const useAutumnBase = ({
 
   const checkout = async (params: CheckoutParams) => {
     const { data, error } = await client.checkout(params);
+
     const { dialog, ...rest } = params;
 
     if (error) {
       return { data, error };
     }
 
-    if (data.url) {
+    const hasPrepaid = data.product.items.some(
+      (item) => item.usage_model === "prepaid"
+    );
+
+    const showDialog = hasPrepaid && params.dialog;
+
+    if (data.url && !showDialog) {
       if (params.openInNewTab) {
         window.open(data.url, "_blank");
       } else {

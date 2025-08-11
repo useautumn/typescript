@@ -30,6 +30,7 @@ import { referralMethods } from "./referrals/referralMethods";
 import { toContainerResult } from "./response";
 import { staticWrapper } from "./utils";
 import { logger } from "../utils/logger";
+import { featureMethods } from "./features/featureMethods";
 
 const LATEST_API_VERSION = "1.2";
 
@@ -106,11 +107,13 @@ export class Autumn {
   static products = productMethods();
   static entities = entityMethods();
   static referrals = referralMethods();
+  static features = featureMethods();
 
   customers = customerMethods(this);
   products = productMethods(this);
   entities = entityMethods(this);
   referrals = referralMethods(this);
+  features = featureMethods(this);
 
   static checkout = (params: CheckoutParams) =>
     staticWrapper(handleCheckout, undefined, { params });

@@ -70,7 +70,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="au-p-0 au-pt-4 au-gap-0 au-text-foreground au-overflow-hidden au-text-sm">
+      <DialogContent className="au-p-0 au-pt-4 au-gap-0 au-text-foreground au-text-sm">
         <DialogTitle className="au-px-6 au-mb-1">{title}</DialogTitle>
         <div className="au-px-6 au-mt-1 au-mb-4 au-text-muted-foreground">
           {message}
@@ -339,6 +339,7 @@ const PrepaidItem = ({
       const { data, error } = await checkout({
         productId: checkoutResult.product.id,
         options: newOptions,
+        dialog: CheckoutDialog,
       });
 
       if (error) {

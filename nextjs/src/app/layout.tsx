@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 // layout.tsx
 
-import { AutumnProvider, PricingTable } from "autumn-js/react";
+import { AutumnProvider } from "autumn-js/react";
 
 export default function RootLayout({
   children,

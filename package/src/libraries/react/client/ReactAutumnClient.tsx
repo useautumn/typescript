@@ -45,6 +45,7 @@ export interface AutumnClientConfig {
   customerData?: CustomerData;
   includeCredentials?: boolean;
   betterAuthUrl?: string;
+  headers?: Record<string, string>;
 }
 
 export class AutumnClient {
@@ -53,6 +54,7 @@ export class AutumnClient {
   protected readonly customerData?: CustomerData;
   protected includeCredentials?: boolean;
   public readonly prefix: string;
+  public readonly headers?: Record<string, string>;
 
   constructor({
     backendUrl,
@@ -60,6 +62,7 @@ export class AutumnClient {
     customerData,
     includeCredentials,
     betterAuthUrl,
+    headers,
   }: AutumnClientConfig) {
     this.backendUrl = backendUrl;
     this.getBearerToken = getBearerToken;
@@ -71,6 +74,8 @@ export class AutumnClient {
       this.prefix = "/api/auth/autumn";
       this.backendUrl = betterAuthUrl;
     }
+
+    this.headers = headers;
   }
 
   /**
@@ -150,6 +155,10 @@ export class AutumnClient {
       }
     }
 
+    if (this.headers) {
+      headers = { ...headers, ...this.headers };
+    }
+
     return headers;
   }
 
@@ -171,8 +180,6 @@ export class AutumnClient {
         : undefined;
 
     const includeCredentials = await this.shouldIncludeCredentials();
-
-    
 
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
@@ -233,7 +240,6 @@ export class AutumnClient {
       errorOnNotFound?: boolean;
     }
   ) {
-    // console.log("Creating customer")
     return await createCustomerMethod({
       client: this,
       params,

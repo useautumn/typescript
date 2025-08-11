@@ -25,6 +25,7 @@ export const AttachParamsSchema = z.object({
 
   checkout_session_params: z.record(z.any()).optional(),
   reward: z.string().optional(),
+  invoice: z.boolean().optional(),
 });
 
 export type AttachParams = z.infer<typeof AttachParamsSchema>;
@@ -36,6 +37,15 @@ export const AttachResultSchema = z.object({
   code: z.string(),
   message: z.string(),
   customer_data: z.any().optional(),
+  invoice: z
+    .object({
+      status: z.string(),
+      stripe_id: z.string(),
+      hosted_invoice_url: z.string().nullable(),
+      total: z.number(),
+      currency: z.string(),
+    })
+    .optional(),
 });
 
 export type AttachResult = z.infer<typeof AttachResultSchema>;

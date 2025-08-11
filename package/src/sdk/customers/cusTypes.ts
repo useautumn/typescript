@@ -115,6 +115,7 @@ export interface Customer {
   products: CustomerProduct[];
   features: Record<string, CustomerFeature>;
   invoices?: CustomerInvoice[];
+  payment_method?: any;
 }
 
 export const CustomerDataSchema = z.object({
@@ -180,13 +181,13 @@ export interface CustomerInvoice {
 export const UpdateBalancesParamsSchema = z
   .object({
     feature_id: z.string(),
-    value: z.number(),
+    balance: z.number(),
   })
   .or(
     z.array(
       z.object({
         feature_id: z.string(),
-        value: z.number(),
+        balance: z.number(),
       })
     )
   );

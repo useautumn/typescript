@@ -25,7 +25,7 @@ export async function getAllProducts() {
 export async function getFeatures() {
 	const {list} = await externalRequest({
 		method: 'GET',
-		path: '/features',
+		path: '/features?include_archived=true',
 	});
 
 	return list.map((feature: Feature) => feature as Feature);

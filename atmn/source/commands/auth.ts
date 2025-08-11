@@ -78,7 +78,7 @@ export default async function AuthCommand() {
 
 	console.log(
 		chalk.green(
-			'Success! Keys have been stored locally. You may now use the CLI.',
+			'Success! Sandbox and production keys have been saved to your .env file.\n`atmn` uses the AUTUMN_SECRET_KEY to authenticate with the Autumn API.',
 		),
 	);
 }

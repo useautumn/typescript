@@ -31,4 +31,5 @@ autumn.config.ts
 debug
 
 frameworks
+!frameworks/conv/
 launch-demo

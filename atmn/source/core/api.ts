@@ -37,6 +37,7 @@ export async function request({
 				Authorization: customAuth || `Bearer ${apiKey}`,
 			},
 		});
+
 		return response.data;
 	} catch (error: any) {
 		if (throwOnError) {

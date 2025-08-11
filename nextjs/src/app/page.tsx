@@ -1,23 +1,23 @@
 "use client";
-import { authClient } from "@/lib/auth-client";
+// import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { useCustomer } from "autumn-js/react";
-import { PaywallDialog, PricingTable } from "autumn-js/react";
+import { authClient } from "@/lib/auth-client";
+import { PricingTable } from "autumn-js/react";
 // import PricingTable from "@/components/autumn/pricing-table";
 
 export default function Home() {
-  const {
-    attach,
-    check,
-    track,
-    cancel,
-    checkout,
-    openBillingPortal,
-    redeemReferralCode,
-    createReferralCode,
-    allowed,
-    // allowed,
-  } = useCustomer();
+  // const {
+  //   attach,
+  //   check,
+  //   track,
+  //   cancel,
+  //   checkout,
+  //   openBillingPortal,
+  //   redeemReferralCode,
+  //   createReferralCode,
+  //   allowed,
+  //   // allowed,
+  // } = useCustomer();
 
   // check({ featureId: "credits", dialog: PaywallDialog });
 
@@ -41,6 +41,14 @@ export default function Home() {
             </Button>
             <Button
               onClick={async () => {
+                const res = await authClient.signOut();
+                console.log(res);
+              }}
+            >
+              Sign Out
+            </Button>
+            <Button
+              onClick={async () => {
                 const res = await authClient.signUp.email({
                   name: "John Yeo",
                   email: "johnyeo10@gmail.com",
@@ -61,7 +69,7 @@ export default function Home() {
             >
               Test Better Auth Plugin
             </Button>
-            <Button
+            {/* <Button
               onClick={async () => {
                 const res = check({
                   featureId: "credits",
@@ -71,14 +79,14 @@ export default function Home() {
               }}
             >
               Test Paywall Dialog
-            </Button>
+            </Button> */}
           </div>
         </section>
 
         <PricingTable />
 
         <div className="flex justify-start items-center gap-2">
-          <Button
+          {/* <Button
             onClick={async () => {
               const res = await openBillingPortal({
                 // openInNewTab: true,
@@ -178,7 +186,7 @@ export default function Home() {
             }}
           >
             Redeem Referral Code
-          </Button>
+          </Button> */}
         </div>
       </main>
     </div>

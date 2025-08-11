@@ -211,7 +211,7 @@ export const usePricingTableBase = ({
   };
 
   const { data, error, mutate } = useSWR<Product[], AutumnError>(
-    "pricing-table",
+    ["pricing-table", client.backendUrl],
     fetcher,
     { ...defaultSWRConfig }
   );

@@ -15,6 +15,7 @@ const listProductsHandler = withAuth({
       customer_id,
     });
   },
+  requireCustomer: false,
 });
 
 export const addProductRoutes = async (router: RouterContext) => {

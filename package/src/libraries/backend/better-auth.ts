@@ -11,7 +11,7 @@ import { secretKeyCheck } from "./utils/secretKeyCheck";
 import { BillingPortalParamsSchema, CustomerExpandEnum } from "@sdk";
 import { Autumn } from "../../sdk/client";
 import { findRoute } from "rou3";
-import { sessionMiddleware } from "better-auth/api";
+import { getSessionFromCtx, sessionMiddleware } from "better-auth/api";
 import { z } from "zod";
 
 import {
@@ -23,14 +23,17 @@ import {
   CreateReferralCodeParamsSchema,
   RedeemReferralCodeParamsSchema,
 } from "@sdk/referrals/referralTypes";
-import { AttachParamsSchema, CheckoutParamsSchema } from "@sdk/general/attachTypes";
+import {
+  AttachParamsSchema,
+  CheckoutParamsSchema,
+} from "@sdk/general/attachTypes";
 
 const router = createRouterWithOptions();
 
 const betterAuthPathMap: Record<string, string> = {
   // "create-customer": "customers",
   // "customers/get": "customers",
-  "checkout": "checkout",
+  checkout: "checkout",
   attach: "attach",
   check: "check",
   track: "track",
@@ -45,10 +48,12 @@ const handleReq = async ({
   ctx,
   options,
   method,
+  session,
 }: {
   ctx: EndpointContext<any, any, AuthContext>;
   options?: { url?: string; secretKey?: string };
   method: string;
+  session?: any;
 }) => {
   let { found, error: resError } = secretKeyCheck();
 
@@ -85,17 +90,17 @@ const handleReq = async ({
 
   // const body = toSnakeCase(ctx.body, ["checkoutSessionParams"]);
   const body = ctx.body;
-  const session = ctx.context.session;
+  const finalSession = session || ctx.context.session;
 
   const identify = async () => {
-    if (!session) {
+    if (!finalSession) {
       return;
     }
     return {
-      customerId: session.user.id,
+      customerId: finalSession.user.id,
       customerData: {
-        email: session.user.email,
-        name: session.user.name,
+        email: finalSession.user.email,
+        name: finalSession.user.name,
       },
     };
   };
@@ -120,10 +125,6 @@ const handleReq = async ({
 };
 
 export const autumn = (options?: { url?: string; secretKey?: string }) => {
-  // let client = options?.url ? new Autumn({ url: options.url }) : undefined;
-  let secretKey = options?.secretKey;
-  let url = options?.url;
-
   return {
     id: "autumn",
     endpoints: {
@@ -131,8 +132,9 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
         "/autumn/customers",
         {
           method: "POST",
-          use: [sessionMiddleware],
+          use: [],
           body: z.object({
+            errorOnNotFound: z.boolean().optional(),
             expand: z.array(CustomerExpandEnum).optional(),
           }),
           metadata: {
@@ -140,17 +142,20 @@ export const autumn = (options?: { url?: string; secretKey?: string }) => {
           },
         },
         async (ctx) => {
-          return await handleReq({ ctx, options, method: "POST" });
+          const session = await getSessionFromCtx(ctx as any);
+
+          return await handleReq({ ctx, options, method: "POST", session });
         }
       ),
       listProducts: createAuthEndpoint(
         "/autumn/products",
         {
           method: "GET",
-          use: [sessionMiddleware],
+          use: [],
         },
         async (ctx) => {
-          return await handleReq({ ctx, options, method: "GET" });
+          const session = await getSessionFromCtx(ctx);
+          return await handleReq({ ctx, options, method: "GET", session });
         }
       ),
       checkout: createAuthEndpoint(
