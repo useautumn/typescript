@@ -42,7 +42,6 @@ const isDuplicate = (error: any) => {
 
 export async function upsertFeature(feature: Feature, s: Spinner) {
 	// const s = initSpinner(`Pushing feature [${feature.id}]`);
-	console.log(feature);
 	try {
 		const response = await externalRequest({
 			method: 'POST',
