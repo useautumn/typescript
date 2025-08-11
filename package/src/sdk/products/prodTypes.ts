@@ -1,7 +1,6 @@
-import { ProductScenario } from "@sdk/general/checkTypes";
-import { AppEnv } from "../general/genEnums";
-import { z } from "zod";
-import {
+import type { ProductScenario } from "@sdk/general/checkTypes";
+import type { AppEnv } from "../general/genEnums";
+import type {
   FreeTrialDuration,
   Infinite,
   ProductItemIntervalType,

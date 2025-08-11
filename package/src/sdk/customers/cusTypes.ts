@@ -1,16 +1,16 @@
-import { ProductItem } from "@sdk/products/prodTypes";
-import { AppEnv } from "../general/genEnums";
+import type { ProductItem } from "@sdk/products/prodTypes";
+import type { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
 import {
   CustomerExpandEnum,
-  CustomerExpandOption,
-  ProductStatus,
+  type CustomerExpandOption,
+  type ProductStatus,
 } from "./cusEnums";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const CoreCusFeatureSchema = z.object({
   unlimited: z.boolean().optional(),
-  interval: z.nativeEnum(ProductItemInterval).optional(),
+  interval: z.enum(ProductItemInterval).optional(),
   balance: z.number().nullish(),
   usage: z.number().optional(),
   included_usage: z.number().optional(),
@@ -28,7 +28,7 @@ export const CoreCusFeatureSchema = z.object({
   breakdown: z
     .array(
       z.object({
-        interval: z.nativeEnum(ProductItemInterval),
+        interval: z.enum(ProductItemInterval),
         balance: z.number().optional(),
         usage: z.number().optional(),
         included_usage: z.number().optional(),
@@ -135,7 +135,7 @@ export const CreateCustomerParamsSchema = z.object({
   email: z.string().nullish(),
   name: z.string().nullish(),
   fingerprint: z.string().nullish(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   expand: z.array(CustomerExpandEnum).optional(),
 });
 

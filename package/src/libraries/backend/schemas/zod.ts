@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod/v4"
 
 export const entityDataParamsSchema = z.object({
   name: z.string().optional(),
@@ -17,12 +17,12 @@ export const attachParamsSchema = z.object({
   productIds: z.array(z.string()).optional(),
   freeTrial: z.boolean().optional(),
   successUrl: z.string().optional(),
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
   forceCheckout: z.boolean().optional(),
   entityData: entityDataParamsSchema.optional(),
   openInNewTab: z.boolean().optional(),
   reward: z.string().optional(),
-  checkoutSessionParams: z.record(z.any()).optional()
+  checkoutSessionParams: z.record(z.string(), z.any()).optional()
 })
 
 export const cancelParamsSchema = z.object({

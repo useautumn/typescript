@@ -1,11 +1,11 @@
-import {
+import type {
   CustomerData,
   CustomerFeature,
   CustomerInvoice,
   CustomerProduct,
 } from "../cusTypes";
-import { EntityExpandOption } from "./entEnums";
-import { z } from "zod";
+import type { EntityExpandOption } from "./entEnums";
+import { z } from "zod/v4";
 
 export interface CreateEntityParams {
   id: string;
