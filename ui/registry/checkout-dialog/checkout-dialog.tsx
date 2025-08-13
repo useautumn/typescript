@@ -358,13 +358,13 @@ const PrepaidItem = ({
   const disableSelection = scenario === "renew";
 
   return (
-    <div className="flex justify-between">
-      <div className="flex gap-2">
+    <div className="flex justify-between gap-2">
+      <div className="flex gap-2 items-start">
         <p className="text-muted-foreground">{item.feature?.name}</p>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
-              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80",
+              "text-muted-foreground text-xs px-1 py-0.5 rounded-md flex items-center gap-1 bg-accent/80 shrink-0",
               disableSelection !== true &&
                 "hover:bg-accent hover:text-foreground"
             )}
@@ -399,7 +399,7 @@ const PrepaidItem = ({
 
               <Button
                 onClick={handleSave}
-                className="w-14 !h-7 text-sm items-center bg-white text-foreground shadow-sm border border-zinc-200 hover:bg-zinc-100"
+                className="w-14 !h-7"
                 disabled={loading}
               >
                 {loading ? (
@@ -412,7 +412,7 @@ const PrepaidItem = ({
           </PopoverContent>
         </Popover>
       </div>
-      <p>
+      <p className="text-end">
         {item.display?.primary_text} {item.display?.secondary_text}
       </p>
     </div>
