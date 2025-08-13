@@ -28,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AutumnProvider>{children}</AutumnProvider>
+        <AutumnProvider >
+          {children}
+        </AutumnProvider>
       </body>
     </html>
   );

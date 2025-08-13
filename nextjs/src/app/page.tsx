@@ -2,24 +2,33 @@
 // import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { PricingTable } from "autumn-js/react";
+import { PaywallDialog, PricingTable, useCustomer } from "autumn-js/react";
+import { useEffect, useState } from "react";
 // import PricingTable from "@/components/autumn/pricing-table";
-
+import { default as BlockingPaywallDialog } from "@/components/autumn/paywall-dialog";
 export default function Home() {
-  // const {
-  //   attach,
-  //   check,
-  //   track,
-  //   cancel,
-  //   checkout,
-  //   openBillingPortal,
-  //   redeemReferralCode,
-  //   createReferralCode,
-  //   allowed,
-  //   // allowed,
-  // } = useCustomer();
+  const {
+    attach,
+    check,
+    track,
+    cancel,
+    checkout,
+    openBillingPortal,
+    redeemReferralCode,
+    createReferralCode,
+    allowed,
+    isLoading,
+    // allowed,
+  } = useCustomer();
 
-  // check({ featureId: "credits", dialog: PaywallDialog });
+  
+  // useEffect(() => {
+  //   check({ featureId: "create_thinkfasts", dialog: BlockingPaywallDialog });
+  // }, [isLoading]);
+
+  // useEffect(() => {
+  //   check({ featureId: "create_thinkfasts", dialog: PaywallDialog });
+  // }, [isLoading]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b p-10">
@@ -86,7 +95,7 @@ export default function Home() {
         <PricingTable />
 
         <div className="flex justify-start items-center gap-2">
-          {/* <Button
+          <Button
             onClick={async () => {
               const res = await openBillingPortal({
                 // openInNewTab: true,
@@ -186,7 +195,7 @@ export default function Home() {
             }}
           >
             Redeem Referral Code
-          </Button> */}
+          </Button>
         </div>
       </main>
     </div>

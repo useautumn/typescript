@@ -185,6 +185,7 @@ export const handleCheck = ({
   data: CheckResult;
   error: null;
 } => {
+
   if (!customer) {
     return {
       data: {
@@ -202,6 +203,7 @@ export const handleCheck = ({
   }
 
   let result;
+  
   if (params.featureId)
     result = handleFeatureCheck({ customer, params, isEntity });
 

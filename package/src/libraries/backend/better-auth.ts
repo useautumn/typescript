@@ -11,7 +11,7 @@ import { secretKeyCheck } from "./utils/secretKeyCheck";
 import { BillingPortalParamsSchema, CustomerExpandEnum } from "@sdk";
 import { Autumn } from "../../sdk/client";
 import { findRoute } from "rou3";
-import { sessionMiddleware } from "better-auth/api";
+import { getSessionFromCtx, sessionMiddleware } from "better-auth/api";
 import { z } from "zod/v4";
 
 import {

@@ -154,6 +154,7 @@ export const useCustomerBase = ({
     createReferralCode: client!.referrals.createCode,
     redeemReferralCode: client!.referrals.redeemCode,
     check: (params: CheckParams) => {
+      
       const res = handleCheck({
         customer,
         params,

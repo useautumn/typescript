@@ -9,13 +9,30 @@ const main = async () => {
 
   // const autumn = new Autumn();
 
-  const res = await autumn.attach({
+  const cancelRes = await autumn.cancel({
     customer_id: "123",
     product_id: "pro",
-    invoice: true,
+    cancel_immediately: true,
   });
 
-  console.log(res);
+  console.log("Cancel res:", cancelRes);
+
+  const attachRes = await autumn.attach({
+    customer_id: "123",
+    product_id: "pro",
+    reward: "ferndesk",
+  });
+
+  console.log("Attach res:", attachRes);
+  // const res = await autumn.checkout({
+  //   customer_id: "test",
+  //   product_id: "pro",
+  //   customer_data: {
+  //     email: "test@test.com",
+  //   },
+  // });
+
+  // console.log(res);
 
   // await autumn.entities.transfer("123", {
   //   from_entity_id: "2",
