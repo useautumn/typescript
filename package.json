@@ -1,6 +1,7 @@
 {
   "name": "autumn-js-monorepo",
   "private": true,
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "test-cli": "pnpm --filter atmn test-cli"
   },
