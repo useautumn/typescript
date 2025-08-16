@@ -35,35 +35,86 @@ import { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
 import { Result, Success } from "@sdk/response";
 
 export interface UseCustomerResult {
+  /** The current customer data including subscription and feature information */
   customer: Customer | null;
+  /** Whether customer data is currently being loaded */
   isLoading: boolean;
+  /** Any error that occurred while fetching customer data */
   error: AutumnError | null;
 
   // Autumn functions
+  /**
+   * Attaches a product to the current customer, enabling access and handling billing.
+   * Activates a product and applies all product items with automatic payment handling.
+   */
   attach: (params: AttachParams) => AutumnPromise<AttachResult | CheckResult>;
-  // check: (params: CheckParams) => AutumnPromise<CheckResult>;
+
+  /**
+   * Tracks usage events for metered features.
+   * Records feature usage and updates customer balances server-side.
+   */
   track: (params: TrackParams) => AutumnPromise<TrackResult>;
+
+  /**
+   * Cancels a customer's subscription or product attachment.
+   * Can cancel immediately or at the end of the billing cycle.
+   */
   cancel: (params: CancelParams) => AutumnPromise<CancelResult>;
+
+  /**
+   * Sets up a payment method for the customer.
+   * Collects payment information without immediately charging.
+   */
   setupPayment: (
     params: SetupPaymentParams
   ) => AutumnPromise<SetupPaymentResult>;
+
+  /**
+   * Opens the Stripe billing portal for the customer.
+   * Allows customers to manage their subscription and payment methods.
+   */
   openBillingPortal: (
     params?: OpenBillingPortalParams
   ) => AutumnPromise<BillingPortalResult>;
+
+  /**
+   * Initiates a checkout flow for product purchase.
+   * Handles payment collection and redirects to Stripe checkout when needed.
+   */
   checkout: (params: CheckoutParams) => AutumnPromise<CheckoutResult>;
+
+  /** Refetches the customer data from the server */
   refetch: () => Promise<Customer | null>;
+
+  /**
+   * Creates new entities for granular feature tracking.
+   * Entities allow per-user or per-workspace feature limits.
+   */
   createEntity: (
     params: CreateEntityParams | CreateEntityParams[]
   ) => AutumnPromise<Entity | Entity[]>;
+
+  /**
+   * Creates a referral code for the customer.
+   * Generates codes that can be shared for referral programs.
+   */
   createReferralCode: (
     params: CreateReferralCodeParams
   ) => AutumnPromise<CreateReferralCodeResult>;
+
+  /**
+   * Redeems a referral code for the customer.
+   * Applies referral benefits when a valid code is provided.
+   */
   redeemReferralCode: (
     params: RedeemReferralCodeParams
   ) => AutumnPromise<RedeemReferralCodeResult>;
 
+  /**
+   * Checks if a customer has access to a feature and shows paywalls if needed.
+   * Client-side feature gating with optional dialog display for upgrades.
+   */
   check: (params: CheckParams) => Success<CheckResult>;
-  allowed: (params: AllowedParams) => boolean;
 }
 
 export interface UseCustomerParams {
@@ -171,16 +222,6 @@ export const useCustomerBase = ({
       return res;
     },
 
-    /** @deprecated Use check() instead */
-    allowed: (params: AllowedParams): boolean => {
-      const result = handleCheck({
-        customer,
-        params,
-        isEntity: false,
-        context,
-      });
 
-      return result.data!.allowed;
-    },
   };
 };

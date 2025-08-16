@@ -94,6 +94,7 @@ export class AutumnClient {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
       });
 
       return { valid: true, includeCredentials: true };
@@ -104,6 +105,7 @@ export class AutumnClient {
           method: "POST",
           credentials: "omit",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
         });
 
         return { valid: true, includeCredentials: false };

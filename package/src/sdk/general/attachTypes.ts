@@ -55,12 +55,11 @@ export const CheckoutParamsSchema = z.object({
   product_id: z.string(),
   entity_id: z.string().optional(),
   options: z.array(AttachFeatureOptionsSchema).optional(),
-
+  force_checkout: z.boolean().optional(),
+  invoice: z.boolean().optional(),
   success_url: z.string().optional(),
-
   customer_data: CustomerDataSchema.optional(),
   entity_data: z.any().optional(),
-
   checkout_session_params: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
 });

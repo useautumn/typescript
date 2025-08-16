@@ -16,7 +16,6 @@ export default function Home() {
     openBillingPortal,
     redeemReferralCode,
     createReferralCode,
-    allowed,
     isLoading,
     // allowed,
   } = useCustomer();
@@ -163,18 +162,7 @@ export default function Home() {
             Attach
           </Button>
 
-          <Button
-            onClick={async () => {
-              console.log(
-                "Allowed:",
-                allowed({
-                  featureId: "credits",
-                })
-              );
-            }}
-          >
-            Allowed
-          </Button>
+
           <Button
             onClick={async () => {
               const res = await createReferralCode({

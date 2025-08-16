@@ -245,7 +245,6 @@ export const useAutumnBase = ({
 
   return {
     attach,
-    // check,
     track,
     cancel,
     openBillingPortal,

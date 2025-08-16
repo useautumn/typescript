@@ -115,9 +115,32 @@ export class Autumn {
   referrals = referralMethods(this);
   features = featureMethods(this);
 
-  static checkout = (params: CheckoutParams) =>
-    staticWrapper(handleCheckout, undefined, { params });
 
+
+  /**
+   * Initiates a checkout flow for a product purchase.
+   * 
+   * The checkout function handles the purchase process for products with pricing.
+   * It determines whether to show a dialog for user input or redirect directly
+   * to Stripe based on the customer's state and product requirements.
+   * 
+   * @param params - Checkout parameters including product ID, customer data, and options
+   * @returns Promise resolving to checkout details including pricing, prorations, and URLs
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.checkout({
+   *   customer_id: "user_123",
+   *   product_id: "pro",
+   *   success_url: "https://myapp.com/success"
+   * });
+   * 
+   * if (result.url) {
+   *   // Redirect to Stripe checkout
+   *   window.location.href = result.url;
+   * }
+   * ```
+   */
   async checkout(params: CheckoutParams) {
     return handleCheckout({
       instance: this,
@@ -125,21 +148,71 @@ export class Autumn {
     });
   }
 
-  static attach = (params: AttachParams) =>
-    staticWrapper(handleAttach, undefined, { params });
+  static checkout = (params: CheckoutParams) =>
+    staticWrapper(handleCheckout, undefined, { params });
+
+  
 
   static usage = (params: UsageParams) =>
     staticWrapper(handleUsage, undefined, { params });
 
+  /**
+   * Attaches a product to a customer, enabling access and handling billing.
+   * 
+   * The attach function activates a product for a customer and applies all product items.
+   * When you attach a product:
+   * - The customer gains access to all features in the product
+   * - If the product has prices, the customer will be billed accordingly  
+   * - If there's no existing payment method, a checkout URL will be generated
+   * 
+   * @param params - Attach parameters including customer ID, product ID, and options
+   * @returns Promise resolving to attachment result with checkout URL if needed
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.attach({
+   *   customer_id: "user_123",
+   *   product_id: "pro",
+   *   success_url: "https://myapp.com/success"
+   * });
+   * 
+   * if (result.checkout_url) {
+   *   // Payment required - redirect to checkout
+   *   window.location.href = result.checkout_url;
+   * } else {
+   *   // Product successfully attached
+   *   console.log("Access granted:", result.message);
+   * }
+   * ```
+   */
   async attach(params: AttachParams) {
     return handleAttach({
       instance: this,
       params,
     });
   }
+  static attach = (params: AttachParams) =>
+    staticWrapper(handleAttach, undefined, { params });
 
   static setupPayment = (params: SetupPaymentParams) =>
     staticWrapper(handleSetupPayment, undefined, { params });
+  /**
+   * Sets up a payment method for a customer.
+   * 
+   * This method allows you to set up payment methods for customers without 
+   * immediately charging them. Useful for collecting payment information
+   * before product attachment or for updating existing payment methods.
+   * 
+   * @param params - Setup payment parameters including customer information
+   * @returns Promise resolving to setup payment result
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.setupPayment({
+   *   customer_id: "user_123"
+   * });
+   * ```
+   */
   async setupPayment(params: SetupPaymentParams) {
     return handleSetupPayment({
       instance: this,
@@ -150,6 +223,24 @@ export class Autumn {
   static cancel = (params: CancelParams) =>
     staticWrapper(handleCancel, undefined, { params });
 
+  /**
+   * Cancels a customer's subscription or product attachment.
+   * 
+   * This method allows you to cancel a customer's subscription to a specific product.
+   * You can choose to cancel immediately or at the end of the billing cycle.
+   * 
+   * @param params - Cancel parameters including customer ID and product ID
+   * @returns Promise resolving to cancellation result
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.cancel({
+   *   customer_id: "user_123",
+   *   product_id: "pro",
+   *   cancel_immediately: false // Cancel at end of billing cycle
+   * });
+   * ```
+   */
   async cancel(params: CancelParams) {
     return handleCancel({
       instance: this,
@@ -160,6 +251,29 @@ export class Autumn {
   static check = (params: CheckParams) =>
     staticWrapper(handleCheck, undefined, { params });
 
+  /**
+   * Checks if a customer has access to a specific feature.
+   * 
+   * This method verifies whether a customer has permission to use a feature
+   * and checks their remaining balance/usage limits. It can be used to gate
+   * features and determine when to show upgrade prompts.
+   * 
+   * @param params - Check parameters including customer ID and feature ID
+   * @returns Promise resolving to access check result with allowed status and balance info
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.check({
+   *   customer_id: "user_123",
+   *   feature_id: "messages",
+   *   required_balance: 1
+   * });
+   * 
+   * if (!result.allowed) {
+   *   console.log("Feature access denied - upgrade required");
+   * }
+   * ```
+   */
   async check(params: CheckParams) {
     return handleCheck({
       instance: this,
@@ -170,6 +284,25 @@ export class Autumn {
   static track = (params: TrackParams) =>
     staticWrapper(handleTrack, undefined, { params });
 
+  /**
+   * Tracks usage events for features or analytics.
+   * 
+   * This method records usage events for metered features, updating the customer's
+   * balance and usage statistics. It's typically used server-side to ensure
+   * accurate tracking that cannot be manipulated by users.
+   * 
+   * @param params - Track parameters including customer ID, feature ID, and usage value
+   * @returns Promise resolving to tracking result
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.track({
+   *   customer_id: "user_123",
+   *   feature_id: "messages",
+   *   value: 1 // Track 1 message sent
+   * });
+   * ```
+   */
   async track(params: TrackParams) {
     return handleTrack({
       instance: this,
@@ -177,6 +310,25 @@ export class Autumn {
     });
   }
 
+  /**
+   * Retrieves usage statistics and analytics for a customer.
+   * 
+   * This method fetches detailed usage information for a customer's features,
+   * including current balances, usage history, and analytics data. Useful
+   * for displaying usage dashboards or generating reports.
+   * 
+   * @param params - Usage parameters including customer ID and optional filters
+   * @returns Promise resolving to usage statistics and analytics data
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.usage({
+   *   customer_id: "user_123",
+   *   feature_id: "messages" 
+   *   value: 20 // Usage value
+   * });
+   * ```
+   */
   async usage(params: UsageParams) {
     return handleUsage({
       instance: this,
@@ -187,6 +339,25 @@ export class Autumn {
   static query = (params: QueryParams) =>
     staticWrapper(handleQuery, undefined, { params });
 
+  /**
+   * Performs advanced queries on customer data and analytics.
+   * 
+   * This method allows you to run complex queries against customer data,
+   * usage patterns, and billing information. Useful for generating reports,
+   * analytics, and custom data insights.
+   * 
+   * @param params - Query parameters including customer ID and query specifications
+   * @returns Promise resolving to query results with requested data
+   * 
+   * @example
+   * ```typescript
+   * const result = await autumn.query({
+   *   customer_id: "user_123",
+   *   feature_id: "messages" // feature id to fetch for query, can also be an array
+   * });
+   * 
+   * ```
+   */
   async query(params: QueryParams) {
     return handleQuery({
       instance: this,
