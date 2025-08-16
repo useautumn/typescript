@@ -358,13 +358,13 @@ const PrepaidItem = ({
   const disableSelection = scenario === "renew";
 
   return (
-    <div className="au-flex au-justify-between">
-      <div className="au-flex au-gap-2">
+    <div className="au-flex au-justify-between au-gap-2">
+      <div className="au-flex au-gap-2 au-items-start">
         <p className="au-text-muted-foreground">{item.feature?.name}</p>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
-              "au-text-muted-foreground au-text-xs au-px-1 au-py-0.5 au-rounded-md au-flex au-items-center au-gap-1 au-bg-accent/80",
+              "au-text-muted-foreground au-text-xs au-px-1 au-py-0.5 au-rounded-md au-flex au-items-center au-gap-1 au-bg-accent/80 au-shrink-0",
               disableSelection !== true &&
                 "hover:au-bg-accent hover:au-text-foreground"
             )}
@@ -399,7 +399,8 @@ const PrepaidItem = ({
 
               <Button
                 onClick={handleSave}
-                className="au-w-14 !au-h-7 au-text-sm au-items-center au-bg-white au-text-foreground au-shadow-sm au-border au-border-zinc-200 hover:au-bg-zinc-100"
+                className="au-w-14 !au-h-7"
+                // au-text-sm au-items-center au-bg-white au-text-foreground au-shadow-sm au-border au-border-zinc-200 hover:au-bg-zinc-100
                 disabled={loading}
               >
                 {loading ? (
@@ -412,7 +413,7 @@ const PrepaidItem = ({
           </PopoverContent>
         </Popover>
       </div>
-      <p>
+      <p className="au-text-end">
         {item.display?.primary_text} {item.display?.secondary_text}
       </p>
     </div>
