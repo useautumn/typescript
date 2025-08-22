@@ -25,24 +25,8 @@ if (!PUBLISHABLE_KEY) {
 
 function AutumnWrapper({ children }: { children: React.ReactNode }) {
   const { getToken, isLoaded } = useAuth();
-  const [token, setToken] = useState<string | null>(null);
-  const [isTokenLoaded, setIsTokenLoaded] = useState(false);
 
-  useEffect(() => {
-    if (isLoaded) {
-      getToken()
-        .then((token) => {
-          setToken(token);
-          setIsTokenLoaded(true);
-        })
-        .catch((error) => {
-          console.error("Failed to get token:", error);
-          setIsTokenLoaded(true);
-        });
-    }
-  }, [getToken, isLoaded]);
-
-  if (!isLoaded || !isTokenLoaded) {
+  if (!isLoaded) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
         <h2 className="text-center py-8 pb-4 text-2xl font-semibold text-white">
@@ -56,7 +40,14 @@ function AutumnWrapper({ children }: { children: React.ReactNode }) {
     <AutumnProvider
       backendUrl={import.meta.env.VITE_CONVEX_SITE_URL}
       includeCredentials={true}
-      getBearerToken={async () => token ?? ""}
+      getBearerToken={async () => {
+        try {
+          return await getToken() || "";
+        } catch (error) {
+          console.error("Failed to get fresh token:", error);
+          return "";
+        }
+      }}
     >
       {children}
     </AutumnProvider>
