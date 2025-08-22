@@ -59,7 +59,10 @@ const http = httpRouter();
 betterAuthComponent.registerRoutes(http, createAuth, { cors: true });
 
 autumn.registerRoutes(http, {
-  corsOrigin: "http://localhost:5173"
+  corsOrigin: "http://localhost:5173",
+  corsAllowHeadersList: ["Better-Auth-Cookie", "Cookie", "Content-Type", "Authorization", "X-Custom-Header"],
+  allowCredentials: true,
+  debug: true
 });
 
 export default http;

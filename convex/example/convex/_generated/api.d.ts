@@ -46,6 +46,38 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   autumn: {
+    customers: {
+      billingPortal: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId: string; returnUrl?: string },
+        any
+      >;
+      discard: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId: string },
+        any
+      >;
+      get: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          customerId: string;
+          expand?: Array<
+            "invoices" | "rewards" | "trials_used" | "entities" | "referrals"
+          >;
+        },
+        any
+      >;
+      update: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId: string; email?: string; name?: string },
+        any
+      >;
+    };
     entities: {
       create: FunctionReference<
         "action",
@@ -117,6 +149,38 @@ export declare const components: {
         },
         any
       >;
+      autumnQuery: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          customerData?: {
+            email?: string;
+            fingerprint?: string;
+            name?: string;
+          };
+          customerId: string;
+          featureId: string | Array<string>;
+        },
+        any
+      >;
+      cancel: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          cancelImmediately?: boolean;
+          customerData?: {
+            email?: string;
+            fingerprint?: string;
+            name?: string;
+          };
+          customerId: string;
+          entityId?: string;
+          productId: string;
+        },
+        any
+      >;
       check: FunctionReference<
         "action",
         "internal",
@@ -169,6 +233,22 @@ export declare const components: {
         },
         any
       >;
+      setupPayment: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          checkoutSessionParams?: {};
+          customerData?: {
+            email?: string;
+            fingerprint?: string;
+            name?: string;
+          };
+          customerId: string;
+          successUrl?: string;
+        },
+        any
+      >;
       track: FunctionReference<
         "action",
         "internal",
@@ -187,6 +267,50 @@ export declare const components: {
           properties?: {};
           value?: number;
         },
+        any
+      >;
+      usage: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          customerData?: {
+            email?: string;
+            fingerprint?: string;
+            name?: string;
+          };
+          customerId: string;
+          featureId: string;
+          value: number;
+        },
+        any
+      >;
+    };
+    products: {
+      get: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; productId: string },
+        any
+      >;
+      list: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId?: string },
+        any
+      >;
+    };
+    referrals: {
+      createCode: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId: string; programId: string },
+        any
+      >;
+      redeemCode: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; code: string; customerId: string },
         any
       >;
     };

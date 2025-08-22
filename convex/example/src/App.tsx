@@ -46,7 +46,6 @@ function AutumnWrapper({ children }: { children: React.ReactNode }) {
   return (
     <AutumnProvider
       backendUrl={import.meta.env.VITE_CONVEX_SITE_URL}
-      includeCredentials={true}
       headers={{
         "Better-Auth-Cookie": authToken,
       }}
@@ -117,8 +116,8 @@ function App() {
 
           <Authenticated>
             <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 w-screen overflow-hidden">
-              <div className="flex-1 grid grid-cols-2 h-full overflow-hidden">
-                <div className="flex flex-col justify-center items-center p-8 overflow-y-auto">
+              <div className="flex-1 flex h-full overflow-hidden">
+                <div className="flex-1 flex flex-col justify-center items-center p-8 overflow-y-auto min-w-0">
                   <div className="w-full max-w-lg">
                     <h2 className="text-center text-2xl font-bold text-white mb-8">
                       Autumn with Convex
@@ -127,7 +126,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className="border-l border-gray-700/50 h-full">
+                <div className="border-l border-gray-700/50 w-1/2 h-full min-w-0">
                   <DebugConsole />
                 </div>
               </div>

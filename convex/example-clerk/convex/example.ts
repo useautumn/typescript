@@ -1,6 +1,6 @@
-import { action, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { autumn } from "./autumn";
+import { Autumn } from "@atmn-hq/convex";
 
 // Simple counter functions that the App.tsx expects
 export const count = query({
@@ -11,10 +11,10 @@ export const count = query({
   },
 });
 
-export const billingPortal = action({
+export const addOne = mutation({
   args: {},
   handler: async (ctx, args) => {
-    // This could integrate with Autumn for tracking button 
-    return await autumn.customers.billingPortal(ctx);
+    // This could integrate with Autumn for tracking button clicks
+    return 1; // Simple implementation for now
   },
 });

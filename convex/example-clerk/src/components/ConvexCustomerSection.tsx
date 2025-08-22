@@ -12,6 +12,7 @@ import { useAction } from "convex/react";
 export function ConvexCustomerSection() {
   const [open, setOpen] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   // const foo = useAction(api.autumn.foo);
   // const { customer, track, check, attach, checkout, createEntity, deleteEntity } =
   //   useCustomer({
@@ -19,7 +20,25 @@ export function ConvexCustomerSection() {
   //   });
   const { customer, track, check, attach, checkout, createEntity } = useCustomer();
   const entityApi = useEntity("test");
-  const billingPortal = useAction(api.example.billingPortal);
+
+  React.useEffect(() => {
+    if (customer !== undefined) {
+      setIsLoading(false);
+    }
+  }, [customer]);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-8 w-full">
+        <h3 className="text-center text-lg font-semibold text-gray-200 mb-6">
+          Try it out
+        </h3>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-gray-400">Loading customer data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-8 w-full">
@@ -117,18 +136,6 @@ export function ConvexCustomerSection() {
           }}
         >
           Create Entity
-        </Button>
-
-        <Button 
-          className="col-span-2"
-          onClick={async () => {
-            let res = await billingPortal();
-            (window as any).debugLog?.(
-              `Convex billing portal result: ${JSON.stringify(res, null, 4)}`
-            );
-          }}
-        >
-          Billing Portal
         </Button>
 
         {/* <Button
