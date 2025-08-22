@@ -1,13 +1,21 @@
-import { actionGeneric, mutationGeneric, queryGeneric, httpActionGeneric } from "convex/server";
+import {
+  actionGeneric,
+  mutationGeneric,
+  queryGeneric,
+  httpActionGeneric,
+} from "convex/server";
 import type {
   ActionBuilder,
   FunctionVisibility,
   HttpRouter,
   GenericActionCtx,
+  FunctionReference,
+  RegisteredAction,
+  FunctionHandle,
 } from "convex/server";
 import { ROUTABLE_HTTP_METHODS } from "convex/server";
 import { corsRouter } from "convex-helpers/server/cors";
-import { v } from "convex/values";
+import { JSONValue, v } from "convex/values";
 import type { Mounts } from "../component/_generated/api.js";
 import type {
   UseApi,
@@ -42,9 +50,13 @@ import {
   ListProductsArgsType,
   CreateReferralCodeArgsType,
   RedeemReferralCodeArgsType,
+  UsageArgs,
   UsageArgsType,
+  QueryArgs,
   QueryArgsType,
+  CancelArgs,
   CancelArgsType,
+  SetupPaymentArgs,
   SetupPaymentArgsType,
   GetEntityArgsType,
 } from "../types.js";
@@ -60,20 +72,15 @@ export class Autumn {
   constructor(
     public component: AutumnComponent,
     public options: {
-      identify: (ctx: RunQueryCtx | RunActionCtx | RunMutationCtx, request?: Request) => Promise<{
-        customerId: string;
-        customerData: {
-          name: string;
-          email: string;
-        };
-      } | null>;
+      identify: any;
       apiKey: string;
       url?: string;
     }
   ) {}
 
-  async customer(ctx: RunActionCtx) {
-    let identifierOpts = await this.options.identify(ctx);
+  // Direct utility method for fetching customer (kept for backwards compatibility)
+  async directCustomer(ctx: RunActionCtx) {
+    let identifierOpts = await this.options.identify(ctx, {});
     if (!identifierOpts) {
       throw new Error("No customer identifier found for Autumn.identify()");
     }
@@ -87,301 +94,421 @@ export class Autumn {
     });
   }
 
-  async track(ctx: RunActionCtx, args: Omit<TrackArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
+  /**
+   * Utility to re-export actions with automatic customer identification.
+   * Example usage:
+   *   autumn.api().foo({ ...args })
+   */
+  api() {
+    return {
+      // Core tracking and checking methods
+      track: actionGeneric({
+        args: UserTrackArgs,
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
 
-    const trackArgs: TrackArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
+          const trackArgs: TrackArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.track, trackArgs);
+        },
+      }),
+
+      check: actionGeneric({
+        args: UserCheckArgs,
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const checkArgs: CheckArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.check, checkArgs);
+        },
+      }),
+
+      // Product attachment and checkout
+      attach: actionGeneric({
+        args: UserAttachArgs,
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const attachArgs: AttachArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.attach, attachArgs);
+        },
+      }),
+
+      checkout: actionGeneric({
+        args: UserCheckoutArgs,
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const checkoutArgs: CheckoutArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.checkout, checkoutArgs);
+        },
+      }),
+
+      // Entity management
+      createEntity: actionGeneric({
+        args: UserCreateEntityArgs,
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.entities.create, {
+            customerId: identifierOpts.customerId,
+            entities: args.entities,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      getEntity: actionGeneric({
+        args: v.object({
+          entityId: v.string(),
+          expand: v.optional(v.array(v.literal("invoices"))),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.entities.get, {
+            customerId: identifierOpts.customerId,
+            entityId: args.entityId,
+            expand: args.expand,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      deleteEntity: actionGeneric({
+        args: v.object({
+          entityId: v.string(),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.entities.discard, {
+            customerId: identifierOpts.customerId,
+            entityId: args.entityId,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      // Customer management
+      getCustomer: actionGeneric({
+        args: v.object({
+          expand: v.optional(
+            v.array(
+              v.union(
+                v.literal("invoices"),
+                v.literal("rewards"),
+                v.literal("trials_used"),
+                v.literal("entities"),
+                v.literal("referrals")
+              )
+            )
+          ),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await autumn;
+        },
+      }),
+
+      updateCustomer: actionGeneric({
+        args: v.object({
+          name: v.optional(v.string()),
+          email: v.optional(v.string()),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.customers.update, {
+            customerId: identifierOpts.customerId,
+            name: args.name,
+            email: args.email,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      deleteCustomer: actionGeneric({
+        args: {},
+        handler: async (ctx) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.customers.discard, {
+            customerId: identifierOpts.customerId,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      billingPortal: actionGeneric({
+        args: v.object({
+          returnUrl: v.optional(v.string()),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.customers.billingPortal, {
+            customerId: identifierOpts.customerId,
+            returnUrl: args.returnUrl,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      // Product methods
+      getProduct: actionGeneric({
+        args: v.object({
+          productId: v.string(),
+        }),
+        handler: async (ctx, args) => {
+          return await ctx.runAction(this.component.products.get, {
+            productId: args.productId,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      listProducts: actionGeneric({
+        args: {},
+        handler: async (ctx) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.lib.listProducts, {
+            customerId: identifierOpts.customerId,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      // Referral methods
+      createReferralCode: actionGeneric({
+        args: v.object({
+          programId: v.string(),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.referrals.createCode, {
+            customerId: identifierOpts.customerId,
+            programId: args.programId,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      redeemReferralCode: actionGeneric({
+        args: v.object({
+          code: v.string(),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.referrals.redeemCode, {
+            customerId: identifierOpts.customerId,
+            code: args.code,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      // Additional general methods
+      usage: actionGeneric({
+        args: v.object({
+          featureId: v.string(),
+          value: v.number(),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const usageArgs: UsageArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.usage, usageArgs);
+        },
+      }),
+
+      query: actionGeneric({
+        args: v.object({
+          featureId: v.union(v.string(), v.array(v.string())),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const queryArgs: QueryArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.autumnQuery, queryArgs);
+        },
+      }),
+
+      cancel: actionGeneric({
+        args: v.object({
+          productId: v.string(),
+          entityId: v.optional(v.string()),
+          cancelImmediately: v.optional(v.boolean()),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const cancelArgs: CancelArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(this.component.lib.cancel, cancelArgs);
+        },
+      }),
+
+      setupPayment: actionGeneric({
+        args: v.object({
+          successUrl: v.optional(v.string()),
+          checkoutSessionParams: v.optional(v.object({})),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          const setupPaymentArgs: SetupPaymentArgsType = {
+            ...args,
+            customerId: identifierOpts.customerId,
+            customerData: identifierOpts.customerData,
+            apiKey: this.options.apiKey,
+          };
+
+          return await ctx.runAction(
+            this.component.lib.setupPayment,
+            setupPaymentArgs
+          );
+        },
+      }),
     };
-
-    return ctx.runAction((this.component.lib as any).track, trackArgs);
   }
-
-  async attach(ctx: RunActionCtx, args: Omit<AttachArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const attachArgs: AttachArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).attach, attachArgs);
-  }
-
-  async check(ctx: RunActionCtx, args: Omit<CheckArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const checkArgs: CheckArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).check, checkArgs);
-  }
-
-  async checkout(ctx: RunActionCtx, args: Omit<CheckoutArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const checkoutArgs: CheckoutArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).checkout, checkoutArgs);
-  }
-
-  async createEntity(ctx: RunActionCtx, args: Omit<UserCreateEntityArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).entities.create, {
-      customerId: identifierOpts.customerId,
-      entities: args.entities,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async deleteEntity(ctx: RunActionCtx, args: Omit<DeleteEntityArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).entities.discard, {
-      customerId: identifierOpts.customerId,
-      entityId: args.entityId,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async getEntity(ctx: RunActionCtx, args: Omit<GetEntityArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).entities.get, {
-      customerId: identifierOpts.customerId,
-      entityId: args.entityId,
-      expand: args.expand,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  // Customer methods
-  async getCustomer(ctx: RunActionCtx, args?: Omit<GetCustomerArgsType, "apiKey" | "customerId">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).customers.get, {
-      customerId: identifierOpts.customerId,
-      expand: args?.expand,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async updateCustomer(ctx: RunActionCtx, args: Omit<UpdateCustomerArgsType, "apiKey" | "customerId">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).customers.update, {
-      customerId: identifierOpts.customerId,
-      name: args.name,
-      email: args.email,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async deleteCustomer(ctx: RunActionCtx) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).customers.discard, {
-      customerId: identifierOpts.customerId,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async billingPortal(ctx: RunActionCtx, args?: Omit<BillingPortalArgsType, "apiKey" | "customerId">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).customers.billingPortal, {
-      customerId: identifierOpts.customerId,
-      returnUrl: args?.returnUrl,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  // Product methods
-  async getProduct(ctx: RunActionCtx, args: Omit<GetProductArgsType, "apiKey">) {
-    return ctx.runAction((this.component as any).products.get, {
-      productId: args.productId,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async listProducts(ctx: RunActionCtx) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).products.list, {
-      customerId: identifierOpts.customerId,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  // Referral methods
-  async createReferralCode(ctx: RunActionCtx, args: Omit<CreateReferralCodeArgsType, "apiKey" | "customerId">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).referrals.createCode, {
-      customerId: identifierOpts.customerId,
-      programId: args.programId,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  async redeemReferralCode(ctx: RunActionCtx, args: Omit<RedeemReferralCodeArgsType, "apiKey" | "customerId">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    return ctx.runAction((this.component as any).referrals.redeemCode, {
-      customerId: identifierOpts.customerId,
-      code: args.code,
-      apiKey: this.options.apiKey,
-    });
-  }
-
-  // Additional general methods
-  async usage(ctx: RunActionCtx, args: Omit<UsageArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const usageArgs: UsageArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).usage, usageArgs);
-  }
-
-  async query(ctx: RunActionCtx, args: Omit<QueryArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const queryArgs: QueryArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).autumnQuery, queryArgs);
-  }
-
-  async cancel(ctx: RunActionCtx, args: Omit<CancelArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const cancelArgs: CancelArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).cancel, cancelArgs);
-  }
-
-  async setupPayment(ctx: RunActionCtx, args: Omit<SetupPaymentArgsType, "apiKey" | "customerId" | "customerData">) {
-    let identifierOpts = await this.options.identify(ctx);
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    const setupPaymentArgs: SetupPaymentArgsType = {
-      ...args,
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    };
-
-    return ctx.runAction((this.component.lib as any).setupPayment, setupPaymentArgs);
-  }
-
-  // Organized access patterns
-  customers = {
-    get: this.getCustomer.bind(this),
-    update: this.updateCustomer.bind(this),
-    delete: this.deleteCustomer.bind(this),
-    billingPortal: this.billingPortal.bind(this),
-  };
-
-  products = {
-    get: this.getProduct.bind(this),
-    list: this.listProducts.bind(this),
-  };
-
-  referrals = {
-    createCode: this.createReferralCode.bind(this),
-    redeemCode: this.redeemReferralCode.bind(this),
-  };
-
-  entities = {
-    create: this.createEntity.bind(this),
-    get: this.getEntity.bind(this),
-    delete: this.deleteEntity.bind(this),
-  };
 
   async registerRoutes(
-    http: HttpRouter, 
+    http: HttpRouter,
     options?: {
       corsOrigin?: string;
       corsOrigins?: string[];
@@ -392,9 +519,17 @@ export class Autumn {
       debug?: boolean;
     }
   ) {
-    const corsOrigin = options?.corsOrigin || process.env.CLIENT_ORIGIN || "http://localhost:3000";
-    const corsAllowHeaders = options?.corsAllowHeadersList || ["Better-Auth-Cookie", "Cookie", "Content-Type", "Authorization"];
-    
+    const corsOrigin =
+      options?.corsOrigin ||
+      process.env.CLIENT_ORIGIN ||
+      "http://localhost:3000";
+    const corsAllowHeaders = options?.corsAllowHeadersList || [
+      "Better-Auth-Cookie",
+      "Cookie",
+      "Content-Type",
+      "Authorization",
+    ];
+
     // Create CORS router with configuration
     const cors = corsRouter(http, {
       allowedOrigins: [corsOrigin, ...(options?.corsOrigins || [])],
@@ -413,7 +548,7 @@ export class Autumn {
         pathPrefix: "/api/autumn/",
         method: method,
         handler: httpActionGeneric(async (ctx, request) => {
-          const identity = await this.options.identify(ctx, request);
+          const identity = await this.options.identify(ctx, {});
 
           return await convexHandler({
             identity: identity,

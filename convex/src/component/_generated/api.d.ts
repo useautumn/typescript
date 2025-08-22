@@ -43,6 +43,12 @@ export type Mounts = {
       { apiKey: string; customerId: string; returnUrl?: string },
       any
     >;
+    create: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId: string; email?: string; name?: string },
+      any
+    >;
     discard: FunctionReference<
       "action",
       "public",
@@ -193,6 +199,12 @@ export type Mounts = {
         customerData?: { email: string; name: string };
         customerId: string;
       },
+      any
+    >;
+    listProducts: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId?: string },
       any
     >;
     setupPayment: FunctionReference<

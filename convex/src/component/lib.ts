@@ -198,3 +198,14 @@ export const setupPayment = action({
     return res;
   },
 });
+
+export const listProducts = action({
+  args: ListProductsArgs,
+  handler: async (ctx, args) => {
+    const autumn = new Autumn({
+      secretKey: args.apiKey,
+    });
+    let res = await autumn.products.list(camelToSnake(args));
+    return res;
+  },
+});

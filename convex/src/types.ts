@@ -195,6 +195,13 @@ export const GetCustomerArgs = v.object({
   apiKey: v.string(),
 });
 
+export const CreateCustomerArgs = v.object({
+  customerId: v.string(),
+  name: v.optional(v.string()),
+  email: v.optional(v.string()),
+  apiKey: v.string(),
+});
+
 export const UpdateCustomerArgs = v.object({
   customerId: v.string(),
   name: v.optional(v.string()),
@@ -271,6 +278,7 @@ export const SetupPaymentArgs = v.object({
 });
 
 export type GetCustomerArgsType = Infer<typeof GetCustomerArgs>;
+export type CreateCustomerArgsType = Infer<typeof CreateCustomerArgs>;
 export type UpdateCustomerArgsType = Infer<typeof UpdateCustomerArgs>;
 export type DeleteCustomerArgsType = Infer<typeof DeleteCustomerArgs>;
 export type BillingPortalArgsType = Infer<typeof BillingPortalArgs>;

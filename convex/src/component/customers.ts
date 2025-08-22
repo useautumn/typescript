@@ -6,6 +6,7 @@ import {
   UpdateCustomerArgs, 
   DeleteCustomerArgs, 
   BillingPortalArgs,
+  CreateCustomerArgs,
   camelToSnake 
 } from "../types.js";
 
@@ -17,6 +18,21 @@ export const get = action({
     });
     let res = await autumn.customers.get(args.customerId, {
       expand: args.expand,
+    });
+    return res;
+  },
+});
+
+export const create = action({
+  args: CreateCustomerArgs,
+  handler: async (ctx, args) => {
+    const autumn = new Autumn({
+      secretKey: args.apiKey,
+    });
+    let res = await autumn.customers.create({
+      id: args.customerId,
+      name: args.name,
+      email: args.email,
     });
     return res;
   },
