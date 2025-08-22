@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as customers from "../customers.js";
 import type * as entities from "../entities.js";
 import type * as lib from "../lib.js";
+import type * as products from "../products.js";
+import type * as referrals from "../referrals.js";
 
 import type {
   ApiFromModules,
@@ -26,10 +29,45 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  customers: typeof customers;
   entities: typeof entities;
   lib: typeof lib;
+  products: typeof products;
+  referrals: typeof referrals;
 }>;
 export type Mounts = {
+  customers: {
+    billingPortal: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId: string; returnUrl?: string },
+      any
+    >;
+    discard: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId: string },
+      any
+    >;
+    get: FunctionReference<
+      "action",
+      "public",
+      {
+        apiKey: string;
+        customerId: string;
+        expand?: Array<
+          "invoices" | "rewards" | "trials_used" | "entities" | "referrals"
+        >;
+      },
+      any
+    >;
+    update: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId: string; email?: string; name?: string },
+      any
+    >;
+  };
   entities: {
     create: FunctionReference<
       "action",
@@ -89,6 +127,30 @@ export type Mounts = {
       },
       any
     >;
+    autumnQuery: FunctionReference<
+      "action",
+      "public",
+      {
+        apiKey: string;
+        customerData?: { email?: string; fingerprint?: string; name?: string };
+        customerId: string;
+        featureId: string | Array<string>;
+      },
+      any
+    >;
+    cancel: FunctionReference<
+      "action",
+      "public",
+      {
+        apiKey: string;
+        cancelImmediately?: boolean;
+        customerData?: { email?: string; fingerprint?: string; name?: string };
+        customerId: string;
+        entityId?: string;
+        productId: string;
+      },
+      any
+    >;
     check: FunctionReference<
       "action",
       "public",
@@ -133,6 +195,18 @@ export type Mounts = {
       },
       any
     >;
+    setupPayment: FunctionReference<
+      "action",
+      "public",
+      {
+        apiKey: string;
+        checkoutSessionParams?: {};
+        customerData?: { email?: string; fingerprint?: string; name?: string };
+        customerId: string;
+        successUrl?: string;
+      },
+      any
+    >;
     track: FunctionReference<
       "action",
       "public",
@@ -147,6 +221,46 @@ export type Mounts = {
         properties?: {};
         value?: number;
       },
+      any
+    >;
+    usage: FunctionReference<
+      "action",
+      "public",
+      {
+        apiKey: string;
+        customerData?: { email?: string; fingerprint?: string; name?: string };
+        customerId: string;
+        featureId: string;
+        value: number;
+      },
+      any
+    >;
+  };
+  products: {
+    get: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; productId: string },
+      any
+    >;
+    list: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId?: string },
+      any
+    >;
+  };
+  referrals: {
+    createCode: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; customerId: string; programId: string },
+      any
+    >;
+    redeemCode: FunctionReference<
+      "action",
+      "public",
+      { apiKey: string; code: string; customerId: string },
       any
     >;
   };

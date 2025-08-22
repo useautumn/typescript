@@ -6,7 +6,47 @@ import {
   internalAction,
 } from "./_generated/server.js";
 import { Autumn } from "autumn-js";
-import { camelToSnake, type TrackArgsType, type AttachArgsType, type CheckArgsType, type CheckoutArgsType, TrackArgs, AttachArgs, CheckArgs, CheckoutArgs } from "../types.js";
+import { 
+  camelToSnake, 
+  type TrackArgsType, 
+  type AttachArgsType, 
+  type CheckArgsType, 
+  type CheckoutArgsType,
+  type GetCustomerArgsType,
+  type UpdateCustomerArgsType,
+  type DeleteCustomerArgsType,
+  type BillingPortalArgsType,
+  type GetProductArgsType,
+  type ListProductsArgsType,
+  type CreateReferralCodeArgsType,
+  type RedeemReferralCodeArgsType,
+  type UsageArgsType,
+  type QueryArgsType,
+  type CancelArgsType,
+  type SetupPaymentArgsType,
+  type CreateEntityArgsType,
+  type DeleteEntityArgsType,
+  type GetEntityArgsType,
+  TrackArgs, 
+  AttachArgs, 
+  CheckArgs, 
+  CheckoutArgs,
+  GetCustomerArgs,
+  UpdateCustomerArgs,
+  DeleteCustomerArgs,
+  BillingPortalArgs,
+  GetProductArgs,
+  ListProductsArgs,
+  CreateReferralCodeArgs,
+  RedeemReferralCodeArgs,
+  UsageArgs,
+  QueryArgs,
+  CancelArgs,
+  SetupPaymentArgs,
+  CreateEntityArgs,
+  DeleteEntityArgs,
+  GetEntityArgs
+} from "../types.js";
 
 export const add = mutation({
   args: {
@@ -111,6 +151,50 @@ export const checkout = action({
       secretKey: args.apiKey,
     });
     let res = await autumn.checkout(camelToSnake(args));
+    return res;
+  },
+});
+
+export const usage = action({
+  args: UsageArgs,
+  handler: async (ctx, args) => {
+    const autumn = new Autumn({
+      secretKey: args.apiKey,
+    });
+    let res = await autumn.usage(camelToSnake(args));
+    return res;
+  },
+});
+
+export const autumnQuery = action({
+  args: QueryArgs,
+  handler: async (ctx, args) => {
+    const autumn = new Autumn({
+      secretKey: args.apiKey,
+    });
+    let res = await autumn.query(camelToSnake(args));
+    return res;
+  },
+});
+
+export const cancel = action({
+  args: CancelArgs,
+  handler: async (ctx, args) => {
+    const autumn = new Autumn({
+      secretKey: args.apiKey,
+    });
+    let res = await autumn.cancel(camelToSnake(args));
+    return res;
+  },
+});
+
+export const setupPayment = action({
+  args: SetupPaymentArgs,
+  handler: async (ctx, args) => {
+    const autumn = new Autumn({
+      secretKey: args.apiKey,
+    });
+    let res = await autumn.setupPayment(camelToSnake(args));
     return res;
   },
 });

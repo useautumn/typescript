@@ -181,3 +181,104 @@ export const GetEntityArgs = v.object({
 
 export type UserGetEntityArgsType = Infer<typeof UserGetEntityArgs>;
 export type GetEntityArgsType = Infer<typeof GetEntityArgs>;
+
+// Customer methods args
+export const GetCustomerArgs = v.object({
+  customerId: v.string(),
+  expand: v.optional(v.array(v.union(
+    v.literal("invoices"),
+    v.literal("rewards"), 
+    v.literal("trials_used"),
+    v.literal("entities"),
+    v.literal("referrals")
+  ))),
+  apiKey: v.string(),
+});
+
+export const UpdateCustomerArgs = v.object({
+  customerId: v.string(),
+  name: v.optional(v.string()),
+  email: v.optional(v.string()),
+  apiKey: v.string(),
+});
+
+export const DeleteCustomerArgs = v.object({
+  customerId: v.string(),
+  apiKey: v.string(),
+});
+
+export const BillingPortalArgs = v.object({
+  customerId: v.string(),
+  returnUrl: v.optional(v.string()),
+  apiKey: v.string(),
+});
+
+// Product methods args
+export const GetProductArgs = v.object({
+  productId: v.string(),
+  apiKey: v.string(),
+});
+
+export const ListProductsArgs = v.object({
+  customerId: v.optional(v.string()),
+  apiKey: v.string(),
+});
+
+// Referral methods args
+export const CreateReferralCodeArgs = v.object({
+  customerId: v.string(),
+  programId: v.string(),
+  apiKey: v.string(),
+});
+
+export const RedeemReferralCodeArgs = v.object({
+  customerId: v.string(),
+  code: v.string(),
+  apiKey: v.string(),
+});
+
+// Additional general methods args
+export const UsageArgs = v.object({
+  customerId: v.string(),
+  featureId: v.string(),
+  value: v.number(),
+  customerData: v.optional(CustomerDataSchema),
+  apiKey: v.string(),
+});
+
+export const QueryArgs = v.object({
+  customerId: v.string(),
+  featureId: v.union(v.string(), v.array(v.string())),
+  customerData: v.optional(CustomerDataSchema),
+  apiKey: v.string(),
+});
+
+export const CancelArgs = v.object({
+  customerId: v.string(),
+  productId: v.string(),
+  entityId: v.optional(v.string()),
+  cancelImmediately: v.optional(v.boolean()),
+  customerData: v.optional(CustomerDataSchema),
+  apiKey: v.string(),
+});
+
+export const SetupPaymentArgs = v.object({
+  customerId: v.string(),
+  successUrl: v.optional(v.string()),
+  checkoutSessionParams: v.optional(v.object({})),
+  customerData: v.optional(CustomerDataSchema),
+  apiKey: v.string(),
+});
+
+export type GetCustomerArgsType = Infer<typeof GetCustomerArgs>;
+export type UpdateCustomerArgsType = Infer<typeof UpdateCustomerArgs>;
+export type DeleteCustomerArgsType = Infer<typeof DeleteCustomerArgs>;
+export type BillingPortalArgsType = Infer<typeof BillingPortalArgs>;
+export type GetProductArgsType = Infer<typeof GetProductArgs>;
+export type ListProductsArgsType = Infer<typeof ListProductsArgs>;
+export type CreateReferralCodeArgsType = Infer<typeof CreateReferralCodeArgs>;
+export type RedeemReferralCodeArgsType = Infer<typeof RedeemReferralCodeArgs>;
+export type UsageArgsType = Infer<typeof UsageArgs>;
+export type QueryArgsType = Infer<typeof QueryArgs>;
+export type CancelArgsType = Infer<typeof CancelArgs>;
+export type SetupPaymentArgsType = Infer<typeof SetupPaymentArgs>;
