@@ -1,5 +1,5 @@
 import { api } from "./_generated/api";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // Example function for getting the current user
@@ -8,6 +8,34 @@ export const getCurrentUser = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     
+    if (!identity) {
+      return null;
+    }
+    
+    // Check if we already have a user record for this Clerk user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+      .unique();
+
+    if (user) {
+      return {
+        id: user._id,
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+      };
+    } else return null;
+  },
+});
+
+export const getCurrentUserInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    
+    console.log("Identity in internal query:", identity);
+
     if (!identity) {
       return null;
     }

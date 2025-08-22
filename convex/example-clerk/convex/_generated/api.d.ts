@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as autumn from "../autumn.js";
 import type * as example from "../example.js";
 import type * as http from "../http.js";
+import type * as identify from "../identify.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   autumn: typeof autumn;
   example: typeof example;
   http: typeof http;
+  identify: typeof identify;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
@@ -51,6 +53,12 @@ export declare const components: {
         "action",
         "internal",
         { apiKey: string; customerId: string; returnUrl?: string },
+        any
+      >;
+      create: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId: string; email?: string; name?: string },
         any
       >;
       discard: FunctionReference<
@@ -231,6 +239,12 @@ export declare const components: {
           customerData?: { email: string; name: string };
           customerId: string;
         },
+        any
+      >;
+      listProducts: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; customerId?: string },
         any
       >;
       setupPayment: FunctionReference<

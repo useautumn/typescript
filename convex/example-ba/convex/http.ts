@@ -5,7 +5,7 @@ import {
 import { betterAuthComponent } from "./auth";
 import { createAuth } from "../src/lib/auth";
 import { autumnHandler } from "autumn-js/convex";
-import { httpAction } from "./_generated/server";
+import { action, httpAction } from "./_generated/server";
 import { api, components } from "./_generated/api";
 import { Autumn } from "@atmn-hq/convex";
 
@@ -63,6 +63,13 @@ autumn.registerRoutes(http, {
   corsAllowHeadersList: ["Better-Auth-Cookie", "Cookie", "Content-Type", "Authorization", "X-Custom-Header"],
   allowCredentials: true,
   debug: true
+});
+
+export const test = action({
+  args: {},
+  handler: async (ctx) => {
+    ctx.auth
+  }
 });
 
 export default http;
