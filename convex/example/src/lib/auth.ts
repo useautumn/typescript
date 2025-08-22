@@ -31,8 +31,8 @@ export const createAuth = (ctx: GenericCtx) =>
     advanced: {
       crossSubDomainCookies: {
         enabled: true,
-        domain: ".convex.site", // Allow cookies across convex.site subdomains
+        domain: "majestic-giraffe-9.convex.site", // Allow cookies across convex.site subdomains
       },
-      useSecureCookies: true, // Ensure cookies are secure for HTTPS
+      useSecureCookies: false, // Ensure cookies are secure for HTTPS
     },
   });

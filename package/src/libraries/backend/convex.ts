@@ -159,6 +159,7 @@ export function convexHandler(options: {
     }
 
     try {
+      console.log("Identity in convex.ts:", options.identity);
       const result = await handler({
         autumn,
         body,

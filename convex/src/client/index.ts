@@ -188,12 +188,14 @@ export class Autumn {
       method: "OPTIONS",
       handler: httpActionGeneric(async (_, req) => {
         const corsOrigin = options?.corsOrigin || process.env.CLIENT_ORIGIN || "http://localhost:3000";
-        
+        console.log("CORS Origin:", corsOrigin);
+        const corsAllowHeaders = options?.corsAllowHeadersList?.join(", ") || "Better-Auth-Cookie, Cookie, Content-Type, Authorization";
+        console.log("CORS Allow Headers:", corsAllowHeaders);
         return new Response(null, {
           headers: new Headers({
             "Access-Control-Allow-Origin": corsOrigin,
             "Access-Control-Allow-Methods": "POST, GET, PATCH, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": options?.corsAllowHeadersList?.join(", ") || "*",
+            "Access-Control-Allow-Headers": corsAllowHeaders,
             "Access-Control-Allow-Credentials": "true",
             "Access-Control-Max-Age": "86400",
           }),
@@ -209,10 +211,11 @@ export class Autumn {
         pathPrefix: "/api/autumn/",
         method: method,
         handler: httpActionGeneric(async (ctx, request) => {
-          console.log("Identity:", await this.options.identify(ctx));
+          const identity = await this.options.identify(ctx, request);
+          console.log("Identity:", identity);
 
           return await convexHandler({
-            identity: await this.options.identify(ctx),
+            identity: identity,
             secretKey: this.options.apiKey,
             url: this.options.url || undefined,
             corsOrigin: options?.corsOrigin || process.env.CLIENT_ORIGIN || undefined,

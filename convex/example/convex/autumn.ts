@@ -3,18 +3,26 @@ import { Autumn } from "@atmn-hq/convex";
 
 export const autumn = new Autumn(components.autumn, {
   identify: async (ctx) => {
-    const user: any = await ctx.runQuery(api.auth.getCurrentUser as any, {});
-    console.log("User meta", user.userId, user.name, user.email);
-    if (!user) {
-      throw new Error("User not found");
+    try {
+      const user: any = await ctx.runQuery(api.auth.getCurrentUser as any, {});
+      console.log("Autumn identify - User meta", user?.userId, user?.name, user?.email);
+      
+      if (!user || !user.userId) {
+        console.log("Autumn identify - No user found or missing userId");
+        return null;
+      }
+      
+      return {
+        customerId: user.userId,
+        customerData: {
+          name: user.name || "Unknown User",
+          email: user.email || "unknown@example.com",
+        },
+      };
+    } catch (error) {
+      console.error("Autumn identify - Error getting user:", error);
+      return null;
     }
-    return {
-      customerId: user.userId,
-      customerData: {
-        name: user.name,
-        email: user.email,
-      },
-    };
   },
   apiKey: process.env.AUTUMN_SECRET_KEY ?? "",
 });

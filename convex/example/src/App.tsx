@@ -5,7 +5,6 @@ import { AutumnProvider } from "autumn-js/react";
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import { ConvexReactClient } from "convex/react";
 import { authClient } from "./lib/auth-client";
-import { AutumnJSCustomerSection } from "./components/AutumnJSCustomerSection";
 import { ConvexCustomerSection } from "./components/ConvexCustomerSection";
 import { DebugConsole } from "./components/DebugConsole";
 
@@ -14,27 +13,42 @@ const convex = new ConvexReactClient(address);
 
 function AutumnWrapper({ children }: { children: React.ReactNode }) {
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getToken = async () => {
       try {
+        setIsLoading(true);
         const token = await authClient.getCookie();
         console.log("Token:", token);
         setAuthToken(token);
       } catch (error) {
         console.error("Failed to get auth token:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getToken();
   }, []);
 
+  // Don't render children until we have the auth token
+  if (isLoading || !authToken) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+        <h2 className="text-center py-8 pb-4 text-2xl font-semibold text-white">
+          Loading authentication...
+        </h2>
+      </div>
+    );
+  }
+
   return (
     <AutumnProvider
       backendUrl={import.meta.env.VITE_CONVEX_SITE_URL}
       includeCredentials={true}
       headers={{
-        "Better-Auth-Cookie": authToken ?? "",
+        "Better-Auth-Cookie": authToken,
       }}
     >
       {children}
@@ -102,18 +116,9 @@ function App() {
           </Unauthenticated>
 
           <Authenticated>
-            <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 w-screen pb-64 overflow-hidden">
-              <div className="flex-1 grid grid-cols-2 w-screen overflow-hidden">
-                <div className="border-r border-gray-700/50 flex flex-col justify-center items-center p-8 w-full overflow-y-auto w-full">
-                  <div className="w-full max-w-lg">
-                    <h2 className="text-center text-2xl font-bold text-white mb-8">
-                      Autumn without Convex
-                    </h2>
-                    <AutumnJSCustomerSection />
-                  </div>
-                </div>
-
-                <div className="flex flex-col justify-center items-center p-8 w-full overflow-y-auto w-full">
+            <div className="flex h-screen bg-gradient-to-br from-gray-900 to-gray-800 w-screen overflow-hidden">
+              <div className="flex-1 grid grid-cols-2 h-full overflow-hidden">
+                <div className="flex flex-col justify-center items-center p-8 overflow-y-auto">
                   <div className="w-full max-w-lg">
                     <h2 className="text-center text-2xl font-bold text-white mb-8">
                       Autumn with Convex
@@ -121,10 +126,12 @@ function App() {
                     <ConvexCustomerSection />
                   </div>
                 </div>
+
+                <div className="border-l border-gray-700/50 h-full">
+                  <DebugConsole />
+                </div>
               </div>
             </div>
-
-            <DebugConsole />
           </Authenticated>
         </AutumnWrapper>
       </ConvexBetterAuthProvider>
