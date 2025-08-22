@@ -271,7 +271,12 @@ export class Autumn {
             );
           }
 
-          return await autumn;
+          return await ctx.runAction(this.component.customers.create, {
+            customerId: identifierOpts.customerId,
+            name: identifierOpts.customerData.name,
+            email: identifierOpts.customerData.email,
+            apiKey: this.options.apiKey,
+          });
         },
       }),
 
