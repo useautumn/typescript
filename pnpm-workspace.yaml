@@ -12,3 +12,4 @@ packages:
   - "vite-spa"
   - "convex"
   - "convex/example"
+  - "convex/example-clerk"
