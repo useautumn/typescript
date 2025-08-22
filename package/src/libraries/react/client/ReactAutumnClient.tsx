@@ -118,6 +118,7 @@ export class AutumnClient {
    * Automatically determines whether to include credentials based on CORS detection
    */
   private async shouldIncludeCredentials(): Promise<boolean> {
+    // If explicitly set, always use that value
     if (this.includeCredentials !== undefined) {
       return this.includeCredentials;
     }
@@ -134,9 +135,11 @@ export class AutumnClient {
           }} in <AutumnProvider />`
         );
         this.includeCredentials = corsResult.includeCredentials;
+        return corsResult.includeCredentials || false;
       }
 
-      return corsResult.includeCredentials || false;
+      console.warn(`[Autumn] CORS detection failed, defaulting to false`);
+      return false;
     } catch (error: any) {
       console.error(`[Autumn] Error detecting CORS: ${error.message}`);
       return false;
