@@ -102,6 +102,9 @@ importers:
       convex:
         specifier: ^1.25.0
         version: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
+      convex-helpers:
+        specifier: ^0.1.104
+        version: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react@19.1.1)(typescript@5.5.4)(zod@4.0.17)
       react:
         specifier: ^18.3.1 || ^19.0.0
         version: 19.1.1
@@ -162,25 +165,77 @@ importers:
         version: link:..
       '@convex-dev/better-auth':
         specifier: ^0.7.15
-        version: 0.7.15(@standard-schema/spec@1.0.0)(better-auth@1.3.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@3.25.76))(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+        version: 0.7.15(@standard-schema/spec@1.0.0)(better-auth@1.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76))(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1))(hono@4.9.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.2)
       autumn-js:
         specifier: workspace:*
         version: link:../../package
       better-auth:
         specifier: 1.3.7
-        version: 1.3.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@3.25.76)
+        version: 1.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76)
       convex:
         specifier: ^1.25.0
-        version: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
+        version: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       npm-run-all2:
         specifier: ^7.0.2
         version: 7.0.2
       react:
-        specifier: ^19.1.1
-        version: 19.1.1
+        specifier: ^18.3.1
+        version: 18.3.1
       react-dom:
-        specifier: ^19.1.1
-        version: 19.1.1(react@19.1.1)
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      tailwindcss:
+        specifier: ^4.1.12
+        version: 4.1.12
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.1.12(vite@6.3.5(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1))
+      '@types/react':
+        specifier: ^18.0.0
+        version: 18.3.23
+      '@types/react-dom':
+        specifier: ^18.0.0
+        version: 18.3.7(@types/react@18.3.23)
+      '@vitejs/plugin-react':
+        specifier: ^4.0.0
+        version: 4.7.0(vite@6.3.5(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1))
+      eslint:
+        specifier: ^8.0.0
+        version: 8.57.1
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
+      vite:
+        specifier: ^6.0.0
+        version: 6.3.5(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1)
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@edge-runtime/vm@5.0.0)(@types/node@24.3.0)(lightningcss@1.30.1)(msw@2.10.4(@types/node@24.3.0)(typescript@5.9.2))(terser@5.43.1)
+
+  convex/example-clerk:
+    dependencies:
+      '@atmn-hq/convex':
+        specifier: workspace:*
+        version: link:..
+      '@clerk/clerk-react':
+        specifier: ^5.0.0
+        version: 5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      autumn-js:
+        specifier: workspace:*
+        version: link:../../package
+      convex:
+        specifier: ^1.25.0
+        version: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      npm-run-all2:
+        specifier: ^7.0.2
+        version: 7.0.2
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       tailwindcss:
         specifier: ^4.1.12
         version: 4.1.12
@@ -10567,6 +10622,14 @@ snapshots:
       - react
       - react-dom
 
+  '@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@clerk/shared': 3.19.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@clerk/types': 4.75.0
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      tslib: 2.8.1
+
   '@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@clerk/shared': 3.19.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -10586,6 +10649,18 @@ snapshots:
       react-dom: 19.1.1(react@19.1.1)
       server-only: 0.0.1
       tslib: 2.8.1
+
+  '@clerk/shared@3.19.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@clerk/types': 4.75.0
+      dequal: 2.0.3
+      glob-to-regexp: 0.4.1
+      js-cookie: 3.0.5
+      std-env: 3.9.0
+      swr: 2.3.4(react@18.3.1)
+    optionalDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@clerk/shared@3.19.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
@@ -10612,15 +10687,15 @@ snapshots:
 
   '@colors/colors@1.6.0': {}
 
-  '@convex-dev/better-auth@0.7.15(@standard-schema/spec@1.0.0)(better-auth@1.3.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@3.25.76))(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
+  '@convex-dev/better-auth@0.7.15(@standard-schema/spec@1.0.0)(better-auth@1.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76))(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1))(hono@4.9.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.2)':
     dependencies:
-      better-auth: 1.3.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@3.25.76)
+      better-auth: 1.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76)
       common-tags: 1.8.2
-      convex: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
-      convex-helpers: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react@19.1.1)(typescript@5.9.2)(zod@3.25.76)
+      convex: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      convex-helpers: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1))(hono@4.9.1)(react@18.3.1)(typescript@5.9.2)(zod@3.25.76)
       is-network-error: 1.1.0
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       type-fest: 4.41.0
       zod: 3.25.76
     transitivePeerDependencies:
@@ -14465,6 +14540,24 @@ snapshots:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
 
+  better-auth@1.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@3.25.76):
+    dependencies:
+      '@better-auth/utils': 0.2.6
+      '@better-fetch/fetch': 1.1.18
+      '@noble/ciphers': 0.6.0
+      '@noble/hashes': 1.8.0
+      '@simplewebauthn/browser': 13.1.2
+      '@simplewebauthn/server': 13.1.2
+      better-call: 1.0.13
+      defu: 6.1.4
+      jose: 5.10.0
+      kysely: 0.28.5
+      nanostores: 0.11.4
+      zod: 3.25.76
+    optionalDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
   better-auth@1.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.0.17):
     dependencies:
       '@better-auth/utils': 0.2.6
@@ -14483,24 +14576,6 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     optional: true
-
-  better-auth@1.3.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@3.25.76):
-    dependencies:
-      '@better-auth/utils': 0.2.6
-      '@better-fetch/fetch': 1.1.18
-      '@noble/ciphers': 0.6.0
-      '@noble/hashes': 1.8.0
-      '@simplewebauthn/browser': 13.1.2
-      '@simplewebauthn/server': 13.1.2
-      better-call: 1.0.13
-      defu: 6.1.4
-      jose: 5.10.0
-      kysely: 0.28.5
-      nanostores: 0.11.4
-      zod: 3.25.76
-    optionalDependencies:
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
 
   better-call@1.0.13:
     dependencies:
@@ -14953,19 +15028,38 @@ snapshots:
 
   convert-to-spaces@2.0.1: {}
 
-  convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react@19.1.1)(typescript@5.9.2)(zod@3.25.76):
+  convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1))(hono@4.9.1)(react@18.3.1)(typescript@5.9.2)(zod@3.25.76):
+    dependencies:
+      convex: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+    optionalDependencies:
+      '@standard-schema/spec': 1.0.0
+      hono: 4.9.1
+      react: 18.3.1
+      typescript: 5.9.2
+      zod: 3.25.76
+
+  convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react@19.1.1)(typescript@5.5.4)(zod@4.0.17):
     dependencies:
       convex: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
     optionalDependencies:
       '@standard-schema/spec': 1.0.0
       hono: 4.9.1
       react: 19.1.1
-      typescript: 5.9.2
-      zod: 3.25.76
+      typescript: 5.5.4
+      zod: 4.0.17
 
   convex-test@0.0.37(convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)):
     dependencies:
       convex: 1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
+
+  convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1):
+    dependencies:
+      esbuild: 0.25.4
+      jwt-decode: 4.0.0
+      prettier: 3.5.3
+    optionalDependencies:
+      '@clerk/clerk-react': 5.41.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
 
   convex@1.25.4(@clerk/clerk-react@5.41.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1):
     dependencies:
@@ -15761,7 +15855,7 @@ snapshots:
     dependencies:
       debug: 3.2.7
       enhanced-resolve: 0.9.1
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.32.0(eslint@8.57.1))(webpack@5.101.1(esbuild@0.25.9)))(eslint@8.57.1)
       find-root: 1.1.0
       hasown: 2.0.2
       interpret: 1.4.0
@@ -15848,7 +15942,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.32.0(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1):
+  eslint-plugin-import@2.32.0(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.32.0(eslint@8.57.1))(webpack@5.101.1(esbuild@0.25.9)))(eslint@8.57.1):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -20469,6 +20563,12 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
+  swr@2.3.4(react@18.3.1):
+    dependencies:
+      dequal: 2.0.3
+      react: 18.3.1
+      use-sync-external-store: 1.5.0(react@18.3.1)
+
   swr@2.3.4(react@19.1.1):
     dependencies:
       dequal: 2.0.3
@@ -21670,7 +21770,7 @@ snapshots:
       eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.32.0(eslint@8.57.1))(webpack@5.101.1(esbuild@0.25.9))
       eslint-plugin-ava: 13.2.0(eslint@8.57.1)
       eslint-plugin-eslint-comments: 3.2.0(eslint@8.57.1)
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.32.0(eslint@8.57.1))(webpack@5.101.1(esbuild@0.25.9)))(eslint@8.57.1)
       eslint-plugin-n: 15.7.0(eslint@8.57.1)
       eslint-plugin-no-use-extend-native: 0.5.0
       eslint-plugin-prettier: 4.2.5(eslint-config-prettier@8.10.2(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)

@@ -20,7 +20,7 @@
     "dev": "run-p 'example' 'build:watch'",
     "setup": "npm i && npm run build && cd example && npm i && npx convex dev --once",
     "build:watch": "cd src && npx chokidar '../tsconfig.json' '*.ts' 'react/**/*.ts' 'component/**/*.ts' 'client/**/*.ts' -c 'npm run build' --initial",
-    "build": "tsc --project ./tsconfig.build.json && tsc-alias -p tsconfig.build.json && echo '{\\n  \"type\": \"module\"\\n}' > dist/package.json",
+    "build": "tsc --project ./tsconfig.build.json && tsc-alias -p tsconfig.build.json && echo '{ \"type\": \"module\" }' > dist/package.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "alpha": "npm run clean && npm run build && run-p test lint typecheck attw && npm version prerelease --preid alpha && npm publish --tag alpha && git push --tags",
@@ -79,5 +79,8 @@
     "vitest": "3.2.4"
   },
   "types": "./dist/client/index.d.ts",
-  "module": "./dist/client/index.js"
+  "module": "./dist/client/index.js",
+  "dependencies": {
+    "convex-helpers": "^0.1.104"
+  }
 }
