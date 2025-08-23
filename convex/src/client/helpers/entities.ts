@@ -5,29 +5,29 @@ import {
   type DeleteEntityArgsType,
   type GetEntityArgsType,
 } from "../../types.js";
+import { wrapSdkCall } from "./utils.js";
 
 export const create = async (args: CreateEntityArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  let res = await autumn.entities.create(camelToSnake(args));
-  return res;
+  return await wrapSdkCall(() => autumn.entities.create(camelToSnake(args)));
 };
 
 export const discard = async (args: DeleteEntityArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  let res = await autumn.entities.delete(args.customerId, args.entityId);
-  return res;
+  return await wrapSdkCall(() => autumn.entities.delete(args.customer_id, args.entity_id));
 };
 
 export const get = async (args: GetEntityArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  let res = await autumn.entities.get(args.customerId, args.entityId, {
-    expand: args.expand,
-  });
-  return res;
+  return await wrapSdkCall(() =>
+    autumn.entities.get(args.customer_id, args.entity_id, {
+      expand: args.expand,
+    })
+  );
 };

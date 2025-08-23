@@ -3,21 +3,22 @@ import {
   type GetProductArgsType,
   type ListProductsArgsType,
 } from "../../types.js";
+import { wrapSdkCall } from "./utils.js";
 
 export const get = async (args: GetProductArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  let res = await autumn.products.get(args.productId);
-  return res;
+  return await wrapSdkCall(() => autumn.products.get(args.product_id));
 };
 
 export const list = async (args: ListProductsArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  let res = await autumn.products.list({
-    customer_id: args.customerId,
-  });
-  return res;
+  return await wrapSdkCall(() =>
+    autumn.products.list({
+      customer_id: args.customer_id,
+    })
+  );
 };
