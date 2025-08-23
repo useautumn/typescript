@@ -62,6 +62,7 @@ import {
 } from "../types.js";
 import type { AutumnAPI } from "../react/hooks/index.js";
 import { convexHandler } from "autumn-js/convex";
+import { listProducts } from "../component/lib.js";
 
 // UseApi<typeof api> is an alternative that has jump-to-definition but is
 // less stable and reliant on types within the component files, which can cause
@@ -118,6 +119,8 @@ export class Autumn {
             customerData: identifierOpts.customerData,
             apiKey: this.options.apiKey,
           };
+
+          console.log("trackArgs in client", trackArgs.customerId, identifierOpts.customerId);
 
           return await ctx.runAction(this.component.lib.track, trackArgs);
         },
@@ -280,6 +283,37 @@ export class Autumn {
         },
       }),
 
+      fetchCustomer: actionGeneric({
+        args: v.object({
+          expand: v.optional(
+            v.array(
+              v.union(
+                v.literal("invoices"),
+                v.literal("rewards"),
+                v.literal("trials_used"),
+                v.literal("entities"),
+                v.literal("referrals")
+              )
+            )
+          ),
+        }),
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx, {});
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          return await ctx.runAction(this.component.customers.create, {
+            customerId: identifierOpts.customerId,
+            name: identifierOpts.customerData.name,
+            email: identifierOpts.customerData.email,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
       updateCustomer: actionGeneric({
         args: v.object({
           name: v.optional(v.string()),
@@ -362,7 +396,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.lib.listProducts, {
+          return await listProducts({
             customerId: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           });
