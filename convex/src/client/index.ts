@@ -59,10 +59,11 @@ import {
   SetupPaymentArgs,
   SetupPaymentArgsType,
   GetEntityArgsType,
+  FetchCustomerArgs,
 } from "../types.js";
-import type { AutumnAPI } from "../react/hooks/index.js";
 import { convexHandler } from "autumn-js/convex";
 import { listProducts } from "../component/lib.js";
+import * as autumnHelpers from "./helpers/index.js";
 
 // UseApi<typeof api> is an alternative that has jump-to-definition but is
 // less stable and reliant on types within the component files, which can cause
@@ -122,7 +123,7 @@ export class Autumn {
 
           console.log("trackArgs in client", trackArgs.customerId, identifierOpts.customerId);
 
-          return await ctx.runAction(this.component.lib.track, trackArgs);
+          return await autumnHelpers.track(trackArgs);
         },
       }),
 
@@ -143,7 +144,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(this.component.lib.check, checkArgs);
+          return await autumnHelpers.check(checkArgs);
         },
       }),
 
@@ -165,7 +166,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(this.component.lib.attach, attachArgs);
+          return await autumnHelpers.attach(attachArgs);
         },
       }),
 
@@ -186,7 +187,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(this.component.lib.checkout, checkoutArgs);
+          return await autumnHelpers.checkout(checkoutArgs);
         },
       }),
 
@@ -201,7 +202,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.entities.create, {
+          return await autumnHelpers.entities.create({
             customerId: identifierOpts.customerId,
             entities: args.entities,
             apiKey: this.options.apiKey,
@@ -222,7 +223,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.entities.get, {
+          return await autumnHelpers.entities.get({
             customerId: identifierOpts.customerId,
             entityId: args.entityId,
             expand: args.expand,
@@ -243,7 +244,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.entities.discard, {
+          return await autumnHelpers.entities.discard({
             customerId: identifierOpts.customerId,
             entityId: args.entityId,
             apiKey: this.options.apiKey,
@@ -274,7 +275,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.customers.create, {
+          return await autumnHelpers.customers.create({
             customerId: identifierOpts.customerId,
             name: identifierOpts.customerData.name,
             email: identifierOpts.customerData.email,
@@ -284,19 +285,7 @@ export class Autumn {
       }),
 
       fetchCustomer: actionGeneric({
-        args: v.object({
-          expand: v.optional(
-            v.array(
-              v.union(
-                v.literal("invoices"),
-                v.literal("rewards"),
-                v.literal("trials_used"),
-                v.literal("entities"),
-                v.literal("referrals")
-              )
-            )
-          ),
-        }),
+        args: FetchCustomerArgs,
         handler: async (ctx, args) => {
           const identifierOpts = await this.options.identify(ctx, {});
           if (!identifierOpts) {
@@ -305,7 +294,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.customers.create, {
+          return await autumnHelpers.customers.create({
             customerId: identifierOpts.customerId,
             name: identifierOpts.customerData.name,
             email: identifierOpts.customerData.email,
@@ -327,7 +316,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.customers.update, {
+          return await autumnHelpers.customers.update({
             customerId: identifierOpts.customerId,
             name: args.name,
             email: args.email,
@@ -346,7 +335,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.customers.discard, {
+          return await autumnHelpers.customers.discard({
             customerId: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           });
@@ -365,7 +354,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.customers.billingPortal, {
+          return await autumnHelpers.customers.billingPortal({
             customerId: identifierOpts.customerId,
             returnUrl: args.returnUrl,
             apiKey: this.options.apiKey,
@@ -379,7 +368,7 @@ export class Autumn {
           productId: v.string(),
         }),
         handler: async (ctx, args) => {
-          return await ctx.runAction(this.component.products.get, {
+          return await autumnHelpers.products.get({
             productId: args.productId,
             apiKey: this.options.apiKey,
           });
@@ -416,7 +405,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.referrals.createCode, {
+          return await autumnHelpers.referrals.createCode({
             customerId: identifierOpts.customerId,
             programId: args.programId,
             apiKey: this.options.apiKey,
@@ -436,7 +425,7 @@ export class Autumn {
             );
           }
 
-          return await ctx.runAction(this.component.referrals.redeemCode, {
+          return await autumnHelpers.referrals.redeemCode({
             customerId: identifierOpts.customerId,
             code: args.code,
             apiKey: this.options.apiKey,
@@ -456,7 +445,7 @@ export class Autumn {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
             );
-          }
+          } 
 
           const usageArgs: UsageArgsType = {
             ...args,
@@ -465,7 +454,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(this.component.lib.usage, usageArgs);
+          return await autumnHelpers.usage(usageArgs);
         },
       }),
 
@@ -488,7 +477,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(this.component.lib.autumnQuery, queryArgs);
+          return await autumnHelpers.autumnQuery(queryArgs);
         },
       }),
 
@@ -513,7 +502,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(this.component.lib.cancel, cancelArgs);
+          return await autumnHelpers.cancel(cancelArgs);
         },
       }),
 
@@ -537,10 +526,7 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          return await ctx.runAction(
-            this.component.lib.setupPayment,
-            setupPaymentArgs
-          );
+          return await autumnHelpers.setupPayment(setupPaymentArgs);
         },
       }),
     };
