@@ -64,6 +64,7 @@ import {
 import { convexHandler } from "autumn-js/convex";
 import { listProducts } from "../component/lib.js";
 import * as autumnHelpers from "./helpers/index.js";
+import { action } from "../component/_generated/server.js";
 
 // UseApi<typeof api> is an alternative that has jump-to-definition but is
 // less stable and reliant on types within the component files, which can cause
@@ -80,26 +81,23 @@ export class Autumn {
     }
   ) {}
 
-  // Direct utility method for fetching customer (kept for backwards compatibility)
-  async directCustomer(ctx: RunActionCtx) {
-    let identifierOpts = await this.options.identify(ctx, {});
-    if (!identifierOpts) {
-      throw new Error("No customer identifier found for Autumn.identify()");
-    }
-
-    console.log("identifierOpts", identifierOpts);
-
-    return ctx.runAction((this.component.lib as any).fetchCustomer, {
-      customerId: identifierOpts.customerId,
-      customerData: identifierOpts.customerData,
-      apiKey: this.options.apiKey,
-    });
+  testApi() {
+    return {
+      foo: actionGeneric({
+        args: v.object({
+          bar: v.string(),
+        }),
+        handler: async (ctx, args) => {
+          return "bar";
+        },
+      }),
+    };
   }
 
   /**
    * Utility to re-export actions with automatic customer identification.
    * Example usage:
-   *   autumn.api().foo({ ...args })
+   *   autumn.api().track({ featureId: "message" })
    */
   api() {
     return {
@@ -107,7 +105,7 @@ export class Autumn {
       track: actionGeneric({
         args: UserTrackArgs,
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -121,8 +119,6 @@ export class Autumn {
             apiKey: this.options.apiKey,
           };
 
-          console.log("trackArgs in client", trackArgs.customerId, identifierOpts.customerId);
-
           return await autumnHelpers.track(trackArgs);
         },
       }),
@@ -130,7 +126,7 @@ export class Autumn {
       check: actionGeneric({
         args: UserCheckArgs,
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -152,7 +148,7 @@ export class Autumn {
       attach: actionGeneric({
         args: UserAttachArgs,
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -173,7 +169,7 @@ export class Autumn {
       checkout: actionGeneric({
         args: UserCheckoutArgs,
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -195,7 +191,7 @@ export class Autumn {
       createEntity: actionGeneric({
         args: UserCreateEntityArgs,
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -216,7 +212,7 @@ export class Autumn {
           expand: v.optional(v.array(v.literal("invoices"))),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -237,7 +233,7 @@ export class Autumn {
           entityId: v.string(),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -268,7 +264,7 @@ export class Autumn {
           ),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -285,9 +281,21 @@ export class Autumn {
       }),
 
       fetchCustomer: actionGeneric({
-        args: FetchCustomerArgs,
+        args: v.object({
+          expand: v.optional(
+            v.array(
+              v.union(
+                v.literal("invoices"),
+                v.literal("rewards"),
+                v.literal("trials_used"),
+                v.literal("entities"),
+                v.literal("referrals")
+              )
+            )
+          ),
+        }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -309,7 +317,7 @@ export class Autumn {
           email: v.optional(v.string()),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -328,7 +336,7 @@ export class Autumn {
       deleteCustomer: actionGeneric({
         args: {},
         handler: async (ctx) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -347,7 +355,7 @@ export class Autumn {
           returnUrl: v.optional(v.string()),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -378,7 +386,7 @@ export class Autumn {
       listProducts: actionGeneric({
         args: {},
         handler: async (ctx) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -398,7 +406,7 @@ export class Autumn {
           programId: v.string(),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -418,7 +426,7 @@ export class Autumn {
           code: v.string(),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -440,7 +448,7 @@ export class Autumn {
           value: v.number(),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -463,7 +471,7 @@ export class Autumn {
           featureId: v.union(v.string(), v.array(v.string())),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -488,7 +496,7 @@ export class Autumn {
           cancelImmediately: v.optional(v.boolean()),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
@@ -512,7 +520,7 @@ export class Autumn {
           checkoutSessionParams: v.optional(v.object({})),
         }),
         handler: async (ctx, args) => {
-          const identifierOpts = await this.options.identify(ctx, {});
+          const identifierOpts = await this.options.identify(ctx);
           if (!identifierOpts) {
             throw new Error(
               "No customer identifier found for Autumn.identify()"

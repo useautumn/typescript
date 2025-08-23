@@ -16,6 +16,12 @@ export const UserTrackArgs = v.object({
   properties: v.optional(v.object({})),
 });
 
+export const UserFetchCustomerArgs = v.object({
+  customerId: v.string(),
+  customerData: v.optional(CustomerDataSchema),
+  expand: v.optional(v.array(v.string())),
+});
+
 export const FetchCustomerArgs = v.object({
   customerId: v.string(),
   customerData: v.optional(CustomerDataSchema),
@@ -34,6 +40,7 @@ export const FetchCustomerArgs = v.object({
 });
 
 export type FetchCustomerArgsType = Infer<typeof FetchCustomerArgs>;
+export type UserFetchCustomerArgsType = Infer<typeof UserFetchCustomerArgs>;
 
 // Full args with auth fields (for internal use)
 export const TrackArgs = v.object({

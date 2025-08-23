@@ -41,7 +41,6 @@ function AutumnWrapper({ children }: { children: React.ReactNode }) {
     <AutumnProvider
       convexApi={api.autumn}
       convexUrl={import.meta.env.VITE_CONVEX_URL}
-      convexIdentify={api.identify}
       getBearerToken={async () => {
         try {
           return await getToken({

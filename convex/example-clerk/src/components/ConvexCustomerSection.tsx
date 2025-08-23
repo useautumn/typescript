@@ -22,7 +22,6 @@ export function ConvexCustomerSection() {
   const entityApi = useEntity("test");
 
   React.useEffect(() => {
-    console.log("customer in ConvexCustomerSection", customer);
     if (customer !== undefined) {
       setIsLoading(false);
     }
