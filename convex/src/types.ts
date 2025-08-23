@@ -16,6 +16,25 @@ export const UserTrackArgs = v.object({
   properties: v.optional(v.object({})),
 });
 
+export const FetchCustomerArgs = v.object({
+  customerId: v.string(),
+  customerData: v.optional(CustomerDataSchema),
+  expand: v.optional(
+    v.array(
+      v.union(
+        v.literal("invoices"),
+        v.literal("rewards"),
+        v.literal("trials_used"),
+        v.literal("entities"),
+        v.literal("referrals")
+      )
+    )
+  ),
+  apiKey: v.string(),
+});
+
+export type FetchCustomerArgsType = Infer<typeof FetchCustomerArgs>;
+
 // Full args with auth fields (for internal use)
 export const TrackArgs = v.object({
   featureId: v.string(),
@@ -115,9 +134,6 @@ export const CheckoutArgs = v.object({
 export type CheckoutArgsType = Infer<typeof CheckoutArgs>;
 
 export function camelToSnake<T>(input: T): any {
-  if (typeof input === "string") {
-    return input.replace(/([A-Z])/g, "_$1").toLowerCase();
-  }
   if (Array.isArray(input)) {
     return input.map((item) => camelToSnake(item));
   }
@@ -185,13 +201,17 @@ export type GetEntityArgsType = Infer<typeof GetEntityArgs>;
 // Customer methods args
 export const GetCustomerArgs = v.object({
   customerId: v.string(),
-  expand: v.optional(v.array(v.union(
-    v.literal("invoices"),
-    v.literal("rewards"), 
-    v.literal("trials_used"),
-    v.literal("entities"),
-    v.literal("referrals")
-  ))),
+  expand: v.optional(
+    v.array(
+      v.union(
+        v.literal("invoices"),
+        v.literal("rewards"),
+        v.literal("trials_used"),
+        v.literal("entities"),
+        v.literal("referrals")
+      )
+    )
+  ),
   apiKey: v.string(),
 });
 

@@ -6,11 +6,11 @@ import {
   internalAction,
 } from "./_generated/server.js";
 import { Autumn } from "autumn-js";
-import { 
-  camelToSnake, 
-  type TrackArgsType, 
-  type AttachArgsType, 
-  type CheckArgsType, 
+import {
+  camelToSnake,
+  type TrackArgsType,
+  type AttachArgsType,
+  type CheckArgsType,
   type CheckoutArgsType,
   type GetCustomerArgsType,
   type UpdateCustomerArgsType,
@@ -27,25 +27,7 @@ import {
   type CreateEntityArgsType,
   type DeleteEntityArgsType,
   type GetEntityArgsType,
-  TrackArgs, 
-  AttachArgs, 
-  CheckArgs, 
-  CheckoutArgs,
-  GetCustomerArgs,
-  UpdateCustomerArgs,
-  DeleteCustomerArgs,
-  BillingPortalArgs,
-  GetProductArgs,
-  ListProductsArgs,
-  CreateReferralCodeArgs,
-  RedeemReferralCodeArgs,
-  UsageArgs,
-  QueryArgs,
-  CancelArgs,
-  SetupPaymentArgs,
-  CreateEntityArgs,
-  DeleteEntityArgs,
-  GetEntityArgs
+  type FetchCustomerArgsType,
 } from "../types.js";
 
 export const add = mutation({
@@ -87,18 +69,7 @@ export const count = query({
   },
 });
 
-export const fetchCustomer = action({
-  args: {
-    customerId: v.string(),
-    customerData: v.optional(
-      v.object({
-        name: v.string(),
-        email: v.string(),
-      })
-    ),
-    apiKey: v.string(),
-  },
-  handler: async (ctx, args) => {
+export const fetchCustomer = async (args: FetchCustomerArgsType) => {
     const autumn = new Autumn({
       secretKey: args.apiKey,
     });
@@ -106,106 +77,80 @@ export const fetchCustomer = action({
       id: args.customerId,
       email: args.customerData?.email,
       name: args.customerData?.name,
+      expand: args.expand,
     });
     return customer;
-  },
-});
+};
 
-export const track = action({
-  args: TrackArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.track(camelToSnake(args));
-    return res;
-  },
-});
+export const track = async (args: TrackArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  console.log("Inside lib.ts track", args.customerId);
+  let res = await autumn.track(camelToSnake(args));
+  return res;
+};
 
-export const attach = action({
-  args: AttachArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.attach(camelToSnake(args));
-    return res;
-  },
-});
+export const attach = async (args: AttachArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.attach(camelToSnake(args));
+  return res;
+};
 
-export const check = action({
-  args: CheckArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.check(camelToSnake(args));
-    return res;
-  },
-});
+export const check = async (args: CheckArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.check(camelToSnake(args));
+  return res;
+};
 
-export const checkout = action({
-  args: CheckoutArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.checkout(camelToSnake(args));
-    return res;
-  },
-});
+export const checkout = async (args: CheckoutArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.checkout(camelToSnake(args));
+  return res;
+};
 
-export const usage = action({
-  args: UsageArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.usage(camelToSnake(args));
-    return res;
-  },
-});
+export const usage = async (args: UsageArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.usage(camelToSnake(args));
+  return res;
+};
 
-export const autumnQuery = action({
-  args: QueryArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.query(camelToSnake(args));
-    return res;
-  },
-});
+export const autumnQuery = async (args: QueryArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.query(camelToSnake(args));
+  return res;
+};
 
-export const cancel = action({
-  args: CancelArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.cancel(camelToSnake(args));
-    return res;
-  },
-});
+export const cancel = async (args: CancelArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.cancel(camelToSnake(args));
+  return res;
+};
 
-export const setupPayment = action({
-  args: SetupPaymentArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.setupPayment(camelToSnake(args));
-    return res;
-  },
-});
+export const setupPayment = async (args: SetupPaymentArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.setupPayment(camelToSnake(args));
+  return res;
+};
 
-export const listProducts = action({
-  args: ListProductsArgs,
-  handler: async (ctx, args) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    let res = await autumn.products.list(camelToSnake(args));
-    return res;
-  },
-});
+export const listProducts = async (args: ListProductsArgsType) => {
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  let res = await autumn.products.list(camelToSnake(args));
+  return res;
+};
