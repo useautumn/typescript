@@ -40,6 +40,8 @@ import {
   CreateEntityArgsType,
   UserCreateEntityArgsType,
   UserCreateEntityArgs,
+  UserCreateSingleEntityArgs,
+  UserCreateSingleEntityArgsType,
   DeleteEntityArgsType,
   DeleteEntityArgs,
   GetCustomerArgsType,
@@ -60,9 +62,9 @@ import {
   SetupPaymentArgsType,
   GetEntityArgsType,
   FetchCustomerArgs,
+  ExpandArgs,
 } from "../types.js";
 import { convexHandler } from "autumn-js/convex";
-import { listProducts } from "../component/lib.js";
 import * as autumnHelpers from "./helpers/index.js";
 import { action } from "../component/_generated/server.js";
 
@@ -113,9 +115,14 @@ export class Autumn {
           }
 
           const trackArgs: TrackArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            feature_id: args.featureId,
+            value: args.value,
+            entity_id: args.entityId,
+            event_name: args.eventName,
+            idempotency_key: args.idempotencyKey,
+            customer_data: args.customerData || identifierOpts.customerData,
+            entity_data: args.entityData,
+            customer_id: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           };
 
@@ -134,9 +141,15 @@ export class Autumn {
           }
 
           const checkArgs: CheckArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            product_id: args.productId,
+            feature_id: args.featureId,
+            required_balance: args.requiredBalance,
+            send_event: args.sendEvent,
+            with_preview: args.withPreview,
+            entity_id: args.entityId,
+            customer_data: args.customerData || identifierOpts.customerData,
+            entity_data: args.entityData,
+            customer_id: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           };
 
@@ -156,9 +169,20 @@ export class Autumn {
           }
 
           const attachArgs: AttachArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            product_id: args.productId,
+            product_ids: args.productIds,
+            entity_id: args.entityId,
+            options: args.options,
+            free_trial: args.freeTrial,
+            success_url: args.successUrl,
+            metadata: args.metadata,
+            force_checkout: args.forceCheckout,
+            customer_data: args.customerData || identifierOpts.customerData,
+            entity_data: args.entityData,
+            checkout_session_params: args.checkoutSessionParams,
+            reward: args.reward,
+            invoice: args.invoice,
+            customer_id: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           };
 
@@ -177,9 +201,17 @@ export class Autumn {
           }
 
           const checkoutArgs: CheckoutArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            product_id: args.productId,
+            entity_id: args.entityId,
+            options: args.options,
+            force_checkout: args.forceCheckout,
+            invoice: args.invoice,
+            success_url: args.successUrl,
+            customer_data: args.customerData || identifierOpts.customerData,
+            entity_data: args.entityData,
+            checkout_session_params: args.checkoutSessionParams,
+            reward: args.reward,
+            customer_id: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           };
 
@@ -187,8 +219,33 @@ export class Autumn {
         },
       }),
 
-      // Entity management
+      // Entity management - single entity creation
       createEntity: actionGeneric({
+        args: UserCreateSingleEntityArgs,
+        handler: async (ctx, args) => {
+          const identifierOpts = await this.options.identify(ctx);
+          if (!identifierOpts) {
+            throw new Error(
+              "No customer identifier found for Autumn.identify()"
+            );
+          }
+
+          // Single entity format
+          const entities = {
+            name: args.name,
+            feature_id: args.featureId,
+            id: args.id,
+          };
+
+          return await autumnHelpers.entities.create({
+            customer_id: identifierOpts.customerId,
+            entities,
+            apiKey: this.options.apiKey,
+          });
+        },
+      }),
+
+      createEntities: actionGeneric({
         args: UserCreateEntityArgs,
         handler: async (ctx, args) => {
           const identifierOpts = await this.options.identify(ctx);
@@ -198,9 +255,22 @@ export class Autumn {
             );
           }
 
+          // Convert camelCase featureId to snake_case feature_id for each entity
+          const entities = Array.isArray(args.entities) 
+            ? args.entities.map(entity => ({
+                name: entity.name,
+                feature_id: entity.featureId,
+                id: entity.id,
+              }))
+            : {
+                name: args.entities.name,
+                feature_id: args.entities.featureId,
+                id: args.entities.id,
+              };
+
           return await autumnHelpers.entities.create({
-            customerId: identifierOpts.customerId,
-            entities: args.entities,
+            customer_id: identifierOpts.customerId,
+            entities,
             apiKey: this.options.apiKey,
           });
         },
@@ -220,8 +290,8 @@ export class Autumn {
           }
 
           return await autumnHelpers.entities.get({
-            customerId: identifierOpts.customerId,
-            entityId: args.entityId,
+            customer_id: identifierOpts.customerId,
+            entity_id: args.entityId,
             expand: args.expand,
             apiKey: this.options.apiKey,
           });
@@ -241,8 +311,8 @@ export class Autumn {
           }
 
           return await autumnHelpers.entities.discard({
-            customerId: identifierOpts.customerId,
-            entityId: args.entityId,
+            customer_id: identifierOpts.customerId,
+            entity_id: args.entityId,
             apiKey: this.options.apiKey,
           });
         },
@@ -272,27 +342,18 @@ export class Autumn {
           }
 
           return await autumnHelpers.customers.create({
-            customerId: identifierOpts.customerId,
+            customer_id: identifierOpts.customerId,
             name: identifierOpts.customerData.name,
             email: identifierOpts.customerData.email,
             apiKey: this.options.apiKey,
+            expand: args?.expand
           });
         },
       }),
 
       fetchCustomer: actionGeneric({
         args: v.object({
-          expand: v.optional(
-            v.array(
-              v.union(
-                v.literal("invoices"),
-                v.literal("rewards"),
-                v.literal("trials_used"),
-                v.literal("entities"),
-                v.literal("referrals")
-              )
-            )
-          ),
+          expand: ExpandArgs,
         }),
         handler: async (ctx, args) => {
           const identifierOpts = await this.options.identify(ctx);
@@ -303,10 +364,11 @@ export class Autumn {
           }
 
           return await autumnHelpers.customers.create({
-            customerId: identifierOpts.customerId,
+            customer_id: identifierOpts.customerId,
             name: identifierOpts.customerData.name,
             email: identifierOpts.customerData.email,
             apiKey: this.options.apiKey,
+            expand: args?.expand
           });
         },
       }),
@@ -325,7 +387,7 @@ export class Autumn {
           }
 
           return await autumnHelpers.customers.update({
-            customerId: identifierOpts.customerId,
+            customer_id: identifierOpts.customerId,
             name: args.name,
             email: args.email,
             apiKey: this.options.apiKey,
@@ -344,7 +406,7 @@ export class Autumn {
           }
 
           return await autumnHelpers.customers.discard({
-            customerId: identifierOpts.customerId,
+            customer_id: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           });
         },
@@ -363,8 +425,8 @@ export class Autumn {
           }
 
           return await autumnHelpers.customers.billingPortal({
-            customerId: identifierOpts.customerId,
-            returnUrl: args.returnUrl,
+            customer_id: identifierOpts.customerId,
+            return_url: args.returnUrl,
             apiKey: this.options.apiKey,
           });
         },
@@ -377,7 +439,7 @@ export class Autumn {
         }),
         handler: async (ctx, args) => {
           return await autumnHelpers.products.get({
-            productId: args.productId,
+            product_id: args.productId,
             apiKey: this.options.apiKey,
           });
         },
@@ -393,8 +455,8 @@ export class Autumn {
             );
           }
 
-          return await listProducts({
-            customerId: identifierOpts.customerId,
+          return await autumnHelpers.products.list({
+            customer_id: identifierOpts.customerId,
             apiKey: this.options.apiKey,
           });
         },
@@ -414,8 +476,8 @@ export class Autumn {
           }
 
           return await autumnHelpers.referrals.createCode({
-            customerId: identifierOpts.customerId,
-            programId: args.programId,
+            customer_id: identifierOpts.customerId,
+            program_id: args.programId,
             apiKey: this.options.apiKey,
           });
         },
@@ -434,7 +496,7 @@ export class Autumn {
           }
 
           return await autumnHelpers.referrals.redeemCode({
-            customerId: identifierOpts.customerId,
+            customer_id: identifierOpts.customerId,
             code: args.code,
             apiKey: this.options.apiKey,
           });
@@ -456,9 +518,10 @@ export class Autumn {
           } 
 
           const usageArgs: UsageArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            feature_id: args.featureId,
+            value: args.value,
+            customer_id: identifierOpts.customerId,
+            customer_data: identifierOpts.customerData,
             apiKey: this.options.apiKey,
           };
 
@@ -479,9 +542,9 @@ export class Autumn {
           }
 
           const queryArgs: QueryArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            feature_id: args.featureId,
+            customer_id: identifierOpts.customerId,
+            customer_data: identifierOpts.customerData,
             apiKey: this.options.apiKey,
           };
 
@@ -504,9 +567,11 @@ export class Autumn {
           }
 
           const cancelArgs: CancelArgsType = {
-            ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            product_id: args.productId,
+            entity_id: args.entityId,
+            cancel_immediately: args.cancelImmediately,
+            customer_id: identifierOpts.customerId,
+            customer_data: identifierOpts.customerData,
             apiKey: this.options.apiKey,
           };
 
@@ -529,8 +594,8 @@ export class Autumn {
 
           const setupPaymentArgs: SetupPaymentArgsType = {
             ...args,
-            customerId: identifierOpts.customerId,
-            customerData: identifierOpts.customerData,
+            customer_id: identifierOpts.customerId,
+            customer_data: identifierOpts.customerData,
             apiKey: this.options.apiKey,
           };
 
