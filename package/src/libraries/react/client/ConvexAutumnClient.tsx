@@ -247,12 +247,10 @@ export class ConvexAutumnClient implements IAutumnClient {
 			}
 			const result = await this.convexClient.action(
 				this.convexApi.billingPortal,
-				args
+				{ ...args, openInNewTab: undefined }
 			);
-			return {
-				data: result,
-				error: null,
-			};
+
+			return result;
 		} catch (error: any) {
 			return {
 				data: null,
@@ -274,10 +272,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 				this.convexApi.setupPayment,
 				args
 			);
-			return {
-				data: result,
-				error: null,
-			};
+			return result;
 		} catch (error: any) {
 			return {
 				data: null,
@@ -299,10 +294,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 				this.convexApi.query,
 				args
 			);
-			return {
-				data: result,
-				error: null,
-			};
+			return result;
 		} catch (error: any) {
 			return {
 				data: null,
@@ -324,14 +316,23 @@ export class ConvexAutumnClient implements IAutumnClient {
 					);
 				}
 
-				// Wrap individual entity args in entities field
-				const entityArgs = { entities: args };
-
-				const result = await this.convexClient.action(
-					this.convexApi.createEntity,
-					entityArgs
-				);
-				return result;
+				// Check if args is an array or single entity
+				if (Array.isArray(args)) {
+					// Multiple entities - use createEntities method
+					const entityArgs = { entities: args };
+					const result = await this.convexClient.action(
+						this.convexApi.createEntities,
+						entityArgs
+					);
+					return result;
+				} else {
+					// Single entity - use createEntity method directly (no entities wrapper)
+					const result = await this.convexClient.action(
+						this.convexApi.createEntity,
+						args
+					);
+					return result;
+				}
 			} catch (error: any) {
 				return {
 					data: null,
