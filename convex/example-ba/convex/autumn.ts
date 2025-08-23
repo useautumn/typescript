@@ -2,7 +2,7 @@ import { api, components } from "./_generated/api";
 import { Autumn } from "@atmn-hq/convex";
 
 export const autumn = new Autumn(components.autumn, {
-  identify: async (ctx) => {
+  identify: async (ctx: any) => {
     try {
       const user: any = await ctx.runQuery(api.auth.getCurrentUser as any, {});
       console.log("Autumn identify - User meta", user?.userId, user?.name, user?.email);

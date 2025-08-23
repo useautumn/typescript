@@ -39,8 +39,12 @@ export const {
   getCustomer,
   getProduct,
   fetchCustomer,
+  redeemReferralCode,
+  createReferralCode,
+  createEntities,
+  billingPortal
 } = autumn.api();
-export const autumnApi = autumn.api();
+
 
 export const { foo } = autumn.testApi();
 
