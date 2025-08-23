@@ -18,8 +18,20 @@ export function ConvexCustomerSection() {
   //   useCustomer({
   //     autumnApi: (api as any).autumn,
   //   });
-  const { customer, track, check, attach, checkout, createEntity } = useCustomer();
-  const entityApi = useEntity("test");
+  const {
+    customer,
+    track,
+    check,
+    attach,
+    checkout,
+    createEntity,
+    cancel,
+    redeemReferralCode,
+    createReferralCode,
+    openBillingPortal,
+  } = useCustomer({
+    expand: ["payment_method"],
+  });
 
   React.useEffect(() => {
     if (customer !== undefined) {
@@ -126,7 +138,7 @@ export function ConvexCustomerSection() {
           onClick={async () => {
             let res = await createEntity({
               name: "test",
-              id: "test",
+              id: "test3",
               featureId: "seats",
             });
 
@@ -138,18 +150,81 @@ export function ConvexCustomerSection() {
           Create Entity
         </Button>
 
-        {/* <Button
-          className="col-span-2"
+        <Button
           onClick={async () => {
-            let res = await entityApi.delete();
+            let res = await cancel({
+              productId: "prepaid",
+              cancelImmediately: true,
+            });
 
             (window as any).debugLog?.(
-              `Convex delete entity result: ${JSON.stringify(res, null, 4)}`
+              `Convex cancel result: ${JSON.stringify(res, null, 4)}`
             );
           }}
         >
-          Delete Entity
-        </Button> */}
+          Cancel Prepaid
+        </Button>
+
+        <Button
+          onClick={async () => {
+            let res = await redeemReferralCode({
+              code: "WYZ9W0",
+            });
+
+            (window as any).debugLog?.(
+              `Convex redeem referral code result: ${JSON.stringify(res, null, 4)}`
+            );
+          }}
+        >
+          Redeem Referral Code
+        </Button>
+
+        <Button
+          onClick={async () => {
+            let res = await createReferralCode({
+              programId: "program",
+            });
+
+            (window as any).debugLog?.(
+              `Convex create referral code result: ${JSON.stringify(res, null, 4)}`
+            );
+          }}
+        >
+          Create Referral Code
+        </Button>
+
+        <Button
+          onClick={async () => {
+            let res = await openBillingPortal({
+              returnUrl: "http://localhost:5173/",
+            });
+
+            (window as any).debugLog?.(
+              `Convex open billing portal result: ${JSON.stringify(res, null, 4)}`
+            );
+          }}
+        >
+          Open Billing Portal
+        </Button>
+
+
+        <Button
+            className="col-span-2"
+            onClick={async () => {
+              let res = await attach({
+                productId: "entities",
+                successUrl: "http://localhost:5173/",
+                dialog: CheckoutDialog,
+              });
+
+              (window as any).debugLog?.(
+                `Convex attach entities result: ${JSON.stringify(res, null, 4)}`
+              );
+            }}
+        >
+          Attach Entities  
+        </Button>
+
       </div>
     </div>
   );
