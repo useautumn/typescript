@@ -28,7 +28,6 @@ export const ReactAutumnProvider = ({
   headers,
   convexApi,
   convexUrl,
-  convexIdentify,
 }: {
   children: React.ReactNode;
   getBearerToken?: () => Promise<string | null>;
@@ -39,15 +38,13 @@ export const ReactAutumnProvider = ({
   headers?: Record<string, string>;
   convexApi?: any; // The exported autumn.api() object from Convex
   convexUrl?: string; // The Convex deployment URL
-  convexIdentify?: any; // Function reference to the identify action (e.g., "api.identify.identify")
 }) => {
   let client: IAutumnClient = convexApi 
     ? new ConvexAutumnClient({ 
         convexApi, 
-        convexUrl: convexUrl!, 
+        convexUrl: getBackendUrl(convexUrl!), 
         customerData, 
         headers,
-        convexIdentify,
         getBearerToken,
       })
     : new AutumnClient({
