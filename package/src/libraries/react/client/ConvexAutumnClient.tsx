@@ -25,14 +25,12 @@ export interface ConvexAutumnClientConfig {
 	convexUrl: string; // The Convex deployment URL
 	customerData?: CustomerData;
 	headers?: Record<string, string>;
-	convexIdentify?: any; // Function reference to the identify action
 	getBearerToken?: () => Promise<string | null>;
 }
 
 export class ConvexAutumnClient implements IAutumnClient {
 	protected readonly convexApi: any;
 	protected readonly convexClient: ConvexHttpClient;
-	protected readonly convexIdentify?: any; // Function reference to the identify action
 	public readonly customerData?: CustomerData;
 	public readonly headers?: Record<string, string>;
 	public readonly backendUrl?: string = undefined;
@@ -76,13 +74,11 @@ export class ConvexAutumnClient implements IAutumnClient {
 		convexUrl,
 		customerData,
 		headers,
-		convexIdentify,
 		getBearerToken,
 	}: ConvexAutumnClientConfig) {
 		this.convexApi = convexApi;
 		this.convexClient = new ConvexHttpClient(convexUrl);
 		this.getBearerToken = getBearerToken;
-		this.convexIdentify = convexIdentify;
 		this.customerData = customerData;
 		this.headers = headers;
 	}
@@ -101,6 +97,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 			const result = await this.convexClient.action(
 				this.convexApi.fetchCustomer
 			);
+
 			return result;
 		} catch (error: any) {
 			return {
