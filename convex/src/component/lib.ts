@@ -74,9 +74,9 @@ export const fetchCustomer = async (args: FetchCustomerArgsType) => {
       secretKey: args.apiKey,
     });
     const customer = await autumn.customers.create({
-      id: args.customerId,
-      email: args.customerData?.email,
-      name: args.customerData?.name,
+      id: args.customer_id,
+      email: args.customer_data?.email,
+      name: args.customer_data?.name,
       expand: args.expand,
     });
     return customer;
@@ -86,7 +86,7 @@ export const track = async (args: TrackArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  console.log("Inside lib.ts track", args.customerId);
+  
   let res = await autumn.track(camelToSnake(args));
   return res;
 };
