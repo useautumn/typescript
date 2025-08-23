@@ -8,6 +8,6 @@ export const autumn = new Autumn(components.autumn, {
   apiKey: process.env.AUTUMN_SECRET_KEY ?? "",
 });
 
-export const { track, cancel, setupPayment, query, attach, check, checkout, createEntity, deleteEntity, getEntity, usage, listProducts, getCustomer, getProduct } = autumn.api();
+export const { track, cancel, setupPayment, query, attach, check, checkout, createEntity, deleteEntity, getEntity, usage, listProducts, getCustomer, getProduct, fetchCustomer } = autumn.api();
 
 export default autumn;

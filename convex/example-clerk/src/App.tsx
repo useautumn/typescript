@@ -39,16 +39,6 @@ function AutumnWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <AutumnProvider
-      // backendUrl={import.meta.env.VITE_CONVEX_SITE_URL}
-      // includeCredentials={true}
-      // getBearerToken={async () => {
-      //   try {
-      //     return await getToken() || "";
-      //   } catch (error) {
-      //     console.error("Failed to get fresh token:", error);
-      //     return "";
-      //   }
-      // }}
       convexApi={api.autumn}
       convexUrl={import.meta.env.VITE_CONVEX_URL}
       convexIdentify={api.identify}
