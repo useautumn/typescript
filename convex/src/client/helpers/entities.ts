@@ -11,7 +11,7 @@ export const create = async (args: CreateEntityArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  return await wrapSdkCall(() => autumn.entities.create(camelToSnake(args)));
+  return await wrapSdkCall(() => autumn.entities.create(args.customer_id, camelToSnake(args.entities)));
 };
 
 export const discard = async (args: DeleteEntityArgsType) => {
