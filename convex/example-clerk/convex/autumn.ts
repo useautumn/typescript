@@ -50,6 +50,11 @@ export const testAction = action({
     bar: v.string(),
   }),
   handler: async (ctx, args) => {
-    return 1;
+    let s = await autumn.customers.create(ctx, {
+      customer_id: "1234",
+      name: "John Doe",
+      email: "john.doe@example.com",
+    })
+    return s;
   },
 });

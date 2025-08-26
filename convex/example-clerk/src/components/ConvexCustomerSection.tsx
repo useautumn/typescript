@@ -13,6 +13,7 @@ export function ConvexCustomerSection() {
   const [open, setOpen] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [entityId, setEntityId] = useState("");
   // const foo = useAction(api.autumn.foo);
   // const { customer, track, check, attach, checkout, createEntity, deleteEntity } =
   //   useCustomer({
@@ -133,22 +134,34 @@ export function ConvexCustomerSection() {
           Checkout
         </Button>
 
-        <Button
-          className="col-span-2"
-          onClick={async () => {
-            let res = await createEntity({
-              name: "test",
-              id: "test3",
-              featureId: "seats",
-            });
+        {/* Pill-shaped input + button for Create Entity */}
+        <div className="col-span-2 flex items-center bg-white/10 rounded-full px-2 py-1 w-full max-w-md" style={{ minHeight: 48 }}>
+          <input
+            type="text"
+            placeholder="Entity ID"
+            value={entityId}
+            onChange={e => setEntityId(e.target.value)}
+            className="flex-grow bg-transparent outline-none px-4 py-2 text-white placeholder-gray-400 rounded-full"
+            style={{ minWidth: 0 }}
+          />
+          <button
+            className="ml-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium px-4 py-2 rounded-full transition-colors text-sm"
+            style={{ flex: "0 0 10%" }}
+            onClick={async () => {
+              let res = await createEntity({
+                name: "test",
+                id: entityId || "test3",
+                featureId: "seats",
+              });
 
-            (window as any).debugLog?.(
-              `Convex create entity result: ${JSON.stringify(res, null, 4)}`
-            );
-          }}
-        >
-          Create Entity
-        </Button>
+              (window as any).debugLog?.(
+                `Convex create entity result: ${JSON.stringify(res, null, 4)}`
+              );
+            }}
+          >
+            Create
+          </button>
+        </div>
 
         <Button
           onClick={async () => {
