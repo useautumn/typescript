@@ -125,114 +125,121 @@ export class Autumn {
       ...camelToSnake(args),
       customer_id: identifierOpts.customerId,
       apiKey: this.options.apiKey,
-    })
+    });
   }
 
   customers = {
-    get: async(ctx: any, args: Omit<GetCustomerArgsType, "apiKey">) => {
+    get: async (ctx: any, args: Omit<GetCustomerArgsType, "apiKey">) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.customers.get({
         ...camelToSnake(args),
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    getById: async(ctx: any, id: string) => {
+    getById: async (ctx: any, id: string) => {
       return await autumnHelpers.customers.get({
         customer_id: id,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    update: async(ctx: any, args: Omit<UpdateCustomerArgsType, "apiKey">) => {
+    update: async (ctx: any, args: Omit<UpdateCustomerArgsType, "apiKey">) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.customers.update({
         ...camelToSnake(args),
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    delete: async(ctx: any) => {
+    delete: async (ctx: any) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.customers.discard({
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    create: async(ctx: any, args: Omit<CreateCustomerArgsType, "apiKey">) => {
+    create: async (ctx: any, args: Omit<CreateCustomerArgsType, "apiKey">) => {
       return await autumnHelpers.customers.create({
         ...args,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    billingPortal: async(ctx: any, args: BillingPortalArgsType) => {
+    billingPortal: async (ctx: any, args: BillingPortalArgsType) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.customers.billingPortal({
         ...camelToSnake(args),
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
-    }
-  }
+      });
+    },
+  };
 
   products = {
-    get: async(ctx: any, args: Omit<GetProductArgsType, "apiKey">) => {
+    get: async (ctx: any, args: Omit<GetProductArgsType, "apiKey">) => {
       return await autumnHelpers.products.get({
         ...args,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    list: async(ctx: any) => {
+    list: async (ctx: any) => {
       return await autumnHelpers.products.list({
         apiKey: this.options.apiKey,
-      })
-    }
-  }
+      });
+    },
+  };
 
   referrals = {
-    createCode: async(ctx: any, args: Omit<CreateReferralCodeArgsType, "apiKey" | "customer_id">) => {
+    createCode: async (
+      ctx: any,
+      args: Omit<CreateReferralCodeArgsType, "apiKey" | "customer_id">
+    ) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.referrals.createCode({
         ...args,
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    redeemCode: async(ctx: any, args: Omit<RedeemReferralCodeArgsType, "apiKey" | "customer_id">) => {
+    redeemCode: async (
+      ctx: any,
+      args: Omit<RedeemReferralCodeArgsType, "apiKey" | "customer_id">
+    ) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.referrals.redeemCode({
         ...args,
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
-    }
-  }
+      });
+    },
+  };
 
   entities = {
-    get: async(ctx: any, args: Omit<GetEntityArgsType, "apiKey">) => {
+    get: async (ctx: any, args: Omit<GetEntityArgsType, "apiKey">) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.entities.get({
         ...args,
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    create: async(ctx: any, args: Omit<CreateEntityArgsType, "apiKey" | "customer_id">) => {
+    create: async (
+      ctx: any,
+      args: Omit<CreateEntityArgsType, "apiKey" | "customer_id">
+    ) => {
       const identifierOpts = await this.getIdentifierOpts(ctx);
       return await autumnHelpers.entities.create({
         ...args,
         customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
+      });
     },
-    delete: async(ctx: any, args: Omit<DeleteEntityArgsType, "apiKey" | "customer_id">) => {
-      const identifierOpts = await this.getIdentifierOpts(ctx);
+    delete: async (ctx: any, args: Omit<DeleteEntityArgsType, "apiKey">) => {
       return await autumnHelpers.entities.discard({
         ...args,
-        customer_id: identifierOpts.customerId,
         apiKey: this.options.apiKey,
-      })
-    }
-  }
+      });
+    },
+  };
 
   /**
    * Utility to re-export actions with automatic customer identification.
@@ -375,6 +382,12 @@ export class Autumn {
             id: args.id,
           };
 
+          console.log({
+            customer_id: identifierOpts.customerId,
+            entities,
+            apiKey: this.options.apiKey,
+          });
+
           return await autumnHelpers.entities.create({
             customer_id: identifierOpts.customerId,
             entities,
@@ -394,8 +407,8 @@ export class Autumn {
           }
 
           // Convert camelCase featureId to snake_case feature_id for each entity
-          const entities = Array.isArray(args.entities) 
-            ? args.entities.map(entity => ({
+          const entities = Array.isArray(args.entities)
+            ? args.entities.map((entity) => ({
                 name: entity.name,
                 feature_id: entity.featureId,
                 id: entity.id,
@@ -484,7 +497,7 @@ export class Autumn {
             name: identifierOpts.customerData.name,
             email: identifierOpts.customerData.email,
             apiKey: this.options.apiKey,
-            expand: args?.expand
+            expand: args?.expand,
           });
         },
       }),
@@ -506,7 +519,7 @@ export class Autumn {
             name: identifierOpts.customerData.name,
             email: identifierOpts.customerData.email,
             apiKey: this.options.apiKey,
-            expand: args?.expand
+            expand: args?.expand,
           });
         },
       }),
@@ -653,7 +666,7 @@ export class Autumn {
             throw new Error(
               "No customer identifier found for Autumn.identify()"
             );
-          } 
+          }
 
           const usageArgs: UsageArgsType = {
             feature_id: args.featureId,
@@ -746,9 +759,7 @@ export class Autumn {
   async getIdentifierOpts(ctx: any) {
     const identifierOpts = await this.options.identify(ctx);
     if (!identifierOpts) {
-      throw new Error(
-        "No customer identifier found for Autumn.identify()"
-      );
+      throw new Error("No customer identifier found for Autumn.identify()");
     }
     return identifierOpts;
   }
