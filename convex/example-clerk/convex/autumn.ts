@@ -45,9 +45,6 @@ export const {
   billingPortal
 } = autumn.api();
 
-
-export const { foo } = autumn.testApi();
-
 export const testAction = action({
   args: v.object({
     bar: v.string(),

@@ -63,6 +63,12 @@ import {
   GetEntityArgsType,
   FetchCustomerArgs,
   ExpandArgs,
+  UserTrackArgsType,
+  UserCheckArgsType,
+  UserAttachArgsType,
+  UserCheckoutArgsType,
+  camelToSnake,
+  CreateCustomerArgsType,
 } from "../types.js";
 import { convexHandler } from "autumn-js/convex";
 import * as autumnHelpers from "./helpers/index.js";
@@ -83,17 +89,149 @@ export class Autumn {
     }
   ) {}
 
-  testApi() {
-    return {
-      foo: actionGeneric({
-        args: v.object({
-          bar: v.string(),
-        }),
-        handler: async (ctx, args) => {
-          return "bar";
-        },
-      }),
-    };
+  async track(ctx: any, args: UserTrackArgsType) {
+    const identifierOpts = await this.getIdentifierOpts(ctx);
+    return await autumnHelpers.track({
+      ...args,
+      customer_id: identifierOpts.customerId,
+      customer_data: identifierOpts.customerData,
+      apiKey: this.options.apiKey,
+    });
+  }
+
+  async check(ctx: any, args: UserCheckArgsType) {
+    const identifierOpts = await this.getIdentifierOpts(ctx);
+    return await autumnHelpers.check({
+      ...args,
+      customer_id: identifierOpts.customerId,
+      customer_data: identifierOpts.customerData,
+      apiKey: this.options.apiKey,
+    });
+  }
+
+  async attach(ctx: any, args: UserAttachArgsType) {
+    const identifierOpts = await this.getIdentifierOpts(ctx);
+    return await autumnHelpers.attach({
+      ...args,
+      customer_id: identifierOpts.customerId,
+      customer_data: identifierOpts.customerData,
+      apiKey: this.options.apiKey,
+    });
+  }
+
+  async checkout(ctx: any, args: UserCheckoutArgsType) {
+    const identifierOpts = await this.getIdentifierOpts(ctx);
+    return await autumnHelpers.checkout({
+      ...camelToSnake(args),
+      customer_id: identifierOpts.customerId,
+      apiKey: this.options.apiKey,
+    })
+  }
+
+  customers = {
+    get: async(ctx: any, args: Omit<GetCustomerArgsType, "apiKey">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.customers.get({
+        ...camelToSnake(args),
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    },
+    getById: async(ctx: any, id: string) => {
+      return await autumnHelpers.customers.get({
+        customer_id: id,
+        apiKey: this.options.apiKey,
+      })
+    },
+    update: async(ctx: any, args: Omit<UpdateCustomerArgsType, "apiKey">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.customers.update({
+        ...camelToSnake(args),
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    },
+    delete: async(ctx: any) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.customers.discard({
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    },
+    create: async(ctx: any, args: Omit<CreateCustomerArgsType, "apiKey">) => {
+      return await autumnHelpers.customers.create({
+        ...args,
+        apiKey: this.options.apiKey,
+      })
+    },
+    billingPortal: async(ctx: any, args: BillingPortalArgsType) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.customers.billingPortal({
+        ...camelToSnake(args),
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    }
+  }
+
+  products = {
+    get: async(ctx: any, args: Omit<GetProductArgsType, "apiKey">) => {
+      return await autumnHelpers.products.get({
+        ...args,
+        apiKey: this.options.apiKey,
+      })
+    },
+    list: async(ctx: any) => {
+      return await autumnHelpers.products.list({
+        apiKey: this.options.apiKey,
+      })
+    }
+  }
+
+  referrals = {
+    createCode: async(ctx: any, args: Omit<CreateReferralCodeArgsType, "apiKey" | "customer_id">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.referrals.createCode({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    },
+    redeemCode: async(ctx: any, args: Omit<RedeemReferralCodeArgsType, "apiKey" | "customer_id">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.referrals.redeemCode({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    }
+  }
+
+  entities = {
+    get: async(ctx: any, args: Omit<GetEntityArgsType, "apiKey">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.entities.get({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    },
+    create: async(ctx: any, args: Omit<CreateEntityArgsType, "apiKey" | "customer_id">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.entities.create({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    },
+    delete: async(ctx: any, args: Omit<DeleteEntityArgsType, "apiKey" | "customer_id">) => {
+      const identifierOpts = await this.getIdentifierOpts(ctx);
+      return await autumnHelpers.entities.discard({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        apiKey: this.options.apiKey,
+      })
+    }
   }
 
   /**
@@ -603,6 +741,16 @@ export class Autumn {
         },
       }),
     };
+  }
+
+  async getIdentifierOpts(ctx: any) {
+    const identifierOpts = await this.options.identify(ctx);
+    if (!identifierOpts) {
+      throw new Error(
+        "No customer identifier found for Autumn.identify()"
+      );
+    }
+    return identifierOpts;
   }
 
   async registerRoutes(

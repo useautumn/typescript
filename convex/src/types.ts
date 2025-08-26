@@ -1,36 +1,5 @@
 import { v, Infer } from "convex/values";
-import { zodToConvex } from "convex-helpers/server/zod";
-import {
-  // Zod schemas from SDK
-  CustomerDataSchema,
-  TrackParamsSchema,
-  CheckParamsSchema,
-  AttachParamsSchema,
-  CheckoutParamsSchema,
-  CancelParamsSchema,
-  QueryParamsSchema,
-  EntityDataSchema,
-  CreateCustomerParamsSchema,
-  BillingPortalParamsSchema,
-  CreateReferralCodeParamsSchema,
-  RedeemReferralCodeParamsSchema,
-  AttachFeatureOptionsSchema,
-  // Types from SDK
-  type TrackParams,
-  type CheckParams,
-  type AttachParams,
-  type CheckoutParams,
-  type CancelParams,
-  type QueryParams,
-  type CustomerData,
-  type CreateCustomerParams,
-  type BillingPortalParams,
-  type CreateReferralCodeParams,
-  type RedeemReferralCodeParams,
-  type AttachFeatureOptions,
-} from "autumn-js";
 
-// Convert SDK Zod schemas to Convex validators - fallback to manual conversion due to zod version issues
 export const CustomerDataConvex = v.object({
   name: v.optional(v.string()),
   email: v.optional(v.string()),
@@ -53,6 +22,8 @@ export const UserTrackArgs = v.object({
   entityData: v.optional(v.any()), // Added to match SDK
 });
 
+export type UserTrackArgsType = Infer<typeof UserTrackArgs>;
+
 export const UserCheckArgs = v.object({
   productId: v.optional(v.string()),
   featureId: v.optional(v.string()),
@@ -63,6 +34,8 @@ export const UserCheckArgs = v.object({
   customerData: v.optional(CustomerDataConvex), // User-facing camelCase
   entityData: v.optional(v.any()), // Added to match SDK
 });
+
+export type UserCheckArgsType = Infer<typeof UserCheckArgs>;
 
 export const UserAttachArgs = v.object({
   productId: v.optional(v.string()), // Made optional to match SDK
@@ -80,6 +53,8 @@ export const UserAttachArgs = v.object({
   invoice: v.optional(v.boolean()), // Added to match SDK
 });
 
+export type UserAttachArgsType = Infer<typeof UserAttachArgs>;
+
 export const UserCheckoutArgs = v.object({
   productId: v.string(),
   entityId: v.optional(v.string()),
@@ -92,6 +67,8 @@ export const UserCheckoutArgs = v.object({
   checkoutSessionParams: v.optional(v.object({})),
   reward: v.optional(v.string()),
 });
+
+export type UserCheckoutArgsType = Infer<typeof UserCheckoutArgs>;
 
 // Full args with auth fields (for internal use) - converted from SDK schemas
 export const TrackArgs = v.object({
