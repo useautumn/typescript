@@ -33,13 +33,15 @@ import { logger } from "../utils/logger";
 import { featureMethods } from "./features/featureMethods";
 
 const LATEST_API_VERSION = "1.2";
-
 export class Autumn {
   private readonly secretKey: string | undefined;
   private readonly publishableKey: string | undefined;
   private headers: Record<string, string>;
   private url: string;
   private logger: any = console;
+  private version: string | undefined;
+  private runtime: string | undefined;
+  private runtimeVersion: string | undefined;
 
   constructor(options?: {
     secretKey?: string;
@@ -59,9 +61,31 @@ export class Autumn {
       throw new Error("Autumn secret key or publishable key is required");
     }
 
+    try {
+      const version = require("../../package.json").version;
+      this.version = version;
+
+      // Detect runtime and version
+      if (typeof Bun !== "undefined" && Bun.version) {
+        this.runtime = "bun";
+        this.runtimeVersion = Bun.version;
+      } else if (typeof process !== "undefined" && process.version) {
+        this.runtime = "node";
+        this.runtimeVersion = process.version;
+      } else {
+        this.runtime = "unknown";
+        this.runtimeVersion = "unknown";
+      }
+    } catch (error) {
+      console.warn("[Autumn] Error getting version:", error);
+      this.runtime = "unknown";
+      this.runtimeVersion = "unknown";
+    }
+
     this.headers = options?.headers || {
       Authorization: `Bearer ${this.secretKey || this.publishableKey}`,
       "Content-Type": "application/json",
+      "User-Agent": `autumn-js/${this.version || "unknown"} (${this.runtime || "unknown"}/${this.runtimeVersion || "unknown"})`,
     };
 
     let version = options?.version || LATEST_API_VERSION;
