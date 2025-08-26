@@ -382,12 +382,6 @@ export class Autumn {
             id: args.id,
           };
 
-          console.log({
-            customer_id: identifierOpts.customerId,
-            entities,
-            apiKey: this.options.apiKey,
-          });
-
           return await autumnHelpers.entities.create({
             customer_id: identifierOpts.customerId,
             entities,
