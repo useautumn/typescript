@@ -42,7 +42,6 @@ export const track = async (args: TrackArgsType) => {
   const autumn = new Autumn({
     secretKey: args.apiKey,
   });
-  console.log("Inside lib.ts track", args.customer_id);
   return await wrapSdkCall(() => autumn.track(camelToSnake(args)));
 };
 
