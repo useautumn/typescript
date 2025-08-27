@@ -81,6 +81,7 @@ const handleFeatureCheck = ({
   let { cusFeature, requiredBalance } = getCusFeature({
     customer,
     featureId: params.featureId!,
+    ...(params.requiredBalance ? { requiredBalance: params.requiredBalance } : {}),
   });
 
   let allowed = getFeatureAllowed({ cusFeature, requiredBalance });
