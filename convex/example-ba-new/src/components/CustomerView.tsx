@@ -1,4 +1,5 @@
 import { Customer } from "autumn-js";
+
 interface CustomerViewProps {
   customer: Customer;
 }
@@ -7,10 +8,7 @@ export function CustomerView({ customer }: CustomerViewProps) {
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 shadow-lg px-4 py-3 mb-4 w-full max-w-md">
       <div className="font-medium text-gray-100 mb-2 text-sm">
-        Signed in as:{" "}
-        <span className="text-blue-400 font-semibold">
-          {customer.name ?? "No name"}
-        </span>
+        Signed in as: <span className="text-blue-400 font-semibold">{customer.name ?? "No name"}</span>
       </div>
       <details className="group">
         <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-300 transition-colors">

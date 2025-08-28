@@ -10,29 +10,30 @@ const siteUrl = "http://localhost:5173";
 export const createAuth = (ctx: GenericCtx) =>
   // Configure your Better Auth instance here
   betterAuth({
-    trustedOrigins: [siteUrl, process.env.CONVEX_SITE_URL || "https://majestic-giraffe-9.convex.site"],
+    trustedOrigins: [
+      siteUrl,
+      process.env.CONVEX_SITE_URL || "https://majestic-giraffe-9.convex.site",
+    ],
     database: convexAdapter(ctx, betterAuthComponent),
 
-    // Simple non-verified email/password to get started
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: false,
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+        },
     },
     plugins: [
-      // The Convex plugin is required
       convex(),
 
-      // The cross domain plugin is required for client side frameworks
       crossDomain({
         siteUrl,
       }),
     ],
-    // Configure cross-subdomain cookies for cross-origin requests
     advanced: {
       crossSubDomainCookies: {
         enabled: true,
-        domain: "majestic-giraffe-9.convex.site", // Allow cookies across convex.site subdomains
+        domain: "majestic-giraffe-9.convex.site", 
       },
-      useSecureCookies: false, // Ensure cookies are secure for HTTPS
+      useSecureCookies: false, 
     },
   });

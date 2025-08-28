@@ -12,14 +12,46 @@ import { useAction } from "convex/react";
 export function ConvexCustomerSection() {
   const [open, setOpen] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [entityId, setEntityId] = useState("");
   // const foo = useAction(api.autumn.foo);
   // const { customer, track, check, attach, checkout, createEntity, deleteEntity } =
   //   useCustomer({
   //     autumnApi: (api as any).autumn,
   //   });
-  const { customer, track, check, attach, checkout, createEntity } = useCustomer();
-  const entityApi = useEntity("test");
-  const billingPortal = useAction(api.example.billingPortal);
+  const {
+    customer,
+    track,
+    check,
+    attach,
+    checkout,
+    createEntity,
+    cancel,
+    redeemReferralCode,
+    createReferralCode,
+    openBillingPortal,
+  } = useCustomer({
+    expand: ["payment_method"],
+  });
+
+  React.useEffect(() => {
+    if (customer !== undefined) {
+      setIsLoading(false);
+    }
+  }, [customer]);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-8 w-full">
+        <h3 className="text-center text-lg font-semibold text-gray-200 mb-6">
+          Try it out
+        </h3>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-gray-400">Loading customer data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-8 w-full">
@@ -102,47 +134,110 @@ export function ConvexCustomerSection() {
           Checkout
         </Button>
 
+        {/* Pill-shaped input + button for Create Entity */}
+        <div className="col-span-2 flex items-center bg-white/10 rounded-full px-2 py-1 w-full max-w-md" style={{ minHeight: 48 }}>
+          <input
+            type="text"
+            placeholder="Entity ID"
+            value={entityId}
+            onChange={e => setEntityId(e.target.value)}
+            className="flex-grow bg-transparent outline-none px-4 py-2 text-white placeholder-gray-400 rounded-full"
+            style={{ minWidth: 0 }}
+          />
+          <button
+            className="ml-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium px-4 py-2 rounded-full transition-colors text-sm"
+            style={{ flex: "0 0 10%" }}
+            onClick={async () => {
+              let res = await createEntity({
+                name: "test",
+                id: entityId || "test3",
+                featureId: "seats",
+              });
+
+              (window as any).debugLog?.(
+                `Convex create entity result: ${JSON.stringify(res, null, 4)}`
+              );
+            }}
+          >
+            Create
+          </button>
+        </div>
+
         <Button
-          className="col-span-2"
           onClick={async () => {
-            let res = await createEntity({
-              name: "test",
-              id: "test",
-              featureId: "seats",
+            let res = await cancel({
+              productId: "prepaid",
+              cancelImmediately: true,
             });
 
             (window as any).debugLog?.(
-              `Convex create entity result: ${JSON.stringify(res, null, 4)}`
+              `Convex cancel result: ${JSON.stringify(res, null, 4)}`
             );
           }}
         >
-          Create Entity
+          Cancel Prepaid
         </Button>
 
-        <Button 
-          className="col-span-2"
+        <Button
           onClick={async () => {
-            let res = await billingPortal();
+            let res = await redeemReferralCode({
+              code: "WYZ9W0",
+            });
+
             (window as any).debugLog?.(
-              `Convex billing portal result: ${JSON.stringify(res, null, 4)}`
+              `Convex redeem referral code result: ${JSON.stringify(res, null, 4)}`
             );
           }}
         >
-          Billing Portal
+          Redeem Referral Code
         </Button>
 
-        {/* <Button
-          className="col-span-2"
+        <Button
           onClick={async () => {
-            let res = await entityApi.delete();
+            let res = await createReferralCode({
+              programId: "program",
+            });
 
             (window as any).debugLog?.(
-              `Convex delete entity result: ${JSON.stringify(res, null, 4)}`
+              `Convex create referral code result: ${JSON.stringify(res, null, 4)}`
             );
           }}
         >
-          Delete Entity
-        </Button> */}
+          Create Referral Code
+        </Button>
+
+        <Button
+          onClick={async () => {
+            let res = await openBillingPortal({
+              returnUrl: "http://localhost:5173/",
+            });
+
+            (window as any).debugLog?.(
+              `Convex open billing portal result: ${JSON.stringify(res, null, 4)}`
+            );
+          }}
+        >
+          Open Billing Portal
+        </Button>
+
+
+        <Button
+            className="col-span-2"
+            onClick={async () => {
+              let res = await attach({
+                productId: "entities",
+                successUrl: "http://localhost:5173/",
+                dialog: CheckoutDialog,
+              });
+
+              (window as any).debugLog?.(
+                `Convex attach entities result: ${JSON.stringify(res, null, 4)}`
+              );
+            }}
+        >
+          Attach Entities  
+        </Button>
+
       </div>
     </div>
   );

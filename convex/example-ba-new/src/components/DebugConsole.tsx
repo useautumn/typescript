@@ -42,23 +42,6 @@ export function DebugConsole() {
   useEffect(() => {
     window.debugLog = addLog;
     
-    // Add some test messages to verify layout works
-    setTimeout(() => {
-      addLog("Debug console initialized successfully", "DEBUG");
-      addLog("This is a very long message that should wrap properly and not cause horizontal scrolling or layout issues. It contains lots of text to test the text wrapping behavior.", "LOG");
-      addLog(`JSON test: ${JSON.stringify({
-        user: "test@example.com",
-        data: {
-          features: {
-            messages: { usage: 50, limit: 100 },
-            seats: { usage: 3, limit: 5 }
-          },
-          subscription: "pro",
-          veryLongPropertyNameThatShouldWrapProperly: "This is a very long value that should also wrap properly without breaking the layout"
-        }
-      }, null, 2)}`, "INFO");
-    }, 1000);
-    
     // Store original console methods
     const originalConsole = {
       log: console.log,
