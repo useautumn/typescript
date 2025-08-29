@@ -33,3 +33,6 @@ debug
 frameworks
 !frameworks/conv/
 launch-demo
+
+convex/example-ba-new
+convex/example-clerk

@@ -127,6 +127,8 @@ export default function Home() {
               const res = check({
                 featureId: "capabilities_library",
                 // requiredBalance: 1000,
+                featureId: "rfirfp_compliance_analysis",
+                requiredBalance: 6,
               });
               console.log(res);
             }}

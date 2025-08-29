@@ -2,9 +2,8 @@ import { BaseAutumnProvider } from "./BaseAutumnProvider";
 import { AutumnClient } from "./client/ReactAutumnClient";
 import { CustomerData } from "../../sdk";
 import { AutumnContext } from "./AutumnContext";
-import { useEffect } from "react";
-import { c } from "node_modules/better-call/dist/router-BEp4ze3Q.cjs";
-import { apiKey } from "better-auth/plugins";
+import { IAutumnClient } from "./client/ReactAutumnClient";
+import { ConvexAutumnClient } from "./client/ConvexAutumnClient";
 
 const getBackendUrl = (backendUrl?: string) => {
   if (backendUrl) {
@@ -34,6 +33,7 @@ const getBackendUrl = (backendUrl?: string) => {
 export const ReactAutumnProvider = ({
   children,
   getBearerToken,
+  convex,
   backendUrl,
   customerData,
   includeCredentials,
@@ -42,22 +42,31 @@ export const ReactAutumnProvider = ({
   convexApi,
 }: {
   children: React.ReactNode;
-  getBearerToken?: () => Promise<string | null | undefined>;
+  getBearerToken?: () => Promise<string | null>;
+  convex?: any;
   backendUrl?: string;
   customerData?: CustomerData;
   includeCredentials?: boolean;
   betterAuthUrl?: string;
   headers?: Record<string, string>;
-  convexApi?: any
+  convexApi?: any; // The exported autumn.api() object from Convex
 }) => {
-  let client = new AutumnClient({
-    backendUrl: getBackendUrl(backendUrl),
-    getBearerToken,
-    customerData,
-    includeCredentials,
-    betterAuthUrl,
-    headers,
-  });
+  let client: IAutumnClient = convexApi
+    ? new ConvexAutumnClient({
+        convex,
+        convexApi,
+        customerData,
+        headers,
+        getBearerToken,
+      })
+    : new AutumnClient({
+        backendUrl: getBackendUrl(backendUrl),
+        getBearerToken,
+        customerData,
+        includeCredentials,
+        betterAuthUrl,
+        headers,
+      });
 
   // if (convexApi) {
   //   client = new AutumnConvexClient({

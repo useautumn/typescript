@@ -32,7 +32,7 @@ const getCusFeature = ({
   if (
     cusFeature &&
     typeof cusFeature.balance === "number" &&
-    cusFeature.balance >= (requiredBalance ?? 1)
+    cusFeature.balance >= requiredBalance
   ) {
     return {
       cusFeature,
@@ -46,10 +46,12 @@ const getCusFeature = ({
       f.credit_schema && f.credit_schema.some((c) => c.feature_id === featureId)
   );
 
+  // 2. If there's a credit schema, use it...
   if (creditSchema) {
     let schemaItem = creditSchema.credit_schema?.find(
       (c) => c.feature_id === featureId
     )!;
+
     return {
       cusFeature: creditSchema,
       requiredBalance: schemaItem.credit_amount * requiredBalance,
@@ -99,7 +101,13 @@ const handleFeatureCheck = ({
       : {}),
   });
 
-  let allowed = getFeatureAllowed({ cusFeature, requiredBalance });
+  console.log("Cus Feature", cusFeature);
+  console.log("Required Balance", requiredBalance);
+
+  let allowed = getFeatureAllowed({
+    cusFeature,
+    requiredBalance: requiredBalance ?? 1,
+  });
 
   let result = {
     allowed,
