@@ -27,6 +27,19 @@ const getCusFeature = ({
   featureId: string;
   requiredBalance?: number;
 }) => {
+  // 1. If there's a cusFeature and balance > requiredBalance, use it...
+  let cusFeature = customer.features[featureId];
+  if (
+    cusFeature &&
+    typeof cusFeature.balance === "number" &&
+    cusFeature.balance >= (requiredBalance ?? 1)
+  ) {
+    return {
+      cusFeature,
+      requiredBalance: requiredBalance,
+    };
+  }
+
   // 1. If credit system exists, use it
   let creditSchema = Object.values(customer.features).find(
     (f: CustomerFeature) =>
@@ -38,7 +51,7 @@ const getCusFeature = ({
       (c) => c.feature_id === featureId
     )!;
     return {
-      feature: creditSchema,
+      cusFeature: creditSchema,
       requiredBalance: schemaItem.credit_amount * requiredBalance,
     };
   }
@@ -81,14 +94,16 @@ const handleFeatureCheck = ({
   let { cusFeature, requiredBalance } = getCusFeature({
     customer,
     featureId: params.featureId!,
-    ...(params.requiredBalance ? { requiredBalance: params.requiredBalance } : {}),
+    ...(params.requiredBalance
+      ? { requiredBalance: params.requiredBalance }
+      : {}),
   });
 
   let allowed = getFeatureAllowed({ cusFeature, requiredBalance });
 
   let result = {
     allowed,
-    feature_id: params.featureId!,
+    feature_id: cusFeature?.id ?? params.featureId!,
     customer_id: isEntity ? (customer as Entity).customer_id : customer.id,
     required_balance: requiredBalance,
     ...cusFeature,
@@ -186,7 +201,6 @@ export const handleCheck = ({
   data: CheckResult;
   error: null;
 } => {
-
   if (!customer) {
     return {
       data: {
@@ -204,7 +218,7 @@ export const handleCheck = ({
   }
 
   let result;
-  
+
   if (params.featureId)
     result = handleFeatureCheck({ customer, params, isEntity });
 
