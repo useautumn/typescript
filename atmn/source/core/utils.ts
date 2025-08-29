@@ -11,11 +11,28 @@ export function snakeCaseToCamelCase(value: string) {
 	return value.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
 }
 
-export function idToVar(id: string): string {
-	return id
+export function idToVar({
+	id,
+	prefix = 'product',
+}: {
+	id: string;
+	prefix?: string;
+}): string {
+	const processed = id
 		.replace(/[-_](.)/g, (_, letter) => letter.toUpperCase())
-		.replace(/^[^a-zA-Z_$]/, '_') // Handle leading non-letter characters
 		.replace(/[^a-zA-Z0-9_$]/g, ''); // Remove invalid JavaScript identifier characters
+
+	// If the processed string starts with a number, add 'product' prefix
+	if (/^[0-9]/.test(processed)) {
+		return `${prefix}${processed}`;
+	}
+
+	// If it starts with other invalid characters, add 'product' prefix
+	if (/^[^a-zA-Z_$]/.test(processed)) {
+		return `${prefix}${processed}`;
+	}
+
+	return processed;
 }
 
 async function upsertEnvVar(

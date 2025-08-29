@@ -2,10 +2,9 @@
 // import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { PaywallDialog, PricingTable, useCustomer } from "autumn-js/react";
-import { useEffect, useState } from "react";
+import { PricingTable, useCustomer } from "autumn-js/react";
 // import PricingTable from "@/components/autumn/pricing-table";
-import { default as BlockingPaywallDialog } from "@/components/autumn/paywall-dialog";
+import { CheckoutDialog } from "autumn-js/react";
 export default function Home() {
   const {
     attach,
@@ -16,11 +15,17 @@ export default function Home() {
     openBillingPortal,
     redeemReferralCode,
     createReferralCode,
+    customer,
     isLoading,
     // allowed,
-  } = useCustomer();
+  } = useCustomer({
+    // expand: ["referrals"],
+  });
 
-  
+  customer?.referrals?.map((referral) => {
+    console.log(referral);
+  });
+
   // useEffect(() => {
   //   check({ featureId: "create_thinkfasts", dialog: BlockingPaywallDialog });
   // }, [isLoading]);
@@ -119,8 +124,8 @@ export default function Home() {
 
           <Button
             onClick={async () => {
-              const res = await check({
-                featureId: "messages",
+              const res = check({
+                featureId: "runable_credits",
               });
               console.log(res);
             }}
@@ -142,8 +147,10 @@ export default function Home() {
           <Button
             onClick={async () => {
               const res = await checkout({
-                productId: "pro",
+                productId: "memory_starter",
                 successUrl: "https://facebook.com",
+                dialog: CheckoutDialog,
+                openInNewTab: true,
               });
               console.log(res);
             }}
@@ -161,7 +168,6 @@ export default function Home() {
           >
             Attach
           </Button>
-
 
           <Button
             onClick={async () => {

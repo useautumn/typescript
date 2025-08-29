@@ -23,6 +23,14 @@ export const ProductItemSchema = z.object({
 	interval: ProductItemIntervalEnum.nullish(),
 	usage_model: UsageModelEnum.nullish(),
 	price: z.number().nullish(),
+	tiers: z
+		.array(
+			z.object({
+				amount: z.number(),
+				to: z.union([z.number(), z.literal('inf')]),
+			}),
+		)
+		.nullish(),
 	billing_units: z.number().nullish(), // amount per billing unit (eg. $9 / 250 units)
 
 	reset_usage_when_enabled: z.boolean().optional(),

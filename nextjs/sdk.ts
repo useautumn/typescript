@@ -3,42 +3,29 @@ import { Autumn } from "autumn-js";
 
 const main = async () => {
   const autumn = new Autumn({
-    secretKey: process.env.AUTUMN_SECRET_KEY,
-    url: "http://localhost:8080/v1",
+    secretKey: "am_sk_live_dx7Ctm004QSgsOSCborwYJa52h4QFqq5kmUfDCVAwn",
   });
 
-  // const autumn = new Autumn();
-
-  const cancelRes = await autumn.cancel({
-    customer_id: "123",
-    product_id: "pro",
-    cancel_immediately: true,
+  const concurrencyLineCheck = await autumn.check({
+    customer_id: "9bafd636-0c52-46b3-8ecd-1708d6faa373",
+    feature_id: "concurrency_line",
+    required_balance: 1,
+  });
+  const callLimitCheck = await autumn.check({
+    customer_id: "9bafd636-0c52-46b3-8ecd-1708d6faa373",
+    feature_id: "call_limit",
+    required_balance: 1,
   });
 
-  console.log("Cancel res:", cancelRes);
+  console.log(concurrencyLineCheck);
+  console.log(callLimitCheck);
 
-  const attachRes = await autumn.attach({
-    customer_id: "123",
-    product_id: "pro",
-    reward: "ferndesk",
-  });
-
-  console.log("Attach res:", attachRes);
-  // const res = await autumn.checkout({
-  //   customer_id: "test",
-  //   product_id: "pro",
-  //   customer_data: {
-  //     email: "test@test.com",
-  //   },
-  // });
-
-  // console.log(res);
-
-  // await autumn.entities.transfer("123", {
-  //   from_entity_id: "2",
-  //   to_entity_id: "1",
-  //   product_id: "pro",
-  // });
+  // if (concurrencyLineCheck.data?.allowed === false) {
+  //   return {
+  //     allowed: false,
+  //     message: "You have reached the maximum number of concurrent lines",
+  //   };
+  // }
 };
 
 main();

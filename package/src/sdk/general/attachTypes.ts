@@ -53,6 +53,7 @@ export type AttachResult = z.infer<typeof AttachResultSchema>;
 export const CheckoutParamsSchema = z.object({
   customer_id: z.string(),
   product_id: z.string(),
+  product_ids: z.array(z.string()).optional(),
   entity_id: z.string().optional(),
   options: z.array(AttachFeatureOptionsSchema).optional(),
   force_checkout: z.boolean().optional(),
@@ -80,6 +81,7 @@ export type CheckoutResult = {
   options: AttachFeatureOptions[];
   product: Product;
   current_product: Product;
+  free_trial?: boolean;
   next_cycle?: {
     starts_at: number;
     total: number;

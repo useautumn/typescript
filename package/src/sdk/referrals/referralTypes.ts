@@ -28,5 +28,4 @@ export interface RedeemReferralCodeResult {
   id: string;
   customer_id: string;
   reward_id: string;
-  applied: boolean;
 }

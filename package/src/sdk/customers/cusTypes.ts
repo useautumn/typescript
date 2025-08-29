@@ -49,34 +49,21 @@ export const CoreCusFeatureSchema = z.object({
 
 export type CoreCustomerFeature = z.infer<typeof CoreCusFeatureSchema>;
 
-// export interface CoreCustomerFeature {
-//   unlimited?: boolean;
-//   interval?: ProductItemInterval | null;
-//   balance?: number;
-//   usage?: number;
-//   included_usage?: number;
-//   next_reset_at?: number | null;
-//   overage_allowed?: boolean;
-//   usage_limit?: number;
-
-//   breakdown?: {
-//     interval: ProductItemInterval;
-//     balance?: number;
-//     usage?: number;
-//     included_usage?: number;
-//     next_reset_at?: number;
-//   }[];
-
-//   credit_schema?: {
-//     feature_id: string;
-//     credit_amount: number;
-//   }[];
-// }
-
 export interface CustomerFeature extends CoreCustomerFeature {
   id: string;
   name: string;
   type: "static" | "single_use" | "continuous_use";
+}
+
+export interface CustomerReferral {
+  program_id: string;
+  customer: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  };
+  reward_applied: boolean;
+  created_at: number;
 }
 
 export interface CustomerProduct {
@@ -114,8 +101,11 @@ export interface Customer {
 
   products: CustomerProduct[];
   features: Record<string, CustomerFeature>;
+
+  // Expanded fields
   invoices?: CustomerInvoice[];
   payment_method?: any;
+  referrals?: CustomerReferral[];
 }
 
 export const CustomerDataSchema = z.object({
@@ -137,6 +127,7 @@ export const CreateCustomerParamsSchema = z.object({
   fingerprint: z.string().nullish(),
   metadata: z.record(z.string(), z.any()).optional(),
   expand: z.array(CustomerExpandEnum).optional(),
+  stripe_id: z.string().nullish(),
 });
 
 export type CreateCustomerParams = z.infer<typeof CreateCustomerParamsSchema>;
@@ -155,6 +146,8 @@ export interface UpdateCustomerParams {
   name?: string | null;
   email?: string | null;
   fingerprint?: string | null;
+  metadata?: Record<string, any>;
+  stripe_id?: string;
 }
 
 export const BillingPortalParamsSchema = z.object({

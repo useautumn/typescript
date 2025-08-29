@@ -1,7 +1,7 @@
 {
   "name": "autumn-js",
   "description": "Autumn JS Library",
-  "version": "0.1.12",
+  "version": "0.1.21",
   "main": "./dist/sdk/index.js",
   "files": [
     "dist",

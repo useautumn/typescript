@@ -63,8 +63,13 @@ export const useAutumnBase = ({
 
   const checkout = async (params: CheckoutParams) => {
     const { data, error } = await client.checkout(params);
-
     const { dialog, ...rest } = params;
+
+    if (params.dialog && params.productIds) {
+      throw new Error(
+        "Dialog and productIds are not supported together in checkout()"
+      );
+    }
 
     if (error) {
       return { data, error };
@@ -87,7 +92,7 @@ export const useAutumnBase = ({
     }
 
     if (params.dialog) {
-      attachDialog?.setProps({ checkoutResult: data, attachParams: rest });
+      attachDialog?.setProps({ checkoutResult: data, checkoutParams: rest });
       attachDialog?.setComponent(params.dialog);
       attachDialog?.setOpen(true);
     }

@@ -12,7 +12,7 @@ import {
 import { getCheckoutContent } from "./lib/checkout-content";
 import { useCustomer } from "@/index";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
-import type { CheckoutResult, ProductItem } from "@sdk";
+import type { CheckoutParams, CheckoutResult, ProductItem } from "@sdk";
 import {
   Accordion,
   AccordionContent,
@@ -29,6 +29,7 @@ export interface CheckoutDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   checkoutResult: CheckoutResult;
+  checkoutParams?: CheckoutParams;
 }
 
 const formatCurrency = ({
@@ -98,6 +99,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
 
               await attach({
                 productId: checkoutResult.product.id,
+                ...(params.checkoutParams || {}),
                 options,
               });
               setOpen(false);
@@ -230,8 +232,8 @@ function ProductItems({
                 {item.feature
                   ? item.feature.name
                   : isOneOff
-                    ? "Price"
-                    : "Subscription"}
+                  ? "Price"
+                  : "Subscription"}
               </p>
               <p>
                 {item.display?.primary_text} {item.display?.secondary_text}
@@ -360,7 +362,9 @@ const PrepaidItem = ({
   return (
     <div className="au-flex au-justify-between au-gap-2">
       <div className="au-flex au-gap-2 au-items-start">
-        <p className="au-text-muted-foreground">{item.feature?.name}</p>
+        <p className="au-text-muted-foreground au-whitespace-nowrap">
+          {item.feature?.name}
+        </p>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
@@ -399,8 +403,7 @@ const PrepaidItem = ({
 
               <Button
                 onClick={handleSave}
-                className="au-w-14 !au-h-7"
-                // au-text-sm au-items-center au-bg-white au-text-foreground au-shadow-sm au-border au-border-zinc-200 hover:au-bg-zinc-100
+                className="au-w-14 !au-h-7 au-text-sm au-items-center au-bg-white au-text-foreground au-shadow-sm au-border au-border-zinc-200 hover:au-bg-zinc-100"
                 disabled={loading}
               >
                 {loading ? (
