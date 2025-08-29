@@ -119,8 +119,9 @@ export default function Home() {
 
           <Button
             onClick={async () => {
-              const res = await check({
-                featureId: "messages",
+              const res = check({
+                featureId: "rfirfp_compliance_analysis",
+                requiredBalance: 6,
               });
               console.log(res);
             }}

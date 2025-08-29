@@ -13,7 +13,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@atmn-hq/convex": "workspace:*",
+    "@useautumn/convex": "workspace:*",
     "@clerk/clerk-react": "^5.0.0",
     "autumn-js": "workspace:*",
     "convex": "^1.25.0",

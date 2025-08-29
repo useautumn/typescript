@@ -2,9 +2,9 @@ import { BaseAutumnProvider } from "./BaseAutumnProvider";
 import { AutumnClient } from "./client/ReactAutumnClient";
 import { CustomerData } from "../../sdk";
 import { AutumnContext } from "./AutumnContext";
-import { useEffect } from "react";
 import { IAutumnClient } from "./client/ReactAutumnClient";
 import { ConvexAutumnClient } from "./client/ConvexAutumnClient";
+import { ConvexReactClient } from "convex/react";
 
 const getBackendUrl = (backendUrl?: string) => {
   if (backendUrl) {
@@ -21,28 +21,29 @@ const getBackendUrl = (backendUrl?: string) => {
 export const ReactAutumnProvider = ({
   children,
   getBearerToken,
+  convex,
   backendUrl,
   customerData,
   includeCredentials,
   betterAuthUrl,
   headers,
   convexApi,
-  convexUrl,
 }: {
   children: React.ReactNode;
   getBearerToken?: () => Promise<string | null>;
+  convex?: any;
   backendUrl?: string;
   customerData?: CustomerData;
   includeCredentials?: boolean;
   betterAuthUrl?: string;
   headers?: Record<string, string>;
-  convexApi?: any; // The exported autumn.api() object from Convex
-  convexUrl?: string; // The Convex deployment URL
+  convexApi?: any; // The exported autumn.api() object from Convex  
 }) => {
+  console.log("Initializing convex client!")
   let client: IAutumnClient = convexApi 
     ? new ConvexAutumnClient({ 
+        convex,
         convexApi, 
-        convexUrl: getBackendUrl(convexUrl!), 
         customerData, 
         headers,
         getBearerToken,

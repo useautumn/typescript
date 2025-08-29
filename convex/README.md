@@ -23,7 +23,7 @@ Run `npm create convex` or follow any of the [quickstarts](https://docs.convex.d
 Install the component package:
 
 ```ts
-npm install @atmn-hq/convex
+npm install @useautumn/convex
 ```
 
 Create a `convex.config.ts` file in your app's `convex/` folder and install the component by calling `use`:
@@ -31,7 +31,7 @@ Create a `convex.config.ts` file in your app's `convex/` folder and install the 
 ```ts
 // convex/convex.config.ts
 import { defineApp } from "convex/server";
-import autumn from "@atmn-hq/convex/convex.config";
+import autumn from "@useautumn/convex/convex.config";
 
 const app = defineApp();
 app.use(autumn);
@@ -43,7 +43,7 @@ export default app;
 
 ```ts
 import { components } from "./_generated/api";
-import { Autumn } from "@atmn-hq/convex";
+import { Autumn } from "@useautumn/convex";
 
 const autumn = new Autumn(components.autumn, {
   ...options,

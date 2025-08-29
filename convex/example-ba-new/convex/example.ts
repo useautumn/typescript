@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { Autumn } from "@atmn-hq/convex";
+import { Autumn } from "@useautumn/convex";
 
 // Simple counter functions that the App.tsx expects
 export const count = query({

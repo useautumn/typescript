@@ -22,15 +22,17 @@ export type OmitCustomerType =
 
 export interface ConvexAutumnClientConfig {
 	convexApi: any; // The exported autumn.api() object from Convex
-	convexUrl: string; // The Convex deployment URL
+	// convexUrl: string; // The Convex deployment URL
 	customerData?: CustomerData;
 	headers?: Record<string, string>;
 	getBearerToken?: () => Promise<string | null>;
+	convex: any;
 }
 
 export class ConvexAutumnClient implements IAutumnClient {
 	protected readonly convexApi: any;
-	protected readonly convexClient: ConvexHttpClient;
+	protected readonly convex: any;
+	// protected readonly convexClient: ConvexHttpClient;
 	public readonly customerData?: CustomerData;
 	public readonly headers?: Record<string, string>;
 	public readonly backendUrl?: string = undefined;
@@ -71,13 +73,14 @@ export class ConvexAutumnClient implements IAutumnClient {
 
 	constructor({
 		convexApi,
-		convexUrl,
 		customerData,
 		headers,
 		getBearerToken,
+		convex,
 	}: ConvexAutumnClientConfig) {
+		this.convex = convex;
 		this.convexApi = convexApi;
-		this.convexClient = new ConvexHttpClient(convexUrl);
+		// this.convexClient = new ConvexHttpClient(convexUrl);
 		this.getBearerToken = getBearerToken;
 		this.customerData = customerData;
 		this.headers = headers;
@@ -89,12 +92,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 		}
 	) {
 		try {
-			// Get customer identity first
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-
-			const result = await this.convexClient.action(
+			const result = await this.convex.action(
 				this.convexApi.fetchCustomer
 			);
 
@@ -125,15 +123,15 @@ export class ConvexAutumnClient implements IAutumnClient {
 	// Core methods that wrap Convex actions
 	attach = async (args: any) => {
 		try {
-			// Set auth token for the request - backend will extract identity
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
+			// // Set auth token for the request - backend will extract identity
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
 
 			// Filter out frontend-only parameters
 			const { dialog, ...backendArgs } = args;
 
-			const result = await this.convexClient.action(
+			const result = await this.convex.action(
 				this.convexApi.attach,
 				backendArgs
 			);
@@ -152,14 +150,14 @@ export class ConvexAutumnClient implements IAutumnClient {
 	checkout = async (args: any) => {
 		try {
 			// Set auth token for the request - backend will extract identity
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
 
 			// Filter out frontend-only parameters
 			const { dialog, ...backendArgs } = args;
 
-			const result = await this.convexClient.action(
+			const result = await this.convex.action(
 				this.convexApi.checkout,
 				backendArgs
 			);
@@ -178,10 +176,10 @@ export class ConvexAutumnClient implements IAutumnClient {
 	cancel = async (args: any) => {
 		try {
 			// Set auth token for the request - backend will extract identity
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-			const result = await this.convexClient.action(
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
+			const result = await this.convex.action(
 				this.convexApi.cancel,
 				args
 			);
@@ -199,10 +197,10 @@ export class ConvexAutumnClient implements IAutumnClient {
 
 	check = async (args: any) => {
 		try {
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-			const result = await this.convexClient.action(
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
+			const result = await this.convex.action(
 				this.convexApi.check,
 				args
 			);
@@ -220,10 +218,8 @@ export class ConvexAutumnClient implements IAutumnClient {
 
 	track = async (args: any) => {
 		try {
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-			const result = await this.convexClient.action(
+
+			const result = await this.convex.action(
 				this.convexApi.track,
 				args
 			);
@@ -242,10 +238,10 @@ export class ConvexAutumnClient implements IAutumnClient {
 	openBillingPortal = async (args: any) => {
 		try {
 			// Set auth token for the request - backend will extract identity
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-			const result = await this.convexClient.action(
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
+			const result = await this.convex.action(
 				this.convexApi.billingPortal,
 				{ ...args, openInNewTab: undefined }
 			);
@@ -265,10 +261,10 @@ export class ConvexAutumnClient implements IAutumnClient {
 	setupPayment = async (args: any) => {
 		try {
 			// Set auth token for the request - backend will extract identity
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-			const result = await this.convexClient.action(
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
+			const result = await this.convex.action(
 				this.convexApi.setupPayment,
 				args
 			);
@@ -287,10 +283,10 @@ export class ConvexAutumnClient implements IAutumnClient {
 	query = async (args: any) => {
 		try {
 			// Set auth token for the request - backend will extract identity
-			if (this.getBearerToken) {
-				this.convexClient.setAuth((await this.getBearerToken()) ?? "");
-			}
-			const result = await this.convexClient.action(
+			// if (this.getBearerToken) {
+			// 	this.convexClient.setAuth((await this.getBearerToken()) ?? "");
+			// }
+			const result = await this.convex.action(
 				this.convexApi.query,
 				args
 			);
@@ -310,24 +306,24 @@ export class ConvexAutumnClient implements IAutumnClient {
 		create: async (args: any) => {
 			try {
 				// Set auth token for the request - backend will extract identity
-				if (this.getBearerToken) {
-					this.convexClient.setAuth(
-						(await this.getBearerToken()) ?? ""
-					);
-				}
+				// if (this.getBearerToken) {
+				// 	this.convexClient.setAuth(
+				// 		(await this.getBearerToken()) ?? ""
+				// 	);
+				// }
 
 				// Check if args is an array or single entity
 				if (Array.isArray(args)) {
 					// Multiple entities - use createEntities method
 					const entityArgs = { entities: args };
-					const result = await this.convexClient.action(
+					const result = await this.convex.action(
 						this.convexApi.createEntities,
 						entityArgs
 					);
 					return result;
 				} else {
 					// Single entity - use createEntity method directly (no entities wrapper)
-					const result = await this.convexClient.action(
+					const result = await this.convex.action(
 						this.convexApi.createEntity,
 						args
 					);
@@ -347,12 +343,12 @@ export class ConvexAutumnClient implements IAutumnClient {
 		get: async (args: any) => {
 			try {
 				// Set auth token for the request - backend will extract identity
-				if (this.getBearerToken) {
-					this.convexClient.setAuth(
-						(await this.getBearerToken()) ?? ""
-					);
-				}
-				const result = await this.convexClient.action(
+				// if (this.getBearerToken) {
+				// 	this.convexClient.setAuth(
+				// 		(await this.getBearerToken()) ?? ""
+				// 	);
+				// }
+				const result = await this.convex.action(
 					this.convexApi.getEntity,
 					args
 				);
@@ -371,12 +367,12 @@ export class ConvexAutumnClient implements IAutumnClient {
 		delete: async (args: any) => {
 			try {
 				// Set auth token for the request - backend will extract identity
-				if (this.getBearerToken) {
-					this.convexClient.setAuth(
-						(await this.getBearerToken()) ?? ""
-					);
-				}
-				const result = await this.convexClient.action(
+				// 	if (this.getBearerToken) {
+				// 	this.convexClient.setAuth(
+				// 		(await this.getBearerToken()) ?? ""
+				// 	);
+				// }
+				const result = await this.convex.action(
 					this.convexApi.deleteEntity,
 					args
 				);
@@ -397,12 +393,12 @@ export class ConvexAutumnClient implements IAutumnClient {
 		createCode: async (args: any) => {
 			try {
 				// Set auth token for the request - backend will extract identity
-				if (this.getBearerToken) {
-					this.convexClient.setAuth(
-						(await this.getBearerToken()) ?? ""
-					);
-				}
-				const result = await this.convexClient.action(
+				// if (this.getBearerToken) {
+				// 	this.convexClient.setAuth(
+				// 		(await this.getBearerToken()) ?? ""
+				// 	);
+				// }
+				const result = await this.convex.action(
 					this.convexApi.createReferralCode,
 					args
 				);
@@ -421,12 +417,12 @@ export class ConvexAutumnClient implements IAutumnClient {
 		redeemCode: async (args: any) => {
 			try {
 				// Set auth token for the request - backend will extract identity
-				if (this.getBearerToken) {
-					this.convexClient.setAuth(
-						(await this.getBearerToken()) ?? ""
-					);
-				}
-				const result = await this.convexClient.action(
+				// if (this.getBearerToken) {
+				// 	this.convexClient.setAuth(
+				// 		(await this.getBearerToken()) ?? ""
+				// 	);
+				// }
+				const result = await this.convex.action(
 					this.convexApi.redeemReferralCode,
 					args
 				);
@@ -447,12 +443,12 @@ export class ConvexAutumnClient implements IAutumnClient {
 		list: async (): AutumnPromise<{ list: Product[] }> => {
 			try {
 				// Set auth token for the request - backend will extract identity
-				if (this.getBearerToken) {
-					this.convexClient.setAuth(
-						(await this.getBearerToken()) ?? ""
-					);
-				}
-				const result = await this.convexClient.action(
+				// if (this.getBearerToken) {
+				// 	this.convexClient.setAuth(
+				// 		(await this.getBearerToken()) ?? ""
+				// 	);
+				// }
+				const result = await this.convex.action(
 					this.convexApi.listProducts,
 					{}
 				);

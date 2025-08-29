@@ -195,7 +195,7 @@ async function setup() {
   // Define all replacements
   const replacements = [
     // NPM package name
-    ["@atmn-hq/convex", npmPackageName],
+    ["@useautumn/convex", npmPackageName],
 
     // Repository name
     ["useautumn/autumn-js", repoName],

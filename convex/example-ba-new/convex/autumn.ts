@@ -1,5 +1,5 @@
 import { api, components, internal } from "./_generated/api";
-import { Autumn } from "@atmn-hq/convex";
+import { Autumn } from "@useautumn/convex";
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { GenericActionCtx } from "convex/server";
@@ -11,7 +11,7 @@ export const autumn = new Autumn(components.autumn, {
     if (!user) {
       return null;
     }
-  
+
     return {
       customerId: user.subject as string,
       customerData: {
@@ -42,5 +42,5 @@ export const {
   redeemReferralCode,
   createReferralCode,
   createEntities,
-  billingPortal
+  billingPortal,
 } = autumn.api();

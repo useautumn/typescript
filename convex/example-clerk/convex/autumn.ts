@@ -1,5 +1,5 @@
 import { api, components, internal } from "./_generated/api";
-import { Autumn } from "@atmn-hq/convex";
+import { Autumn } from "@useautumn/convex";
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { GenericActionCtx } from "convex/server";
@@ -7,11 +7,11 @@ import { GenericActionCtx } from "convex/server";
 export const autumn = new Autumn(components.autumn, {
   identify: async (ctx: any) => {
     let user = await ctx.auth.getUserIdentity();
-  
+
     if (!user) {
       return null;
     }
-  
+
     return {
       customerId: user.subject as string,
       customerData: {
@@ -42,7 +42,7 @@ export const {
   redeemReferralCode,
   createReferralCode,
   createEntities,
-  billingPortal
+  billingPortal,
 } = autumn.api();
 
 export const testAction = action({
@@ -54,7 +54,7 @@ export const testAction = action({
       customer_id: "1234",
       name: "John Doe",
       email: "john.doe@example.com",
-    })
+    });
     return s;
   },
 });

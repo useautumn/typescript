@@ -1,5 +1,5 @@
 import { defineApp } from "convex/server";
-import autumn from "@atmn-hq/convex/convex.config";
+import autumn from "@useautumn/convex/convex.config";
 
 const app = defineApp();
 app.use(autumn);

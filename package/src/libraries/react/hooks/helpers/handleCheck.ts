@@ -21,7 +21,7 @@ export interface AllowedParams {
 const getCusFeature = ({
   customer,
   featureId,
-  requiredBalance = 1,
+  requiredBalance,
 }: {
   customer: Customer | Entity;
   featureId: string;
@@ -33,13 +33,24 @@ const getCusFeature = ({
       f.credit_schema && f.credit_schema.some((c) => c.feature_id === featureId)
   );
 
+  // 1. If there's a cusFeature and balance > requiredBalance, use it...
+  let cusFeature = customer.features[featureId];
+  if (cusFeature && typeof cusFeature.balance === "number" && cusFeature.balance >= (requiredBalance ?? 1)) {
+    return {
+      cusFeature,
+      requiredBalance: requiredBalance,
+    };
+  }
+
+  // 2. If there's a credit schema, use it...
   if (creditSchema) {
     let schemaItem = creditSchema.credit_schema?.find(
       (c) => c.feature_id === featureId
     )!;
+
     return {
-      feature: creditSchema,
-      requiredBalance: schemaItem.credit_amount * requiredBalance,
+      cusFeature: creditSchema,
+      requiredBalance: schemaItem.credit_amount * (requiredBalance ?? 1),
     };
   }
 
@@ -83,7 +94,10 @@ const handleFeatureCheck = ({
     featureId: params.featureId!,
   });
 
-  let allowed = getFeatureAllowed({ cusFeature, requiredBalance });
+  console.log("Cus Feature", cusFeature);
+  console.log("Required Balance", requiredBalance);
+
+  let allowed = getFeatureAllowed({ cusFeature, requiredBalance: requiredBalance ?? 1 });
 
   let result = {
     allowed,
