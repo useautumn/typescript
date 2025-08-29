@@ -125,7 +125,8 @@ export default function Home() {
           <Button
             onClick={async () => {
               const res = check({
-                featureId: "runable_credits",
+                featureId: "capabilities_library",
+                // requiredBalance: 1000,
               });
               console.log(res);
             }}
