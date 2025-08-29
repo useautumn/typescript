@@ -1,78 +1,45 @@
-import {
-  actionGeneric,
-  mutationGeneric,
-  queryGeneric,
-  httpActionGeneric,
-} from "convex/server";
-import type {
-  ActionBuilder,
-  FunctionVisibility,
-  HttpRouter,
-  GenericActionCtx,
-  FunctionReference,
-  RegisteredAction,
-  FunctionHandle,
-} from "convex/server";
+import { actionGeneric, httpActionGeneric } from "convex/server";
+import type { HttpRouter } from "convex/server";
 import { ROUTABLE_HTTP_METHODS } from "convex/server";
 import { corsRouter } from "convex-helpers/server/cors";
-import { JSONValue, v } from "convex/values";
+import { v } from "convex/values";
 import type { Mounts } from "../component/_generated/api.js";
-import type {
-  UseApi,
-  RunMutationCtx,
-  RunQueryCtx,
-  RunActionCtx,
-} from "./types.js";
+import type { UseApi } from "./types.js";
 import {
   type TrackArgsType,
-  AttachArgs,
-  AttachArgsType,
-  CheckArgs,
-  CheckArgsType,
-  CheckoutArgs,
-  CheckoutArgsType,
-  TrackArgs,
+  type AttachArgsType,
+  type CheckArgsType,
+  type CheckoutArgsType,
   UserTrackArgs,
   UserCheckArgs,
   UserAttachArgs,
   UserCheckoutArgs,
-  CreateEntityArgs,
-  CreateEntityArgsType,
-  UserCreateEntityArgsType,
+  type CreateEntityArgsType,
   UserCreateEntityArgs,
   UserCreateSingleEntityArgs,
-  UserCreateSingleEntityArgsType,
-  DeleteEntityArgsType,
-  DeleteEntityArgs,
-  GetCustomerArgsType,
-  UpdateCustomerArgsType,
-  DeleteCustomerArgsType,
-  BillingPortalArgsType,
-  GetProductArgsType,
-  ListProductsArgsType,
-  CreateReferralCodeArgsType,
-  RedeemReferralCodeArgsType,
-  UsageArgs,
-  UsageArgsType,
-  QueryArgs,
-  QueryArgsType,
-  CancelArgs,
-  CancelArgsType,
-  SetupPaymentArgs,
-  SetupPaymentArgsType,
-  GetEntityArgsType,
-  FetchCustomerArgs,
+  type DeleteEntityArgsType,
+  type GetCustomerArgsType,
+  type UpdateCustomerArgsType,
+  type BillingPortalArgsType,
+  type GetProductArgsType,
+  type CreateReferralCodeArgsType,
+  type RedeemReferralCodeArgsType,
+  type UsageArgsType,
+  type QueryArgsType,
+  type CancelArgsType,
+  type SetupPaymentArgsType,
+  type GetEntityArgsType,
   ExpandArgs,
-  UserTrackArgsType,
-  UserCheckArgsType,
-  UserAttachArgsType,
-  UserCheckoutArgsType,
-  camelToSnake,
-  CreateCustomerArgsType,
+  type UserTrackArgsType,
+  type UserCheckArgsType,
+  type UserAttachArgsType,
+  type UserCheckoutArgsType,
+  type CreateCustomerArgsType,
 } from "../types.js";
+
+import { camelToSnake } from "../utils.js";
 import { convexHandler } from "autumn-js/convex";
 import * as autumnHelpers from "./helpers/index.js";
-import { action } from "../component/_generated/server.js";
 
 // UseApi<typeof api> is an alternative that has jump-to-definition but is
 // less stable and reliant on types within the component files, which can cause

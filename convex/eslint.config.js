@@ -61,6 +61,7 @@ export default [
         },
       ],
       "eslint-comments/no-unused-disable": "off",
+      "@typescript-eslint/no-explicit-any": "off",
 
       "no-unused-vars": "off",
       // allow (_arg: number) => {} and const _foo = 1;

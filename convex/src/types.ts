@@ -1,4 +1,4 @@
-import { v, Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 
 export const CustomerDataConvex = v.object({
   name: v.optional(v.string()),
@@ -229,7 +229,7 @@ export const ExpandArgs = v.optional(
       v.literal("referrals")
     )
   )
-)
+);
 
 // Customer management
 export const GetCustomerArgs = v.object({
@@ -331,7 +331,9 @@ export type UsageArgsType = Infer<typeof UsageArgs>;
 export type SetupPaymentArgsType = Infer<typeof SetupPaymentArgs>;
 
 export type UserCreateEntityArgsType = Infer<typeof UserCreateEntityArgs>;
-export type UserCreateSingleEntityArgsType = Infer<typeof UserCreateSingleEntityArgs>;
+export type UserCreateSingleEntityArgsType = Infer<
+  typeof UserCreateSingleEntityArgs
+>;
 export type CreateEntityArgsType = Infer<typeof CreateEntityArgs>;
 export type DeleteEntityArgsType = Infer<typeof DeleteEntityArgs>;
 export type UserGetEntityArgsType = Infer<typeof UserGetEntityArgs>;
@@ -351,21 +353,3 @@ export type RedeemReferralCodeArgsType = Infer<typeof RedeemReferralCodeArgs>;
 
 export type FetchCustomerArgsType = Infer<typeof FetchCustomerArgs>;
 export type UserFetchCustomerArgsType = Infer<typeof UserFetchCustomerArgs>;
-
-// Utility function for converting camelCase to snake_case (still needed for API calls)
-export function camelToSnake<T>(input: T): any {
-  if (Array.isArray(input)) {
-    return input.map((item) => camelToSnake(item));
-  }
-  if (input !== null && typeof input === "object") {
-    const result: Record<string, any> = {};
-    for (const key in input) {
-      if (Object.prototype.hasOwnProperty.call(input, key)) {
-        const snakeKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-        result[snakeKey] = camelToSnake((input as any)[key]);
-      }
-    }
-    return result;
-  }
-  return input;
-}

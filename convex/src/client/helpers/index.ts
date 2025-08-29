@@ -1,41 +1,31 @@
 import { Autumn } from "autumn-js";
 import { wrapSdkCall } from "./utils.js";
 import {
-  camelToSnake,
   type TrackArgsType,
   type AttachArgsType,
   type CheckArgsType,
   type CheckoutArgsType,
-  type GetCustomerArgsType,
-  type UpdateCustomerArgsType,
-  type DeleteCustomerArgsType,
-  type BillingPortalArgsType,
-  type GetProductArgsType,
   type ListProductsArgsType,
-  type CreateReferralCodeArgsType,
-  type RedeemReferralCodeArgsType,
   type UsageArgsType,
   type QueryArgsType,
   type CancelArgsType,
   type SetupPaymentArgsType,
-  type CreateEntityArgsType,
-  type DeleteEntityArgsType,
-  type GetEntityArgsType,
   type FetchCustomerArgsType,
 } from "../../types.js";
+import { camelToSnake } from "../../utils.js";
 
 export const fetchCustomer = async (args: FetchCustomerArgsType) => {
-    const autumn = new Autumn({
-      secretKey: args.apiKey,
-    });
-    return await wrapSdkCall(() =>
-      autumn.customers.create({
-        id: args.customer_id,
-        email: args.customer_data?.email || undefined,
-        name: args.customer_data?.name || undefined,
-        expand: args.expand,
-      })
-    );
+  const autumn = new Autumn({
+    secretKey: args.apiKey,
+  });
+  return await wrapSdkCall(() =>
+    autumn.customers.create({
+      id: args.customer_id,
+      email: args.customer_data?.email || undefined,
+      name: args.customer_data?.name || undefined,
+      expand: args.expand,
+    })
+  );
 };
 
 export const track = async (args: TrackArgsType) => {

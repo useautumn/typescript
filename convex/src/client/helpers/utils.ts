@@ -1,14 +1,15 @@
 export type PlainError = { message: string; code: string };
 
-export const toPlainError = (error: any): PlainError => {
+export const toPlainError = (error: unknown): PlainError => {
   if (error && typeof error === "object") {
+    const errorObj = error as Record<string, unknown>;
     const message =
-      typeof (error as any).message === "string"
-        ? (error as any).message
-        : JSON.stringify((error as any).message ?? "Unknown error");
+      typeof errorObj.message === "string"
+        ? errorObj.message
+        : JSON.stringify(errorObj.message ?? "Unknown error");
     const code =
-      typeof (error as any).code === "string"
-        ? (error as any).code
+      typeof errorObj.code === "string"
+        ? errorObj.code
         : "unknown_error";
     return { message, code };
   }
