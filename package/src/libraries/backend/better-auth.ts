@@ -1,5 +1,6 @@
 import { createAuthEndpoint } from "better-auth/plugins";
 import {
+  Session,
   type AuthContext,
   type BetterAuthClientPlugin,
   type BetterAuthPlugin,
@@ -51,7 +52,7 @@ const handleReq = async ({
   session,
 }: {
   ctx: EndpointContext<any, any, AuthContext>;
-  options?: { url?: string; secretKey?: string };
+  options?: AutumnOptions;
   method: string;
   session?: any;
 }) => {
@@ -91,19 +92,24 @@ const handleReq = async ({
   // const body = toSnakeCase(ctx.body, ["checkoutSessionParams"]);
   const body = ctx.body;
   const finalSession = session || ctx.context.session;
+  let identify: any;
 
-  const identify = async () => {
-    if (!finalSession) {
-      return;
-    }
-    return {
-      customerId: finalSession.user.id,
-      customerData: {
-        email: finalSession.user.email,
-        name: finalSession.user.name,
-      },
+  if (options?.identify) {
+    identify = await options.identify(finalSession);
+  } else {
+    identify = async () => {
+      if (!finalSession) {
+        return;
+      }
+      return {
+        customerId: finalSession.user.id,
+        customerData: {
+          email: finalSession.user.email,
+          name: finalSession.user.name,
+        },
+      };
     };
-  };
+  }
 
   const result = await handler({
     autumn: client,
@@ -124,10 +130,35 @@ const handleReq = async ({
   return ctx.json(result.body, { status: result.statusCode });
 };
 
-export const autumn = (options?: { url?: string; secretKey?: string }) => {
+export type AutumnOptions = {
+  url?: string;
+  secretKey?: string;
+  identify?: (session: Session) => Promise<{
+    customerId: string;
+    customerData: {
+      email: string;
+      name: string;
+    };
+  }>;
+};
+
+export const autumn = (options?: AutumnOptions) => {
   return {
     id: "autumn",
     endpoints: {
+      identifyOrg: createEndpoint(
+        "/autumn/identify-org",
+        {
+          method: "GET",
+          use: [sessionMiddleware],
+        },
+        async (ctx) => {
+          const session = await getSessionFromCtx(ctx as any);
+          const org = session?.session.activeOrganizationId;
+          const identify = await options?.identify?.(session?.session as any);
+          return ctx.json({ org, identify, session });
+        }
+      ),
       createCustomer: createEndpoint(
         "/autumn/customers",
         {
