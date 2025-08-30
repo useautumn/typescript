@@ -214,7 +214,7 @@ function ProductItems({
               <PrepaidItem
                 key={index}
                 item={item}
-                checkoutResult={checkoutResult!}
+                checkoutResult={checkoutResult}
                 setCheckoutResult={setCheckoutResult}
               />
             );
@@ -346,7 +346,7 @@ const PrepaidItem = ({
         console.error(error);
         return;
       }
-      setCheckoutResult(data!);
+      setCheckoutResult(data);
     } catch (error) {
       console.error(error);
     } finally {
