@@ -12,7 +12,7 @@ import {
 import { getCheckoutContent } from "@/registry/checkout-dialog/lib/checkout-content";
 import { useCustomer } from "autumn-js/react";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
-import type { CheckoutResult, ProductItem } from "autumn-js";
+import { UsageModel, type CheckoutResult, type ProductItem } from 'autumn-js';
 import {
   Accordion,
   AccordionContent,
@@ -153,7 +153,7 @@ function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
     : undefined;
 
   const hasUsagePrice = product.items.some(
-    (item) => item.usage_model === "pay_per_use"
+    (item) => item.usage_model === UsageModel.PayPerUse
   );
 
   const showNextCycle = next_cycle && next_cycle.total !== checkoutResult.total;
@@ -209,7 +209,7 @@ function ProductItems({
       {checkoutResult?.product.items
         .filter((item) => item.type !== "feature")
         .map((item, index) => {
-          if (item.usage_model == "prepaid") {
+          if (item.usage_model === UsageModel.Prepaid) {
             return (
               <PrepaidItem
                 key={index}
