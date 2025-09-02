@@ -1,21 +1,20 @@
-import chalk from 'chalk';
-import {confirm} from '@inquirer/prompts';
-import yoctoSpinner from 'yocto-spinner';
-
+import { confirm } from "@inquirer/prompts";
+import chalk from "chalk";
+import yoctoSpinner from "yocto-spinner";
+import type { Feature, Product } from "../compose/index.js";
+import { FRONTEND_URL } from "../constants.js";
+import { deleteFeature, deleteProduct } from "../core/api.js";
 import {
-	upsertProduct,
 	checkForDeletables,
-	upsertFeature,
 	checkProductForConfirmation,
-} from '../core/push.js';
-import {deleteFeature, deleteProduct} from '../core/api.js';
-import {FRONTEND_URL} from '../constants.js';
-import {initSpinner} from '../core/utils.js';
-import {Feature, product, Product} from '../compose/index.js';
+	upsertFeature,
+	upsertProduct,
+} from "../core/push.js";
+import { initSpinner } from "../core/utils.js";
 
-const spinner = (message: string) => {
+const spinner = (message?: string) => {
 	const spinner = yoctoSpinner({
-		text: message,
+		text: message ?? "",
 	});
 	spinner.start();
 
@@ -27,29 +26,33 @@ export default async function Push({
 	yes,
 	prod,
 }: {
-	config: any;
+	config: {
+		features: Feature[];
+		products: Product[];
+		env: string;
+	};
 	yes: boolean;
 	prod: boolean;
 }) {
-	let {features, products, env} = config;
+	const { features, products, env } = config;
 
-	if (env === 'prod') {
+	if (env === "prod") {
 		const shouldProceed = await confirm({
 			message:
-				'You are about to push products to your prod environment. Are you sure you want to proceed?',
+				"You are about to push products to your prod environment. Are you sure you want to proceed?",
 			default: false,
 		});
 		if (!shouldProceed) {
-			console.log(chalk.yellow('Aborting...'));
+			console.log(chalk.yellow("Aborting..."));
 			process.exit(1);
 		}
 	}
 
-	let {curFeatures, curProducts, featuresToDelete, productsToDelete} =
+	const { curProducts, featuresToDelete, productsToDelete } =
 		await checkForDeletables(features, products);
 
-	for (let productId of productsToDelete) {
-		let shouldDelete =
+	for (const productId of productsToDelete) {
+		const shouldDelete =
 			yes ||
 			(await confirm({
 				message: `Delete product [${productId}]?`,
@@ -63,12 +66,12 @@ export default async function Push({
 
 	const batchFeatures = [];
 	const s = initSpinner(`Pushing features`);
-	for (let feature of features) {
+	for (const feature of features) {
 		batchFeatures.push(upsertFeature(feature, s));
 	}
 	await Promise.all(batchFeatures);
 	s.success(`Features pushed successfully!`);
-	console.log(chalk.dim('\nFeatures pushed:'));
+	console.log(chalk.dim("\nFeatures pushed:"));
 	features.forEach((feature: Feature) => {
 		console.log(chalk.cyan(`  • ${feature.id}`));
 	});
@@ -78,7 +81,7 @@ export default async function Push({
 
 	const productDecisions = new Map();
 	const batchCheckProducts = [];
-	for (let product of products) {
+	for (const product of products) {
 		batchCheckProducts.push(
 			checkProductForConfirmation({
 				curProducts,
@@ -88,7 +91,7 @@ export default async function Push({
 	}
 
 	const checkProductResults = await Promise.all(batchCheckProducts);
-	for (let result of checkProductResults) {
+	for (const result of checkProductResults) {
 		if (result.will_version) {
 			const shouldUpdate = await confirm({
 				message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
@@ -102,27 +105,27 @@ export default async function Push({
 	// Now batch process all products with their decisions
 	const s2 = initSpinner(`Pushing products`);
 	const batchProducts = [];
-	for (let product of products) {
+	for (const product of products) {
 		const shouldUpdate = productDecisions.get(product.id);
 		batchProducts.push(
-			upsertProduct({curProducts, product, spinner: s2, shouldUpdate}),
+			upsertProduct({ curProducts, product, spinner: s2, shouldUpdate }),
 		);
 	}
 	const prodResults = await Promise.all(batchProducts);
 	s2.success(`Products pushed successfully!`);
-	console.log(chalk.dim('\nProducts pushed:'));
-	prodResults.forEach((result: any) => {
-		let action = result.action;
+	console.log(chalk.dim("\nProducts pushed:"));
+	prodResults.forEach((result: { id: string; action: string }) => {
+		const action = result.action;
 		console.log(
 			chalk.cyan(
-				`  • ${result.id} ${action == 'skipped' ? `(${action})` : ''}`,
+				`  • ${result.id} ${action === "skipped" ? `(${action})` : ""}`,
 			),
 		);
 	});
 	console.log(); // Empty line for spacing
 
-	for (let featureId of featuresToDelete) {
-		let shouldDelete =
+	for (const featureId of featuresToDelete) {
+		const shouldDelete =
 			yes ||
 			(await confirm({
 				message: `Delete feature [${featureId}]?`,
