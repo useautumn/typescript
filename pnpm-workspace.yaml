@@ -1,12 +1,15 @@
 packages:
-  - "package"
-  - "frameworks/*"
-  - "nextjs"
-  - "compose"
-  - "cli" 
-  - "atmn"
-  - "ui"
-  - "test-worker"
-  - "next15"
-  - "next-bug"
-  - "vite-spa"
+  - package
+  - frameworks/*
+  - nextjs
+  - compose
+  - cli
+  - atmn
+  - ui
+  - test-worker
+  - next15
+  - next-bug
+  - vite-spa
+
+overrides:
+  atmn: link:../../../Library/pnpm/global/5/node_modules/atmn
