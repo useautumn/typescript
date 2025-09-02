@@ -8,7 +8,6 @@ import {
 	getFeatures,
 } from "../core/pull.js";
 import { initSpinner, isSandboxKey, readFromEnv } from "../core/utils.js";
-import Pull from "./pull.js";
 
 export default async function Nuke() {
 	const apiKey = readFromEnv(true);
@@ -18,7 +17,7 @@ export default async function Nuke() {
 	if (isSandbox) {
 		console.log(
 			chalk.red(
-				"This is a descructive action! Please confirm you want to proceed.",
+				"This is a destructive action! Please confirm you want to proceed.",
 			),
 		);
 		const shouldProceed = await confirm({
@@ -84,17 +83,8 @@ export default async function Nuke() {
 			console.error(e);
 			process.exit(1);
 		}
-		
+
 		console.log(chalk.green("Sandbox nuked successfully!"));
-
-		const pullNewConfig = await confirm({
-			message: "Would you like to pull the new config file?",
-			default: true,
-		});
-
-		if (pullNewConfig) {
-			await Pull();
-		} else process.exit(0);
 	} else {
 		console.log(chalk.red`You can't nuke a prod environment!`);
 		process.exit(1);
