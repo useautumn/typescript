@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import chalk from 'chalk';
 
-import {BACKEND_URL} from '../constants.js';
-import {readFromEnv} from './utils.js';
+import { BACKEND_URL } from '../constants.js';
+import { readFromEnv } from './utils.js';
 
 const INTERNAL_BASE: string = BACKEND_URL;
 const EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
@@ -19,8 +19,8 @@ export async function request({
 	method: string;
 	base: string;
 	path: string;
-	data?: any;
-	headers?: any;
+	data?: Record<string, unknown>;
+	headers?: Record<string, string>;
 	customAuth?: string;
 	throwOnError?: boolean;
 }) {
@@ -39,14 +39,23 @@ export async function request({
 		});
 
 		return response.data;
-	} catch (error: any) {
+	} catch (error: unknown) {
 		if (throwOnError) {
 			throw error;
 		}
+
 		console.error(
-			chalk.red('\nError occured when making API request:'),
-			chalk.red(error.response.data.message || error.response.data.error),
+			chalk.red('\nError occured when making API request:')
 		);
+		if (error instanceof AxiosError) {
+			console.error(chalk.red(error?.response?.data?.message || error?.response?.data?.error || error?.message || error));
+			console.error(error)
+		} else if (error instanceof Error) {
+			console.error(`${chalk.red(error.message)}\n${chalk.red(error.stack)}`);
+		} else {
+			console.error(chalk.red(error));
+		}
+
 		process.exit(1);
 	}
 }
@@ -60,8 +69,8 @@ export async function internalRequest({
 }: {
 	method: string;
 	path: string;
-	data?: any;
-	headers?: any;
+	data?: Record<string, unknown>;
+	headers?: Record<string, string>;
 	customAuth?: string;
 }) {
 	return await request({
@@ -84,8 +93,8 @@ export async function externalRequest({
 }: {
 	method: string;
 	path: string;
-	data?: any;
-	headers?: any;
+	data?: Record<string, unknown>;
+	headers?: Record<string, string>;
 	customAuth?: string;
 	throwOnError?: boolean;
 }) {
