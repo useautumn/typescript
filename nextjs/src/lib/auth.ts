@@ -1,7 +1,7 @@
-import { betterAuth, Session } from "better-auth";
-import { Organization, organization } from "better-auth/plugins";
-import { autumn } from "autumn-js/better-auth";
 import Database from "bun:sqlite";
+import { autumn } from "autumn-js/better-auth";
+import { betterAuth } from "better-auth";
+import { organization } from "better-auth/plugins";
 
 export const auth = betterAuth({
 	database: new Database("database.sqlite"),
@@ -13,24 +13,30 @@ export const auth = betterAuth({
 	plugins: [
 		organization(),
 		autumn({
+			enableOrganizations: false,
 			identify: ({ session, organization }) => {
 				if (organization?.id) {
 					return {
-						customerId: organization.id ?? null,
+						customerId: organization.id,
 						customerData: {
-							email: organization.ownerEmail ?? null,
-							name: organization.name ?? null,
+							email: organization.ownerEmail ?? "",
+							name: organization.name ?? "",
 						},
 					};
-				} else if (session?.user.id) {
+				} else if (session?.userId) {
+					console.log("Skipped organisation", organization?.id);
 					return {
-						customerId: session.user.id ?? null,
+						customerId: session.userId,
 						customerData: {
-							email: session.user.email ?? null,
-							name: session.user.name ?? null,
+							email: "",
+							name: "",
 						},
 					};
-				} else return null;
+				} else {
+					console.log("Skipped organisation", organization?.id);
+					console.log("Skipped session", session?.userId);
+					return null;
+				}
 			},
 		}),
 	],
