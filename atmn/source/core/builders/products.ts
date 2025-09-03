@@ -1,5 +1,5 @@
-import {ProductItem, Product, Feature} from '../../compose/index.js';
-import {idToVar, notNullish, nullish} from '../utils.js';
+import type { Feature, Product, ProductItem } from "../../compose/index.js";
+import { idToVar, notNullish, nullish } from "../utils.js";
 
 const ItemBuilders = {
 	priced_feature: pricedFeatureItemBuilder,
@@ -22,8 +22,8 @@ import {
 export function exportBuilder(productIds: string[], featureIds: string[]) {
 	const snippet = `
 const autumnConfig = {
-    products: [${productIds.map(id => `${idToVar(id)}`).join(', ')}],
-    features: [${featureIds.map(id => `${idToVar(id)}`).join(', ')}]
+    products: [${productIds.map((id) => `${idToVar(id)}`).join(", ")}],
+    features: [${featureIds.map((id) => `${idToVar(id)}`).join(", ")}]
 }
 
 export default autumnConfig;
@@ -50,7 +50,7 @@ export const ${idToVar(product.id)} = product({
 						features,
 					})}`,
 			)
-			.join('           ')}     ]
+			.join("           ")}     ]${product.archived ? ", archived: true" : ""}
 })
 `;
 	return snippet;
@@ -68,11 +68,11 @@ const getResetUsageStr = ({
 	item: ProductItem;
 	features: Feature[];
 }) => {
-	if (!item.feature_id) return '';
-	const feature = features.find(f => f.id === item.feature_id)!;
-	if (feature.type == 'boolean' || feature.type == 'credit_system') return '';
+	if (!item.feature_id) return "";
+	const feature = features.find((f) => f.id === item.feature_id)!;
+	if (feature.type === "boolean" || feature.type === "credit_system") return "";
 
-	const defaultResetUsage = feature.type === 'single_use' ? true : false;
+	const defaultResetUsage = feature.type === "single_use" ? true : false;
 
 	if (
 		notNullish(item.reset_usage_when_enabled) &&
@@ -83,16 +83,16 @@ const getResetUsageStr = ({
 		},`;
 	}
 
-	return '';
+	return "";
 };
 
-const getIntervalStr = ({item}: {item: ProductItem}) => {
+const getIntervalStr = ({ item }: { item: ProductItem }) => {
 	if (item.interval == null) return ``;
 	return `${getItemFieldPrefix()}interval: '${item.interval}',`;
 };
 
-const getEntityFeatureIdStr = ({item}: {item: ProductItem}) => {
-	if (nullish(item.entity_feature_id)) return '';
+const getEntityFeatureIdStr = ({ item }: { item: ProductItem }) => {
+	if (nullish(item.entity_feature_id)) return "";
 	return `${getItemFieldPrefix()}entity_feature_id: ${idToVar(
 		item.entity_feature_id!,
 	)}.id,`;
@@ -107,9 +107,9 @@ export function pricedFeatureItemBuilder({
 }) {
 	// const intervalLine =
 	// 	item.interval == null ? '' : `\n            interval: '${item.interval}',`;
-	const intervalStr = getIntervalStr({item});
-	const entityFeatureIdStr = getEntityFeatureIdStr({item});
-	const resetUsageStr = getResetUsageStr({item, features});
+	const intervalStr = getIntervalStr({ item });
+	const entityFeatureIdStr = getEntityFeatureIdStr({ item });
+	const resetUsageStr = getResetUsageStr({ item, features });
 	const snippet = `
         pricedFeatureItem({
             feature_id: ${idToVar(item.feature_id!)}.id,
@@ -131,9 +131,9 @@ export function featureItemBuilder({
 	item: ProductItem;
 	features: Feature[];
 }) {
-	const entityFeatureIdStr = getEntityFeatureIdStr({item});
-	const intervalStr = getIntervalStr({item});
-	const resetUsageStr = getResetUsageStr({item, features});
+	const entityFeatureIdStr = getEntityFeatureIdStr({ item });
+	const intervalStr = getIntervalStr({ item });
+	const resetUsageStr = getResetUsageStr({ item, features });
 	const snippet = `
         featureItem({
             feature_id: ${idToVar(item.feature_id!)}.id,
@@ -145,8 +145,8 @@ export function featureItemBuilder({
 	return snippet;
 }
 
-export function priceItemBuilder({item}: {item: ProductItem}) {
-	const intervalStr = getIntervalStr({item});
+export function priceItemBuilder({ item }: { item: ProductItem }) {
+	const intervalStr = getIntervalStr({ item });
 	const snippet = `
         priceItem({
             price: ${item.price},${intervalStr}

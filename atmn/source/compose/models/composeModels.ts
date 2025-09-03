@@ -1,5 +1,5 @@
-import {z} from 'zod/v4';
-import {ProductItemSchema} from './productItemModels.js';
+import { z } from 'zod/v4';
+import { ProductItemSchema } from './productItemModels.js';
 
 export const ProductSchema = z.object({
 	id: z.string().min(1),
@@ -7,6 +7,7 @@ export const ProductSchema = z.object({
 	is_add_on: z.boolean().prefault(false).optional(),
 	is_default: z.boolean().prefault(false).optional(),
 	items: z.array(ProductItemSchema),
+	archived: z.boolean().prefault(false).optional(),
 });
 
 export const FeatureSchema = z.object({
