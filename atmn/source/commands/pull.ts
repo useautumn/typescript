@@ -6,9 +6,9 @@ import { importBuilder, productBuilder } from "../core/builders/products.js";
 import { writeConfig } from "../core/config.js";
 import { getAllProducts, getFeatures } from "../core/pull.js";
 
-export default async function Pull() {
+export default async function Pull(options?: { archived?: boolean }) {
 	console.log(chalk.green("Pulling products and features from Autumn..."));
-	const products = await getAllProducts();
+	const products = await getAllProducts(options?.archived ?? false);
 	const features = await getFeatures();
 
 	const productSnippets = products.map((product: Product) =>
