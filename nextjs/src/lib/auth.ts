@@ -13,31 +13,7 @@ export const auth = betterAuth({
 	plugins: [
 		organization(),
 		autumn({
-			enableOrganizations: false,
-			identify: ({ session, organization }) => {
-				if (organization?.id) {
-					return {
-						customerId: organization.id,
-						customerData: {
-							email: organization.ownerEmail ?? "",
-							name: organization.name ?? "",
-						},
-					};
-				} else if (session?.userId) {
-					console.log("Skipped organisation", organization?.id);
-					return {
-						customerId: session.userId,
-						customerData: {
-							email: "",
-							name: "",
-						},
-					};
-				} else {
-					console.log("Skipped organisation", organization?.id);
-					console.log("Skipped session", session?.userId);
-					return null;
-				}
-			},
+			enableOrganizations: true,
 		}),
 	],
 });

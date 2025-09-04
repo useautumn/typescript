@@ -58,7 +58,7 @@ export default function Home() {
 						<Button
 							onClick={async () => {
 								const res = await authClient.signIn.email({
-									email: "johnyeo100@gmail.com",
+									email: "johnyeo10@gmail.com",
 									password: "testing123",
 								});
 								console.log(res);
@@ -78,7 +78,7 @@ export default function Home() {
 							onClick={async () => {
 								const res = await authClient.signUp.email({
 									name: "John Yeo",
-									email: "johnyeo100@gmail.com",
+									email: "johnyeo10@gmail.com",
 									password: "testing123",
 								});
 								console.log(res);
