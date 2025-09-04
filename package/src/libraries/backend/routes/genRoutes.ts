@@ -1,15 +1,14 @@
 import type { AttachParams, CheckoutParams } from "@sdk/general/attachTypes";
 import { addRoute, type RouterContext } from "rou3";
 import type { QueryParams } from "@/client/types/clientGenTypes";
-import { toSnakeCase } from "@/utils/toSnakeCase";
 import type {
-  Autumn,
-  BillingPortalParams,
-  CancelParams,
-  CheckParams,
-  CustomerData,
-  SetupPaymentParams,
-  TrackParams,
+	Autumn,
+	BillingPortalParams,
+	CancelParams,
+	CheckParams,
+	CustomerData,
+	SetupPaymentParams,
+	TrackParams,
 } from "../../../sdk";
 import { BASE_PATH } from "../constants";
 import { withAuth } from "../utils/withAuth";
@@ -164,7 +163,7 @@ const queryHandler = withAuth({
 		customer_id: string;
 		body: QueryParams;
 	}) => {
-		return await autumn.query({ customer_id, ...toSnakeCase(body) });
+		return await autumn.query({ customer_id, range: body.range, feature_id: body.featureId });
 	},
 });
 

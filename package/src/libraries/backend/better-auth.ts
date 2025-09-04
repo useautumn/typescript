@@ -110,39 +110,32 @@ const handleReq = async ({
 	let identify: unknown;
 
 	if (options?.identify) {
-		// identify = () =>
-		// 	options.identify?.({
-		// 		session: finalSession,
-		// 		organization:
-		// 			notNullish(
-		// 				(ctx.context as { activeOrganization: Organization })
-		// 					.activeOrganization,
-		// 			) &&
-		// 			notNullish(
-		// 				(ctx.context as { activeOrganizationEmail: string })
-		// 					.activeOrganizationEmail,
-		// 			)
-		// 				? {
-		// 						...(ctx.context as { activeOrganization: Organization })
-		// 							.activeOrganization,
-		// 						ownerEmail: (ctx.context as { activeOrganizationEmail: string })
-		// 							.activeOrganizationEmail,
-		// 					}
-		// 				: null,
-		// 	});
 		identify = () => ctx.context.autumnIdentity as AuthResult;
 	} else {
 		identify = () => {
 			if (!finalSession) {
 				return;
 			}
-			return {
-				customerId: finalSession.user.id,
-				customerData: {
-					email: finalSession.user.email,
-					name: finalSession.user.name,
-				},
-			};
+
+			if (!options?.enableOrganizations || !ctx.context?.activeOrganization?.id) {
+				return {
+					customerId: finalSession.user.id,
+					customerData: {
+						email: finalSession.user.email,
+						name: finalSession.user.name,
+					},
+				};
+			} else if (ctx.context?.activeOrganization?.id) {
+        const organization = ctx.context.activeOrganization;
+        const ownerEmail = ctx.context.activeOrganizationEmail;
+        return {
+          customerId: organization?.id,
+          customerData: {
+            email: ownerEmail,
+            name: organization?.name ?? "",
+          },
+        };
+      }
 		};
 	}
 
