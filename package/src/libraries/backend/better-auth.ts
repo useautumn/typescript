@@ -1,8 +1,4 @@
-import { BillingPortalParamsSchema, CustomerExpandEnum } from "@sdk";
-import {
-  CreateReferralCodeParamsSchema,
-  RedeemReferralCodeParamsSchema,
-} from "@sdk/referrals/referralTypes";
+import { CustomerExpandEnum } from "@sdk";
 import type {
   AuthContext,
   BetterAuthPlugin,
@@ -29,8 +25,13 @@ import { CreateEntityParamsSchema } from "@/client/types/clientEntTypes";
 import {
   CancelParamsSchema,
   CheckParamsSchema,
+  OpenBillingPortalParamsSchema,
   TrackParamsSchema,
 } from "@/client/types/clientGenTypes";
+import {
+  CreateReferralCodeParamsSchema,
+  RedeemReferralCodeParamsSchema,
+} from "@/client/types/clientReferralTypes";
 import { toSnakeCase } from "@/utils/toSnakeCase";
 import { Autumn } from "../../sdk/client";
 import { createRouterWithOptions } from "./routes/backendRouter";
@@ -271,21 +272,21 @@ const createEndpointConfigs = (options?: AutumnOptions): EndpointConfig[] => [
 		key: "createReferralCode",
 		path: "/autumn/referrals/code",
 		method: "POST",
-		body: CreateReferralCodeParamsSchema.omit({ customer_id: true, program_id: true }).extend({ programId: z.string().optional() }),
+		body: CreateReferralCodeParamsSchema,
 		useAuth: true,
 	},
 	{
 		key: "redeemReferralCode",
 		path: "/autumn/referrals/redeem",
 		method: "POST",
-		body: RedeemReferralCodeParamsSchema.omit({ customer_id: true }),
+		body: RedeemReferralCodeParamsSchema,
 		useAuth: true,
 	},
 	{
 		key: "billingPortal",
 		path: "/autumn/billing_portal",
 		method: "POST",
-		body: BillingPortalParamsSchema,
+		body: OpenBillingPortalParamsSchema,
 		useAuth: true,
 		metadata: {
 			isAction: false,
@@ -334,19 +335,29 @@ export const autumn = (options?: AutumnOptions) => {
 			} = {
 				method: config.method,
 				use: [
-          sessionMiddleware,
-          organizationMiddleware(options),
-          identityMiddleware(options),
-        ],
-        body: (config.body !== undefined || config.body !== null) ? config.body : undefined,
-        metadata: (config.metadata !== undefined || config.metadata !== null) ? config.metadata : undefined,
+					sessionMiddleware,
+					organizationMiddleware(options),
+					identityMiddleware(options),
+				],
+				body:
+					config.body !== undefined || config.body !== null
+						? config.body
+						: undefined,
+				metadata:
+					config.metadata !== undefined || config.metadata !== null
+						? config.metadata
+						: undefined,
 			};
 
 			// Create endpoint using appropriate function
 			const endpointCreator = config.useAuth
 				? createAuthEndpoint
 				: createEndpoint;
-			acc[config.key] = endpointCreator(config.path, endpointOptions, config.customHandler || createDefaultHandler(config.method));
+			acc[config.key] = endpointCreator(
+				config.path,
+				endpointOptions,
+				config.customHandler || createDefaultHandler(config.method),
+			);
 
 			return acc;
 		},
