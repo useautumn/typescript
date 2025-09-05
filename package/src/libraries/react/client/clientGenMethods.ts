@@ -25,7 +25,7 @@ export async function checkoutMethod(
   this: AutumnClient,
   params: CheckoutParams
 ): AutumnPromise<CheckoutResult> {
-  let snakeParams = toSnakeCase(params);
+  let snakeParams = toSnakeCase(params, ["checkoutSessionparams"]);
   const res = await this.post(`${this.prefix}/checkout`, snakeParams);
   return res;
 }
