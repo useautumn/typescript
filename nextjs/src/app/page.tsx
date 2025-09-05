@@ -16,7 +16,7 @@ export default function Home() {
     redeemReferralCode,
     createReferralCode,
     customer,
-    isLoading,
+    refetch,
     // allowed,
   } = useCustomer({
     // expand: ["referrals"],
@@ -113,8 +113,19 @@ export default function Home() {
 
           <Button
             onClick={async () => {
+              const res = await attach({
+                productId: "pro_monthly",
+              });
+              console.log(res);
+              await refetch();
+            }}
+          >
+            Renew
+          </Button>
+          <Button
+            onClick={async () => {
               const res = await cancel({
-                productId: "pro",
+                productId: "pro_monthly",
               });
               console.log(res);
             }}

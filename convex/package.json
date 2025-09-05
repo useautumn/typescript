@@ -2,12 +2,12 @@
   "name": "@useautumn/convex",
   "description": "A autumn component for Convex.",
   "repository": "github:useautumn/autumn-js",
-  "homepage": "https://github.com/useautumn/autumn-js#readme",
+  "homepage": "https://docs.useautumn.com/setup/convex",
   "bugs": {
-    "email": "support@convex.dev",
+    "email": "hey@useautumn.com",
     "url": "https://github.com/useautumn/autumn-js/issues"
   },
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "Apache-2.0",
   "keywords": [
     "convex",

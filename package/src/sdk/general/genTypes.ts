@@ -97,7 +97,7 @@ export type QueryParams = z.infer<typeof QueryParamsSchema>;
 export type QueryResult = {
   list: Array<
     {
-      period: string;
+      period: number;
     } & {
       [key: string]: number;
     }
