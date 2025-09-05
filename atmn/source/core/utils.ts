@@ -80,10 +80,15 @@ export function storeToEnv(prodKey: string, sandboxKey: string) {
 }
 
 export function readFromEnv() {
+	// Check process.env first (highest priority - enables Doppler/env injection)
+	if (process.env['AUTUMN_SECRET_KEY']) {
+		return process.env['AUTUMN_SECRET_KEY'];
+	}
+
 	const envPath = `${process.cwd()}/.env`;
 	const envLocalPath = `${process.cwd()}/.env.local`;
 
-	// Check .env first (has priority)
+	// Check .env second
 	if (fs.existsSync(envPath)) {
 		const envContent = fs.readFileSync(envPath, 'utf-8');
 		const parsed = dotenv.parse(envContent);
