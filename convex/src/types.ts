@@ -1,5 +1,17 @@
 import { v, type Infer } from "convex/values";
 
+export const IdentifierOpts = v.object({
+  customerId: v.string(),
+  customerData: v.optional(
+    v.object({
+      name: v.optional(v.string()),
+      email: v.optional(v.string()),
+    })
+  ),
+});
+
+export type IdentifierOptsType = Infer<typeof IdentifierOpts>;
+
 export const CustomerDataConvex = v.object({
   name: v.optional(v.string()),
   email: v.optional(v.string()),
@@ -11,8 +23,7 @@ export const AttachFeatureOptionsConvex = v.object({
   quantity: v.number(),
 });
 
-// User-facing args (without auth fields) - using camelCase for user-friendly API
-export const UserTrackArgs = v.object({
+export const TrackArgs = v.object({
   featureId: v.optional(v.string()), // Made optional to match SDK
   value: v.optional(v.number()),
   entityId: v.optional(v.string()),
@@ -20,11 +31,12 @@ export const UserTrackArgs = v.object({
   idempotencyKey: v.optional(v.string()),
   customerData: v.optional(CustomerDataConvex), // User-facing camelCase
   entityData: v.optional(v.any()), // Added to match SDK
+  properties: v.optional(v.record(v.string(), v.any())),
 });
 
-export type UserTrackArgsType = Infer<typeof UserTrackArgs>;
+export type TrackArgsType = Infer<typeof TrackArgs>;
 
-export const UserCheckArgs = v.object({
+export const CheckArgs = v.object({
   productId: v.optional(v.string()),
   featureId: v.optional(v.string()),
   requiredBalance: v.optional(v.number()),
@@ -35,9 +47,9 @@ export const UserCheckArgs = v.object({
   entityData: v.optional(v.any()), // Added to match SDK
 });
 
-export type UserCheckArgsType = Infer<typeof UserCheckArgs>;
+export type CheckArgsType = Infer<typeof CheckArgs>;
 
-export const UserAttachArgs = v.object({
+export const AttachArgs = v.object({
   productId: v.optional(v.string()), // Made optional to match SDK
   productIds: v.optional(v.array(v.string())),
   entityId: v.optional(v.string()),
@@ -53,9 +65,9 @@ export const UserAttachArgs = v.object({
   invoice: v.optional(v.boolean()), // Added to match SDK
 });
 
-export type UserAttachArgsType = Infer<typeof UserAttachArgs>;
+export type AttachArgsType = Infer<typeof AttachArgs>;
 
-export const UserCheckoutArgs = v.object({
+export const CheckoutArgs = v.object({
   productId: v.string(),
   entityId: v.optional(v.string()),
   options: v.optional(v.array(AttachFeatureOptionsConvex)), // Changed to use proper schema
@@ -68,98 +80,39 @@ export const UserCheckoutArgs = v.object({
   reward: v.optional(v.string()),
 });
 
-export type UserCheckoutArgsType = Infer<typeof UserCheckoutArgs>;
-
-// Full args with auth fields (for internal use) - converted from SDK schemas
-export const TrackArgs = v.object({
-  customer_id: v.string(),
-  feature_id: v.optional(v.string()), // Made optional to match SDK
-  value: v.optional(v.number()),
-  entity_id: v.optional(v.string()),
-  event_name: v.optional(v.string()),
-  idempotency_key: v.optional(v.string()),
-  customer_data: v.optional(CustomerDataConvex),
-  entity_data: v.optional(v.any()),
-  apiKey: v.string(),
-});
-
-export const CheckArgs = v.object({
-  customer_id: v.string(),
-  product_id: v.optional(v.string()),
-  feature_id: v.optional(v.string()),
-  required_balance: v.optional(v.number()),
-  send_event: v.optional(v.boolean()),
-  with_preview: v.optional(v.boolean()),
-  entity_id: v.optional(v.string()),
-  customer_data: v.optional(CustomerDataConvex),
-  entity_data: v.optional(v.any()),
-  apiKey: v.string(),
-});
-
-export const AttachArgs = v.object({
-  customer_id: v.string(),
-  product_id: v.optional(v.string()),
-  product_ids: v.optional(v.array(v.string())),
-  entity_id: v.optional(v.string()),
-  options: v.optional(v.array(AttachFeatureOptionsConvex)),
-  free_trial: v.optional(v.boolean()),
-  success_url: v.optional(v.string()),
-  metadata: v.optional(v.object({})),
-  force_checkout: v.optional(v.boolean()),
-  customer_data: v.optional(CustomerDataConvex),
-  entity_data: v.optional(v.any()),
-  checkout_session_params: v.optional(v.object({})),
-  reward: v.optional(v.string()),
-  invoice: v.optional(v.boolean()),
-  apiKey: v.string(),
-});
-
-export const CheckoutArgs = v.object({
-  customer_id: v.string(),
-  product_id: v.string(),
-  entity_id: v.optional(v.string()),
-  options: v.optional(v.array(AttachFeatureOptionsConvex)),
-  force_checkout: v.optional(v.boolean()),
-  invoice: v.optional(v.boolean()),
-  success_url: v.optional(v.string()),
-  customer_data: v.optional(CustomerDataConvex),
-  entity_data: v.optional(v.any()),
-  checkout_session_params: v.optional(v.object({})),
-  reward: v.optional(v.string()),
-  apiKey: v.string(),
-});
+export type CheckoutArgsType = Infer<typeof CheckoutArgs>;
 
 export const CancelArgs = v.object({
-  customer_id: v.string(),
-  product_id: v.string(),
-  entity_id: v.optional(v.string()),
-  cancel_immediately: v.optional(v.boolean()),
-  customer_data: v.optional(CustomerDataConvex),
-  apiKey: v.string(),
+  productId: v.string(),
+  entityId: v.optional(v.string()),
+  cancelImmediately: v.optional(v.boolean()),
+  customerData: v.optional(CustomerDataConvex),
 });
 
-export const QueryArgs = v.object({
-  customer_id: v.string(),
-  feature_id: v.union(v.string(), v.array(v.string())),
-  customer_data: v.optional(CustomerDataConvex),
-  apiKey: v.string(),
-});
+export type CancelArgsType = Infer<typeof CancelArgs>;
 
 export const UsageArgs = v.object({
-  customer_id: v.string(),
-  feature_id: v.string(),
+  featureId: v.string(),
   value: v.number(),
-  customer_data: v.optional(CustomerDataConvex),
-  apiKey: v.string(),
+  customerData: v.optional(CustomerDataConvex),
 });
 
-export const SetupPaymentArgs = v.object({
-  customer_id: v.string(),
-  success_url: v.optional(v.string()),
-  checkout_session_params: v.optional(v.object({})),
-  customer_data: v.optional(CustomerDataConvex),
-  apiKey: v.string(),
+export type UsageArgsType = Infer<typeof UsageArgs>;
+
+export const QueryArgs = v.object({
+  featureId: v.union(v.string(), v.array(v.string())),
+  customerData: v.optional(CustomerDataConvex),
 });
+
+export type QueryArgsType = Infer<typeof QueryArgs>;
+
+export const SetupPaymentArgs = v.object({
+  successUrl: v.optional(v.string()),
+  checkoutSessionParams: v.optional(v.object({})),
+  customerData: v.optional(CustomerDataConvex),
+});
+
+export type SetupPaymentArgsType = Infer<typeof SetupPaymentArgs>;
 
 // Entity management - fallback to manual conversion
 export const EntityDataConvex = v.object({
@@ -169,22 +122,6 @@ export const EntityDataConvex = v.object({
 });
 
 // User-facing entity creation args (camelCase for user-friendly API)
-export const UserCreateEntityArgs = v.object({
-  entities: v.union(
-    v.object({
-      name: v.optional(v.string()),
-      featureId: v.string(),
-      id: v.optional(v.string()),
-    }),
-    v.array(
-      v.object({
-        name: v.optional(v.string()),
-        featureId: v.string(),
-        id: v.optional(v.string()),
-      })
-    )
-  ),
-});
 
 // Alternative single entity creation args for convenience
 export const UserCreateSingleEntityArgs = v.object({
@@ -194,11 +131,12 @@ export const UserCreateSingleEntityArgs = v.object({
 });
 
 export const CreateEntityArgs = v.object({
-  customer_id: v.string(),
-  entities: v.union(EntityDataConvex, v.array(EntityDataConvex)),
-  customer_data: v.optional(CustomerDataConvex),
-  apiKey: v.string(),
+  name: v.optional(v.string()),
+  featureId: v.string(),
+  id: v.optional(v.string()),
 });
+
+export type CreateEntityArgsType = Infer<typeof CreateEntityArgs>;
 
 export const DeleteEntityArgs = v.object({
   customer_id: v.string(),
@@ -212,12 +150,11 @@ export const UserGetEntityArgs = v.object({
 });
 
 export const GetEntityArgs = v.object({
-  customer_id: v.string(),
-  entity_id: v.string(),
+  entityId: v.string(),
   expand: v.optional(v.array(v.literal("invoices"))),
-  customer_data: v.optional(CustomerDataConvex),
-  apiKey: v.string(),
 });
+
+export type GetEntityArgsType = Infer<typeof GetEntityArgs>;
 
 export const ExpandArgs = v.optional(
   v.array(
@@ -233,25 +170,28 @@ export const ExpandArgs = v.optional(
 
 // Customer management
 export const GetCustomerArgs = v.object({
-  customer_id: v.string(),
   expand: ExpandArgs,
-  apiKey: v.string(),
 });
+export type GetCustomerArgsType = Infer<typeof GetCustomerArgs>;
 
 export const CreateCustomerArgs = v.object({
-  customer_id: v.string(),
-  name: v.optional(v.string()),
+  id: v.optional(v.string()),
   email: v.optional(v.string()),
-  apiKey: v.string(),
+  name: v.optional(v.string()),
   expand: ExpandArgs,
+  errorOnNotFound: v.optional(v.boolean()),
 });
 
+export type CreateCustomerArgsType = Infer<typeof CreateCustomerArgs>;
+
 export const UpdateCustomerArgs = v.object({
-  customer_id: v.string(),
   name: v.optional(v.string()),
   email: v.optional(v.string()),
-  apiKey: v.string(),
+  fingerprint: v.optional(v.string()),
+  metadata: v.optional(v.record(v.string(), v.any())),
+  stripeId: v.optional(v.string()),
 });
+export type UpdateCustomerArgsType = Infer<typeof UpdateCustomerArgs>;
 
 export const DeleteCustomerArgs = v.object({
   customer_id: v.string(),
@@ -259,34 +199,25 @@ export const DeleteCustomerArgs = v.object({
 });
 
 export const BillingPortalArgs = v.object({
-  customer_id: v.string(),
-  return_url: v.optional(v.string()),
-  apiKey: v.string(),
+  returnUrl: v.optional(v.string()),
 });
 
-// Product management
-export const GetProductArgs = v.object({
-  product_id: v.string(),
-  apiKey: v.string(),
-});
+export type BillingPortalArgsType = Infer<typeof BillingPortalArgs>;
 
-export const ListProductsArgs = v.object({
-  customer_id: v.optional(v.string()),
-  apiKey: v.string(),
-});
+export const ListProductsArgs = v.object({});
 
 // Referral management
 export const CreateReferralCodeArgs = v.object({
-  customer_id: v.string(),
-  program_id: v.string(),
-  apiKey: v.string(),
+  programId: v.string(),
 });
 
+export type CreateReferralCodeArgsType = Infer<typeof CreateReferralCodeArgs>;
+
 export const RedeemReferralCodeArgs = v.object({
-  customer_id: v.string(),
   code: v.string(),
-  apiKey: v.string(),
 });
+
+export type RedeemReferralCodeArgsType = Infer<typeof RedeemReferralCodeArgs>;
 
 // Customer fetching (for backwards compatibility)
 export const UserFetchCustomerArgs = v.object({
@@ -321,35 +252,17 @@ export const FetchCustomerArgs = v.object({
 });
 
 // Type exports
-export type TrackArgsType = Infer<typeof TrackArgs>;
-export type CheckArgsType = Infer<typeof CheckArgs>;
-export type AttachArgsType = Infer<typeof AttachArgs>;
-export type CheckoutArgsType = Infer<typeof CheckoutArgs>;
-export type CancelArgsType = Infer<typeof CancelArgs>;
-export type QueryArgsType = Infer<typeof QueryArgs>;
-export type UsageArgsType = Infer<typeof UsageArgs>;
-export type SetupPaymentArgsType = Infer<typeof SetupPaymentArgs>;
 
-export type UserCreateEntityArgsType = Infer<typeof UserCreateEntityArgs>;
 export type UserCreateSingleEntityArgsType = Infer<
   typeof UserCreateSingleEntityArgs
 >;
-export type CreateEntityArgsType = Infer<typeof CreateEntityArgs>;
+
 export type DeleteEntityArgsType = Infer<typeof DeleteEntityArgs>;
 export type UserGetEntityArgsType = Infer<typeof UserGetEntityArgs>;
-export type GetEntityArgsType = Infer<typeof GetEntityArgs>;
 
-export type GetCustomerArgsType = Infer<typeof GetCustomerArgs>;
-export type CreateCustomerArgsType = Infer<typeof CreateCustomerArgs>;
-export type UpdateCustomerArgsType = Infer<typeof UpdateCustomerArgs>;
 export type DeleteCustomerArgsType = Infer<typeof DeleteCustomerArgs>;
-export type BillingPortalArgsType = Infer<typeof BillingPortalArgs>;
 
-export type GetProductArgsType = Infer<typeof GetProductArgs>;
 export type ListProductsArgsType = Infer<typeof ListProductsArgs>;
-
-export type CreateReferralCodeArgsType = Infer<typeof CreateReferralCodeArgs>;
-export type RedeemReferralCodeArgsType = Infer<typeof RedeemReferralCodeArgs>;
 
 export type FetchCustomerArgsType = Infer<typeof FetchCustomerArgs>;
 export type UserFetchCustomerArgsType = Infer<typeof UserFetchCustomerArgs>;

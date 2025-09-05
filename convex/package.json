@@ -7,7 +7,7 @@
     "email": "support@convex.dev",
     "url": "https://github.com/useautumn/autumn-js/issues"
   },
-  "version": "0.1.0",
+  "version": "0.0.9",
   "license": "Apache-2.0",
   "keywords": [
     "convex",
@@ -51,11 +51,12 @@
     }
   },
   "peerDependencies": {
-    "autumn-js": "workspace:*",
     "convex": "^1.25.0",
-    "react": "^18.3.1 || ^19.0.0"
+    "react": "^18.3.1 || ^19.0.0",
+    "autumn-js": "^0.1.24"
   },
   "devDependencies": {
+    "autumn-js": "workspace:*",
     "@arethetypeswrong/cli": "^0.17.4",
     "@edge-runtime/vm": "^5.0.0",
     "@eslint/js": "9.29.0",
@@ -72,6 +73,11 @@
     "typescript": "5.5.4",
     "typescript-eslint": "8.34.1",
     "vitest": "3.2.4"
+  },
+  "peerDependenciesMeta": {
+    "autumn-js": {
+      "optional": false
+    }
   },
   "types": "./dist/client/index.d.ts",
   "module": "./dist/client/index.js",

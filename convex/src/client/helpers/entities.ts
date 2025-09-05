@@ -1,32 +1,52 @@
-import { Autumn } from "autumn-js";
-import {
-  camelToSnake,
-  type CreateEntityArgsType,
-  type DeleteEntityArgsType,
-  type GetEntityArgsType,
+import type { Autumn } from "autumn-js";
+import type {
+  IdentifierOptsType,
+  CreateEntityArgsType,
+  DeleteEntityArgsType,
+  GetEntityArgsType,
 } from "../../types.js";
 import { wrapSdkCall } from "./utils.js";
+import { toSnakeCase } from "../../utils.js";
 
-export const create = async (args: CreateEntityArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.entities.create(args.customer_id, camelToSnake(args.entities)));
-};
-
-export const discard = async (args: DeleteEntityArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.entities.delete(args.customer_id, args.entity_id));
-};
-
-export const get = async (args: GetEntityArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
+export const create = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: CreateEntityArgsType;
+}) => {
   return await wrapSdkCall(() =>
-    autumn.entities.get(args.customer_id, args.entity_id, {
+    autumn.entities.create(identifierOpts.customerId, toSnakeCase(args))
+  );
+};
+
+export const discard = async ({
+  autumn,
+  identifierOpts,
+  entityId,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  entityId: string;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.entities.delete(identifierOpts.customerId, entityId)
+  );
+};
+
+export const get = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: GetEntityArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.entities.get(identifierOpts.customerId, args.entityId, {
       expand: args.expand,
     })
   );

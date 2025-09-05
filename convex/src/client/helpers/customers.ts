@@ -1,4 +1,4 @@
-import { Autumn } from "autumn-js";
+import type { Autumn } from "autumn-js";
 import { wrapSdkCall } from "./utils.js";
 import {
   type GetCustomerArgsType,
@@ -6,58 +6,85 @@ import {
   type UpdateCustomerArgsType,
   type DeleteCustomerArgsType,
   type BillingPortalArgsType,
+  type IdentifierOptsType,
 } from "../../types.js";
+import { toSnakeCase } from "../../utils.js";
 
-export const get = async (args: GetCustomerArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
+export const get = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args?: GetCustomerArgsType;
+}) => {
   return await wrapSdkCall(() =>
-    autumn.customers.get(args.customer_id, {
-      expand: args.expand,
+    autumn.customers.get(identifierOpts.customerId, {
+      expand: args?.expand,
     })
   );
 };
 
-export const create = async (args: CreateCustomerArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
+export const create = async ({
+  autumn,
+  identifierOpts,
+  args,
+  useArgs = true,
+}: {
+  autumn: Autumn;
+  identifierOpts?: IdentifierOptsType;
+  args: CreateCustomerArgsType;
+  useArgs?: boolean;
+}) => {
   return await wrapSdkCall(() =>
     autumn.customers.create({
-      id: args.customer_id,
-      name: args.name,
-      email: args.email,
+      id: useArgs ? identifierOpts?.customerId : args.id,
+      name: useArgs ? identifierOpts?.customerData?.name : args.name,
+      email: useArgs ? identifierOpts?.customerData?.email : args.email,
+      ...args,
     })
   );
 };
 
-export const update = async (args: UpdateCustomerArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
+export const update = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: UpdateCustomerArgsType;
+}) => {
   return await wrapSdkCall(() =>
-    autumn.customers.update(args.customer_id, {
-      name: args.name,
-      email: args.email,
-    })
+    autumn.customers.update(identifierOpts.customerId, toSnakeCase(args))
   );
 };
 
-export const discard = async (args: DeleteCustomerArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.customers.delete(args.customer_id));
+export const discard = async ({
+  autumn,
+  identifierOpts,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.customers.delete(identifierOpts.customerId)
+  );
 };
 
-export const billingPortal = async (args: BillingPortalArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
+export const billingPortal = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: BillingPortalArgsType;
+}) => {
   return await wrapSdkCall(() =>
-    autumn.customers.billingPortal(args.customer_id, {
-      return_url: args.return_url,
+    autumn.customers.billingPortal(identifierOpts.customerId, {
+      return_url: args.returnUrl,
     })
   );
 };

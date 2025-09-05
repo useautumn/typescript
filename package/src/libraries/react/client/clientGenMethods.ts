@@ -80,7 +80,7 @@ export async function trackMethod(
   this: AutumnClient,
   params: TrackParams
 ): AutumnPromise<TrackResult> {
-  let snakeParams = toSnakeCase(params);
+  let snakeParams = toSnakeCase(params, ["properties"]);
   const res = await this.post(`${this.prefix}/track`, snakeParams);
   return res;
 }

@@ -1,94 +1,218 @@
-import { Autumn } from "autumn-js";
+import type { Autumn } from "autumn-js";
 import { wrapSdkCall } from "./utils.js";
-import {
-  type TrackArgsType,
-  type AttachArgsType,
-  type CheckArgsType,
-  type CheckoutArgsType,
-  type ListProductsArgsType,
-  type UsageArgsType,
-  type QueryArgsType,
-  type CancelArgsType,
-  type SetupPaymentArgsType,
-  type FetchCustomerArgsType,
+import type {
+  AttachArgsType,
+  CheckArgsType,
+  CheckoutArgsType,
+  ListProductsArgsType,
+  QueryArgsType,
+  CancelArgsType,
+  SetupPaymentArgsType,
+  FetchCustomerArgsType,
+  TrackArgsType,
+  IdentifierOptsType,
+  UsageArgsType,
 } from "../../types.js";
-import { camelToSnake } from "../../utils.js";
+import { toSnakeCase } from "../../utils.js";
 
-export const fetchCustomer = async (args: FetchCustomerArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
+// export const fetchCustomer = async (args: FetchCustomerArgsType) => {
+//   const autumn = new Autumn({
+//     secretKey: args.apiKey,
+//   });
+//   return await wrapSdkCall(() =>
+//     autumn.customers.create({
+//       id: args.customer_id,
+//       email: args.customer_data?.email || undefined,
+//       name: args.customer_data?.name || undefined,
+//       expand: args.expand,
+//     })
+//   );
+// };
+
+export const track = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: TrackArgsType;
+}) => {
   return await wrapSdkCall(() =>
-    autumn.customers.create({
-      id: args.customer_id,
-      email: args.customer_data?.email || undefined,
-      name: args.customer_data?.name || undefined,
-      expand: args.expand,
-    })
+    autumn.track(
+      toSnakeCase(
+        {
+          ...args,
+          customer_id: identifierOpts.customerId,
+          customer_data: identifierOpts.customerData,
+        },
+        ["properties"]
+      )
+    )
   );
 };
 
-export const track = async (args: TrackArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.track(camelToSnake(args)));
+export const check = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: CheckArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.check(
+      toSnakeCase({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        customer_data: identifierOpts.customerData,
+      })
+    )
+  );
 };
 
-export const attach = async (args: AttachArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.attach(camelToSnake(args)));
+export const attach = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: AttachArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.attach(
+      toSnakeCase(
+        {
+          ...args,
+          customer_id: identifierOpts.customerId,
+          customer_data: identifierOpts.customerData,
+        },
+        ["checkoutSessionParams"]
+      )
+    )
+  );
 };
 
-export const check = async (args: CheckArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.check(camelToSnake(args)));
+export const checkout = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: CheckoutArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.checkout(
+      toSnakeCase(
+        {
+          ...args,
+          customer_id: identifierOpts.customerId,
+          customer_data: identifierOpts.customerData,
+        },
+        ["checkoutSessionParams"]
+      )
+    )
+  );
 };
 
-export const checkout = async (args: CheckoutArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.checkout(camelToSnake(args)));
+export const usage = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: UsageArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.usage(
+      toSnakeCase({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        customer_data: identifierOpts.customerData,
+      })
+    )
+  );
 };
 
-export const usage = async (args: UsageArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.usage(camelToSnake(args)));
+export const autumnQuery = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: QueryArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.query(
+      toSnakeCase({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        customer_data: identifierOpts.customerData,
+      })
+    )
+  );
 };
 
-export const autumnQuery = async (args: QueryArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.query(camelToSnake(args)));
+export const cancel = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: CancelArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.cancel(
+      toSnakeCase({
+        ...args,
+        customer_id: identifierOpts.customerId,
+        customer_data: identifierOpts.customerData,
+      })
+    )
+  );
 };
 
-export const cancel = async (args: CancelArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.cancel(camelToSnake(args)));
+export const setupPayment = async ({
+  autumn,
+  identifierOpts,
+  args,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+  args: SetupPaymentArgsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.setupPayment(
+      toSnakeCase(
+        {
+          ...args,
+          customer_id: identifierOpts.customerId,
+          customer_data: identifierOpts.customerData,
+        },
+        ["checkoutSessionParams"]
+      )
+    )
+  );
 };
 
-export const setupPayment = async (args: SetupPaymentArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.setupPayment(camelToSnake(args)));
-};
-
-export const listProducts = async (args: ListProductsArgsType) => {
-  const autumn = new Autumn({
-    secretKey: args.apiKey,
-  });
-  return await wrapSdkCall(() => autumn.products.list(camelToSnake(args)));
+export const listProducts = async ({
+  autumn,
+  identifierOpts,
+}: {
+  autumn: Autumn;
+  identifierOpts: IdentifierOptsType;
+}) => {
+  return await wrapSdkCall(() =>
+    autumn.products.list({
+      customer_id: identifierOpts.customerId,
+    })
+  );
 };
 
 export * as customers from "./customers.js";

@@ -11,5 +11,4 @@ packages:
   - "next-bug"
   - "vite-spa"
   - "convex"
-  - "convex/example-ba"
-  - "convex/example-clerk"
+  - "convex/example-*"

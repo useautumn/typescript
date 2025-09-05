@@ -126,8 +126,6 @@ export default function Home() {
             onClick={async () => {
               const res = check({
                 featureId: "capabilities_library",
-                // requiredBalance: 1000,
-                featureId: "rfirfp_compliance_analysis",
                 requiredBalance: 6,
               });
               console.log(res);
@@ -150,8 +148,7 @@ export default function Home() {
           <Button
             onClick={async () => {
               const res = await checkout({
-                productId: "memory_starter",
-                successUrl: "https://facebook.com",
+                productId: "small",
                 dialog: CheckoutDialog,
                 openInNewTab: true,
               });

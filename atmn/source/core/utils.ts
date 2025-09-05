@@ -67,15 +67,15 @@ async function upsertEnvVar(
 	fs.writeFileSync(filePath, lines.join('\n'));
 }
 
-export function storeToEnv(prodKey: string, sandboxKey: string) {
+export async function storeToEnv(prodKey: string, sandboxKey: string) {
 	const envPath = `${process.cwd()}/.env`;
 	const envLocalPath = `${process.cwd()}/.env.local`;
 	const envVars = `AUTUMN_PROD_SECRET_KEY=${prodKey}\nAUTUMN_SECRET_KEY=${sandboxKey}\n`;
 
 	// Check if .env exists first
 	if (fs.existsSync(envPath)) {
-		upsertEnvVar(envPath, 'AUTUMN_PROD_SECRET_KEY', prodKey);
-		upsertEnvVar(envPath, 'AUTUMN_SECRET_KEY', sandboxKey);
+		await upsertEnvVar(envPath, 'AUTUMN_PROD_SECRET_KEY', prodKey);
+		await upsertEnvVar(envPath, 'AUTUMN_SECRET_KEY', sandboxKey);
 		console.log(chalk.green('.env file found. Updated keys.'));
 	} else if (fs.existsSync(envLocalPath)) {
 		// If .env doesn't exist but .env.local does, create .env and write keys

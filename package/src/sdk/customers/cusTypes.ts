@@ -185,5 +185,18 @@ export const UpdateBalancesParamsSchema = z
     )
   );
 
+export const DeleteCustomerParamsSchema = z.object({
+  delete_in_stripe: z.boolean().optional(),
+});
+
+export const ListCustomersParamsSchema = z.object({
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+});
+
+export type ListCustomersParams = z.infer<typeof ListCustomersParamsSchema>;
+export type DeleteCustomerParams = z.infer<typeof DeleteCustomerParamsSchema>;
 export type UpdateBalancesParams = z.infer<typeof UpdateBalancesParamsSchema>;
 export type UpdateBalancesResult = { success: boolean };
+
+

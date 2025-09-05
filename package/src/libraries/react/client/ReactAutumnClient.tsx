@@ -81,7 +81,7 @@ export interface IAutumnClient {
   
   entities: {
     create(args: any): Promise<any>;
-    get(args: any): Promise<any>;
+    get(entityId: string, args: any): Promise<any>;
     delete(args: any): Promise<any>;
   };
   

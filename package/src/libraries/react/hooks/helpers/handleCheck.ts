@@ -101,9 +101,6 @@ const handleFeatureCheck = ({
       : {}),
   });
 
-  console.log("Cus Feature", cusFeature);
-  console.log("Required Balance", requiredBalance);
-
   let allowed = getFeatureAllowed({
     cusFeature,
     requiredBalance: requiredBalance ?? 1,
