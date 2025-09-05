@@ -79,32 +79,44 @@ export function storeToEnv(prodKey: string, sandboxKey: string) {
 	}
 }
 
+function getEnvVar(parsed: { [key: string]: string }, prodFlag: boolean) {
+	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+	if (parsed["AUTUMN_PROD_SECRET_KEY"] && prodFlag) {
+		// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+		return parsed["AUTUMN_PROD_SECRET_KEY"];
+		// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+	} else if (parsed["AUTUMN_SECRET_KEY"]) {
+		// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+		return parsed["AUTUMN_SECRET_KEY"];
+	}
+	return undefined;
+}
+
 export function readFromEnv() {
 	const envPath = `${process.cwd()}/.env`;
 	const envLocalPath = `${process.cwd()}/.env.local`;
 	const prodFlag =
 		process.argv.includes("--prod") || process.argv.includes("-p");
 
-	function getEnvVar(parsed: { [key: string]: string }) {
+	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+	if(prodFlag && process.env["AUTUMN_PROD_SECRET_KEY"]) {
 		// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-		if (parsed["AUTUMN_PROD_SECRET_KEY"] && prodFlag) {
-			// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-			return parsed["AUTUMN_PROD_SECRET_KEY"];
-			// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-		} else if (parsed["AUTUMN_SECRET_KEY"]) {
-			// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-			return parsed["AUTUMN_SECRET_KEY"];
-		}
-		return undefined;
+		return process.env["AUTUMN_PROD_SECRET_KEY"];
 	}
 
-	// Check .env first (has priority)
+	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+	if(process.env["AUTUMN_SECRET_KEY"] && !prodFlag) {
+		// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+		return process.env["AUTUMN_SECRET_KEY"];
+	}
+
+	// Check .env second
 	if (fs.existsSync(envPath))
-		return getEnvVar(dotenv.parse(fs.readFileSync(envPath, "utf-8")));
+		return getEnvVar(dotenv.parse(fs.readFileSync(envPath, "utf-8")), prodFlag);
 
 	// If not found in .env, check .env.local
 	if (fs.existsSync(envLocalPath))
-		return getEnvVar(dotenv.parse(fs.readFileSync(envLocalPath, "utf-8")));
+		return getEnvVar(dotenv.parse(fs.readFileSync(envLocalPath, "utf-8")), prodFlag);
 
 	return undefined;
 }
