@@ -1,10 +1,11 @@
 # Autumn + Convex
 
-Implementing the [Autumn](https://useautumn.com) + Convex component
-
-> Note: You’ll need Convex v1.25.0+ and `autumn-js` v0.1.24+.
+## Introduction
+[Autumn](https://useautumn.com) is your pricing and customer database—an abstraction over Stripe that lets you model any pricing (subscriptions, usage-based, seats, trials, credits) and implement it in your codebase in just three functions: check for access, track for metering, and checkout for purchases.
 
 ## Setup
+
+> Note: You’ll need Convex v1.25.0+ and `autumn-js` v0.1.24+.
 
 #### 1) Install the packages
 
