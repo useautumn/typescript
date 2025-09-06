@@ -30,6 +30,7 @@ export const TrackParamsSchema = z.object({
   customer_data: z.any().optional(),
   idempotency_key: z.string().optional(),
   entity_data: z.any().optional(),
+  properties: z.record(z.string(), z.any()).optional(),
 });
 
 export type TrackParams = z.infer<typeof TrackParamsSchema>;
@@ -96,7 +97,7 @@ export type QueryParams = z.infer<typeof QueryParamsSchema>;
 export type QueryResult = {
   list: Array<
     {
-      period: string;
+      period: number;
     } & {
       [key: string]: number;
     }

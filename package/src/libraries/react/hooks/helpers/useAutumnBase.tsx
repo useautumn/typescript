@@ -18,6 +18,7 @@ import { usePricingTableBase } from "../usePricingTableBase";
 import { AttachResult } from "@sdk/general/attachTypes";
 import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
 import { AutumnClient } from "@/client/ReactAutumnClient";
+import { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
 
 export const useAutumnBase = ({
   // AutumnContext,
@@ -27,7 +28,7 @@ export const useAutumnBase = ({
 }: {
   // AutumnContext: React.Context<AutumnContextParams>;
   context?: AutumnContextParams;
-  client: AutumnClient;
+  client: AutumnClient | ConvexAutumnClient;
   refetchCustomer?: () => Promise<any>;
 }) => {
   const { attachDialog, paywallDialog } = context || {};
@@ -63,15 +64,20 @@ export const useAutumnBase = ({
 
   const checkout = async (params: CheckoutParams) => {
     const { data, error } = await client.checkout(params);
-
     const { dialog, ...rest } = params;
+
+    if (params.dialog && params.productIds) {
+      throw new Error(
+        "Dialog and productIds are not supported together in checkout()"
+      );
+    }
 
     if (error) {
       return { data, error };
     }
 
     const hasPrepaid = data.product.items.some(
-      (item) => item.usage_model === "prepaid"
+      (item: any) => item.usage_model === "prepaid"
     );
 
     const showDialog = hasPrepaid && params.dialog;
@@ -87,7 +93,7 @@ export const useAutumnBase = ({
     }
 
     if (params.dialog) {
-      attachDialog?.setProps({ checkoutResult: data, attachParams: rest });
+      attachDialog?.setProps({ checkoutResult: data, checkoutParams: rest });
       attachDialog?.setComponent(params.dialog);
       attachDialog?.setOpen(true);
     }

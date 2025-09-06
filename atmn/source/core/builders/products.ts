@@ -22,8 +22,8 @@ import {
 export function exportBuilder(productIds: string[], featureIds: string[]) {
 	const snippet = `
 const autumnConfig = {
-    products: [${productIds.map(id => `${idToVar(id)}`).join(', ')}],
-    features: [${featureIds.map(id => `${idToVar(id)}`).join(', ')}]
+    products: [${productIds.map(id => `${idToVar({id, prefix: 'product'})}`).join(', ')}],
+    features: [${featureIds.map(id => `${idToVar({id, prefix: 'feature'})}`).join(', ')}]
 }
 
 export default autumnConfig;
@@ -38,8 +38,14 @@ export function productBuilder({
 	product: Product;
 	features: Feature[];
 }) {
+	// if (product.id == 'top_up') {
+	// 	console.log(
+	// 		'Items:',
+	// 		product.items.map(item => item.tiers),
+	// 	);
+	// }
 	const snippet = `
-export const ${idToVar(product.id)} = product({
+export const ${idToVar({id: product.id, prefix: 'product'})} = product({
     id: '${product.id}',
     name: '${product.name}',
     items: [${product.items
@@ -93,9 +99,32 @@ const getIntervalStr = ({item}: {item: ProductItem}) => {
 
 const getEntityFeatureIdStr = ({item}: {item: ProductItem}) => {
 	if (nullish(item.entity_feature_id)) return '';
-	return `${getItemFieldPrefix()}entity_feature_id: ${idToVar(
-		item.entity_feature_id!,
-	)}.id,`;
+	return `${getItemFieldPrefix()}entity_feature_id: ${idToVar({
+		id: item.entity_feature_id!,
+		prefix: 'feature',
+	})}.id,`;
+};
+
+const getPriceStr = ({item}: {item: ProductItem}) => {
+	// 1. If tiers...
+	if (item.tiers) {
+		return `
+		tiers: [
+			${item.tiers
+				.map(
+					tier =>
+						`{ to: ${tier.to == 'inf' ? "'inf'" : tier.to}, amount: ${
+							tier.amount
+						} }`,
+				)
+				.join(',\n\t\t\t')}
+		],`;
+	}
+
+	if (item.price == null) return '';
+	return `price: ${item.price},`;
+	// if (item.price == null) return '';
+	// return `${getItemFieldPrefix()}price: ${item.price},`;
 };
 
 export function pricedFeatureItemBuilder({
@@ -105,16 +134,17 @@ export function pricedFeatureItemBuilder({
 	item: ProductItem;
 	features: Feature[];
 }) {
-	// const intervalLine =
-	// 	item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const intervalStr = getIntervalStr({item});
 	const entityFeatureIdStr = getEntityFeatureIdStr({item});
 	const resetUsageStr = getResetUsageStr({item, features});
+	const priceStr = getPriceStr({item});
 	const snippet = `
         pricedFeatureItem({
-            feature_id: ${idToVar(item.feature_id!)}.id,
-            price: ${item.price},${intervalStr}
-            included_usage: ${item.included_usage},
+            feature_id: ${idToVar({id: item.feature_id!, prefix: 'feature'})}.id,
+            ${priceStr}${intervalStr}
+            included_usage: ${
+							item.included_usage == 'inf' ? `"inf"` : item.included_usage
+						},
             billing_units: ${item.billing_units},
             usage_model: '${
 							item.usage_model
@@ -136,9 +166,9 @@ export function featureItemBuilder({
 	const resetUsageStr = getResetUsageStr({item, features});
 	const snippet = `
         featureItem({
-            feature_id: ${idToVar(item.feature_id!)}.id,
+            feature_id: ${idToVar({id: item.feature_id!, prefix: 'feature'})}.id,
             included_usage: ${
-							item.included_usage
+							item.included_usage == 'inf' ? `"inf"` : item.included_usage
 						},${intervalStr}${resetUsageStr}${entityFeatureIdStr}
         }),
 `;

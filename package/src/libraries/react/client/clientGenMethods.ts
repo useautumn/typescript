@@ -25,7 +25,7 @@ export async function checkoutMethod(
   this: AutumnClient,
   params: CheckoutParams
 ): AutumnPromise<CheckoutResult> {
-  let snakeParams = toSnakeCase(params);
+  let snakeParams = toSnakeCase(params, ["checkoutSessionparams"]);
   const res = await this.post(`${this.prefix}/checkout`, snakeParams);
   return res;
 }
@@ -80,7 +80,7 @@ export async function trackMethod(
   this: AutumnClient,
   params: TrackParams
 ): AutumnPromise<TrackResult> {
-  let snakeParams = toSnakeCase(params);
+  let snakeParams = toSnakeCase(params, ["properties"]);
   const res = await this.post(`${this.prefix}/track`, snakeParams);
   return res;
 }

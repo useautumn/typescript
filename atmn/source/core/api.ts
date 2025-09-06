@@ -15,6 +15,7 @@ export async function request({
 	headers,
 	customAuth,
 	throwOnError = true,
+	secretKey,
 }: {
 	method: string;
 	base: string;
@@ -23,8 +24,9 @@ export async function request({
 	headers?: any;
 	customAuth?: string;
 	throwOnError?: boolean;
+	secretKey?: string;
 }) {
-	const apiKey = readFromEnv();
+	const apiKey = secretKey || readFromEnv();
 
 	try {
 		const response = await axios.request({
@@ -113,20 +115,18 @@ export async function deleteProduct(id: string) {
 	});
 }
 
-export async function updateCLIStripeKeys(
-	stripeTestKey: string,
-	stripeLiveKey: string,
-	stripeFlowAuthKey: string,
-) {
-	return await internalRequest({
+export async function updateCLIStripeKeys({
+	stripeSecretKey,
+	autumnSecretKey,
+}: {
+	stripeSecretKey: string;
+	autumnSecretKey: string;
+}) {
+	return await request({
+		base: EXTERNAL_BASE,
 		method: 'POST',
-		path: '/dev/cli/stripe',
-		data: {
-			stripeTestKey,
-			stripeLiveKey,
-			successUrl: 'https://useautumn.com',
-			defaultCurrency: 'usd',
-		},
-		customAuth: stripeFlowAuthKey,
+		path: '/organization/stripe',
+		data: {secret_key: stripeSecretKey},
+		secretKey: autumnSecretKey,
 	});
 }

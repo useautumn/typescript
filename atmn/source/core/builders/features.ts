@@ -21,7 +21,7 @@ const creditSchemaBuilder = (feature: Feature) => {
 
 export function featureBuilder(feature: Feature) {
 	const snippet = `
-export const ${idToVar(feature.id)} = feature({
+export const ${idToVar({id: feature.id, prefix: 'feature'})} = feature({
     id: '${feature.id}',
     name: '${feature.name}',
     type: '${feature.type}',${creditSchemaBuilder(feature)}

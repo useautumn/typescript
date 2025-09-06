@@ -33,6 +33,7 @@ export const useEntityBase = ({
       return null;
     }
 
+    
     const { data, error } = await client.entities.get(entityId, params);
 
     if (error) {

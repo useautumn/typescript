@@ -19,6 +19,7 @@ export const CheckParamsSchema = z.object({
   withPreview: z.boolean().optional(),
   dialog: z.any().optional(),
   entityData: z.any().optional(),
+  properties: z.record(z.string(), z.any()).optional(),
 });
 
 export type CheckParams = z.infer<typeof CheckParamsSchema>;

@@ -35,7 +35,8 @@ export const AttachParamsSchema = z.object({
 export type AttachParams = z.infer<typeof AttachParamsSchema>;
 
 export const CheckoutParamsSchema = z.object({
-  productId: z.string(),
+  productId: z.string().optional(),
+  productIds: z.array(z.string()).optional(),
   entityId: z.string().optional(),
   entityData: z.any().optional(),
 
@@ -43,6 +44,7 @@ export const CheckoutParamsSchema = z.object({
   successUrl: z.string().optional(),
   openInNewTab: z.boolean().optional(),
   dialog: z.any().optional(),
+  forceCheckout: z.boolean().optional(),
 
   checkoutSessionParams: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
