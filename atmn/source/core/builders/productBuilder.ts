@@ -1,5 +1,6 @@
 import {ProductItem, Product, Feature} from '../../compose/index.js';
 import {idToVar, notNullish, nullish} from '../utils.js';
+import {freeTrialBuilder} from './freeTrialBuilder.js';
 
 const ItemBuilders = {
 	priced_feature: pricedFeatureItemBuilder,
@@ -38,12 +39,6 @@ export function productBuilder({
 	product: Product;
 	features: Feature[];
 }) {
-	// if (product.id == 'top_up') {
-	// 	console.log(
-	// 		'Items:',
-	// 		product.items.map(item => item.tiers),
-	// 	);
-	// }
 	const snippet = `
 export const ${idToVar({id: product.id, prefix: 'product'})} = product({
     id: '${product.id}',
@@ -56,7 +51,8 @@ export const ${idToVar({id: product.id, prefix: 'product'})} = product({
 						features,
 					})}`,
 			)
-			.join('           ')}     ]
+			.join('           ')}     ],
+	${product.free_trial ? `${freeTrialBuilder({freeTrial: product.free_trial})}` : ''}
 })
 `;
 	return snippet;

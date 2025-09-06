@@ -13,6 +13,8 @@ import {DEFAULT_CONFIG} from './constants.js';
 
 const VERSION = '1.0.0b';
 
+program.option('-p, --prod', 'Push to production');
+
 program
 	.command('push')
 	.description('Push changes to Autumn')
