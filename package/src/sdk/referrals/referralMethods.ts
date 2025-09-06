@@ -1,8 +1,11 @@
+import { AutumnPromise } from "@sdk/response";
 import { Autumn } from "../client";
 import { staticWrapper } from "../utils";
 import {
   CreateReferralCodeParams,
+  CreateReferralCodeResult,
   RedeemReferralCodeParams,
+  RedeemReferralCodeResult,
 } from "./referralTypes";
 
 export const referralMethods = (instance?: Autumn) => {
@@ -20,7 +23,7 @@ export const createReferralCode = async ({
 }: {
   instance: Autumn;
   params: CreateReferralCodeParams;
-}) => {
+}): AutumnPromise<CreateReferralCodeResult> => {
   return instance.post("/referrals/code", params);
 };
 
@@ -30,6 +33,6 @@ export const redeemReferralCode = async ({
 }: {
   instance: Autumn;
   params: RedeemReferralCodeParams;
-}) => {
+}): AutumnPromise<RedeemReferralCodeResult> => {
   return instance.post("/referrals/redeem", params);
 };

@@ -13,6 +13,8 @@
     "nextjs"
   ],
   "dependencies": {
-    "atmn": "link:../../../Library/pnpm/global/5/node_modules/atmn"
+    "@types/node": "^24.3.0",
+    "convex": "^1.25.4",
+    "package": "^1.0.1"
   }
 }

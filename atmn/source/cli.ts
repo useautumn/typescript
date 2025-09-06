@@ -15,6 +15,8 @@ declare const VERSION: string;
 
 program.version(VERSION);
 
+program.option('-p, --prod', 'Push to production');
+
 program
 	.command("env")
 	.description("Check the environment of your API key")

@@ -12,7 +12,7 @@ import {
 import { getCheckoutContent } from "@/registry/checkout-dialog/lib/checkout-content";
 import { useCustomer } from "autumn-js/react";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
-import type { CheckoutResult, ProductItem } from "autumn-js";
+import type { CheckoutParams, CheckoutResult, ProductItem } from "autumn-js";
 import {
   Accordion,
   AccordionContent,
@@ -29,6 +29,7 @@ export interface CheckoutDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   checkoutResult: CheckoutResult;
+  checkoutParams?: CheckoutParams;
 }
 
 const formatCurrency = ({
@@ -98,6 +99,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
 
               await attach({
                 productId: checkoutResult.product.id,
+                ...(params.checkoutParams || {}),
                 options,
               });
               setOpen(false);
@@ -230,8 +232,8 @@ function ProductItems({
                 {item.feature
                   ? item.feature.name
                   : isOneOff
-                    ? "Price"
-                    : "Subscription"}
+                  ? "Price"
+                  : "Subscription"}
               </p>
               <p>
                 {item.display?.primary_text} {item.display?.secondary_text}
@@ -360,7 +362,9 @@ const PrepaidItem = ({
   return (
     <div className="flex justify-between gap-2">
       <div className="flex gap-2 items-start">
-        <p className="text-muted-foreground">{item.feature?.name}</p>
+        <p className="text-muted-foreground whitespace-nowrap">
+          {item.feature?.name}
+        </p>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             className={cn(
@@ -399,8 +403,7 @@ const PrepaidItem = ({
 
               <Button
                 onClick={handleSave}
-                className="w-14 !h-7"
-                // text-sm items-center bg-white text-foreground shadow-sm border border-zinc-200 hover:bg-zinc-100
+                className="w-14 !h-7 text-sm items-center bg-white text-foreground shadow-sm border border-zinc-200 hover:bg-zinc-100"
                 disabled={loading}
               >
                 {loading ? (

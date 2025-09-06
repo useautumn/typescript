@@ -66,8 +66,8 @@ async function installAtmn(): Promise<boolean> {
 			packageManager === 'npm'
 				? 'npm install atmn'
 				: packageManager === 'pnpm'
-				? 'pnpm add atmn'
-				: 'bun add atmn';
+					? 'pnpm add atmn'
+					: 'bun add atmn';
 
 		execSync(installCommand, {stdio: 'inherit'});
 		console.log(chalk.green('atmn installed successfully!'));
