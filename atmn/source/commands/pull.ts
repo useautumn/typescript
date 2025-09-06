@@ -1,17 +1,22 @@
 import chalk from 'chalk';
 import prettier from 'prettier';
 import {getAllProducts, getFeatures} from '../core/pull.js';
-import {productBuilder} from '../core/builders/products.js';
-import {featureBuilder} from '../core/builders/features.js';
+import {productBuilder} from '../core/builders/productBuilder.js';
+import {featureBuilder} from '../core/builders/featureBuilder.js';
 import {writeConfig} from '../core/config.js';
-import {importBuilder, exportBuilder} from '../core/builders/products.js';
+import {importBuilder, exportBuilder} from '../core/builders/productBuilder.js';
 import {snakeCaseToCamelCase} from '../core/utils.js';
 import {Feature, Product} from '../compose/models/composeModels.js';
 
-export default async function Pull({config}: {config: any}) {
+export default async function Pull(options?: {archived?: boolean}) {
 	console.log(chalk.green('Pulling products and features from Autumn...'));
-	const products = await getAllProducts();
+	const products = await getAllProducts(options?.archived ?? false);
 	const features = await getFeatures();
+
+	console.log(
+		'Products: ',
+		products.map((product: Product) => product.id),
+	);
 
 	const productSnippets = products.map((product: Product) =>
 		productBuilder({product, features}),
@@ -34,12 +39,6 @@ ${importBuilder()}
 	});
 
 	writeConfig(formattedConfig);
-
-	// 	// Remember to update this when you make changes!
-	// ${exportBuilder(
-	// 	products.map((product: Product) => product.id),
-	// 	features.map((feature: Feature) => snakeCaseToCamelCase(feature.id)),
-	// )}
 
 	console.log(chalk.green('Success! Config has been updated.'));
 }
