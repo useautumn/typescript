@@ -1,10 +1,10 @@
-import {Product, Feature} from '../models/composeModels.js';
+import type { Feature, Product } from "../models/composeModels.js";
 
-import {
+import type {
 	ProductItem,
 	ProductItemInterval,
 	UsageModel,
-} from '../models/productItemModels.js';
+} from "../models/productItemModels.js";
 
 export const product = (p: Product) => p;
 export const feature = (f: Feature) => f;
@@ -37,7 +37,7 @@ export const pricedFeatureItem = ({
 	interval,
 	included_usage = undefined,
 	billing_units = 1,
-	usage_model = 'pay_per_use',
+	usage_model = "pay_per_use",
 	reset_usage_when_enabled,
 	entity_feature_id,
 }: {

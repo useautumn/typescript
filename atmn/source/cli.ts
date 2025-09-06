@@ -44,8 +44,11 @@ program
 	.command("pull")
 	.description("Pull changes from Autumn")
 	.option("-p, --prod", "Pull from production")
-	.action(async () => {
-		await Pull();
+	.option("-a, --archived", "Pull archived products")
+	.action(async (options) => {
+		if (options.archived)
+			console.warn(chalk.yellow("Warning: Including archived products"));
+		await Pull({ archived: options.archived ?? false });
 	});
 
 program
@@ -78,5 +81,22 @@ program
 	.action(() => {
 		console.log(VERSION);
 	});
+
+/**
+ * This is a hack to silence the DeprecationWarning about url.parse()
+ */
+
+// biome-ignore lint/suspicious/noExplicitAny: expected
+const originalEmit = process.emitWarning as any;
+// biome-ignore lint/suspicious/noExplicitAny: expected
+(process as any).emitWarning = (warning: any, ...args: any[]) => {
+	const msg = typeof warning === "string" ? warning : warning.message;
+
+	if (msg.includes("url.parse()")) {
+		return;
+	}
+
+	return originalEmit(warning, ...args);
+};
 
 program.parse();

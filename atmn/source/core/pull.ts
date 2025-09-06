@@ -2,8 +2,8 @@ import chalk from "chalk";
 import type { Feature, Product } from "../compose/models/composeModels.js";
 import { externalRequest } from "./api.js";
 
-export async function getProducts(ids: string[]) {
-	const products = await Promise.all(
+export async function getProducts(ids: string[]): Promise<Product[]> {
+	return await Promise.all(
 		ids.map((id) =>
 			externalRequest({
 				method: "GET",
@@ -11,16 +11,15 @@ export async function getProducts(ids: string[]) {
 			}),
 		),
 	);
-	return products.map((product) => product as Product);
 }
 
-export async function getAllProducts() {
-	const { list } = await externalRequest({
+export async function getAllProducts(archived?: boolean): Promise<Product[]> {
+	const { list: products } = await externalRequest({
 		method: "GET",
-		path: "/products",
+		path: `/products${archived ? "?include_archived=true" : ""}`,
 	});
 
-	return list.map((product: Product) => product as Product);
+	return [...products];
 }
 
 export async function getAllProductVariants() {
@@ -56,7 +55,7 @@ export async function getAllProductVariants() {
 export async function getFeatures() {
 	const { list } = await externalRequest({
 		method: "GET",
-		path: "/features?include_archived=true",
+		path: `/features?include_archived=true`,
 	});
 
 	return list.map((feature: Feature) => feature as Feature);

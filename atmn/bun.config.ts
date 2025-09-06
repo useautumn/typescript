@@ -12,7 +12,8 @@ async function build() {
 		target: "node",
 		define: {
 			VERSION: `"${await getVersion()}"`,
-		}
+		},
+		external: ["prettier"]
 	});
 	console.timeEnd(`Building atmn v${await getVersion()}`);
 
