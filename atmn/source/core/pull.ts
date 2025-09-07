@@ -13,10 +13,13 @@ export async function getProducts(ids: string[]): Promise<Product[]> {
 	);
 }
 
-export async function getAllProducts(archived?: boolean): Promise<Product[]> {
+export async function getAllProducts(params?: {
+	archived?: boolean;
+}): Promise<Product[]> {
 	const {list: products} = await externalRequest({
 		method: 'GET',
-		path: `/products${archived ? '?include_archived=true' : ''}`,
+		path: `/products`,
+		queryParams: {include_archived: params?.archived ? true : false},
 	});
 
 	return [...products];
@@ -52,10 +55,11 @@ export async function getAllProductVariants() {
 	return allProducts;
 }
 
-export async function getFeatures() {
+export async function getFeatures(params?: {includeArchived?: boolean}) {
 	const {list} = await externalRequest({
 		method: 'GET',
 		path: '/features',
+		queryParams: {include_archived: params?.includeArchived ? true : false},
 	});
 
 	return list.map((feature: Feature) => feature as Feature);

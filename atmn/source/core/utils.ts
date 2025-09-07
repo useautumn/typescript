@@ -110,30 +110,21 @@ function getEnvVar(parsed: {[key: string]: string}, prodFlag: boolean) {
 	return parsed['AUTUMN_SECRET_KEY'];
 }
 
-export function readFromEnv() {
+export function readFromEnv(options?: {bypass?: boolean}) {
 	const envPath = `${process.cwd()}/.env`;
 	const envLocalPath = `${process.cwd()}/.env.local`;
 	const prodFlag =
 		process.argv.includes('--prod') || process.argv.includes('-p');
 
-	// // biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-	// if (prodFlag) {
-	// 	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-	// 	const secretKey = process.env['AUTUMN_PROD_SECRET_KEY'];
-	// 	if (!secretKey) {
-	// 		console.error(
-	// 			'[Error] AUTUMN_PROD_SECRET_KEY is not set. Please add it to your .env file.',
-	// 		);
-	// 		process.exit(1);
-	// 	}
-	// 	return process.env['AUTUMN_PROD_SECRET_KEY'];
-	// }
+	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+	if (prodFlag && process.env['AUTUMN_PROD_SECRET_KEY']) {
+		return process.env['AUTUMN_PROD_SECRET_KEY'];
+	}
 
-	// // biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-	// if (process.env['AUTUMN_SECRET_KEY'] && !prodFlag) {
-	// 	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-	// 	return process.env['AUTUMN_SECRET_KEY'];
-	// }
+	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
+	if (!prodFlag && process.env['AUTUMN_SECRET_KEY']) {
+		return process.env['AUTUMN_SECRET_KEY'];
+	}
 
 	let secretKey = undefined;
 
@@ -151,15 +142,15 @@ export function readFromEnv() {
 			prodFlag,
 		);
 
-	if (!secretKey) {
+	if (!secretKey && !options?.bypass) {
 		if (prodFlag) {
 			console.error(
-				'[Error] atmn uses the AUTUMN_PROD_SECRET_KEY to call the Autumn production API. Please add it to your .env file.',
+				'[Error] atmn uses the AUTUMN_PROD_SECRET_KEY to call the Autumn production API. Please add it to your .env file or run `atmn login` to authenticate.',
 			);
 			process.exit(1);
 		} else {
 			console.error(
-				'[Error] atmn uses the AUTUMN_SECRET_KEY to call the Autumn sandbox API. Please add it to your .env (or .env.local) file.',
+				'[Error] atmn uses the AUTUMN_SECRET_KEY to call the Autumn sandbox API. Please add it to your .env (or .env.local) file or run `atmn login` to authenticate.',
 			);
 			process.exit(1);
 		}

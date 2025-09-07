@@ -1,6 +1,6 @@
 {
 	"name": "atmn",
-	"version": "0.0.20",
+	"version": "0.0.22",
 	"license": "MIT",
 	"bin": "dist/cli.js",
 	"main": "dist/index.js",
@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"build": "bun bun.config.ts",
-		"dev": "tsup --watch",
+		"dev": "bun build ./source/cli.ts ./source/index.ts --outdir ./dist --format esm --target node --define:VERSION='\"dev\"' --watch --external prettier",
 		"test2": "prettier --check . && xo && ava",
 		"test": "node --trace-deprecation -- ./dist/cli.js"
 	},

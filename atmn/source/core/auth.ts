@@ -1,4 +1,4 @@
-import { internalRequest } from './api.js';
+import {internalRequest} from './api.js';
 
 export async function getOTP(otp: string) {
 	const response = await internalRequest({

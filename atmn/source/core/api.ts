@@ -1,8 +1,8 @@
-import axios, { AxiosError } from 'axios';
+import axios, {AxiosError} from 'axios';
 import chalk from 'chalk';
 
-import { BACKEND_URL } from '../constants.js';
-import { readFromEnv } from './utils.js';
+import {BACKEND_URL} from '../constants.js';
+import {readFromEnv} from './utils.js';
 
 const INTERNAL_BASE: string = BACKEND_URL;
 const EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
@@ -16,6 +16,8 @@ export async function request({
 	customAuth,
 	throwOnError = true,
 	secretKey,
+	queryParams,
+	bypass,
 }: {
 	method: string;
 	base: string;
@@ -25,14 +27,17 @@ export async function request({
 	customAuth?: string;
 	throwOnError?: boolean;
 	secretKey?: string;
+	queryParams?: Record<string, string>;
+	bypass?: boolean;
 }) {
-	const apiKey = secretKey || readFromEnv();
+	const apiKey = secretKey || readFromEnv({bypass});
 
 	try {
 		const response = await axios.request({
 			method,
 			url: `${base}${path}`,
 			data,
+			params: queryParams,
 			headers: {
 				'Content-Type': 'application/json',
 				...headers,
@@ -46,16 +51,28 @@ export async function request({
 			throw error;
 		}
 
-		console.error(
-			chalk.red('\nError occured when making API request:')
-		);
+		// Pretty-print a concise error summary (status, code, message) without raw Axios dump
+		console.error('\n' + chalk.bgRed.white.bold('  API REQUEST FAILED  '));
+		const methodPath = `${method.toUpperCase()} ${base}${path}`;
+		console.error(chalk.red(methodPath));
+
 		if (error instanceof AxiosError) {
-			console.error(chalk.red(error?.response?.data?.message || error?.response?.data?.error || error?.message || error));
-			console.error(error)
+			const status = error.response?.status;
+			const data = error.response?.data as any;
+			const code = data?.code || data?.error || 'unknown_error';
+			const message =
+				data?.message || error.message || 'An unknown error occurred';
+
+			if (status) {
+				console.error(chalk.redBright(`[${status}] ${code}`));
+			}
+			console.error(chalk.red(message));
+
+			// Optional: show hint for debugging if verbose mode is desired later
 		} else if (error instanceof Error) {
-			console.error(`${chalk.red(error.message)}\n${chalk.red(error.stack)}`);
+			console.error(chalk.red(error.message));
 		} else {
-			console.error(chalk.red(error));
+			console.error(chalk.red(String(error)));
 		}
 
 		process.exit(1);
@@ -82,6 +99,7 @@ export async function internalRequest({
 		data,
 		headers,
 		customAuth,
+		bypass: true,
 	});
 }
 
@@ -92,6 +110,7 @@ export async function externalRequest({
 	headers,
 	customAuth,
 	throwOnError = false,
+	queryParams,
 }: {
 	method: string;
 	path: string;
@@ -99,6 +118,7 @@ export async function externalRequest({
 	headers?: Record<string, string>;
 	customAuth?: string;
 	throwOnError?: boolean;
+	queryParams?: Record<string, any>;
 }) {
 	return await request({
 		method,
@@ -108,19 +128,27 @@ export async function externalRequest({
 		headers,
 		customAuth,
 		throwOnError,
+		queryParams,
 	});
 }
 
-export async function deleteFeature(id: string) {
+export async function deleteFeature({id}: {id: string}) {
 	return await externalRequest({
 		method: 'DELETE',
 		path: `/features/${id}`,
 	});
 }
-export async function deleteProduct(id: string) {
+export async function deleteProduct({
+	id,
+	allVersions,
+}: {
+	id: string;
+	allVersions?: boolean;
+}) {
 	return await externalRequest({
 		method: 'DELETE',
 		path: `/products/${id}`,
+		queryParams: {all_versions: allVersions ? true : false},
 	});
 }
 
