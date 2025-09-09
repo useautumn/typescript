@@ -10,10 +10,10 @@
 		"node": ">=16"
 	},
 	"scripts": {
-		"build": "tsup",
+		"build": "bun bun.config.ts",
 		"dev": "tsup --watch",
 		"test2": "prettier --check . && xo && ava",
-		"test": "node ./dist/cli.js"
+		"test": "node --trace-deprecation -- ./dist/cli.js"
 	},
 	"files": [
 		"dist",
@@ -36,6 +36,7 @@
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^3.0.1",
+		"@types/bun": "^1.2.21",
 		"@types/node": "^24.0.10",
 		"@types/react": "^18.0.32",
 		"@vdemedes/prettier-config": "^2.0.1",

@@ -8,9 +8,9 @@ import {importBuilder, exportBuilder} from '../core/builders/productBuilder.js';
 import {snakeCaseToCamelCase} from '../core/utils.js';
 import {Feature, Product} from '../compose/models/composeModels.js';
 
-export default async function Pull({config}: {config: any}) {
+export default async function Pull(options?: {archived?: boolean}) {
 	console.log(chalk.green('Pulling products and features from Autumn...'));
-	const products = await getAllProducts();
+	const products = await getAllProducts(options?.archived ?? false);
 	const features = await getFeatures();
 
 	console.log(

@@ -4,8 +4,10 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import yoctoSpinner from 'yocto-spinner';
 
-export const notNullish = (value: any) => value !== null && value !== undefined;
-export const nullish = (value: any) => value === null || value === undefined;
+export const notNullish = (value: unknown) =>
+	value !== null && value !== undefined;
+export const nullish = (value: unknown) =>
+	value === null || value === undefined;
 
 export const isProdFlag = () => {
 	const prodFlag =
@@ -14,7 +16,7 @@ export const isProdFlag = () => {
 };
 
 export function snakeCaseToCamelCase(value: string) {
-	return value.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+	return value.replace(/_([a-z])/g, (_match, letter) => letter.toUpperCase());
 }
 
 export function idToVar({
@@ -173,4 +175,13 @@ export function initSpinner(message: string) {
 	spinner.start();
 
 	return spinner;
+}
+
+export async function isSandboxKey(apiKey: string) {
+	const prefix = apiKey.split('am_sk_')[1]?.split('_')[0];
+
+	if (prefix === 'live') {
+		return false;
+	} else if (prefix === 'test') return true;
+	else throw new Error('Invalid API key');
 }

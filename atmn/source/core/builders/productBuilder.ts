@@ -72,7 +72,7 @@ const getResetUsageStr = ({
 }) => {
 	if (!item.feature_id) return '';
 	const feature = features.find(f => f.id === item.feature_id)!;
-	if (feature.type == 'boolean' || feature.type == 'credit_system') return '';
+	if (feature.type === 'boolean' || feature.type === 'credit_system') return '';
 
 	const defaultResetUsage = feature.type === 'single_use' ? true : false;
 
