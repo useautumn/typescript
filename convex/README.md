@@ -49,7 +49,7 @@ export const autumn = new Autumn(components.autumn, {
 
     const userId = user.subject.split("|")[0];
     return {
-      customerId: user.subject as string,
+      customerId: userId,
       customerData: {
         name: user.name as string,
         email: user.email as string,
@@ -145,7 +145,7 @@ export default function Home() {
 }
 ```
 
-You can use all `useCustomer()` and `useEntity()` features as usual. Learn more: /api-reference/hooks/useCustomer
+You can use all `useCustomer()` and `useEntity()` features as usual. Learn more about our react hooks [here](https://docs.useautumn.com/api-reference/hooks/useCustomer).
 
 ## Using Autumn on the backend
 
