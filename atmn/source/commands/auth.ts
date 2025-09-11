@@ -23,15 +23,13 @@ const inputTheme = {
 };
 
 export default async function AuthCommand() {
-	if (readFromEnv()) {
+	if (readFromEnv({bypass: true})) {
 		let shouldReauth = await confirm({
 			message:
 				'You are already authenticated. Would you like to re-authenticate?',
 			theme: inputTheme,
 		});
-		if (!shouldReauth) {
-			return;
-		}
+		if (!shouldReauth) return;
 	}
 	open(`${FRONTEND_URL}/dev/cli`);
 

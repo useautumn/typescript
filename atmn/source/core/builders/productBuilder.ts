@@ -58,6 +58,21 @@ export const ${idToVar({id: product.id, prefix: 'product'})} = product({
 	return snippet;
 }
 
+export const getFeatureIdStr = ({
+	featureId,
+	features,
+}: {
+	featureId: string;
+	features: Feature[];
+}) => {
+	if (nullish(featureId)) return '';
+
+	let feature = features.find(f => f.id === featureId);
+
+	if (feature?.archived) return `"${featureId}"`;
+	return `${idToVar({id: featureId, prefix: 'feature'})}.id`;
+};
+
 // Item Builders
 
 const getItemFieldPrefix = () => {
@@ -93,12 +108,21 @@ const getIntervalStr = ({item}: {item: ProductItem}) => {
 	return `${getItemFieldPrefix()}interval: '${item.interval}',`;
 };
 
-const getEntityFeatureIdStr = ({item}: {item: ProductItem}) => {
+const getEntityFeatureIdStr = ({
+	item,
+	features,
+}: {
+	item: ProductItem;
+	features: Feature[];
+}) => {
 	if (nullish(item.entity_feature_id)) return '';
-	return `${getItemFieldPrefix()}entity_feature_id: ${idToVar({
-		id: item.entity_feature_id!,
-		prefix: 'feature',
-	})}.id,`;
+
+	const featureIdStr = getFeatureIdStr({
+		featureId: item.entity_feature_id,
+		features,
+	});
+
+	return `${getItemFieldPrefix()}entity_feature_id: ${featureIdStr},`;
 };
 
 const getPriceStr = ({item}: {item: ProductItem}) => {
@@ -131,12 +155,14 @@ export function pricedFeatureItemBuilder({
 	features: Feature[];
 }) {
 	const intervalStr = getIntervalStr({item});
-	const entityFeatureIdStr = getEntityFeatureIdStr({item});
+	const entityFeatureIdStr = getEntityFeatureIdStr({item, features});
 	const resetUsageStr = getResetUsageStr({item, features});
 	const priceStr = getPriceStr({item});
+	const featureIdStr = getFeatureIdStr({featureId: item.feature_id!, features});
+
 	const snippet = `
         pricedFeatureItem({
-            feature_id: ${idToVar({id: item.feature_id!, prefix: 'feature'})}.id,
+            feature_id: ${featureIdStr},
             ${priceStr}${intervalStr}
             included_usage: ${
 							item.included_usage == 'inf' ? `"inf"` : item.included_usage
@@ -157,12 +183,13 @@ export function featureItemBuilder({
 	item: ProductItem;
 	features: Feature[];
 }) {
-	const entityFeatureIdStr = getEntityFeatureIdStr({item});
+	const featureIdStr = getFeatureIdStr({featureId: item.feature_id!, features});
+	const entityFeatureIdStr = getEntityFeatureIdStr({item, features});
 	const intervalStr = getIntervalStr({item});
 	const resetUsageStr = getResetUsageStr({item, features});
 	const snippet = `
         featureItem({
-            feature_id: ${idToVar({id: item.feature_id!, prefix: 'feature'})}.id,
+            feature_id: ${featureIdStr},
             included_usage: ${
 							item.included_usage == 'inf' ? `"inf"` : item.included_usage
 						},${intervalStr}${resetUsageStr}${entityFeatureIdStr}

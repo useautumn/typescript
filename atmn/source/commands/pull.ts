@@ -10,20 +10,17 @@ import {Feature, Product} from '../compose/models/composeModels.js';
 
 export default async function Pull(options?: {archived?: boolean}) {
 	console.log(chalk.green('Pulling products and features from Autumn...'));
-	const products = await getAllProducts(options?.archived ?? false);
-	const features = await getFeatures();
-
-	console.log(
-		'Products: ',
-		products.map((product: Product) => product.id),
-	);
+	const products = await getAllProducts({archived: options?.archived ?? false});
+	const features = await getFeatures({includeArchived: true});
 
 	const productSnippets = products.map((product: Product) =>
 		productBuilder({product, features}),
 	);
-	const featureSnippets = features.map((feature: Feature) =>
-		featureBuilder(feature),
-	);
+
+	const featureSnippets = features
+		.filter((feature: Feature) => !feature.archived)
+		.map((feature: Feature) => featureBuilder(feature));
+
 	const autumnConfig = `
 ${importBuilder()}
 

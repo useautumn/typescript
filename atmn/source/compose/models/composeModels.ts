@@ -29,6 +29,7 @@ export const FeatureSchema = z.object({
 			}),
 		)
 		.optional(),
+	archived: z.boolean().optional(),
 });
 
 export type Feature = z.infer<typeof FeatureSchema>;
