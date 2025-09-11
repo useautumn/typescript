@@ -22,6 +22,48 @@ const spinner = (message: string) => {
 	return spinner;
 };
 
+const isStdinPiped = () => {
+	return !process.stdin.isTTY;
+};
+
+let stdinRead = false;
+let cachedStdinInput = '';
+
+const safeConfirm = async (options: {message: string; default?: boolean}) => {
+	if (isStdinPiped()) {
+		// Read stdin input only once and cache it
+		if (!stdinRead) {
+			cachedStdinInput = await new Promise<string>(resolve => {
+				const onData = (chunk: Buffer) => {
+					process.stdin.removeListener('data', onData);
+					process.stdin.pause(); // Stop reading more data
+					const chunkStr = chunk.toString();
+					const [firstPiece = ''] = chunkStr.split('\n');
+					const firstLine = firstPiece.trim();
+					resolve(firstLine);
+				};
+				process.stdin.on('data', onData);
+
+				// Handle case where stdin is already ended
+				if (process.stdin.readableEnded) {
+					resolve('');
+				}
+			});
+			stdinRead = true;
+		}
+
+		const answer = cachedStdinInput.toLowerCase();
+		const confirmed = answer === 'y' || answer === 'yes';
+		console.log(
+			chalk.yellow(
+				`Piped input received: ${options.message} [${confirmed ? 'y' : 'n'}]`,
+			),
+		);
+		return confirmed;
+	}
+	return await confirm(options);
+};
+
 export default async function Push({
 	config,
 	yes,
@@ -34,7 +76,7 @@ export default async function Push({
 	let {features, products, env} = config;
 
 	if (env === 'prod') {
-		const shouldProceed = await confirm({
+		const shouldProceed = await safeConfirm({
 			message:
 				'You are about to push products to your prod environment. Are you sure you want to proceed?',
 			default: false,
@@ -51,7 +93,7 @@ export default async function Push({
 	for (let productId of productsToDelete) {
 		let shouldDelete =
 			yes ||
-			(await confirm({
+			(await safeConfirm({
 				message: `Delete product [${productId}]?`,
 			}));
 		if (shouldDelete) {
@@ -90,7 +132,7 @@ export default async function Push({
 	const checkProductResults = await Promise.all(batchCheckProducts);
 	for (let result of checkProductResults) {
 		if (result.will_version) {
-			const shouldUpdate = await confirm({
+			const shouldUpdate = await safeConfirm({
 				message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
 			});
 			productDecisions.set(result.id, shouldUpdate);
@@ -124,7 +166,7 @@ export default async function Push({
 	for (let featureId of featuresToDelete) {
 		let shouldDelete =
 			yes ||
-			(await confirm({
+			(await safeConfirm({
 				message: `Delete feature [${featureId}]?`,
 			}));
 		if (shouldDelete) {

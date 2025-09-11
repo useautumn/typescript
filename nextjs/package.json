@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bunx --bun next dev -p 3001",
-    "build": "bunx --bun next build",
-    "start": "bunx --bun next start",
-    "lint": "bunx --bun next lint",
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "atmn": "atmn",
     "atmn:dev": "pnpm --filter atmn build && atmn"
   },

@@ -48,6 +48,7 @@ export const useEntityBase = ({
 
   const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity, {
     fallbackData: null,
+    shouldRetryOnError: false,
     onErrorRetry: (error: any, key: any, config: any) => {
       if (error.code == "entity_not_found") {
         return false;
