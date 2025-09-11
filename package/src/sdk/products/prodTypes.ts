@@ -118,3 +118,7 @@ export interface CreateProductParams {
 export interface ListProductsParams {
   customer_id?: string;
 }
+
+export interface DeleteProductParams {
+  all_versions?: boolean;
+}

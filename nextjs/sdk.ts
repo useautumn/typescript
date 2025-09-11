@@ -7,23 +7,9 @@ const main = async () => {
     secretKey: process.env.AUTUMN_SECRET_KEY,
   });
 
-  // const { data: attachResult } = await autumn.attach({
-  //   customer_id: "john",
-  //   product_id: "pro_monthly",
-  // });
+  const { data } = await autumn.products.delete("credits-top-up");
 
-  // console.log("Attach response:", attachResult);
-
-  const { data: customer } = await autumn.customers.get("john");
-
-  console.log("Customer products:", customer?.products);
-
-  // if (concurrencyLineCheck.data?.allowed === false) {
-  //   return {
-  //     allowed: false,
-  //     message: "You have reached the maximum number of concurrent lines",
-  //   };
-  // }
+  console.log("Product:", data);
 };
 
 main();

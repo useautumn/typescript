@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export enum FeatureType {
   Boolean = "boolean",
@@ -9,8 +9,8 @@ export enum FeatureType {
 
 export const FeatureSchema = z.object({
   id: z.string(),
-  name: z.string().nullish(),
-  type: z.nativeEnum(FeatureType),
+  name: z.string(),
+  type: z.enum(FeatureType),
   display: z
     .object({
       singular: z.string(),
@@ -26,6 +26,7 @@ export const FeatureSchema = z.object({
       })
     )
     .nullish(),
+  archived: z.boolean(),
 });
 
 export type Feature = z.infer<typeof FeatureSchema>;
