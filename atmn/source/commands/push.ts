@@ -107,7 +107,7 @@ export default async function Push({
 	const batchProducts = [];
 	for (const product of products) {
 		const shouldUpdate = productDecisions.get(product.id);
-		batchProducts.push(
+		if(shouldUpdate) batchProducts.push(
 			upsertProduct({ curProducts, product, spinner: s2, shouldUpdate }),
 		);
 	}
