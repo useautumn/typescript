@@ -93,9 +93,9 @@ export default async function Push({
 	const checkProductResults = await Promise.all(batchCheckProducts);
 	for (const result of checkProductResults) {
 		if (result.will_version) {
-			const shouldUpdate = await confirm({
+			const shouldUpdate = (yes || await confirm({
 				message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
-			});
+			}));
 			productDecisions.set(result.id, shouldUpdate);
 		} else {
 			productDecisions.set(result.id, true);
