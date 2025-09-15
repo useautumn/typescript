@@ -1,8 +1,13 @@
 import { Autumn } from "../client";
 
 import { AutumnPromise } from "../response";
-import { staticWrapper } from "../utils";
-import { CreateProductParams, ListProductsParams, Product } from "./prodTypes";
+import { buildPathWithQuery, staticWrapper } from "../utils";
+import {
+  CreateProductParams,
+  DeleteProductParams,
+  ListProductsParams,
+  Product,
+} from "./prodTypes";
 
 export const productMethods = (instance?: Autumn) => {
   return {
@@ -11,6 +16,7 @@ export const productMethods = (instance?: Autumn) => {
       staticWrapper(createProduct, instance, { params }),
     list: (params?: ListProductsParams) =>
       staticWrapper(listProducts, instance, { params }),
+    delete: (id: string) => staticWrapper(deleteProduct, instance, { id }),
   };
 };
 
@@ -57,4 +63,20 @@ export const createProduct = async ({
   params?: CreateProductParams;
 }): AutumnPromise<Product> => {
   return instance.post("/products", params);
+};
+
+export const deleteProduct = async ({
+  instance,
+  id,
+  params,
+}: {
+  instance: Autumn;
+  id: string;
+  params?: DeleteProductParams;
+}): AutumnPromise<{
+  success: boolean;
+}> => {
+  // Build query params
+  const path = buildPathWithQuery(`/products/${id}`, params);
+  return instance.delete(path);
 };

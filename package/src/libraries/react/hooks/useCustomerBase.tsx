@@ -12,6 +12,7 @@ import type {
   SetupPaymentResult,
   TrackResult,
 } from "@sdk";
+
 import type { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
 import type { Success } from "@sdk/response";
 import type React from "react";
@@ -28,15 +29,16 @@ import type {
   SetupPaymentParams,
   TrackParams,
 } from "@/client/types/clientGenTypes";
-import { type AutumnContextParams, useAutumnContext } from "../AutumnContext";
-import type { AutumnClient } from "../client/ReactAutumnClient";
-import type { CreateEntityParams } from "../client/types/clientEntTypes";
-import type {
+import { handleCheck, openDialog } from "./helpers/handleCheck";
+import { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
+import { AutumnClient } from "@/client/ReactAutumnClient";
+import { AutumnContextParams, useAutumnContext } from "@/AutumnContext";
+import { useAutumnBase } from "./helpers/useAutumnBase";
+import { CreateEntityParams } from "@/client/types/clientEntTypes";
+import {
   CreateReferralCodeParams,
   RedeemReferralCodeParams,
-} from "../client/types/clientReferralTypes";
-import { handleCheck, openDialog } from "./helpers/handleCheck";
-import { useAutumnBase } from "./helpers/useAutumnBase";
+} from "@/client/types/clientReferralTypes";
 
 export interface UseCustomerResult {
   /** The current customer data including subscription and feature information */
@@ -133,8 +135,8 @@ export const useCustomerBase = ({
   client,
 }: {
   params?: UseCustomerParams;
-  AutumnContext?: React.Context<AutumnContextParams>;
-  client?: AutumnClient;
+  AutumnContext?: React.Context<any>;
+  client?: AutumnClient | ConvexAutumnClient;
 }): UseCustomerResult => {
   let context: AutumnContextParams | undefined;
 
@@ -190,14 +192,6 @@ export const useCustomerBase = ({
     client,
     refetchCustomer: mutate,
   });
-
-  useEffect(() => {
-    // console.log("Paywall ref:", context?.paywallRef.current);
-    // context?.paywallDialog.setOpen(true);
-    // context?.paywallDialog.setProps(params);
-    // context?.paywallDialog.setOpen(true);
-    // }, [context?.paywallRef.current]);
-  }, []);
 
   return {
     customer: error ? null : customer,

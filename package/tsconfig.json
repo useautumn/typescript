@@ -24,7 +24,8 @@
       "@sdk": ["src/sdk/index"],
       "@sdk/*": ["src/sdk/*"],
       "@styles": ["src/styles/*"],
-      "@compose": ["src/compose/*"]
+      "@compose": ["src/compose/*"],
+      "@utils/*": ["src/utils/*"]
     }
   },
   "include": ["src"],

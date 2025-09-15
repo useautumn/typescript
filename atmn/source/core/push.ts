@@ -1,18 +1,22 @@
-import {Spinner} from 'yocto-spinner';
-import {Feature, Product} from '../compose/index.js';
+import type {Spinner} from 'yocto-spinner';
+import type {Feature, Product} from '../compose/index.js';
 import {externalRequest} from './api.js';
-import {getFeatures, getAllProducts} from './pull.js';
-import {confirm} from '@inquirer/prompts';
-import {initSpinner} from './utils.js';
+import {getAllProducts, getFeatures} from './pull.js';
+
 export async function checkForDeletables(
 	currentFeatures: Feature[],
 	currentProducts: Product[],
 ) {
-	const features = await getFeatures(); // Get from AUTUMN
+	const features = await getFeatures({includeArchived: true}); // Get from AUTUMN
+
 	const featureIds = features.map((feature: Feature) => feature.id);
 	const currentFeatureIds = currentFeatures.map(feature => feature.id);
 	const featuresToDelete = featureIds.filter(
-		(featureId: string) => !currentFeatureIds.includes(featureId),
+		(featureId: string) =>
+			!currentFeatureIds.includes(featureId) &&
+			!features.some(
+				(feature: Feature) => feature.id === featureId && feature.archived,
+			),
 	);
 
 	const products = await getAllProducts();
@@ -25,7 +29,8 @@ export async function checkForDeletables(
 	);
 
 	return {
-		curFeatures: features,
+		allFeatures: features,
+		curFeatures: features.filter((feature: Feature) => !feature.archived),
 		curProducts: products,
 		featuresToDelete,
 		productsToDelete,
@@ -83,7 +88,7 @@ export async function checkProductForConfirmation({
 	curProducts: Product[];
 	product: Product;
 }) {
-	let curProduct = curProducts.find(p => p.id === product.id);
+	const curProduct = curProducts.find(p => p.id === product.id);
 	if (!curProduct) {
 		// return { needsConfirmation: false, shouldUpdate: true };
 		return {
@@ -101,6 +106,7 @@ export async function checkProductForConfirmation({
 	return {
 		id: product.id,
 		will_version: res1.will_version,
+		archived: res1.archived,
 	};
 
 	// const {will_version} = res1;
@@ -134,7 +140,7 @@ export async function upsertProduct({
 		};
 	}
 
-	let curProduct = curProducts.find(p => p.id === product.id);
+	const curProduct = curProducts.find(p => p.id === product.id);
 	if (!curProduct) {
 		await externalRequest({
 			method: 'POST',

@@ -1,9 +1,11 @@
-
 import { Autumn, CreateCustomerParams, CustomerData } from "../../sdk";
 import { withAuth } from "./auth/withNextAuth";
 import { toServerResponse } from "./utils";
-import { CreateEntityParams, GetEntityParams } from "../../libraries/react/client/types/clientEntTypes";
-import { toSnakeCase } from "../../utils/toSnakeCase";
+import {
+  CreateEntityParams,
+  GetEntityParams,
+} from "../../libraries/react/client/types/clientEntTypes";
+import { toSnakeCase } from "@utils/toSnakeCase";
 
 export const createAutumnClient = (publishableKey?: string) => {
   return new Autumn({
@@ -46,7 +48,7 @@ export const getEntityAction = withAuth({
   }) => {
     const autumn = createAutumnClient();
 
-    let snakeParams = toSnakeCase(params);
+    let snakeParams = toSnakeCase({ obj: params });
     const result = await autumn.entities.get(
       customerId,
       entityId,
@@ -66,7 +68,7 @@ export const createEntityAction = withAuth({
     entity: CreateEntityParams | CreateEntityParams[];
   }) => {
     const autumn = createAutumnClient();
-    let snakeEntity = toSnakeCase(entity);
+    let snakeEntity = toSnakeCase({ obj: entity }) as any;
     const result = await autumn.entities.create(customerId, snakeEntity);
     return toServerResponse(result);
   },

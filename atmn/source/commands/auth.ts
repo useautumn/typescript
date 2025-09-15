@@ -23,15 +23,13 @@ const inputTheme = {
 };
 
 export default async function AuthCommand() {
-	if (readFromEnv()) {
+	if (readFromEnv({bypass: true})) {
 		let shouldReauth = await confirm({
 			message:
 				'You are already authenticated. Would you like to re-authenticate?',
 			theme: inputTheme,
 		});
-		if (!shouldReauth) {
-			return;
-		}
+		if (!shouldReauth) return;
 	}
 	open(`${FRONTEND_URL}/dev/cli`);
 
@@ -45,7 +43,7 @@ export default async function AuthCommand() {
 	if (!keyInfo.stripe_connected) {
 		let connectStripe = await confirm({
 			message:
-				"It seems like your organization doesn't have any Stripe keys connected. Would you like to connect them now?",
+				"It seems like your organization doesn't have any Stripe keys connected. Would you like to connect your Stripe test secret key now?",
 			theme: inputTheme,
 		});
 		if (connectStripe) {
@@ -55,15 +53,14 @@ export default async function AuthCommand() {
 				mask: '*',
 				theme: passwordTheme,
 			});
-			// let stripeLiveKey = await password({
-			// 	message: 'Enter Stripe Live Key:',
-			// 	mask: '*',
-			// 	theme: passwordTheme,
-			// })
-			await updateCLIStripeKeys(
-				stripeTestKey,
-				stripeTestKey,
-				keyInfo.stripeFlowAuthKey,
+			await updateCLIStripeKeys({
+				stripeSecretKey: stripeTestKey,
+				autumnSecretKey: keyInfo.sandboxKey,
+			});
+			console.log(
+				chalk.green(
+					'Stripe test secret key has been saved to your .env file. To connect your Stripe live secret key, please visit the Autumn dashboard here: https://app.useautumn.com/dev?tab=stripe',
+				),
 			);
 		} else {
 			console.log(
@@ -74,7 +71,7 @@ export default async function AuthCommand() {
 		}
 	}
 
-	storeToEnv(keyInfo.prodKey, keyInfo.sandboxKey);
+	await storeToEnv(keyInfo.prodKey, keyInfo.sandboxKey);
 
 	console.log(
 		chalk.green(

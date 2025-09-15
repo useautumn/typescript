@@ -1,11 +1,11 @@
-import axios from 'axios';
+import axios, {AxiosError} from 'axios';
 import chalk from 'chalk';
 
 import {BACKEND_URL} from '../constants.js';
-import {readFromEnv} from './utils.js';
+import {isLocalFlag, readFromEnv} from './utils.js';
 
-const INTERNAL_BASE: string = BACKEND_URL;
-const EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
+let INTERNAL_BASE: string = BACKEND_URL;
+let EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
 
 export async function request({
 	method,
@@ -15,22 +15,38 @@ export async function request({
 	headers,
 	customAuth,
 	throwOnError = true,
+	secretKey,
+	queryParams,
+	bypass,
 }: {
 	method: string;
 	base: string;
 	path: string;
-	data?: any;
-	headers?: any;
+	data?: Record<string, unknown>;
+	headers?: Record<string, string>;
 	customAuth?: string;
 	throwOnError?: boolean;
+	secretKey?: string;
+	queryParams?: Record<string, string>;
+	bypass?: boolean;
 }) {
-	const apiKey = readFromEnv();
+	if (isLocalFlag()) {
+		INTERNAL_BASE = 'http://localhost:8080';
+		EXTERNAL_BASE = 'http://localhost:8080/v1';
+
+		if (base) {
+			base = base.replace(BACKEND_URL, 'http://localhost:8080');
+		}
+	}
+
+	const apiKey = secretKey || readFromEnv({bypass});
 
 	try {
 		const response = await axios.request({
 			method,
 			url: `${base}${path}`,
 			data,
+			params: queryParams,
 			headers: {
 				'Content-Type': 'application/json',
 				...headers,
@@ -39,14 +55,35 @@ export async function request({
 		});
 
 		return response.data;
-	} catch (error: any) {
+	} catch (error: unknown) {
 		if (throwOnError) {
 			throw error;
 		}
-		console.error(
-			chalk.red('\nError occured when making API request:'),
-			chalk.red(error.response.data.message || error.response.data.error),
-		);
+
+		// Pretty-print a concise error summary (status, code, message) without raw Axios dump
+		console.error('\n' + chalk.bgRed.white.bold('  API REQUEST FAILED  '));
+		const methodPath = `${method.toUpperCase()} ${base}${path}`;
+		console.error(chalk.red(methodPath));
+
+		if (error instanceof AxiosError) {
+			const status = error.response?.status;
+			const data = error.response?.data as any;
+			const code = data?.code || data?.error || 'unknown_error';
+			const message =
+				data?.message || error.message || 'An unknown error occurred';
+
+			if (status) {
+				console.error(chalk.redBright(`[${status}] ${code}`));
+			}
+			console.error(chalk.red(message));
+
+			// Optional: show hint for debugging if verbose mode is desired later
+		} else if (error instanceof Error) {
+			console.error(chalk.red(error.message));
+		} else {
+			console.error(chalk.red(String(error)));
+		}
+
 		process.exit(1);
 	}
 }
@@ -60,8 +97,8 @@ export async function internalRequest({
 }: {
 	method: string;
 	path: string;
-	data?: any;
-	headers?: any;
+	data?: Record<string, unknown>;
+	headers?: Record<string, string>;
 	customAuth?: string;
 }) {
 	return await request({
@@ -71,6 +108,7 @@ export async function internalRequest({
 		data,
 		headers,
 		customAuth,
+		bypass: true,
 	});
 }
 
@@ -81,13 +119,15 @@ export async function externalRequest({
 	headers,
 	customAuth,
 	throwOnError = false,
+	queryParams,
 }: {
 	method: string;
 	path: string;
-	data?: any;
-	headers?: any;
+	data?: Record<string, unknown>;
+	headers?: Record<string, string>;
 	customAuth?: string;
 	throwOnError?: boolean;
+	queryParams?: Record<string, any>;
 }) {
 	return await request({
 		method,
@@ -97,36 +137,42 @@ export async function externalRequest({
 		headers,
 		customAuth,
 		throwOnError,
+		queryParams,
 	});
 }
 
-export async function deleteFeature(id: string) {
+export async function deleteFeature({id}: {id: string}) {
 	return await externalRequest({
 		method: 'DELETE',
 		path: `/features/${id}`,
 	});
 }
-export async function deleteProduct(id: string) {
+export async function deleteProduct({
+	id,
+	allVersions,
+}: {
+	id: string;
+	allVersions?: boolean;
+}) {
 	return await externalRequest({
 		method: 'DELETE',
 		path: `/products/${id}`,
+		queryParams: {all_versions: allVersions ? true : false},
 	});
 }
 
-export async function updateCLIStripeKeys(
-	stripeTestKey: string,
-	stripeLiveKey: string,
-	stripeFlowAuthKey: string,
-) {
-	return await internalRequest({
+export async function updateCLIStripeKeys({
+	stripeSecretKey,
+	autumnSecretKey,
+}: {
+	stripeSecretKey: string;
+	autumnSecretKey: string;
+}) {
+	return await request({
+		base: EXTERNAL_BASE,
 		method: 'POST',
-		path: '/dev/cli/stripe',
-		data: {
-			stripeTestKey,
-			stripeLiveKey,
-			successUrl: 'https://useautumn.com',
-			defaultCurrency: 'usd',
-		},
-		customAuth: stripeFlowAuthKey,
+		path: '/organization/stripe',
+		data: {secret_key: stripeSecretKey},
+		secretKey: autumnSecretKey,
 	});
 }

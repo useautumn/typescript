@@ -1,10 +1,10 @@
-import {Product, Feature} from '../models/composeModels.js';
+import type { Feature, Product } from "../models/composeModels.js";
 
-import {
+import type {
 	ProductItem,
 	ProductItemInterval,
 	UsageModel,
-} from '../models/productItemModels.js';
+} from "../models/productItemModels.js";
 
 export const product = (p: Product) => p;
 export const feature = (f: Feature) => f;
@@ -17,7 +17,7 @@ export const featureItem = ({
 	entity_feature_id,
 }: {
 	feature_id: string;
-	included_usage?: number;
+	included_usage?: number | 'inf';
 	interval?: ProductItemInterval;
 	reset_usage_when_enabled?: boolean;
 	entity_feature_id?: string;
@@ -34,15 +34,17 @@ export const featureItem = ({
 export const pricedFeatureItem = ({
 	feature_id,
 	price,
+	tiers,
 	interval,
 	included_usage = undefined,
 	billing_units = 1,
-	usage_model = 'pay_per_use',
+	usage_model = "pay_per_use",
 	reset_usage_when_enabled,
 	entity_feature_id,
 }: {
 	feature_id: string;
-	price: number;
+	price?: number;
+	tiers?: {to: number | 'inf'; amount: number}[];
 	interval?: ProductItemInterval;
 	included_usage?: number;
 	billing_units?: number;
@@ -52,6 +54,7 @@ export const pricedFeatureItem = ({
 }): ProductItem => {
 	return {
 		price,
+		tiers,
 		interval,
 		billing_units,
 		feature_id,

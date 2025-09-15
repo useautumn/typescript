@@ -1,111 +1,127 @@
 import { getSessionFromCtx } from "better-auth/api";
-import {
-	createAuthMiddleware,
-	type Member,
-	type Organization,
-} from "better-auth/plugins";
+import type { Organization } from "better-auth/plugins";
 import type { AutumnOptions } from "./types";
 
-export const organizationMiddleware = (options?: AutumnOptions) =>
-	createAuthMiddleware(async (ctx) => {
-		if (!options?.enableOrganizations)
-			return {
-				activeOrganizationId: null,
-				activeOrganization: null,
-				activeOrganizationEmail: null,
-			};
+export async function getOrganizationContext(
+  ctx: any,
+  options?: AutumnOptions
+) {
+  if (!options?.enableOrganizations && !options?.identify) {
+    return {
+      activeOrganizationId: null,
+      activeOrganization: null,
+      activeOrganizationEmail: null,
+    };
+  }
 
-		const session = await getSessionFromCtx(ctx as any);
-		const orgId = session?.session.activeOrganizationId;
+  try {
+    const session = await getSessionFromCtx(ctx as any);
+    const orgId = session?.session.activeOrganizationId;
 
-		if (orgId && session) {
-			// Check if user is a member of the organization
-			const member = await ctx.context.adapter.findOne({
-				model: "member",
-				where: [
-					{ field: "userId", value: session.user.id },
-					{ field: "organizationId", value: orgId },
-				],
-			});
+    // console.log("[org context] orgId: ", orgId);
 
-			if (!member) {
-				// User is not a member, return null values
-				return {
-					activeOrganizationId: null,
-					activeOrganization: null,
-				};
-			}
+    if (orgId && session) {
+      // Check if user is a member of the organization
+      const [member, organization] = await Promise.all([
+        ctx.context.adapter.findOne({
+          model: "member",
+          where: [
+            { field: "userId", value: session.user.id },
+            { field: "organizationId", value: orgId },
+          ],
+        }),
+        ctx.context.adapter.findOne({
+          model: "organization",
+          where: [{ field: "id", value: orgId }],
+        }),
+      ]);
 
-			// User is a member, get the organization and owner members in parallel
-			const [organization, ownerMembers] = await Promise.all([
-				ctx.context.adapter.findOne({
-					model: "organization",
-					where: [
-						{
-							field: "id",
-							value: orgId,
-						},
-					],
-				}),
-				ctx.context.adapter.findMany({
-					model: "member",
-					where: [
-						{ field: "organizationId", value: orgId },
-						{
-							field: "role",
-							value: ctx.context.orgOptions?.creatorRole || "owner",
-						},
-					],
-				}),
-			]);
+      // console.log("[org context] member: ", member);
 
-			// Get the first owner's name or handle multiple owners
-			let ownerEmail = null;
-			if (ownerMembers.length > 0) {
-				const ownerUser = await ctx.context.adapter.findOne({
-					model: "user",
-					where: [
-						{
-							field: "id",
-							value: (ownerMembers[0] as Member).userId as string,
-						},
-					],
-				});
-				ownerEmail = (ownerUser as any)?.email || null;
-			}
+      if (!member) {
+        return {
+          activeOrganizationId: null,
+          activeOrganization: null,
+          activeOrganizationEmail: null,
+        };
+      }
 
-			return {
-				activeOrganizationId: orgId,
-				activeOrganization: organization,
-				activeOrganizationEmail: ownerEmail,
-			};
-		}
+      const creatorRole = ctx.context.orgOptions?.creatorRole || "owner";
+      let ownerUserId =
+        (member as any).role === creatorRole ? (member as any).userId : null;
+      let owner = null;
+      if ((member as any).role !== creatorRole) {
+        const ownerMembers = await ctx.context.adapter.findMany({
+          model: "member",
+          where: [
+            { field: "organizationId", value: orgId },
+            { field: "role", value: creatorRole },
+          ],
+        });
+        ownerUserId =
+          ownerMembers.length > 0 ? (ownerMembers[0] as any).userId : null;
+      }
 
-		return {
-			activeOrganizationId: null,
-			activeOrganization: null,
-		};
-	});
+      if (ownerUserId) {
+        const ownerUser = await ctx.context.adapter.findOne({
+          model: "user",
+          where: [{ field: "id", value: ownerUserId }],
+        });
+        owner = ownerUser;
+      }
 
-export const identityMiddleware = (options?: AutumnOptions) =>
-	createAuthMiddleware(async (ctx) => {
-		if (!options?.identify) return {
-			autumnIdentity: null,
-		}
-		const session = await getSessionFromCtx(ctx as any);
-		const org = (ctx.context as any).activeOrganization;
-		const ownerEmail = (ctx.context as any).activeOrganizationEmail;
-		const identity = await options?.identify?.({
-			session: session?.session as any,
-			organization:
-				org?.id !== null
-					? ({
-							...org,
-							ownerEmail: ownerEmail as string | null,
-						} as Organization & { ownerEmail: string | null })
-					: null,
-		});
-		return {
-			autumnIdentity: identity,
-		};
-	});
+      // console.log("[org context] organization: ", organization);
+      // console.log("[org context] ownerEmail: ", (owner as any)?.email);
+
+      return {
+        activeOrganizationId: orgId,
+        activeOrganization: organization,
+        activeOrganizationEmail: (owner as any)?.email,
+      };
+    }
+
+    return {
+      activeOrganizationId: null,
+      activeOrganization: null,
+      activeOrganizationEmail: null,
+    };
+  } catch (error) {
+    // If there's any error (like no session), just return null values
+    console.log("[org context error]", error);
+    return {
+      activeOrganizationId: null,
+      activeOrganization: null,
+      activeOrganizationEmail: null,
+    };
+  }
+}
+
+export async function getIdentityContext({
+  orgContext,
+  options,
+  session,
+}: {
+  orgContext: any;
+  options?: AutumnOptions;
+  session?: any;
+}) {
+  if (!options?.identify) return null;
+
+  const orgData = orgContext.activeOrganization?.id
+    ? ({
+        ...orgContext.activeOrganization,
+        ownerEmail: orgContext.activeOrganizationEmail as string | null,
+      } as Organization & { ownerEmail: string | null })
+    : null;
+
+  try {
+    const identity = await options.identify({
+      session,
+      organization: orgData,
+    });
+    return identity;
+  } catch (error) {
+    console.log("[identity context error]", error);
+    return null;
+  }
+}

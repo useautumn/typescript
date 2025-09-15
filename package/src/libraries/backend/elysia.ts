@@ -5,7 +5,7 @@ import { AuthResult } from "./utils/AuthFunction";
 import { autumnApiUrl } from "./constants";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 import type { Elysia, Context } from "elysia";
-import { toSnakeCase } from "../../utils/toSnakeCase";
+import { toSnakeCase } from "@utils/toSnakeCase";
 
 export function autumnHandler(options: {
   identify: (context: any) => AuthResult | Promise<AuthResult>;
@@ -84,7 +84,7 @@ export function autumnHandler(options: {
       try {
         const result = await handler({
           autumn,
-          body: toSnakeCase(body),
+          body: toSnakeCase({ obj: body }),
           path,
           getCustomer: async () => await options.identify(context),
           pathParams,

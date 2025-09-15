@@ -7,7 +7,7 @@ import {
   CheckParams,
   TrackParams,
 } from "../../libraries/react/client/types/clientGenTypes";
-import { toSnakeCase } from "../../utils/toSnakeCase";
+import { toSnakeCase } from "@utils/toSnakeCase";
 import { AttachParams } from "@/client/types/clientAttachTypes";
 
 export const attachAction = withAuth({
@@ -19,7 +19,7 @@ export const attachAction = withAuth({
     let res = await autumn.attach({
       customer_id: params.customerId,
       customer_data: params.customerData,
-      ...toSnakeCase(params),
+      ...(toSnakeCase({ obj: params }) as any),
     });
 
     return toServerResponse(res);
@@ -31,7 +31,7 @@ export const attachAction = withAuth({
 export const cancelAction = withAuth({
   fn: async (params: CancelParams & { customerId: string }) => {
     const autumn = createAutumnClient();
-    let res = await autumn.cancel(toSnakeCase(params));
+    let res = await autumn.cancel(toSnakeCase({ obj: params }) as any);
 
     return toServerResponse(res);
   },
@@ -46,7 +46,7 @@ export const checkAction = withAuth({
     let res = await autumn.check({
       customer_id: params.customerId,
       customer_data: params.customerData,
-      ...toSnakeCase(params),
+      ...(toSnakeCase({ obj: params }) as any),
     });
 
     return toServerResponse(res);
@@ -62,7 +62,7 @@ export const trackAction = withAuth({
     let res = await autumn.track({
       customer_id: params.customerId,
       customer_data: params.customerData,
-      ...toSnakeCase(params),
+      ...(toSnakeCase({ obj: params }) as any),
     });
 
     return toServerResponse(res);

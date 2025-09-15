@@ -1,5 +1,6 @@
 import {ProductItem, Product, Feature} from '../../compose/index.js';
 import {idToVar, notNullish, nullish} from '../utils.js';
+import {freeTrialBuilder} from './freeTrialBuilder.js';
 
 const ItemBuilders = {
 	priced_feature: pricedFeatureItemBuilder,
@@ -22,8 +23,8 @@ import {
 export function exportBuilder(productIds: string[], featureIds: string[]) {
 	const snippet = `
 const autumnConfig = {
-    products: [${productIds.map(id => `${idToVar(id)}`).join(', ')}],
-    features: [${featureIds.map(id => `${idToVar(id)}`).join(', ')}]
+    products: [${productIds.map(id => `${idToVar({id, prefix: 'product'})}`).join(', ')}],
+    features: [${featureIds.map(id => `${idToVar({id, prefix: 'feature'})}`).join(', ')}]
 }
 
 export default autumnConfig;
@@ -39,7 +40,7 @@ export function productBuilder({
 	features: Feature[];
 }) {
 	const snippet = `
-export const ${idToVar(product.id)} = product({
+export const ${idToVar({id: product.id, prefix: 'product'})} = product({
     id: '${product.id}',
     name: '${product.name}',
     items: [${product.items
@@ -50,11 +51,27 @@ export const ${idToVar(product.id)} = product({
 						features,
 					})}`,
 			)
-			.join('           ')}     ]
+			.join('           ')}     ],
+	${product.free_trial ? `${freeTrialBuilder({freeTrial: product.free_trial})}` : ''}
 })
 `;
 	return snippet;
 }
+
+export const getFeatureIdStr = ({
+	featureId,
+	features,
+}: {
+	featureId: string;
+	features: Feature[];
+}) => {
+	if (nullish(featureId)) return '';
+
+	let feature = features.find(f => f.id === featureId);
+
+	if (feature?.archived) return `"${featureId}"`;
+	return `${idToVar({id: featureId, prefix: 'feature'})}.id`;
+};
 
 // Item Builders
 
@@ -70,7 +87,7 @@ const getResetUsageStr = ({
 }) => {
 	if (!item.feature_id) return '';
 	const feature = features.find(f => f.id === item.feature_id)!;
-	if (feature.type == 'boolean' || feature.type == 'credit_system') return '';
+	if (feature.type === 'boolean' || feature.type === 'credit_system') return '';
 
 	const defaultResetUsage = feature.type === 'single_use' ? true : false;
 
@@ -91,11 +108,43 @@ const getIntervalStr = ({item}: {item: ProductItem}) => {
 	return `${getItemFieldPrefix()}interval: '${item.interval}',`;
 };
 
-const getEntityFeatureIdStr = ({item}: {item: ProductItem}) => {
+const getEntityFeatureIdStr = ({
+	item,
+	features,
+}: {
+	item: ProductItem;
+	features: Feature[];
+}) => {
 	if (nullish(item.entity_feature_id)) return '';
-	return `${getItemFieldPrefix()}entity_feature_id: ${idToVar(
-		item.entity_feature_id!,
-	)}.id,`;
+
+	const featureIdStr = getFeatureIdStr({
+		featureId: item.entity_feature_id,
+		features,
+	});
+
+	return `${getItemFieldPrefix()}entity_feature_id: ${featureIdStr},`;
+};
+
+const getPriceStr = ({item}: {item: ProductItem}) => {
+	// 1. If tiers...
+	if (item.tiers) {
+		return `
+		tiers: [
+			${item.tiers
+				.map(
+					tier =>
+						`{ to: ${tier.to == 'inf' ? "'inf'" : tier.to}, amount: ${
+							tier.amount
+						} }`,
+				)
+				.join(',\n\t\t\t')}
+		],`;
+	}
+
+	if (item.price == null) return '';
+	return `price: ${item.price},`;
+	// if (item.price == null) return '';
+	// return `${getItemFieldPrefix()}price: ${item.price},`;
 };
 
 export function pricedFeatureItemBuilder({
@@ -105,16 +154,19 @@ export function pricedFeatureItemBuilder({
 	item: ProductItem;
 	features: Feature[];
 }) {
-	// const intervalLine =
-	// 	item.interval == null ? '' : `\n            interval: '${item.interval}',`;
 	const intervalStr = getIntervalStr({item});
-	const entityFeatureIdStr = getEntityFeatureIdStr({item});
+	const entityFeatureIdStr = getEntityFeatureIdStr({item, features});
 	const resetUsageStr = getResetUsageStr({item, features});
+	const priceStr = getPriceStr({item});
+	const featureIdStr = getFeatureIdStr({featureId: item.feature_id!, features});
+
 	const snippet = `
         pricedFeatureItem({
-            feature_id: ${idToVar(item.feature_id!)}.id,
-            price: ${item.price},${intervalStr}
-            included_usage: ${item.included_usage},
+            feature_id: ${featureIdStr},
+            ${priceStr}${intervalStr}
+            included_usage: ${
+							item.included_usage == 'inf' ? `"inf"` : item.included_usage
+						},
             billing_units: ${item.billing_units},
             usage_model: '${
 							item.usage_model
@@ -131,14 +183,15 @@ export function featureItemBuilder({
 	item: ProductItem;
 	features: Feature[];
 }) {
-	const entityFeatureIdStr = getEntityFeatureIdStr({item});
+	const featureIdStr = getFeatureIdStr({featureId: item.feature_id!, features});
+	const entityFeatureIdStr = getEntityFeatureIdStr({item, features});
 	const intervalStr = getIntervalStr({item});
 	const resetUsageStr = getResetUsageStr({item, features});
 	const snippet = `
         featureItem({
-            feature_id: ${idToVar(item.feature_id!)}.id,
+            feature_id: ${featureIdStr},
             included_usage: ${
-							item.included_usage
+							item.included_usage == 'inf' ? `"inf"` : item.included_usage
 						},${intervalStr}${resetUsageStr}${entityFeatureIdStr}
         }),
 `;
