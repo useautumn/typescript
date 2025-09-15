@@ -20,6 +20,7 @@ const computedVersion =
 program.version(computedVersion);
 
 program.option('-p, --prod', 'Push to production');
+program.option('-l, --local', 'Use local autumn environment');
 
 program
 	.command('env')

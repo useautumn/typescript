@@ -60,9 +60,11 @@ const gatherProductDeletionDecisions = async ({
 					? ` and ${result.totalCount - 1} other customer(s)`
 					: '';
 			const customerNameText = result.customerName || 'Unknown Customer';
-			const shouldArchive = yes || (await confirm({
-				message: `Product ${productId} has customer ${customerNameText}${otherCustomersText}. As such, you cannot delete it. Would you like to archive the product instead?`,
-			}));
+			const shouldArchive =
+				yes ||
+				(await confirm({
+					message: `Product ${productId} has customer ${customerNameText}${otherCustomersText}. As such, you cannot delete it. Would you like to archive the product instead?`,
+				}));
 			productDeletionDecisions.set(
 				productId,
 				shouldArchive ? 'archive' : 'skip',
@@ -127,9 +129,11 @@ const pushFeatures = async ({
 		)?.archived;
 
 		if (isArchived) {
-			const shouldUnarchive = yes || (await confirm({
-				message: `Feature ${feature.id} is currently archived. Would you like to un-archive it before pushing?`,
-			}));
+			const shouldUnarchive =
+				yes ||
+				(await confirm({
+					message: `Feature ${feature.id} is currently archived. Would you like to un-archive it before pushing?`,
+				}));
 			if (shouldUnarchive) {
 				const s = createSpinner({
 					message: `Un-archiving feature [${feature.id}]`,
@@ -181,9 +185,11 @@ const gatherProductDecisions = async ({
 
 	for (const result of checkProductResults) {
 		if (result.archived) {
-			const shouldUnarchive = yes || (await confirm({
-				message: `Product ${result.id} is currently archived. Would you like to un-archive it before pushing?`,
-			}));
+			const shouldUnarchive =
+				yes ||
+				(await confirm({
+					message: `Product ${result.id} is currently archived. Would you like to un-archive it before pushing?`,
+				}));
 			if (shouldUnarchive) {
 				const s = createSpinner({
 					message: `Un-archiving product [${result.id}]`,
@@ -197,9 +203,11 @@ const gatherProductDecisions = async ({
 		}
 
 		if (result.will_version) {
-			const shouldUpdate = yes || (await confirm({
-				message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
-			}));
+			const shouldUpdate =
+				yes ||
+				(await confirm({
+					message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
+				}));
 			productDecisions.set(result.id, shouldUpdate);
 		} else {
 			productDecisions.set(result.id, true);
@@ -277,9 +285,11 @@ const gatherFeatureDeletionDecisions = async ({
 					? ` and ${result.totalCount - 1} other products`
 					: '';
 			const productNameText = result.productName || 'Unknown Product';
-			const shouldArchive = yes || (await confirm({
-				message: `Feature ${featureId} is being used by product ${productNameText}${otherProductsText}. As such, you cannot delete it. Would you like to archive the feature instead?`,
-			}));
+			const shouldArchive =
+				yes ||
+				(await confirm({
+					message: `Feature ${featureId} is being used by product ${productNameText}${otherProductsText}. As such, you cannot delete it. Would you like to archive the feature instead?`,
+				}));
 			featureDeletionDecisions.set(
 				featureId,
 				shouldArchive ? 'archive' : 'skip',
@@ -363,11 +373,13 @@ export default async function Push({
 	const {features, products, env} = config;
 
 	if (env === 'prod') {
-		const shouldProceed = yes || (await confirm({
-			message:
-				'You are about to push products to your prod environment. Are you sure you want to proceed?',
-			default: false,
-		}));
+		const shouldProceed =
+			yes ||
+			(await confirm({
+				message:
+					'You are about to push products to your prod environment. Are you sure you want to proceed?',
+				default: false,
+			}));
 		if (!shouldProceed) {
 			console.log(chalk.yellow('Aborting...'));
 			process.exit(1);

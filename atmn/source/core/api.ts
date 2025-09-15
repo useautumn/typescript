@@ -2,10 +2,10 @@ import axios, {AxiosError} from 'axios';
 import chalk from 'chalk';
 
 import {BACKEND_URL} from '../constants.js';
-import {readFromEnv} from './utils.js';
+import {isLocalFlag, readFromEnv} from './utils.js';
 
-const INTERNAL_BASE: string = BACKEND_URL;
-const EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
+let INTERNAL_BASE: string = BACKEND_URL;
+let EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
 
 export async function request({
 	method,
@@ -30,6 +30,15 @@ export async function request({
 	queryParams?: Record<string, string>;
 	bypass?: boolean;
 }) {
+	if (isLocalFlag()) {
+		INTERNAL_BASE = 'http://localhost:8080';
+		EXTERNAL_BASE = 'http://localhost:8080/v1';
+
+		if (base) {
+			base = base.replace(BACKEND_URL, 'http://localhost:8080');
+		}
+	}
+
 	const apiKey = secretKey || readFromEnv({bypass});
 
 	try {

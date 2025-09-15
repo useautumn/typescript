@@ -15,6 +15,13 @@ export const isProdFlag = () => {
 	return prodFlag;
 };
 
+export const isLocalFlag = () => {
+	const localFlag =
+		process.argv.includes('--local') || process.argv.includes('-l');
+
+	return localFlag;
+};
+
 export function snakeCaseToCamelCase(value: string) {
 	return value.replace(/_([a-z])/g, (_match, letter) => letter.toUpperCase());
 }

@@ -82,35 +82,12 @@ export default function Home() {
             >
               Test Better Auth Plugin
             </Button>
-            {/* <Button
-              onClick={async () => {
-                const res = check({
-                  featureId: "credits",
-                  dialog: PaywallDialog,
-                });
-                console.log(res);
-              }}
-            >
-              Test Paywall Dialog
-            </Button> */}
           </div>
         </section>
 
         <PricingTable />
 
         <div className="flex justify-start items-center gap-2">
-          <Button
-            onClick={async () => {
-              const res = await openBillingPortal({
-                // openInNewTab: true,
-                returnUrl: "https://facebook.com",
-              });
-              console.log(res);
-            }}
-          >
-            Open Billing Portal
-          </Button>
-
           <Button
             onClick={async () => {
               const res = await attach({
@@ -159,9 +136,14 @@ export default function Home() {
           <Button
             onClick={async () => {
               const res = await checkout({
-                productId: "small",
+                productId: "credits-top-up",
                 dialog: CheckoutDialog,
-                openInNewTab: true,
+                options: [
+                  {
+                    featureId: "tasks",
+                    quantity: 100,
+                  },
+                ],
               });
               console.log(res);
             }}

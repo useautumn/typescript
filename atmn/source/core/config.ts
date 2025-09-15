@@ -82,7 +82,7 @@ function isProduct(value: any): value is Product {
 	try {
 		ProductSchema.parse(value);
 		return true;
-	} catch {
+	} catch (error) {
 		return false;
 	}
 }
@@ -93,6 +93,46 @@ function isFeature(value: any): value is Feature {
 		return true;
 	} catch {
 		return false;
+	}
+}
+
+function detectObjectType(value: any): 'product' | 'feature' | 'unknown' {
+	if (value && typeof value === 'object') {
+		if (value.items && Array.isArray(value.items)) {
+			return 'product';
+		}
+		if (value.type) {
+			return 'feature';
+		}
+	}
+	return 'unknown';
+}
+
+function getValidationError(schema: any, value: any): string {
+	try {
+		schema.parse(value);
+		return '';
+	} catch (error: any) {
+		// Handle Zod error specifically
+		if (error.name === 'ZodError' && error.issues) {
+			const formattedErrors = error.issues.map((issue: any) => {
+				const path = issue.path.length > 0 ? `${issue.path.join('.')}` : 'root';
+				return `  • ${path}: ${issue.message}`;
+			});
+			return `\n${formattedErrors.join('\n')}`;
+		}
+
+		// Fallback for other error types
+		if (error.errors && Array.isArray(error.errors)) {
+			const formattedErrors = error.errors.map((e: any) => {
+				const path =
+					e.path && e.path.length > 0 ? `${e.path.join('.')}` : 'root';
+				return `  • ${path}: ${e.message}`;
+			});
+			return `\n${formattedErrors.join('\n')}`;
+		}
+
+		return error.message || 'Unknown validation error';
 	}
 }
 
@@ -137,17 +177,34 @@ export async function loadAutumnConfigFile() {
 				products.push(value as Product);
 			} else if (isFeature(value)) {
 				features.push(value as Feature);
+			} else {
+				// Object doesn't match either schema - provide helpful error
+				const detectedType = detectObjectType(value);
+
+				if (detectedType === 'product') {
+					const validationError = getValidationError(ProductSchema, value);
+					console.error('\n' + chalk.red('❌ Invalid product configuration'));
+					console.error(chalk.yellow(`Product: "${key}"`));
+					console.error(chalk.red('Validation errors:') + validationError);
+					process.exit(1);
+				} else if (detectedType === 'feature') {
+					const validationError = getValidationError(FeatureSchema, value);
+					console.error('\n' + chalk.red('❌ Invalid feature configuration'));
+					console.error(chalk.yellow(`Feature: "${key}"`));
+					console.error(chalk.red('Validation errors:') + validationError);
+					process.exit(1);
+				} else {
+					console.error('\n' + chalk.red('❌ Invalid object configuration'));
+					console.error(chalk.yellow(`Object: "${key}"`));
+					console.error(
+						chalk.red('Error:') +
+							" Object must be either a product (with 'items' field) or feature (with 'type' field)",
+					);
+					process.exit(1);
+				}
 			}
 		}
 	}
-
-	// if (products.length === 0) {
-	// 	throw new Error('No valid products found in autumn.config.ts exports.');
-	// }
-
-	// if (features.length === 0) {
-	// 	throw new Error('No valid features found in autumn.config.ts exports.');
-	// }
 
 	const secretKey = readFromEnv();
 	if (secretKey?.includes('live')) {

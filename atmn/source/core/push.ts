@@ -13,7 +13,10 @@ export async function checkForDeletables(
 	const currentFeatureIds = currentFeatures.map(feature => feature.id);
 	const featuresToDelete = featureIds.filter(
 		(featureId: string) =>
-			!currentFeatureIds.includes(featureId) && !features.archived,
+			!currentFeatureIds.includes(featureId) &&
+			!features.some(
+				(feature: Feature) => feature.id === featureId && feature.archived,
+			),
 	);
 
 	const products = await getAllProducts();
