@@ -8,9 +8,11 @@ export async function GET(req: NextRequest) {
     headers: req.headers,
     body: {
       featureId: "tasks",
-      // requiredBalance: 26,
+      requiredBalance: 26,
     },
   });
+
+  console.log("Res: ", res);
 
   return NextResponse.json(res);
 }

@@ -25,6 +25,25 @@ export default function TestButtons() {
     refetch: refetchCustomer,
   } = useCustomer();
 
+  const handleAddMember = async () => {
+    const res = await authClient.organization.inviteMember({
+      organizationId: orgs?.find((org) => org.name === "Test Organization")?.id,
+      email: "johnyeocx@gmail.com",
+      role: "admin",
+      resend: true,
+    });
+
+    console.log(res);
+  };
+
+  const handleRemoveMember = async () => {
+    const res = await authClient.organization.removeMember({
+      organizationId: orgs?.find((org) => org.name === "Test Organization")?.id,
+      memberIdOrEmail: "johnyeocx@gmail.com",
+    });
+    console.log(res);
+  };
+
   return (
     <section className="space-y-4">
       <h3 className="text-xl font-semibold">All Actions</h3>
@@ -39,39 +58,23 @@ export default function TestButtons() {
         >
           Test Better Auth Plugin
         </Button>
-
-        {/* Organizations */}
         <Button
           onClick={async () => {
-            const res = await authClient.organization.create({
-              name: "Test Organization",
-              slug: "test-organization",
-            });
-
-            const resJoin = await authClient.organization.inviteMember({
-              organizationId: res.data?.id,
-              email: "johnyeo10@gmail.com",
-              role: "admin",
-              resend: true,
-            });
-
-            const res2 = await authClient.organization.create({
-              name: "Test Organization 2",
-              slug: "test-organization-2",
-            });
-
-            const resJoin2 = await authClient.organization.inviteMember({
-              organizationId: "test-organization-2",
-              email: "johnyeo10@gmail.com",
-              role: "admin",
-              resend: true,
-            });
-
-            console.log(res, resJoin, res2, resJoin2);
+            const res = await handleAddMember();
+            console.log(res);
           }}
         >
-          Create Organization
+          Test Add Auth Member
         </Button>
+        <Button
+          onClick={async () => {
+            const res = await handleRemoveMember();
+            console.log(res);
+          }}
+        >
+          Test Remove Auth Member
+        </Button>
+
         <Button
           onClick={async () => {
             const res = await authClient.organization.setActive({
@@ -152,6 +155,7 @@ export default function TestButtons() {
             const res = await openBillingPortal({
               // openInNewTab: true,
               returnUrl: "https://facebook.com",
+              openInNewTab: true,
             });
             console.log(res);
           }}
@@ -194,7 +198,15 @@ export default function TestButtons() {
             const res = await checkout({
               productId: "pro",
               successUrl: "https://facebook.com",
+              openInNewTab: true,
               dialog: CheckoutDialog,
+              checkoutSessionParams: {
+                subscription_data: {
+                  metadata: {
+                    heyThere: "test",
+                  },
+                },
+              },
             });
             console.log(res);
           }}

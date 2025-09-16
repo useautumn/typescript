@@ -18,10 +18,6 @@ export default function Home() {
 
   const { customer } = useCustomer();
 
-  // const { entity, refetch: refetchEntity } = useEntity(
-  //   "test_" + (session?.session.activeOrganizationId ?? "default")
-  // );
-
   if (isPending) return <div>Loading...</div>;
   else
     return (
