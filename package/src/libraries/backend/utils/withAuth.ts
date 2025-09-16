@@ -3,6 +3,7 @@ import { toBackendError, toBackendRes } from "./backendRes";
 import { AuthResult } from "./AuthFunction";
 import { logBackendErrors } from "./logBackendErrors";
 import { logger } from "../../../utils/logger";
+import { toSnakeCase } from "@utils/toSnakeCase";
 
 // 1. Takes in
 export const withAuth = <T extends {}>({
@@ -57,6 +58,13 @@ export const withAuth = <T extends {}>({
     }
 
     let cusData = authResult?.customerData || body?.customer_data;
+
+    if (body) {
+      body = toSnakeCase({
+        obj: body,
+        excludeChildrenOf: ["checkoutSessionParams", "properties"],
+      });
+    }
 
     try {
       let res = await fn({

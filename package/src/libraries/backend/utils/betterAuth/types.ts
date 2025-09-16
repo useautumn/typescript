@@ -8,7 +8,8 @@ export type Session = ReturnType<typeof getSessionFromCtx>;
 export type AutumnOptions = {
   url?: string;
   secretKey?: string;
-  enableOrganizations?: boolean;
+  // enableOrganizations?: boolean;
+  customerScope?: "user" | "organization" | "user_and_organization";
   identify?: (options: {
     session: Session;
     organization?: (Organization & { ownerEmail: string | null }) | null;

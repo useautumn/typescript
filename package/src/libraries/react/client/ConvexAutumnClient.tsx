@@ -109,18 +109,6 @@ export class ConvexAutumnClient implements IAutumnClient {
     }
   }
 
-  async getPricingTable() {
-    // For Convex, we'll need to implement this differently
-    // For now, return a placeholder
-    return {
-      data: null,
-      error: new AutumnError({
-        message: "getPricingTable not yet implemented for Convex",
-        code: "not_implemented",
-      }),
-    };
-  }
-
   // Core methods that wrap Convex actions
   attach = async (args: any) => {
     try {

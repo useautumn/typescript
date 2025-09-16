@@ -53,6 +53,7 @@ export const toContainerResult = async ({
 
   try {
     const data = await response.json();
+
     return {
       data: data,
       error: null,
@@ -61,14 +62,6 @@ export const toContainerResult = async ({
   } catch (error) {
     // biome-ignore lint/complexity/noUselessCatch: idk
     throw error;
-    // return {
-    //   data: null,
-    //   error: new AutumnError({
-    //     message: "Failed to parse Autumn API response",
-    //     code: "internal_error",
-    //   }),
-    //   statusCode: response?.status,
-    // };
   }
 };
 

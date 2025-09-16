@@ -2,11 +2,18 @@ import { getSessionFromCtx } from "better-auth/api";
 import type { Organization } from "better-auth/plugins";
 import type { AutumnOptions } from "./types";
 
+export const scopeContainsOrg = ({ options }: { options?: AutumnOptions }) => {
+  return (
+    options?.customerScope === "organization" ||
+    options?.customerScope === "user_and_organization"
+  );
+};
+
 export async function getOrganizationContext(
   ctx: any,
   options?: AutumnOptions
 ) {
-  if (!options?.enableOrganizations && !options?.identify) {
+  if (!scopeContainsOrg({ options }) && !options?.identify) {
     return {
       activeOrganizationId: null,
       activeOrganization: null,
@@ -17,8 +24,6 @@ export async function getOrganizationContext(
   try {
     const session = await getSessionFromCtx(ctx as any);
     const orgId = session?.session.activeOrganizationId;
-
-    // console.log("[org context] orgId: ", orgId);
 
     if (orgId && session) {
       // Check if user is a member of the organization

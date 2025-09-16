@@ -62,7 +62,6 @@ export interface IAutumnClient {
       errorOnNotFound?: boolean;
     }
   ): Promise<any>;
-  getPricingTable(): Promise<any>;
 
   // HTTP methods (stubbed for Convex)
   detectCors(): Promise<{
@@ -320,10 +319,6 @@ export class AutumnClient implements IAutumnClient {
       client: this,
       params,
     });
-  }
-
-  async getPricingTable() {
-    return await getPricingTableMethod.bind(this)();
   }
 
   attach = attachMethod.bind(this);

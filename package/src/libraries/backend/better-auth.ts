@@ -15,7 +15,6 @@ import {
   type Status,
 } from "better-call";
 import { findRoute } from "rou3";
-import type { ZodSchema } from "zod/v4";
 import { z } from "zod/v4";
 import {
   AttachParamsSchema,
@@ -38,6 +37,7 @@ import type { AuthResult } from "./utils/AuthFunction";
 import {
   getIdentityContext,
   getOrganizationContext,
+  scopeContainsOrg,
 } from "./utils/betterAuth/middlewares";
 import type { AutumnOptions } from "./utils/betterAuth/types";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
@@ -105,7 +105,7 @@ const handleReq = async ({
 
   // Get organization context (works for both auth and non-auth endpoints)
   const orgContext = await getOrganizationContext(ctx, options);
-  const finalSession = getSessionFromCtx(ctx as any);
+  const finalSession = await getSessionFromCtx(ctx as any);
 
   // Get identity context if needed
   let identity = null;
@@ -121,26 +121,35 @@ const handleReq = async ({
     identify = () => identity;
   } else {
     identify = () => {
-      if (!finalSession) {
-        return;
-      }
+      if (!finalSession) return;
 
-      if (!options?.enableOrganizations || !orgContext.activeOrganization?.id) {
+      if (scopeContainsOrg({ options })) {
+        if (orgContext.activeOrganization?.id) {
+          return {
+            customerId: orgContext.activeOrganization?.id,
+            customerData: {
+              email: orgContext.activeOrganizationEmail,
+              name: orgContext.activeOrganization?.name ?? "",
+            },
+          };
+        } else {
+          // 1. If both, return user
+          if (options?.customerScope === "user_and_organization") {
+            return {
+              customerId: (finalSession as any).user.id,
+              customerData: {
+                email: (finalSession as any).user.email,
+                name: (finalSession as any).user.name,
+              },
+            };
+          } else return null;
+        }
+      } else {
         return {
           customerId: (finalSession as any).user.id,
           customerData: {
             email: (finalSession as any).user.email,
             name: (finalSession as any).user.name,
-          },
-        };
-      } else if (orgContext.activeOrganization?.id) {
-        const organization = orgContext.activeOrganization;
-        const ownerEmail = orgContext.activeOrganizationEmail;
-        return {
-          customerId: organization?.id,
-          customerData: {
-            email: ownerEmail,
-            name: organization?.name ?? "",
           },
         };
       }
@@ -149,11 +158,7 @@ const handleReq = async ({
 
   const result = await handler({
     autumn: client,
-    body: toSnakeCase({
-      obj: body,
-      excludeKeys: ["errorOnNotFound"],
-      excludeChildrenOf: ["checkoutSessionParams", "properties"],
-    }),
+    body: body,
     path: pathname,
     getCustomer: identify,
     pathParams: params,
@@ -169,20 +174,6 @@ const handleReq = async ({
 
   return ctx.json(result.body, { status: result.statusCode });
 };
-
-// Endpoint configuration type
-interface EndpointConfig {
-  key: string;
-  path: string;
-  method: Method;
-  body?: ZodSchema;
-  metadata?: Record<string, unknown>;
-  useAuth?: boolean;
-  customHandler?: (
-    ctx: EndpointContext<string, EndpointOptions, AuthContext>,
-    options?: AutumnOptions
-  ) => Promise<any>;
-}
 
 export const autumn = (options?: AutumnOptions) => {
   return {
@@ -218,7 +209,10 @@ export const autumn = (options?: AutumnOptions) => {
           use: [],
           body: CheckoutParamsSchema,
         },
-        async (ctx) => await handleReq({ ctx, options, method: "POST" })
+        async (ctx) => {
+          console.log("Body: ", ctx.body);
+          return await handleReq({ ctx, options, method: "POST" });
+        }
       ),
       attach: createAuthEndpoint(
         "/autumn/attach",
@@ -304,7 +298,6 @@ export const autumn = (options?: AutumnOptions) => {
           body: CreateEntityParamsSchema,
         },
         async (ctx) => {
-          console.log("Hanlding createEntity!, Body: ", ctx.body);
           return await handleReq({ ctx, options, method: "POST" });
         }
       ),
@@ -328,60 +321,6 @@ export const autumn = (options?: AutumnOptions) => {
       ),
     },
   } satisfies BetterAuthPlugin;
-  // // Get endpoint configurations with options in scope
-  // const endpointConfigs = createEndpointConfigs(options);
-
-  // // Helper function to create default handler
-  // const createDefaultHandler =
-  //   (method: string) =>
-  //   async (ctx: EndpointContext<string, EndpointOptions, AuthContext>) => {
-  //     return await handleReq({ ctx, options, method });
-  //   };
-
-  // // Generate endpoints dynamically
-  // const endpoints = endpointConfigs.reduce(
-  //   (acc, config) => {
-  //     const endpointOptions: {
-  //       method: Method;
-  //       use: Middleware[];
-  //       body?: ZodSchema;
-  //       metadata?: Record<string, unknown>;
-  //     } = {
-  //       method: config.method,
-  //       use: config.useAuth ? [sessionMiddleware] : [],
-  //       body:
-  //         config.body !== undefined || config.body !== null
-  //           ? config.body
-  //           : undefined,
-  //       metadata:
-  //         config.metadata !== undefined || config.metadata !== null
-  //           ? config.metadata
-  //           : undefined,
-  //     };
-
-  //     // Create endpoint using appropriate function
-  //     const endpointCreator = config.useAuth
-  //       ? createAuthEndpoint
-  //       : createEndpoint;
-
-  //     acc[config.key] = endpointCreator(
-  //       config.path,
-  //       endpointOptions,
-  //       config.customHandler || createDefaultHandler(config.method)
-  //     );
-
-  //     return acc;
-  //   },
-  //   {} as Record<
-  //     string,
-  //     ReturnType<typeof createAuthEndpoint> | ReturnType<typeof createEndpoint>
-  //   >
-  // );
-
-  // return {
-  //   id: "autumn",
-  //   endpoints,
-  // } satisfies BetterAuthPlugin;
 };
 
 // // Function to create endpoint configurations (to access options parameter)
@@ -515,3 +454,17 @@ export const autumn = (options?: AutumnOptions) => {
 //     useAuth: true,
 //   },
 // ];
+
+// // Endpoint configuration type
+// interface EndpointConfig {
+//   key: string;
+//   path: string;
+//   method: Method;
+//   body?: ZodSchema;
+//   metadata?: Record<string, unknown>;
+//   useAuth?: boolean;
+//   customHandler?: (
+//     ctx: EndpointContext<string, EndpointOptions, AuthContext>,
+//     options?: AutumnOptions
+//   ) => Promise<any>;
+// }

@@ -11,11 +11,7 @@ export async function createEntityMethod(
   this: AutumnClient,
   params: CreateEntityParams | CreateEntityParams[]
 ): AutumnPromise<Entity | Entity[]> {
-  const snakeParams = toSnakeCase({ obj: params });
-  const res = await this.post(
-    `${this.prefix}/entities`,
-    !this.camelCase ? snakeParams : params
-  );
+  const res = await this.post(`${this.prefix}/entities`, params);
   return res;
 }
 
@@ -25,7 +21,6 @@ export async function getEntityMethod(
   params?: GetEntityParams
 ): AutumnPromise<Entity> {
   const expand = getEntityExpandStr(params?.expand);
-
   const res = await this.get(`${this.prefix}/entities/${entityId}?${expand}`);
 
   return res;
