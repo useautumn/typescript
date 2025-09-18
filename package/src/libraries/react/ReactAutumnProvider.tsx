@@ -58,9 +58,9 @@ export const ReactAutumnProvider = ({
         pathPrefix: pathPrefix,
       });
 
-  return BaseAutumnProvider({
-    client,
-    AutumnContext,
-    children,
-  } as any);
+  return (
+    <BaseAutumnProvider client={client} AutumnContext={AutumnContext}>
+      {children}
+    </BaseAutumnProvider>
+  );
 };
