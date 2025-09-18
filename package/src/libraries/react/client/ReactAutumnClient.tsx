@@ -48,6 +48,7 @@ export interface AutumnClientConfig {
   includeCredentials?: boolean;
   betterAuthUrl?: string;
   headers?: Record<string, string>;
+  pathPrefix?: string; // Optional API path prefix override
 }
 
 export interface IAutumnClient {
@@ -122,6 +123,7 @@ export class AutumnClient implements IAutumnClient {
     includeCredentials,
     betterAuthUrl,
     headers,
+    pathPrefix,
   }: AutumnClientConfig) {
     this.backendUrl = backendUrl;
     this.getBearerToken = getBearerToken;
@@ -134,6 +136,16 @@ export class AutumnClient implements IAutumnClient {
       this.prefix = "/api/auth/autumn";
       this.backendUrl = betterAuthUrl;
       camelCase = true;
+    }
+
+    // If an explicit prefix is provided, prefer it over defaults
+    const providedPrefix = pathPrefix;
+    if (providedPrefix) {
+      // Normalize: ensure leading '/', collapse multiple '/', remove trailing '/'
+      const normalized = `/${providedPrefix}`
+        .replace(/\/+/g, "/")
+        .replace(/\/$/, "");
+      this.prefix = normalized;
     }
 
     this.headers = headers;
@@ -151,7 +163,8 @@ export class AutumnClient implements IAutumnClient {
       return { valid: true, includeCredentials: true };
     }
 
-    const testEndpoint = `${this.backendUrl}/api/autumn/cors`;
+    const prefixNoTrailing = (this.prefix || "").replace(/\/$/, "");
+    const testEndpoint = `${this.backendUrl}${prefixNoTrailing}/cors`;
 
     // Test 1: With credentials
     try {
