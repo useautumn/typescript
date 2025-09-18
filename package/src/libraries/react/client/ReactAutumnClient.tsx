@@ -163,8 +163,7 @@ export class AutumnClient implements IAutumnClient {
       return { valid: true, includeCredentials: true };
     }
 
-    const prefixNoTrailing = (this.prefix || "").replace(/\/$/, "");
-    const testEndpoint = `${this.backendUrl}${prefixNoTrailing}/cors`;
+    const testEndpoint = `${this.backendUrl}${this.prefix}/cors`;
 
     // Test 1: With credentials
     try {
