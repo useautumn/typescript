@@ -29,7 +29,7 @@ export const ReactAutumnProvider = ({
   convexApi,
   pathPrefix,
 }: {
-  children: any;
+  children: React.ReactNode;
   getBearerToken?: () => Promise<string | null>;
   convex?: any;
   backendUrl?: string;
