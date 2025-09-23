@@ -27,6 +27,7 @@ export const ReactAutumnProvider = ({
   betterAuthUrl,
   headers,
   convexApi,
+  pathPrefix,
 }: {
   children: React.ReactNode;
   getBearerToken?: () => Promise<string | null>;
@@ -37,6 +38,7 @@ export const ReactAutumnProvider = ({
   betterAuthUrl?: string;
   headers?: Record<string, string>;
   convexApi?: any; // The exported autumn.api() object from Convex
+  pathPrefix?: string; // Optional path prefix to override default "/api/autumn"
 }) => {
   let client: IAutumnClient = convexApi
     ? new ConvexAutumnClient({
@@ -53,6 +55,7 @@ export const ReactAutumnProvider = ({
         includeCredentials,
         betterAuthUrl,
         headers,
+        pathPrefix: pathPrefix,
       });
 
   return (
