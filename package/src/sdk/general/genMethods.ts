@@ -119,5 +119,6 @@ export const handleQuery = async ({
   instance: Autumn;
   params: QueryParams;
 }): AutumnPromise<QueryResult> => {
+  
   return instance.post("/query", params);
 };

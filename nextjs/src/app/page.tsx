@@ -1,5 +1,5 @@
 "use client";
-import { PricingTable, useCustomer } from "autumn-js/react";
+import { PricingTable, useAnalytics, useCustomer } from "autumn-js/react";
 
 import { authClient } from "@/lib/auth-client";
 import { TestBetterAuth } from "@/components/test-better-auth";
@@ -16,7 +16,16 @@ export default function Home() {
   const { data: organisation } = authClient.useActiveOrganization();
   const { data: orgs } = authClient.useListOrganizations();
 
-  const { customer } = useCustomer();
+  const { customer } = useCustomer({ expand: ["invoices"] });
+
+  const { data } = useAnalytics({
+    featureId: "memory",
+    range: "24h",
+  })
+
+  console.log("Analytics: ", data);
+
+  
 
   if (isPending) return <div>Loading...</div>;
   else

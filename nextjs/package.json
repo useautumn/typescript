@@ -36,6 +36,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.0.0",
+    "@types/bun": "latest",
     "@types/node": "^20",
     "@types/pg": "^8.15.2",
     "@types/react": "^19",
@@ -46,7 +47,6 @@
     "postcss-prefix-selector": "^2.1.1",
     "tailwindcss": "^4.1.10",
     "tw-animate-css": "^1.3.4",
-    "typescript": "^5",
-    "@types/bun": "latest"
+    "typescript": "^5"
   }
 }

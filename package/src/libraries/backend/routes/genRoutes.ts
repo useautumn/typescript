@@ -109,14 +109,14 @@ const checkHandler = withAuth({
     customer_data?: CustomerData;
     body: CheckParams;
   }) => {
-    // console.log("checkHandler", body);
+
 
     const result = await autumn.check({
       ...sanitizeBody(body),
       customer_id,
       customer_data,
     });
-    // console.log("checkHandler result", result);
+
     return result;
   },
 });
@@ -165,10 +165,10 @@ const queryHandler = withAuth({
     customer_id: string;
     body: QueryParams;
   }) => {
+
     return await autumn.query({
+      ...sanitizeBody(body),
       customer_id,
-      range: body.range,
-      feature_id: body.featureId,
     });
   },
 });

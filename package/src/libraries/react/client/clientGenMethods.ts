@@ -19,7 +19,6 @@ import type {
   SetupPaymentParams,
   TrackParams,
 } from "./types/clientGenTypes";
-import { toSnakeCase } from "@utils/toSnakeCase";
 
 export async function checkoutMethod(
   this: AutumnClient,
