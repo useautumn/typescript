@@ -159,6 +159,7 @@ export type GetEntityArgsType = Infer<typeof GetEntityArgs>;
 export const ExpandArgs = v.optional(
   v.array(
     v.union(
+      v.literal("payment_method"),
       v.literal("invoices"),
       v.literal("rewards"),
       v.literal("trials_used"),
@@ -219,39 +220,7 @@ export const RedeemReferralCodeArgs = v.object({
 
 export type RedeemReferralCodeArgsType = Infer<typeof RedeemReferralCodeArgs>;
 
-// Customer fetching (for backwards compatibility)
-export const UserFetchCustomerArgs = v.object({
-  expand: v.optional(
-    v.array(
-      v.union(
-        v.literal("invoices"),
-        v.literal("rewards"),
-        v.literal("trials_used"),
-        v.literal("entities"),
-        v.literal("referrals")
-      )
-    )
-  ),
-});
 
-export const FetchCustomerArgs = v.object({
-  customer_id: v.string(),
-  customer_data: v.optional(CustomerDataConvex),
-  expand: v.optional(
-    v.array(
-      v.union(
-        v.literal("invoices"),
-        v.literal("rewards"),
-        v.literal("trials_used"),
-        v.literal("entities"),
-        v.literal("referrals")
-      )
-    )
-  ),
-  apiKey: v.string(),
-});
-
-// Type exports
 
 export type UserCreateSingleEntityArgsType = Infer<
   typeof UserCreateSingleEntityArgs
@@ -264,5 +233,4 @@ export type DeleteCustomerArgsType = Infer<typeof DeleteCustomerArgs>;
 
 export type ListProductsArgsType = Infer<typeof ListProductsArgs>;
 
-export type FetchCustomerArgsType = Infer<typeof FetchCustomerArgs>;
-export type UserFetchCustomerArgsType = Infer<typeof UserFetchCustomerArgs>;
+

@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { CheckoutDialog, useCustomer } from "autumn-js/react";
@@ -216,7 +215,7 @@ export default function TestButtons() {
         <Button
           onClick={async () => {
             const res = await attach({
-              productId: "pro",
+              productId: "ecoinvent_monthly",
               openInNewTab: true,
             });
             console.log(res);

@@ -17,10 +17,14 @@ const createReferralCodeHandler = withAuth({
     customer_id: string;
     body: CreateReferralCodeParams;
   }) => {
-    return await autumn.referrals.createCode({
+    console.log("Creating referral code for customer: ", customer_id);
+    console.log("Body: ", body);
+    const res = await autumn.referrals.createCode({
       ...body,
       customer_id,
     });
+    console.log("Res: ", res);
+    return res;
   },
 });
 
