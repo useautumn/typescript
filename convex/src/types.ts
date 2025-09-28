@@ -101,6 +101,13 @@ export type UsageArgsType = Infer<typeof UsageArgs>;
 
 export const QueryArgs = v.object({
   featureId: v.union(v.string(), v.array(v.string())),
+  range: v.optional(v.union(
+    v.literal("24h"),
+    v.literal("7d"),
+    v.literal("30d"),
+    v.literal("90d"),
+    v.literal("last_cycle"),
+  )),
   customerData: v.optional(CustomerDataConvex),
 });
 

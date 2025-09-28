@@ -69,6 +69,8 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
   const isFree = checkoutResult?.product.properties?.is_free;
   const isPaid = isFree === false;
 
+  
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="au-p-0 au-pt-4 au-gap-0 au-text-foreground au-text-sm">
@@ -96,6 +98,8 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
                   quantity: option.quantity,
                 };
               });
+
+
 
               await attach({
                 productId: checkoutResult.product.id,

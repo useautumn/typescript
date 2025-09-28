@@ -26,7 +26,7 @@ export const useAnalytics = (params: QueryParams) => {
   };
 
   const { data, error, mutate } = useSWR<QueryResult, AutumnError>(
-    "analytics",
+    ["analytics", params.featureId, params.range],
     fetcher,
     { refreshInterval: 0 }
   );
