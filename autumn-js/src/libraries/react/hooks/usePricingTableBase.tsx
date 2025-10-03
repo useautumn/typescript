@@ -1,14 +1,15 @@
 import useSWR, { SWRConfiguration } from "swr";
-import { AutumnError, Product } from "@sdk";
-import { ProductDetails } from "../client/types/clientPricingTableTypes";
-import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
+import { ProductDetails, ProductWithDisplay } from "../client/ProductDetails";
 import { AutumnClient } from "@/client/ReactAutumnClient";
 import { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
+import Autumn from "@sdk";
+
+
 
 const mergeProductDetails = (
-  products: Product[] | undefined,
+  products: Autumn.Product[] | undefined,
   productDetails?: ProductDetails[]
-): Product[] | null => {
+): ProductWithDisplay[] | null => {
   if (!products) {
     return null;
   }
@@ -33,7 +34,7 @@ const mergeProductDetails = (
 
   let fetchedProducts = structuredClone(products);
 
-  let mergedProducts: Product[] = [];
+  let mergedProducts: ProductWithDisplay[] = [];
 
   for (const overrideDetails of productDetails) {
     if (!overrideDetails.id) {
@@ -80,7 +81,7 @@ const mergeProductDetails = (
         },
         items: overrideItems,
         properties,
-      } as unknown as Product);
+      } as unknown as Autumn.Product);
       continue;
     }
 
@@ -106,10 +107,10 @@ const mergeProductDetails = (
     let overrideProperties = fetchedProduct.properties || {};
     let overrideItems = overrideDetails.items;
     let overridePrice = overrideDetails.price;
-    let mergedItems = [];
+    let mergedItems: Autumn.Products.ProductItem[] = [];
 
     if (overridePrice) {
-      overrideProperties.is_free = false;
+      // overrideProperties.is_free = false;
 
       if (originalIsFree || overrideItems !== undefined) {
         mergedItems.push({
@@ -135,7 +136,7 @@ const mergeProductDetails = (
         if (!overrideItem.featureId) {
           mergedItems.push({
             display: {
-              primary_text: overrideItem.primaryText,
+              primary_text: overrideItem.primaryText || "",
               secondary_text: overrideItem.secondaryText,
             },
           });
@@ -153,7 +154,7 @@ const mergeProductDetails = (
             ...fetchedItem,
             display: {
               primary_text:
-                overrideItem.primaryText || fetchedItem.display?.primary_text,
+                overrideItem.primaryText || fetchedItem.display?.primary_text || "",
               secondary_text:
                 overrideItem.secondaryText ||
                 fetchedItem.display?.secondary_text,
@@ -165,10 +166,17 @@ const mergeProductDetails = (
       mergedItems = fetchedProduct.items;
     }
 
-    const mergedProduct: Product = {
+    const mergedProduct: Autumn.Product & { display: {
+      name?: string;
+      description?: string;
+      button_text?: string;
+      recommend_text?: string;
+      everything_from?: string;
+      button_url?: string;
+    } } = {
       ...fetchedProduct,
       items: mergedItems,
-      properties: overrideProperties,
+      properties: overrideProperties as Autumn.Product["properties"],
       display: {
         name: displayName,
         description: overrideDetails.description,
@@ -198,20 +206,12 @@ export const usePricingTableBase = ({
   };
 }) => {
   const fetcher = async () => {
-    try {
-      const { data, error } = await client.products.list();
-      if (error) throw error;
+    const data = await client.products.list();
 
-      return data?.list || [];
-    } catch (error) {
-      throw new AutumnError({
-        message: "Failed to fetch pricing table products",
-        code: "failed_to_fetch_pricing_table_products",
-      });
-    }
+    return data?.list || [];
   };
 
-  const { data, error, mutate } = useSWR<Product[], AutumnError>(
+  const { data, error, mutate } = useSWR<Autumn.Product[]>(
     ["pricing-table", client.backendUrl],
     fetcher,
     { ...defaultSWRConfig }

@@ -17,18 +17,15 @@ import { z } from "zod/v4";
 import {
   AttachParamsSchema,
   CheckoutParamsSchema,
-} from "@/client/types/clientAttachTypes";
-import { CreateEntityParamsSchema } from "@/client/types/clientEntTypes";
-import {
+  EntityCreateParamsSchema,
   CancelParamsSchema,
   CheckParamsSchema,
-  OpenBillingPortalParamsSchema,
+  BillingPortalParamsSchema,
   TrackParamsSchema,
-} from "@/client/types/clientGenTypes";
-import {
-  CreateReferralCodeParamsSchema,
-  RedeemReferralCodeParamsSchema,
-} from "@/client/types/clientReferralTypes";
+  ReferralCreateCodeParamsSchema,
+  ReferralRedeemCodeParamsSchema,
+} from "@/clientTypes";
+
 
 import { createRouterWithOptions } from "./routes/backendRouter";
 import {
@@ -255,7 +252,7 @@ export const autumn = (options?: AutumnOptions) => {
         {
           method: "POST",
           use: [],
-          body: CreateReferralCodeParamsSchema,
+          body: ReferralCreateCodeParamsSchema,
         },
         async (ctx) => {
           return await handleReq({ ctx, options, method: "POST" });
@@ -266,7 +263,7 @@ export const autumn = (options?: AutumnOptions) => {
         {
           method: "POST",
           use: [],
-          body: RedeemReferralCodeParamsSchema,
+          body: ReferralRedeemCodeParamsSchema,
         },
         async (ctx) => {
           return await handleReq({ ctx, options, method: "POST" });
@@ -277,7 +274,7 @@ export const autumn = (options?: AutumnOptions) => {
         {
           method: "POST",
           use: [],
-          body: OpenBillingPortalParamsSchema,
+          body: BillingPortalParamsSchema,
           metadata: {
             isAction: false,
           },
@@ -291,7 +288,7 @@ export const autumn = (options?: AutumnOptions) => {
         {
           method: "POST",
           use: [],
-          body: CreateEntityParamsSchema,
+          body: EntityCreateParamsSchema,
         },
         async (ctx) => {
           return await handleReq({ ctx, options, method: "POST" });
@@ -318,149 +315,3 @@ export const autumn = (options?: AutumnOptions) => {
     },
   } satisfies BetterAuthPlugin;
 };
-
-// // Function to create endpoint configurations (to access options parameter)
-// const createEndpointConfigs = (options?: AutumnOptions): EndpointConfig[] => [
-//   {
-//     key: "identifyOrg",
-//     path: "/autumn/identify-org",
-//     method: "GET",
-//     useAuth: false,
-//     customHandler: async (ctx) => {
-//       const session = await getSessionFromCtx(
-//         ctx as Parameters<typeof getSessionFromCtx>[0]
-//       );
-//       const org = (
-//         ctx.context as unknown as { activeOrganization: Organization }
-//       ).activeOrganization;
-//       return ctx.json({
-//         orgId: org?.id,
-//         identity: (ctx.context as unknown as { autumnIdentity: AuthResult })
-//           .autumnIdentity,
-//         session,
-//         org,
-//       });
-//     },
-//   },
-//   {
-//     key: "createCustomer",
-//     path: "/autumn/customers",
-//     method: "POST",
-//     useAuth: false,
-//     body: z.object({
-//       errorOnNotFound: z.boolean().optional(),
-//       expand: z.array(CustomerExpandEnum).optional(),
-//     }),
-//     metadata: {
-//       isAction: false,
-//     },
-//     customHandler: async (ctx) => {
-//       const session = await getSessionFromCtx(
-//         ctx as Parameters<typeof getSessionFromCtx>[0]
-//       );
-
-//       return await handleReq({ ctx, options, method: "POST", session });
-//     },
-//   },
-//   {
-//     key: "listProducts",
-//     path: "/autumn/products",
-//     method: "GET",
-//     useAuth: false,
-//     customHandler: async (ctx) => {
-//       return await handleReq({ ctx, options, method: "GET" });
-//     },
-//   },
-//   {
-//     key: "checkout",
-//     path: "/autumn/checkout",
-//     method: "POST",
-//     body: CheckoutParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "attach",
-//     path: "/autumn/attach",
-//     method: "POST",
-//     body: AttachParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "check",
-//     path: "/autumn/check",
-//     method: "POST",
-//     body: CheckParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "track",
-//     path: "/autumn/track",
-//     method: "POST",
-//     body: TrackParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "cancel",
-//     path: "/autumn/cancel",
-//     method: "POST",
-//     body: CancelParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "createReferralCode",
-//     path: "/autumn/referrals/code",
-//     method: "POST",
-//     body: CreateReferralCodeParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "redeemReferralCode",
-//     path: "/autumn/referrals/redeem",
-//     method: "POST",
-//     body: RedeemReferralCodeParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "billingPortal",
-//     path: "/autumn/billing_portal",
-//     method: "POST",
-//     body: OpenBillingPortalParamsSchema,
-//     useAuth: true,
-//     metadata: {
-//       isAction: false,
-//     },
-//   },
-//   {
-//     key: "createEntity",
-//     path: "/autumn/entities",
-//     method: "POST",
-//     body: CreateEntityParamsSchema,
-//     useAuth: true,
-//   },
-//   {
-//     key: "getEntity",
-//     path: "/autumn/entities/:entityId",
-//     method: "GET",
-//     useAuth: true,
-//   },
-//   {
-//     key: "deleteEntity",
-//     path: "/autumn/entities/:entityId",
-//     method: "DELETE",
-//     useAuth: true,
-//   },
-// ];
-
-// // Endpoint configuration type
-// interface EndpointConfig {
-//   key: string;
-//   path: string;
-//   method: Method;
-//   body?: ZodSchema;
-//   metadata?: Record<string, unknown>;
-//   useAuth?: boolean;
-//   customHandler?: (
-//     ctx: EndpointContext<string, EndpointOptions, AuthContext>,
-//     options?: AutumnOptions
-//   ) => Promise<any>;
-// }

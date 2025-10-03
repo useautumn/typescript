@@ -1,6 +1,6 @@
 // import type { AttachParams, CheckoutParams } from "@sdk/general/attachTypes";
 import { addRoute, type RouterContext } from "rou3";
-import type { QueryParams } from "@/client/types/clientGenTypes";
+import type { QueryParams } from "@/clientTypes";
 import type {
   Autumn,
   // BillingPortalParams,

@@ -1,24 +1,11 @@
-import {
-  BillingPortalResult,
-  CancelResult,
-  CheckResult,
-  SetupPaymentResult,
-  TrackResult,
-} from "@sdk";
+
+import Autumn from "@sdk";
 import { AutumnContextParams } from "@/AutumnContext";
-import {
-  CancelParams,
-  CheckParams,
-  OpenBillingPortalParams,
-  SetupPaymentParams,
-  TrackParams,
-} from "@/client/types/clientGenTypes";
-import { AutumnPromise } from "@sdk";
 import { usePricingTableBase } from "../usePricingTableBase";
-import { AttachResult } from "@sdk/general/attachTypes";
-import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
+import { AttachParams, CheckoutParams, CancelParams, BillingPortalParams, SetupPaymentParams, TrackParams } from "@/clientTypes";
 import { AutumnClient } from "@/client/ReactAutumnClient";
 import { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
+
 
 export const useAutumnBase = ({
   // AutumnContext,
@@ -35,20 +22,14 @@ export const useAutumnBase = ({
 
   const { refetch: refetchPricingTable } = usePricingTableBase({ client });
 
-  const attachWithoutDialog = async (params: AttachParams) => {
+  const attachWithoutDialog = async (params: AttachParams): Promise<Autumn.AttachResponse> => {
     const result = await client.attach(params);
 
-    if (result.error) {
-      return result;
-    }
-
-    let data = result.data;
-
-    if (data?.checkout_url && typeof window !== "undefined") {
+    if (result.checkout_url && typeof window !== "undefined") {
       if (params.openInNewTab) {
-        window.open(data.checkout_url, "_blank");
+        window.open(result.checkout_url, "_blank");
       } else {
-        window.location.href = data.checkout_url;
+        window.location.href = result.checkout_url;
       }
     }
 
@@ -62,8 +43,8 @@ export const useAutumnBase = ({
     return result;
   };
 
-  const checkout = async (params: CheckoutParams) => {
-    const { data, error } = await client.checkout(params);
+  const checkout = async (params: CheckoutParams): Promise<Autumn.CheckoutResponse> => {
+    const data = await client.checkout(params);
     const { dialog, ...rest } = params;
 
     if (params.dialog && params.productIds) {
@@ -72,11 +53,9 @@ export const useAutumnBase = ({
       );
     }
 
-    if (error) {
-      return { data, error };
-    }
+    
 
-    const hasPrepaid = data.product.items.some(
+    const hasPrepaid = data.product?.items?.some(
       (item: any) => item.usage_model === "prepaid"
     );
 
@@ -89,7 +68,7 @@ export const useAutumnBase = ({
         window.location.href = data.url;
       }
 
-      return { data, error };
+      return data;
     }
 
     if (params.dialog) {
@@ -98,28 +77,23 @@ export const useAutumnBase = ({
       attachDialog?.setOpen(true);
     }
 
-    return { data, error };
+    return data;
   };
 
   const attachWithDialog = async (
     params: AttachParams
-  ): AutumnPromise<AttachResult | CheckResult> => {
+  ): Promise<Autumn.AttachResponse | Autumn.CheckResponse> => {
     let { ...rest } = params;
 
-    const { productId, entityId, entityData } = params;
+    const { entityId, entityData } = params;
 
     const checkRes = await client.check({
-      productId,
-      entityId,
       entityData,
       withPreview: true,
+      entityId: entityId ?? undefined,
     });
 
-    if (checkRes.error) {
-      return checkRes;
-    }
-
-    let preview = checkRes.data.preview;
+    let preview = checkRes.preview;
 
     if (!preview) {
       return await attachWithoutDialog(rest);
@@ -131,67 +105,31 @@ export const useAutumnBase = ({
     return checkRes;
   };
 
-  const attach = async (params: AttachParams) => {
+  const attach = async (params: AttachParams): Promise<Autumn.AttachResponse> => {
     const { dialog } = params;
 
     if (dialog && !attachDialog?.open) {
       attachDialog?.setComponent(dialog);
-      return await attachWithDialog(params);
+      return await attachWithDialog(params) as Autumn.AttachResponse;
     }
 
     return await attachWithoutDialog(params);
   };
 
-  const cancel = async (params: CancelParams): AutumnPromise<CancelResult> => {
+  const cancel = async (params: CancelParams): Promise<Autumn.CancelResponse> => {
     const res = await client.cancel(params);
-
-    if (res.error) {
-      return res;
-    }
-
     return res;
   };
 
-  // const check = async (params: CheckParams): AutumnPromise<CheckResult> => {
-  //   let { dialog, withPreview } = params;
 
-  //   if (dialog) {
-  //     paywallDialog?.setComponent(dialog);
-  //   }
-
-  //   const res = await client.check({
-  //     ...params,
-  //     withPreview: withPreview || dialog ? true : false,
-  //   });
-
-  //   if (res.error) {
-  //     return res;
-  //   }
-
-  //   let data = res.data;
-
-  //   if (data && data.preview && dialog) {
-  //     let preview = data.preview;
-  //     paywallDialog?.setProps({ preview });
-  //     paywallDialog?.setOpen(true);
-  //   }
-
-  //   return res;
-  // };
-
-  const track = async (params: TrackParams): AutumnPromise<TrackResult> => {
+  const track = async (params: TrackParams): Promise<Autumn.TrackResponse> => {
     const res = await client.track(params);
-
-    if (res.error) {
-      return res;
-    }
-
     return res;
   };
 
   const openBillingPortal = async (
-    params?: OpenBillingPortalParams
-  ): AutumnPromise<BillingPortalResult> => {
+    params?: BillingPortalParams
+  ): Promise<Autumn.BillingPortalResponse> => {
     let defaultParams = {
       openInNewTab: false,
     };
@@ -203,28 +141,20 @@ export const useAutumnBase = ({
 
     const res = await client.openBillingPortal(finalParams);
 
-    if (res.error) {
-      return res;
-    }
-
-    let data = res.data;
-
-    if (data?.url && typeof window !== "undefined") {
+    if (res.url && typeof window !== "undefined") {
       if (finalParams.openInNewTab) {
-        window.open(data.url, "_blank");
+        window.open(res.url, "_blank");
       } else {
-        window.open(data.url, "_self");
+        window.open(res.url, "_self");
       }
-
-      return res;
-    } else {
-      return res;
     }
+
+    return res;
   };
 
   const setupPayment = async (
     params?: SetupPaymentParams
-  ): AutumnPromise<SetupPaymentResult> => {
+  ): Promise<Autumn.SetupPaymentResponse> => {
     let defaultParams = {
       openInNewTab: false,
     };
@@ -236,17 +166,15 @@ export const useAutumnBase = ({
 
     const res = await client.setupPayment(finalParams);
 
-    if (res.data?.url && typeof window !== "undefined") {
+    if (res.url && typeof window !== "undefined") {
       if (finalParams.openInNewTab) {
-        window.open(res.data.url, "_blank");
+        window.open(res.url, "_blank");
       } else {
-        window.open(res.data.url, "_self");
+        window.open(res.url, "_self");
       }
-
-      return res;
-    } else {
-      return res;
     }
+
+    return res;
   };
 
   return {

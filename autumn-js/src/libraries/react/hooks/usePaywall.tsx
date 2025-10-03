@@ -1,6 +1,5 @@
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
-import { AutumnClient } from "@/client/ReactAutumnClient";
-import { CheckFeaturePreview } from "@sdk";
+import Autumn from "@sdk";
 import useSWR from "swr";
 
 export const usePaywall = ({
@@ -22,12 +21,10 @@ export const usePaywall = ({
       return { preview: undefined };
     }
 
-    const { data, error } = await context.client.check({
+    return await context.client.check({
       featureId,
       withPreview: true,
     });
-    if (error) throw error;
-    return data;
   };
 
   const queryKey = [`check`, featureId, entityId];
@@ -38,7 +35,7 @@ export const usePaywall = ({
   });
 
   return {
-    data: data?.preview as CheckFeaturePreview | undefined,
+    data: data?.preview as Autumn.CheckResponse.Preview | undefined,
     error,
     isLoading,
   };

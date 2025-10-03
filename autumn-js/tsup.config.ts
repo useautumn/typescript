@@ -89,6 +89,7 @@ export default defineConfig([
     shims: true,
     clean: false,
     outDir: "./dist/sdk",
+    splitting: false,
 
     treeshake: true,
     target: "es2020",
@@ -101,6 +102,7 @@ export default defineConfig([
         __dirname: "import.meta.dirname",
         __filename: "import.meta.filename",
       };
+      options.mainFields = ["module", "main"];
     },
   },
 
@@ -125,45 +127,25 @@ export default defineConfig([
   },
 
   // SDK
-  {
-    entry: ["src/next/*.{ts,tsx}"],
-    format: ["cjs", "esm"],
-    dts: true,
-    clean: false, // Don't clean on subsequent builds
-    outDir: "./dist/next",
-    external: ["react", "react/jsx-runtime", "react-dom"],
-    bundle: false,
-    esbuildOptions(options) {
-      options.plugins = options.plugins || [];
-      options.plugins.push(alias(pathAliases));
-      options.define = {
-        ...options.define,
-        __dirname: "import.meta.dirname",
-        __filename: "import.meta.filename",
-      };
-    },
-  },
+  // {
+  //   entry: ["src/next/*.{ts,tsx}"],
+  //   format: ["cjs", "esm"],
+  //   dts: true,
+  //   clean: false, // Don't clean on subsequent builds
+  //   outDir: "./dist/next",
+  //   external: ["react", "react/jsx-runtime", "react-dom"],
+  //   bundle: false,
+  //   esbuildOptions(options) {
+  //     options.plugins = options.plugins || [];
+  //     options.plugins.push(alias(pathAliases));
+  //     options.define = {
+  //       ...options.define,
+  //       __dirname: "import.meta.dirname",
+  //       __filename: "import.meta.filename",
+  //     };
+  //   },
+  // },
   ...reactConfigs,
-
-  // React client components
-  {
-    entry: ["src/next/client/**/*.ts", "src/next/client/**/*.tsx"],
-    format: ["cjs", "esm"],
-    dts: true,
-    clean: true,
-    outDir: "./dist/next/client",
-    external: ["react", "react/jsx-runtime", "react-dom"],
-    bundle: false,
-    banner: {
-      js: '"use client";\n',
-    },
-    esbuildOptions(options) {
-      options.plugins = options.plugins || [];
-      options.plugins.push(alias(pathAliases));
-      options.platform = "browser";
-      options.format = "esm";
-    },
-  },
 
   // Styles - Properly process CSS with PostCSS and Tailwind
   {
@@ -174,33 +156,5 @@ export default defineConfig([
     bundle: true,
   },
 
-  // React server components
-  {
-    entry: ["src/next/server/**/*.{ts,tsx}"],
-    format: ["cjs", "esm"],
-    dts: true,
-    clean: true,
-    outDir: "./dist/next/server",
-    external: [
-      "react",
-      "react/jsx-runtime",
-      "react-dom",
-      "@clerk/backend",
-      "better-auth",
-      "@supabase/ssr",
-    ],
-    bundle: false,
-    banner: {
-      js: '"use server";',
-    },
-    esbuildOptions(options) {
-      options.plugins = options.plugins || [];
-      options.plugins.push(alias(pathAliases));
-      options.banner = {
-        js: '"use server";',
-      };
-      options.platform = "node";
-      options.format = "esm";
-    },
-  },
+
 ]);

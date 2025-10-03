@@ -1,15 +1,15 @@
 import useSWR from "swr";
-import { GetEntityParams } from "../../../libraries/react/client/types/clientEntTypes";
 import { useContext } from "react";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
-import { AllowedParams, handleCheck, openDialog } from "./helpers/handleCheck";
+import { handleCheck, openDialog } from "./helpers/handleCheck";
 import { useAutumnBase } from "./helpers/useAutumnBase";
 import {
+  EntityGetParams,
   CancelParams,
   CheckParams,
   TrackParams,
-} from "@/client/types/clientGenTypes";
-import { AttachParams } from "@/client/types/clientAttachTypes";
+  AttachParams,
+} from "@/clientTypes";
 
 export const useEntityBase = ({
   entityId,
@@ -17,7 +17,7 @@ export const useEntityBase = ({
   AutumnContext,
 }: {
   entityId: string | null;
-  params?: GetEntityParams;
+  params?: EntityGetParams;
   AutumnContext: React.Context<AutumnContextParams>;
 }) => {
   const { client } = useContext(AutumnContext);
@@ -34,17 +34,7 @@ export const useEntityBase = ({
     }
 
     
-    const { data, error } = await client.entities.get(entityId, params);
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      return null;
-    }
-
-    return data;
+    return await client.entities.get(entityId, params);
   };
 
   const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity, {
@@ -69,7 +59,7 @@ export const useEntityBase = ({
     const result = handleCheck({ customer: data, params, isEntity: true });
 
     openDialog({
-      result: result.data,
+      result: result,
       params,
       context: context!,
     });

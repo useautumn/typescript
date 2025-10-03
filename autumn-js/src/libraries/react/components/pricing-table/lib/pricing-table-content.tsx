@@ -1,8 +1,8 @@
-import { type Product } from "@sdk";
+import { type ProductWithDisplay } from "@/index";
 
-export const getPricingTableContent = (product: Product) => {
-  const { scenario, free_trial, properties } = product;
-  const { is_one_off, updateable, has_trial } = properties;
+export const getPricingTableContent = (product: ProductWithDisplay) => {
+  const { scenario, properties } = product;
+  const { is_one_off = false, updateable = false, has_trial = false } = properties || {};
 
   if (has_trial) {
     return {

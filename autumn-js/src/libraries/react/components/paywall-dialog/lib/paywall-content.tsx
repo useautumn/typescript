@@ -1,6 +1,6 @@
-import { type CheckFeaturePreview } from "@sdk";
+import { Autumn } from "@sdk";
 
-export const getPaywallContent = (preview?: CheckFeaturePreview) => {
+export const getPaywallContent = (preview?: Autumn.CheckResponse.Preview) => {
   if (!preview) {
     return {
       title: "Feature Unavailable",

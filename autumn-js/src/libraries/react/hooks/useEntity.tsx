@@ -1,10 +1,10 @@
 import { AutumnContext } from "../AutumnContext";
-import { GetEntityParams } from "../client/types/clientEntTypes";
+import { EntityGetParams } from "@/clientTypes";
 import { useEntityBase } from "./useEntityBase";
 
 export const useEntity = (
   entityId: string | null,
-  params?: GetEntityParams
+  params?: EntityGetParams
 ) => {
   return useEntityBase({ AutumnContext, entityId, params });
 };

@@ -1,27 +1,22 @@
-import { toSnakeCase } from "@utils/toSnakeCase";
-import type {
-  AutumnPromise,
-  CreateReferralCodeResult,
-  RedeemReferralCodeResult,
-} from "../../../sdk";
 import type { AutumnClient } from "./ReactAutumnClient";
 import type {
-  CreateReferralCodeParams,
-  RedeemReferralCodeParams,
-} from "./types/clientReferralTypes";
+  ReferralCreateCodeParams,
+  ReferralRedeemCodeParams,
+} from "@/clientTypes";
+import { Autumn } from "@sdk";
 
 export async function createCode(
   this: AutumnClient,
-  params: CreateReferralCodeParams
-): AutumnPromise<CreateReferralCodeResult> {
+  params: ReferralCreateCodeParams
+): Promise<Autumn.Referrals.ReferralCreateCodeResponse> {
   const res = await this.post(`${this.prefix}/referrals/code`, params);
   return res;
 }
 
 export async function redeemCode(
   this: AutumnClient,
-  params: RedeemReferralCodeParams
-): AutumnPromise<RedeemReferralCodeResult> {
+  params: ReferralRedeemCodeParams
+): Promise<Autumn.Referrals.ReferralRedeemCodeResponse> {
   const res = await this.post(`${this.prefix}/referrals/redeem`, params);
   return res;
 }

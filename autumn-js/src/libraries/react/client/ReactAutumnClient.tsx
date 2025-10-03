@@ -1,12 +1,4 @@
 import { logAuthError } from "@/errorUtils/logAuthError";
-import {
-  AutumnError,
-  // AutumnPromise,
-  // CreateCustomerParams,
-  // CustomerData,
-  // Product,
-  // toContainerResult,
-} from "@sdk";
 import { logFetchError } from "../errorUtils/logFetchError";
 import { createCustomerMethod } from "./clientCusMethods";
 import {
@@ -27,6 +19,8 @@ import {
 } from "./clientGenMethods";
 import { listProductsMethod } from "./clientProdMethods";
 import { createCode, redeemCode } from "./clientReferralMethods";
+import { CustomerData, CustomerCreateParams } from "@/clientTypes";
+import { handleFetchResult } from "@utils/handleFetchResult";
 
 export interface ErrorResponse {
   message: string;
@@ -58,7 +52,7 @@ export interface IAutumnClient {
 
   // Core methods
   createCustomer(
-    params: Omit<CreateCustomerParams, "id" | "data"> & {
+    params: CustomerCreateParams & {
       errorOnNotFound?: boolean;
     }
   ): Promise<any>;
@@ -101,9 +95,11 @@ export interface IAutumnClient {
   };
 
   products: {
-    list(): AutumnPromise<{ list: Product[] }>;
+    list(): Promise<any>;
   };
 }
+
+
 
 export class AutumnClient implements IAutumnClient {
   public readonly backendUrl?: string;
@@ -190,6 +186,7 @@ export class AutumnClient implements IAutumnClient {
       }
     }
   }
+  
   /**
    * Automatically determines whether to include credentials based on CORS detection
    */
@@ -243,14 +240,14 @@ export class AutumnClient implements IAutumnClient {
     return headers;
   }
 
-  async handleFetch({
+  async handleFetch<T = Record<string, unknown>>({
     path,
     method,
     body,
   }: {
     path: string;
     method: string;
-    body?: Record<string, unknown> | Record<string, unknown>[];
+    body?: any;
   }) {
     body =
       method === "POST"
@@ -263,6 +260,8 @@ export class AutumnClient implements IAutumnClient {
 
     const includeCredentials = await this.shouldIncludeCredentials();
 
+    
+
     try {
       const response = await fetch(`${this.backendUrl}${path}`, {
         method,
@@ -273,7 +272,7 @@ export class AutumnClient implements IAutumnClient {
 
       const loggedError = await logAuthError(response);
 
-      return await toContainerResult({
+      return await handleFetchResult({
         response,
         logger: console,
         logError: !loggedError,
@@ -285,20 +284,21 @@ export class AutumnClient implements IAutumnClient {
         path,
         error,
       });
-      return {
-        data: null,
-        error: new AutumnError({
-          message:
-            error instanceof Error ? error.message : JSON.stringify(error),
-          code: "fetch_failed",
-        }),
-      };
+      throw error;
+      // return {
+      //   data: null,
+      //   error: new AutumnError({
+      //     message:
+      //       error instanceof Error ? error.message : JSON.stringify(error),
+      //     code: "fetch_failed",
+      //   }),
+      // };
     }
   }
 
-  async post(
+  async post<T = any>(
     path: string,
-    body: Record<string, unknown> | Record<string, unknown>[]
+    body: T | T[]
   ) {
     return await this.handleFetch({
       path,
@@ -322,9 +322,7 @@ export class AutumnClient implements IAutumnClient {
   }
 
   async createCustomer(
-    params: Omit<CreateCustomerParams, "id" | "data"> & {
-      errorOnNotFound?: boolean;
-    }
+    params: CustomerCreateParams & { errorOnNotFound?: boolean;}
   ) {
     return await createCustomerMethod({
       client: this,

@@ -1,6 +1,7 @@
   import { usePricingTableBase } from "./usePricingTableBase";
-import { ProductDetails } from "../client/types/clientPricingTableTypes";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
+import { ProductDetails } from "../client/ProductDetails";
+
 
 export const usePricingTable = (params?: {
   productDetails?: ProductDetails[];

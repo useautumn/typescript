@@ -1,9 +1,9 @@
 import { BaseAutumnProvider } from "./BaseAutumnProvider";
 import { AutumnClient } from "./client/ReactAutumnClient";
-import { CustomerData } from "../../sdk";
 import { AutumnContext } from "./AutumnContext";
 import { IAutumnClient } from "./client/ReactAutumnClient";
 import { ConvexAutumnClient } from "./client/ConvexAutumnClient";
+import { CustomerData } from "./clientTypes";
 
 const getBackendUrl = (backendUrl?: string) => {
   if (backendUrl) {

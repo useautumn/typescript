@@ -1,13 +1,13 @@
 import React from "react";
 
-import { useCustomer, usePricingTable, ProductDetails } from "@/index";
+import { useCustomer, usePricingTable, ProductDetails, ProductWithDisplay } from "@/index";
+import { Autumn } from "@sdk";
 import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import CheckoutDialog from "../checkout-dialog/checkout-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
-import type { Product, ProductItem } from "@sdk";
 import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
 import { Loader2 } from "lucide-react";
 
@@ -41,7 +41,7 @@ export default function PricingTable({
 
   const multiInterval = intervals.length > 1;
 
-  const intervalFilter = (product: Product) => {
+  const intervalFilter = (product: Autumn.Product) => {
     if (!product.properties?.interval_group) {
       return true;
     }
@@ -73,7 +73,7 @@ export default function PricingTable({
               buttonProps={{
                 disabled:
                   (product.scenario === "active" &&
-                    !product.properties.updateable) ||
+                    !product.properties?.updateable) ||
                   product.scenario === "scheduled",
 
                 onClick: async () => {
@@ -98,7 +98,7 @@ export default function PricingTable({
 const PricingTableContext = createContext<{
   isAnnualToggle: boolean;
   setIsAnnualToggle: (isAnnual: boolean) => void;
-  products: Product[];
+  products: ProductWithDisplay[];
   showFeatures: boolean;
 }>({
   isAnnualToggle: false,
@@ -127,7 +127,7 @@ export const PricingTableContainer = ({
   multiInterval,
 }: {
   children?: React.ReactNode;
-  products?: Product[];
+  products?: ProductWithDisplay[];
   showFeatures?: boolean;
   className?: string;
   isAnnualToggle: boolean;
@@ -289,7 +289,7 @@ export const PricingFeatureList = ({
   everythingFrom,
   className,
 }: {
-  items: ProductItem[];
+  items: Autumn.Products.ProductItem[];
   everythingFrom?: string;
   className?: string;
 }) => {

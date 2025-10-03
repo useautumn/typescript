@@ -1,9 +1,9 @@
-import { Autumn, CustomerData } from "../../../sdk";
-import { toBackendError, toBackendRes } from "./backendRes";
+
+import { toBackendError } from "./backendRes";
 import { AuthResult } from "./AuthFunction";
-import { logBackendErrors } from "./logBackendErrors";
 import { logger } from "../../../utils/logger";
 import { toSnakeCase } from "@utils/toSnakeCase";
+import Autumn from "@sdk";
 
 // 1. Takes in
 export const withAuth = <T extends {}>({
@@ -14,7 +14,7 @@ export const withAuth = <T extends {}>({
     autumn: Autumn;
     body: any;
     customer_id: string;
-    customer_data?: CustomerData;
+    customer_data?: Autumn.CustomerData;
     pathParams?: Record<string, string>;
     searchParams?: Record<string, string>;
   }) => Promise<any>;
@@ -67,7 +67,7 @@ export const withAuth = <T extends {}>({
     }
 
     try {
-      let res = await fn({
+      return await fn({
         body,
         autumn,
         customer_id: customerId!,
@@ -76,7 +76,6 @@ export const withAuth = <T extends {}>({
         searchParams,
       });
 
-      return toBackendRes({ res });
     } catch (error: any) {
       logger.error(`${error.message}`);
       return toBackendError({

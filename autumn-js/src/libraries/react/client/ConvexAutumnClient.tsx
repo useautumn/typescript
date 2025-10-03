@@ -1,11 +1,5 @@
-import {
-  AutumnError,
-  CreateCustomerParams,
-  CustomerData,
-  AutumnPromise,
-  Product,
-} from "@sdk";
 import { IAutumnClient } from "./ReactAutumnClient";
+import { CustomerCreateParams, CustomerData } from "@/clientTypes";
 
 export interface ErrorResponse {
   message: string;
@@ -86,308 +80,155 @@ export class ConvexAutumnClient implements IAutumnClient {
   }
 
   async createCustomer(
-    params: Omit<CreateCustomerParams, "id" | "data"> & {
+    params: CustomerCreateParams & {
       errorOnNotFound?: boolean;
     }
   ) {
-    try {
-      const result = await this.convex.action(
-        this.convexApi.createCustomer,
-        params
-      );
-
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    return await this.convex.action(
+      this.convexApi.createCustomer,
+      params
+    );
   }
 
   // Core methods that wrap Convex actions
   attach = async (args: any) => {
-    try {
-      // Filter out frontend-only parameters
-      const { dialog, ...backendArgs } = args;
+    // Filter out frontend-only parameters
+    const { dialog, ...backendArgs } = args;
 
-      const result = await this.convex.action(
-        this.convexApi.attach,
-        backendArgs
-      );
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(
+      this.convexApi.attach,
+      backendArgs
+    );
+    return result;
   };
 
   checkout = async (args: any) => {
-    try {
-      // Filter out frontend-only parameters
-      const { dialog, ...backendArgs } = args;
+    // Filter out frontend-only parameters
+    const { dialog, ...backendArgs } = args;
 
-      const result = await this.convex.action(
-        this.convexApi.checkout,
-        backendArgs
-      );
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(
+      this.convexApi.checkout,
+      backendArgs
+    );
+    return result;
   };
 
   cancel = async (args: any) => {
-    try {
-      const result = await this.convex.action(this.convexApi.cancel, args);
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(this.convexApi.cancel, args);
+    return result;
   };
 
   check = async (args: any) => {
-    try {
-      const result = await this.convex.action(this.convexApi.check, args);
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(this.convexApi.check, args);
+    return result;
   };
 
   track = async (args: any) => {
-    try {
-      const result = await this.convex.action(this.convexApi.track, args);
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(this.convexApi.track, args);
+    return result;
   };
 
   openBillingPortal = async (args: any) => {
-    try {
-      const result = await this.convex.action(this.convexApi.billingPortal, {
-        ...args,
-        openInNewTab: undefined,
-      });
+    const result = await this.convex.action(this.convexApi.billingPortal, {
+      ...args,
+      openInNewTab: undefined,
+    });
 
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    return result;
   };
 
   setupPayment = async (args: any) => {
-    try {
-      const result = await this.convex.action(
-        this.convexApi.setupPayment,
-        args
-      );
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(
+      this.convexApi.setupPayment,
+      args
+    );
+    return result;
   };
 
   query = async (args: any) => {
-    try {
-      const result = await this.convex.action(this.convexApi.query, args);
-      return result;
-    } catch (error: any) {
-      return {
-        data: null,
-        error: new AutumnError({
-          message: error.message,
-          code: "convex_action_failed",
-        }),
-      };
-    }
+    const result = await this.convex.action(this.convexApi.query, args);
+    return result;
   };
 
   entities = {
     create: async (args: any) => {
-      try {
-        // Check if args is an array or single entity
-        if (Array.isArray(args)) {
-          // Multiple entities - use createEntities method
-          throw new Error(
-            "Passing an array of entities to createEntity() is not supported for Convex"
-          );
-          // const entityArgs = { entities: args };
-          // const result = await this.convex.action(
-          //   this.convexApi.createEntities,
-          //   entityArgs
-          // );
-          // return result;
-        } else {
-          // Single entity - use createEntity method directly (no entities wrapper)
-          const result = await this.convex.action(
-            this.convexApi.createEntity,
-            args
-          );
-          return result;
-        }
-      } catch (error: any) {
-        return {
-          data: null,
-          error: new AutumnError({
-            message: error.message,
-            code: "convex_action_failed",
-          }),
-        };
+      // Check if args is an array or single entity
+      if (Array.isArray(args)) {
+        // Multiple entities - use createEntities method
+        throw new Error(
+          "Passing an array of entities to createEntity() is not supported for Convex"
+        );
+        // const entityArgs = { entities: args };
+        // const result = await this.convex.action(
+        //   this.convexApi.createEntities,
+        //   entityArgs
+        // );
+        // return result;
+      } else {
+        // Single entity - use createEntity method directly (no entities wrapper)
+        const result = await this.convex.action(
+          this.convexApi.createEntity,
+          args
+        );
+        return result;
       }
     },
 
     get: async (entityId: string, args: any) => {
-      try {
-        const result = await this.convex.action(this.convexApi.getEntity, {
-          entityId,
-          ...args,
-        });
+      const result = await this.convex.action(this.convexApi.getEntity, {
+        entityId,
+        ...args,
+      });
 
-        return result;
-      } catch (error: any) {
-        console.error("Error fetching entity: ", error);
-        return {
-          data: null,
-          error: new AutumnError({
-            message: error.message,
-            code: "convex_action_failed",
-          }),
-        };
-      }
+      return result;
     },
 
     delete: async (args: any) => {
-      try {
-        // Set auth token for the request - backend will extract identity
-        // 	if (this.getBearerToken) {
-        // 	this.convexClient.setAuth(
-        // 		(await this.getBearerToken()) ?? ""
-        // 	);
-        // }
-        const result = await this.convex.action(
-          this.convexApi.deleteEntity,
-          args
-        );
-        return result;
-      } catch (error: any) {
-        return {
-          data: null,
-          error: new AutumnError({
-            message: error.message,
-            code: "convex_action_failed",
-          }),
-        };
-      }
+      // Set auth token for the request - backend will extract identity
+      // 	if (this.getBearerToken) {
+      // 	this.convexClient.setAuth(
+      // 		(await this.getBearerToken()) ?? ""
+      // 	);
+      // }
+      const result = await this.convex.action(
+        this.convexApi.deleteEntity,
+        args
+      );
+      return result;
     },
   };
 
   referrals = {
     createCode: async (args: any) => {
-      try {
-        const result = await this.convex.action(
-          this.convexApi.createReferralCode,
-          args
-        );
-        return result;
-      } catch (error: any) {
-        return {
-          data: null,
-          error: new AutumnError({
-            message: error.message,
-            code: "convex_action_failed",
-          }),
-        };
-      }
+      const result = await this.convex.action(
+        this.convexApi.createReferralCode,
+        args
+      );
+      return result;
     },
 
     redeemCode: async (args: any) => {
-      try {
-        // Set auth token for the request - backend will extract identity
-        // if (this.getBearerToken) {
-        // 	this.convexClient.setAuth(
-        // 		(await this.getBearerToken()) ?? ""
-        // 	);
-        // }
-        const result = await this.convex.action(
-          this.convexApi.redeemReferralCode,
-          args
-        );
-        return result;
-      } catch (error: any) {
-        return {
-          data: null,
-          error: new AutumnError({
-            message: error.message,
-            code: "convex_action_failed",
-          }),
-        };
-      }
+      // Set auth token for the request - backend will extract identity
+      // if (this.getBearerToken) {
+      // 	this.convexClient.setAuth(
+      // 		(await this.getBearerToken()) ?? ""
+      // 	);
+      // }
+      const result = await this.convex.action(
+        this.convexApi.redeemReferralCode,
+        args
+      );
+      return result;
     },
   };
 
   products = {
-    list: async (): AutumnPromise<{ list: Product[] }> => {
-      try {
-        const result = await this.convex.action(
-          this.convexApi.listProducts,
-          {}
-        );
-        return result;
-      } catch (error: any) {
-        return {
-          data: null,
-          error: new AutumnError({
-            message: error.message,
-            code: "convex_action_failed",
-          }),
-        };
-      }
+    list: async (): Promise<any> => {
+      const result = await this.convex.action(
+        this.convexApi.listProducts,
+        {}
+      );
+      return result;
     },
   };
 }

@@ -1,6 +1,6 @@
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
-import { QueryParams } from "@/client/types/clientGenTypes";
-import { AutumnError, QueryResult } from "@sdk";
+import { QueryParams } from "@/clientTypes";
+import Autumn from "@sdk";
 import useSWR from "swr";
 
 export const useAnalytics = (params: QueryParams) => {
@@ -12,27 +12,19 @@ export const useAnalytics = (params: QueryParams) => {
   const client = context.client;
 
   const fetcher = async () => {
-    try {
-      const { data, error } = await client.query(params);
-      if (error) throw error;
+    const data = await client.query(params);
 
-      return data;
-    } catch (error) {
-      throw new AutumnError({
-        message: "Failed to fetch analytics",
-        code: "fetch_analytics_failed",
-      });
-    }
+    return data?.list || [];
   };
 
-  const { data, error, mutate } = useSWR<QueryResult, AutumnError>(
+  const { data, error, mutate } = useSWR<Autumn.QueryResponse["list"]>(
     ["analytics", params.featureId, params.range],
     fetcher,
     { refreshInterval: 0 }
   );
 
   return {
-    data: data?.list,
+    data: data,
     isLoading: !error && !data,
     error,
     refetch: mutate,

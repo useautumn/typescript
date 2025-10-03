@@ -1,16 +1,15 @@
 import { AutumnContextParams } from "@/AutumnContext";
-import { CheckParams } from "@/client/types/clientGenTypes";
-import {
-  AutumnError,
-  CheckFeatureResult,
-  CheckFeatureResultSchema,
-  CheckProductResult,
-  CheckResult,
-  Customer,
-  CustomerFeature,
-  Entity,
-} from "@sdk";
-import { Result } from "@sdk/response";
+import { CheckParams } from "@/clientTypes";
+import Autumn from "@sdk";
+// import {
+//   CheckFeatureResult,
+//   CheckFeatureResultSchema,
+//   CheckProductResult,
+//   CheckResult,
+//   Customer,
+//   CustomerFeature,
+//   Entity
+// } from "@sdk";
 
 export interface AllowedParams {
   featureId?: string;
@@ -23,12 +22,12 @@ const getCusFeature = ({
   featureId,
   requiredBalance = 1,
 }: {
-  customer: Customer | Entity;
+  customer: Autumn.Customer | Autumn.Entity;
   featureId: string;
   requiredBalance?: number;
 }) => {
   // 1. If there's a cusFeature and balance > requiredBalance, use it...
-  let cusFeature = customer.features[featureId];
+  let cusFeature = customer.features?.[featureId];
   if (
     cusFeature &&
     typeof cusFeature.balance === "number" &&
@@ -41,8 +40,8 @@ const getCusFeature = ({
   }
 
   // 1. If credit system exists, use it
-  let creditSchema = Object.values(customer.features).find(
-    (f: CustomerFeature) =>
+  let creditSchema = Object.values(customer.features ?? {}).find(
+    (f: Autumn.CustomerFeature) =>
       f.credit_schema && f.credit_schema.some((c) => c.feature_id === featureId)
   );
 
@@ -69,7 +68,7 @@ const getFeatureAllowed = ({
   cusFeature,
   requiredBalance,
 }: {
-  cusFeature: CustomerFeature | undefined;
+  cusFeature: Autumn.CustomerFeature | undefined;
   requiredBalance: number;
 }) => {
   if (!cusFeature) return false;
@@ -88,7 +87,7 @@ const handleFeatureCheck = ({
   isEntity,
   params,
 }: {
-  customer: Customer | Entity;
+  customer: Autumn.Customer | Autumn.Entity;
   isEntity?: boolean;
   params: AllowedParams;
 }) => {
@@ -109,56 +108,57 @@ const handleFeatureCheck = ({
   let result = {
     allowed,
     feature_id: cusFeature?.id ?? params.featureId!,
-    customer_id: isEntity ? (customer as Entity).customer_id : customer.id,
+    customer_id: isEntity ? (customer as Autumn.Entity).customer_id : customer.id,
     required_balance: requiredBalance,
+    code: "",
     ...cusFeature,
-  } as CheckFeatureResult;
+  } as Autumn.CheckResponse;
 
   if (isEntity) {
-    result.entity_id = (customer as Entity).id;
+    result.entity_id = (customer as Autumn.Entity).id;
   }
 
   try {
-    return CheckFeatureResultSchema.parse(result);
+    return result;
   } catch (error) {
     return result;
   }
 };
 
-const handleProductCheck = ({
-  customer,
-  isEntity,
-  params,
-}: {
-  customer: Customer | Entity;
-  isEntity?: boolean;
-  params: AllowedParams;
-}) => {
-  let product = customer.products.find((p) => p.id == params.productId);
-  let allowed = product?.status === "active";
+// const handleProductCheck = ({
+//   customer,
+//   isEntity,
+//   params,
+// }: {
+//   customer: Autumn.Customer | Autumn.Entity;
+//   isEntity?: boolean;
+//   params: AllowedParams;
+// }) => {
+//   let product = customer.products.find((p) => p.id == params.productId);
+//   let allowed = product?.status === "active";
 
-  let result = {
-    allowed,
-    customer_id: isEntity ? (customer as Entity).customer_id : customer.id,
-    product_id: params.productId!,
-  } as CheckProductResult;
-  if (product) {
-    result.status = product.status;
-  }
+//   let result = {
+//     allowed,
+//     customer_id: isEntity ? (customer as Autumn.Entity).customer_id : customer.id,
+//     product_id: params.productId!,
+//   } as CheckProductResult;
+//   if (product) {
+//     result.status = product.status;
+//   }
 
-  if (isEntity) {
-    result.entity_id = (customer as Entity).id;
-  }
+//   if (isEntity) {
+//     result.entity_id = (customer as Autumn.Entity).id;
+//   }
 
-  return result;
-};
+//   return result;
+// };
 
 export const openDialog = ({
   result,
   params,
   context,
 }: {
-  result: CheckResult | null;
+  result: Autumn.CheckResponse | null;
   params: CheckParams;
   context: AutumnContextParams;
 }) => {
@@ -198,40 +198,24 @@ export const handleCheck = ({
   params,
   context,
 }: {
-  customer: Customer | Entity | null;
+  customer: Autumn.Customer | Autumn.Entity | null;
   isEntity?: boolean;
   params: CheckParams;
   context?: AutumnContextParams;
-}): {
-  data: CheckResult;
-  error: null;
-} => {
+}): Autumn.CheckResponse => {
   if (!customer) {
     return {
-      data: {
-        allowed: false,
-        feature_id: "",
-        customer_id: "",
-        required_balance: 0,
-      } as CheckResult,
-      error: null,
-    };
+      allowed: false,
+      feature_id: "",
+      customer_id: "",
+      required_balance: 0,
+      code: "",
+    } as Autumn.CheckResponse;
   }
 
   if (!params.featureId && !params.productId) {
     throw new Error("allowed() requires either featureId or productId");
   }
 
-  let result;
-
-  if (params.featureId)
-    result = handleFeatureCheck({ customer, params, isEntity });
-
-  if (params.productId)
-    result = handleProductCheck({ customer, params, isEntity });
-
-  return {
-    data: result as CheckResult,
-    error: null,
-  };
+  return handleFeatureCheck({ customer, params, isEntity });
 };
