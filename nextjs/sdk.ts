@@ -4,6 +4,7 @@ import "dotenv/config";
 
 // import { Autumn } from "autumn-js";
 import { Autumn } from "@useautumn/sdk";
+import { Knock } from "@knocklabs/node";
 
 const main = async () => {
 
@@ -12,23 +13,19 @@ const main = async () => {
     secretKey: process.env.AUTUMN_SECRET_KEY,
   })
 
-  // const stripe = new Stripe("");
+  const knock = new Knock({
+    apiKey: process.env.KNOCK_API_KEY,
+  })
 
-  // await stripe.customers.create({
-  //   email: "john@doe.com",
-  //   name: "John Doe",
-  // })
+  await knock.channels.bulk.updateMessageStatus("123", "seen", {
+    recipient_ids: ["123"],
+  })
 
-
-  // const autumn = new Autumn({
-  //   baseURL: "http://localhost:8080/v1",
-  //   secretKey: process.env.AUTUMN_SECRET_KEY,
-  // })  
-
-  // await autumn.core.attach({
-  //   customer_id: "123",
-  //   free_trial: true,
-  // });
+  
+  await autumn.attach({
+    customer_id: "123",
+    product_id: "pro",
+  })
 };
 
 main();
