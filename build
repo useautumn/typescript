@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "📦 Step 1: Building ts-sdk..."
+./ts-sdk/scripts/bootstrap && ./ts-sdk/scripts/build
+
+echo "🎨 Step 2: Installing dependencies..."
+pnpm install
+
+# echo "🚀 Step 3: Building autumn-js..."
+# cd autumn-js && pnpm run build
+
+echo "✅ Build complete! Ready to test in nextjs/"

@@ -1,0 +1,4 @@
+[submodule "ts-sdk"]
+	path = ts-sdk
+	url = https://github.com/useautumn/ts-sdk
+	branch = next

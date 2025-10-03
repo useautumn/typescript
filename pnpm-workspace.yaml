@@ -1,5 +1,5 @@
 packages:
-  - package
+  - autumn-js
   - frameworks/*
   - nextjs
   - compose
@@ -11,6 +11,7 @@ packages:
   - next-bug
   - vite-spa
   - convex
+  - ts-sdk
 
 ignoredBuiltDependencies:
   - better-sqlite3
