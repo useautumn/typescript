@@ -1,108 +1,96 @@
 import {
 	feature,
+	product,
 	featureItem,
 	pricedFeatureItem,
 	priceItem,
-	product,
 } from "atmn";
 
 // Features
-export const seats = feature({
-	id: "seats",
-	name: "Seats",
+export const pages = feature({
+	id: "pages",
+	name: "Waitlist Pages",
 	type: "continuous_use",
 });
 
-export const messages = feature({
-	id: "messages",
-	name: "Messages",
+export const projects = feature({
+	id: "projects",
+	name: "Projects",
+	type: "continuous_use",
+});
+
+export const warmupEmails = feature({
+	id: "warmup_emails",
+	name: "Warmup emails",
 	type: "single_use",
 });
 
+export const slackNotifications = feature({
+	id: "slack_notifications",
+	name: "Slack notifications",
+	type: "boolean",
+});
+
+export const discordNotifications = feature({
+	id: "discord_notifications",
+	name: "Discord notifications",
+	type: "boolean",
+});
+
+export const waitlists = feature({
+	id: "waitlists",
+	name: "Waitlists",
+	type: "continuous_use",
+});
+
 // Products
-export const entities = product({
-	id: "entities",
-	name: "Entities",
-	items: [
-		featureItem({
-			feature_id: messages.id,
-			included_usage: 100,
-			interval: "month",
-			entity_feature_id: seats.id,
-		}),
-
-		featureItem({
-			feature_id: seats.id,
-			included_usage: 10,
-		}),
-	],
-});
-
-export const free = product({
-	id: "free",
-	name: "Free",
-	items: [
-		featureItem({
-			feature_id: messages.id,
-			included_usage: 10,
-			interval: "month",
-		}),
-
-		featureItem({
-			feature_id: seats.id,
-			included_usage: 10,
-		}),
-	],
-});
-
-export const oneOff = product({
-	id: "one_off",
-	name: "One off",
+export const project = product({
+	id: "project",
+	name: "Project",
 	items: [
 		priceItem({
-			price: 10,
-		}),
-	],
-});
-
-export const pro = product({
-	id: "pro",
-	name: "Pro",
-	items: [
-		priceItem({
-			price: 10,
-			interval: "month",
-		}),
-
-		featureItem({
-			feature_id: messages.id,
-			included_usage: 1000,
-			interval: "month",
-		}),
-
-		featureItem({
-			feature_id: seats.id,
-			included_usage: 100,
-		}),
-	],
-});
-
-export const prepaid = product({
-	id: "prepaid",
-	name: "Prepaid",
-	items: [
-		priceItem({
-			price: 10,
+			price: 29.99,
 			interval: "month",
 		}),
 
 		pricedFeatureItem({
-			feature_id: messages.id,
-			price: 10,
+			feature_id: pages.id,
+			price: 5,
+			interval: "week",
+			included_usage: 1,
+			billing_units: 1,
+			usage_model: "pay_per_use",
+			entity_feature_id: waitlists.id,
+		}),
+
+		pricedFeatureItem({
+			feature_id: waitlists.id,
+			price: 5,
 			interval: "month",
-			included_usage: 0,
+			included_usage: 1,
 			billing_units: 1,
 			usage_model: "prepaid",
+		}),
+
+		pricedFeatureItem({
+			feature_id: warmupEmails.id,
+			price: 0.5,
+			included_usage: 1000,
+			billing_units: 1000,
+			usage_model: "prepaid",
+			entity_feature_id: waitlists.id,
+		}),
+
+		featureItem({
+			feature_id: discordNotifications.id,
+			included_usage: undefined,
+			entity_feature_id: waitlists.id,
+		}),
+
+		featureItem({
+			feature_id: slackNotifications.id,
+			included_usage: undefined,
+			entity_feature_id: waitlists.id,
 		}),
 	],
 });
