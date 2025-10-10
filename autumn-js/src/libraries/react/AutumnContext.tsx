@@ -1,65 +1,67 @@
-import { AutumnClient } from "./client/ReactAutumnClient";
 import { createContext, useContext } from "react";
+import { AutumnClient } from "./client/ReactAutumnClient";
 
 export interface AutumnDialogContext {
-  props: any;
-  setProps: (props: any) => void;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  setComponent: (component: any) => void;
+	props: any;
+	setProps: (props: any) => void;
+	open: boolean;
+	setOpen: (open: boolean) => void;
+	setComponent: (component: any) => void;
 }
 
 export interface AutumnContextParams {
-  initialized: boolean;
-  disableDialogs: boolean;
+	initialized: boolean;
+	disableDialogs: boolean;
 
-  client: AutumnClient;
+	client: AutumnClient;
 
-  // Internal
-  paywallDialog: AutumnDialogContext;
-  attachDialog: AutumnDialogContext;
-  paywallRef: React.RefObject<any>;
+	// Internal
+	paywallDialog: AutumnDialogContext;
+	attachDialog: AutumnDialogContext;
+	paywallRef: React.RefObject<any>;
 }
 
+export type AutumnContextType = React.Context<AutumnContextParams>;
+
 export const AutumnContext = createContext<AutumnContextParams>({
-  initialized: false,
-  disableDialogs: false,
+	initialized: false,
+	disableDialogs: false,
 
-  client: new AutumnClient({ backendUrl: "" }),
+	client: new AutumnClient({ backendUrl: "" }),
 
-  paywallDialog: {
-    props: null,
-    setProps: () => {},
-    open: false,
-    setOpen: () => {},
-    setComponent: () => {},
-  },
+	paywallDialog: {
+		props: null,
+		setProps: () => {},
+		open: false,
+		setOpen: () => {},
+		setComponent: () => {},
+	},
 
-  attachDialog: {
-    props: null,
-    setProps: () => {},
-    open: false,
-    setOpen: () => {},
-    setComponent: () => {},
-  },
+	attachDialog: {
+		props: null,
+		setProps: () => {},
+		open: false,
+		setOpen: () => {},
+		setComponent: () => {},
+	},
 
-  paywallRef: { current: null },
+	paywallRef: { current: null },
 });
 
 export const useAutumnContext = ({
-  AutumnContext,
-  name,
-  errorIfNotInitialized = true,
+	AutumnContext,
+	name,
+	errorIfNotInitialized = true,
 }: {
-  AutumnContext: React.Context<AutumnContextParams>;
-  name: string;
-  errorIfNotInitialized?: boolean;
+	AutumnContext: React.Context<AutumnContextParams>;
+	name: string;
+	errorIfNotInitialized?: boolean;
 }) => {
-  const context = useContext(AutumnContext);
+	const context = useContext(AutumnContext);
 
-  if (!context.initialized && errorIfNotInitialized) {
-    throw new Error(`${name} must be used within <AutumnProvider />`);
-  }
+	if (!context.initialized && errorIfNotInitialized) {
+		throw new Error(`${name} must be used within <AutumnProvider />`);
+	}
 
-  return context;
+	return context;
 };

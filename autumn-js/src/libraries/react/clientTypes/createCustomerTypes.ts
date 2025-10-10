@@ -3,59 +3,69 @@ import { z } from "zod";
 import { EntityDataSchema } from "./entityDataTypes";
 import type { EntityData } from "./entityDataTypes";
 
+export const CustomerCreateParamsEntityDataSchema = z.object({
+  featureId: z.string(),
+  name: z.string().optional()
+});
+
 export const CustomerCreateParamsSchema = z.object({
-  expand: z.string().describe("Query param:").optional(),
-  email: z.string().nullable().describe("Body param: Customer's email address").optional(),
-  entityData: EntityDataSchema.nullable().describe("Body param: Entity data for creating an entity").optional(),
-  entityId: z.string().nullable().describe("Body param: Entity ID to associate with the customer").optional(),
-  fingerprint: z.string().nullable().describe("Body param: Unique identifier (eg, serial number) to detect duplicate customers\nand prevent free trial abuse").optional(),
-  metadata: z.record(z.string(), z.unknown()).nullable().describe("Body param: Additional metadata for the customer").optional(),
-  name: z.string().nullable().describe("Body param: Customer's name").optional(),
-  stripeId: z.string().nullable().describe("Body param: Stripe customer ID if you already have one").optional(),
+  expand: z.union([z.unknown(), z.literal('trials_used'), z.literal('rewards'), z.literal('entities'), z.literal('referrals'), z.literal('payment_method'), z.unknown()]).describe("Query param:").optional(),
+  email: z.string().nullable().describe("Body param:").optional(),
+  entityData: CustomerCreateParamsEntityDataSchema.describe("Body param:").optional(),
+  entityId: z.string().describe("Body param:").optional(),
+  fingerprint: z.string().describe("Body param:").optional(),
+  metadata: z.record(z.string(), z.unknown()).describe("Body param:").optional(),
+  name: z.string().nullable().describe("Body param:").optional(),
+  stripeId: z.string().describe("Body param:").optional(),
   errorOnNotFound: z.boolean().optional().describe("Whether to return an error if customer is not found")
 });
+
+export interface CustomerCreateParamsEntityData {
+  featureId: string;
+
+  name?: string;
+}
 
 export interface CustomerCreateParams {
   /**
    * Query param:
    */
-  expand?: string;
+  expand?: ('invoices' | 'trials_used' | 'rewards' | 'entities' | 'referrals' | 'payment_method' | 'upcoming_invoice')[];
 
   /**
-   * Body param: Customer's email address
+   * Body param:
    */
   email?: string | null;
 
   /**
-   * Body param: Entity data for creating an entity
+   * Body param:
    */
-  entityData?: EntityData | null;
+  entityData?: CustomerCreateParamsEntityData;
 
   /**
-   * Body param: Entity ID to associate with the customer
+   * Body param:
    */
-  entityId?: string | null;
+  entityId?: string;
 
   /**
-   * Body param: Unique identifier (eg, serial number) to detect duplicate customers
-and prevent free trial abuse
+   * Body param:
    */
-  fingerprint?: string | null;
+  fingerprint?: string;
 
   /**
-   * Body param: Additional metadata for the customer
+   * Body param:
    */
-  metadata?: { [key: string]: unknown } | null;
+  metadata?: { [key: string]: unknown };
 
   /**
-   * Body param: Customer's name
+   * Body param:
    */
   name?: string | null;
 
   /**
-   * Body param: Stripe customer ID if you already have one
+   * Body param:
    */
-  stripeId?: string | null;
+  stripeId?: string;
 
   /**
    * Whether to return an error if customer is not found

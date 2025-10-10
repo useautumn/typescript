@@ -1,20 +1,24 @@
 {
-  "name": "autumn-js-monorepo",
-  "private": true,
-  "packageManager": "pnpm@10.14.0",
-  "scripts": {
-    "test-cli": "pnpm --filter atmn test-cli",
-    "gen:autumn-js": "tsx typegen/generate-autumn-js-types.ts"
-  },
-  "workspaces": [
-    "package",
-    "frameworks/*",
-    "ui",
-    "atmn",
-    "nextjs"
-  ],
-  "dependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^12.2.0"
-  }
+	"name": "autumn-js-monorepo",
+	"private": true,
+	"packageManager": "pnpm@10.14.0",
+	"scripts": {
+		"test-cli": "pnpm --filter atmn test-cli",
+		"gen:autumn-js": "bun typegen/generate-autumn-js-types.ts"
+	},
+	"workspaces": [
+		"package",
+		"frameworks/*",
+		"ui",
+		"atmn",
+		"nextjs"
+	],
+	"dependencies": {
+		"@types/better-sqlite3": "^7.6.13",
+		"better-sqlite3": "^12.2.0"
+	},
+	"devDependencies": {
+		"tsx": "^4.20.4",
+		"typescript": "^5.9.3"
+	}
 }

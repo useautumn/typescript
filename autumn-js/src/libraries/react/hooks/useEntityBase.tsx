@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import { useContext } from "react";
+import type { Autumn, AutumnError } from "@sdk";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { handleCheck, openDialog } from "./helpers/handleCheck";
 import { useAutumnBase } from "./helpers/useAutumnBase";
@@ -10,6 +11,23 @@ import {
   TrackParams,
   AttachParams,
 } from "@/clientTypes";
+import type { UseEntityMethods } from "./types/useEntityMethods";
+
+export interface UseEntityResult extends UseEntityMethods {
+	/** The entity object containing all entity data */
+	entity: Autumn.Entity | null;
+
+	/** Whether entity data is currently being loaded */
+	isLoading: boolean;
+
+	/** Any error that occurred while fetching entity data */
+	error: AutumnError | null;
+
+	/** Refetches the entity data from the server */
+	refetch: () => Promise<Autumn.Entity | null>;
+
+	// All hook methods (attach, cancel, track, check) are inherited from UseEntityMethods
+}
 
 export const useEntityBase = ({
   entityId,
@@ -19,7 +37,7 @@ export const useEntityBase = ({
   entityId: string | null;
   params?: EntityGetParams;
   AutumnContext: React.Context<AutumnContextParams>;
-}) => {
+}): UseEntityResult => {
   const { client } = useContext(AutumnContext);
   const queryKey = ["entity", entityId, params?.expand];
 
@@ -74,12 +92,17 @@ export const useEntityBase = ({
   const track = (params: TrackParams) =>
     trackAutumn({ ...params, entityId: entityId || undefined });
 
+  const refetch = async () => {
+    const result = await mutate();
+    return result ?? null;
+  };
+
   if (!entityId) {
     return {
       entity: null,
       isLoading: false,
       error: null,
-      refetch: mutate,
+      refetch,
       check,
       attach,
       cancel,
@@ -91,7 +114,7 @@ export const useEntityBase = ({
     entity: error ? null : data,
     isLoading,
     error,
-    refetch: mutate,
+    refetch,
     check,
     attach,
     cancel,
