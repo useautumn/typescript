@@ -17,6 +17,12 @@ elif [ "$1" = "--major" ]; then
 elif [ "$1" = "--minor" ]; then
   npm version minor
   npm publish
+elif [ "$1" = "--patch" ] && [ "$2" = "beta" ]; then
+  npm version prepatch --preid=beta
+  npm publish --tag beta
+elif [ "$1" = "--patch" ]; then
+  npm version patch
+  npm publish
 else
   npm version patch
   npm publish
