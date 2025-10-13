@@ -267,9 +267,11 @@ const pushProducts = async ({
 
 const gatherFeatureDeletionDecisions = async ({
 	featuresToDelete,
+	currentFeatures,
 	yes,
 }: {
 	featuresToDelete: string[];
+	currentFeatures: Feature[];
 	yes: boolean;
 }) => {
 	const featureDeletionDecisions = new Map<
@@ -290,7 +292,33 @@ const gatherFeatureDeletionDecisions = async ({
 
 		if (!featureId) continue;
 
-		if (result && result.totalCount > 0) {
+		// Check locally if this feature is referenced by any credit system in the config
+		const referencingCreditSystems = currentFeatures.filter(
+			(f) =>
+				f.type === "credit_system" &&
+				f.credit_schema?.some((cs) => cs.metered_feature_id === featureId),
+		);
+
+		if (referencingCreditSystems.length > 0) {
+			// Feature is referenced by credit system(s) in the current config - must archive
+			const firstCreditSystem = referencingCreditSystems[0].id;
+			const creditSystemText =
+				referencingCreditSystems.length === 1
+					? `the "${firstCreditSystem}" credit system`
+					: referencingCreditSystems.length === 2
+						? `"${firstCreditSystem}" and one other credit system`
+						: `"${firstCreditSystem}" and ${referencingCreditSystems.length - 1} other credit systems`;
+
+			const shouldArchive =
+				yes ||
+				(await confirm({
+					message: `Feature ${featureId} is used by ${creditSystemText}. As such, you cannot delete it. Would you like to archive the feature instead?`,
+				}));
+			featureDeletionDecisions.set(
+				featureId,
+				shouldArchive ? "archive" : "skip",
+			);
+		} else if (result && result.totalCount > 0) {
 			const otherProductsText =
 				result.totalCount > 1
 					? ` and ${result.totalCount - 1} other products`
@@ -315,17 +343,45 @@ const gatherFeatureDeletionDecisions = async ({
 
 const handleFeatureDeletion = async ({
 	featuresToDelete,
+	allFeatures,
+	currentFeatures,
 	yes,
 }: {
 	featuresToDelete: string[];
+	allFeatures: Feature[];
+	currentFeatures: Feature[];
 	yes: boolean;
 }) => {
 	const featureDeletionDecisions = await gatherFeatureDeletionDecisions({
 		featuresToDelete,
+		currentFeatures,
 		yes,
 	});
 
-	for (const featureId of featuresToDelete) {
+	// Sort features to delete credit systems first, then other features
+	// This prevents issues when deleting a credit system and its referenced metered features at the same time
+	const sortedFeaturesToDelete = [...featuresToDelete].sort((a, b) => {
+		const featureA = allFeatures.find((f) => f.id === a);
+		const featureB = allFeatures.find((f) => f.id === b);
+
+		// Credit systems should be deleted first (return -1)
+		if (
+			featureA?.type === "credit_system" &&
+			featureB?.type !== "credit_system"
+		) {
+			return -1;
+		}
+		if (
+			featureA?.type !== "credit_system" &&
+			featureB?.type === "credit_system"
+		) {
+			return 1;
+		}
+
+		return 0;
+	});
+
+	for (const featureId of sortedFeaturesToDelete) {
 		const decision = featureDeletionDecisions.get(featureId);
 
 		if (decision === "delete") {
@@ -409,7 +465,7 @@ export default async function Push({
 		yes,
 	});
 	await pushProducts({ products, curProducts, productDecisions, yes });
-	await handleFeatureDeletion({ featuresToDelete, yes });
+	await handleFeatureDeletion({ featuresToDelete, allFeatures, currentFeatures: features, yes });
 
 	showSuccessMessage({ env, prod });
 }
