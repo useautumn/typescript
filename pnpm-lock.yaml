@@ -273,6 +273,9 @@ importers:
       '@types/node':
         specifier: 18.17.0
         version: 18.17.0
+      '@useautumn/sdk':
+        specifier: workspace:*
+        version: link:../ts-sdk
       autumn-js:
         specifier: workspace:*
         version: link:../autumn-js
@@ -315,6 +318,12 @@ importers:
 
   frameworks/convex-quick:
     dependencies:
+      '@useautumn/convex':
+        specifier: workspace:*
+        version: link:../../convex
+      '@useautumn/sdk':
+        specifier: workspace:*
+        version: link:../../ts-sdk
       autumn-js:
         specifier: workspace:*
         version: link:../../autumn-js
