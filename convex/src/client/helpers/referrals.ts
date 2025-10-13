@@ -1,41 +1,41 @@
-import type { Autumn } from "autumn-js";
+import type { Autumn } from "@useautumn/sdk";
 import type {
-  IdentifierOptsType,
-  CreateReferralCodeArgsType,
-  RedeemReferralCodeArgsType,
+	CreateReferralCodeArgsType,
+	IdentifierOptsType,
+	RedeemReferralCodeArgsType,
 } from "../../types.js";
 import { wrapSdkCall } from "./utils.js";
 
 export const createCode = async ({
-  autumn,
-  identifierOpts,
-  args,
+	autumn,
+	identifierOpts,
+	args,
 }: {
-  autumn: Autumn;
-  identifierOpts: IdentifierOptsType;
-  args: CreateReferralCodeArgsType;
+	autumn: Autumn;
+	identifierOpts: IdentifierOptsType;
+	args: CreateReferralCodeArgsType;
 }) => {
-  return await wrapSdkCall(() =>
-    autumn.referrals.createCode({
-      customer_id: identifierOpts.customerId,
-      program_id: args.programId,
-    })
-  );
+	return await wrapSdkCall(() =>
+		autumn.referrals.createCode({
+			customer_id: identifierOpts.customerId,
+			program_id: args.programId,
+		}),
+	);
 };
 
 export const redeemCode = async ({
-  autumn,
-  identifierOpts,
-  args,
+	autumn,
+	identifierOpts,
+	args,
 }: {
-  autumn: Autumn;
-  identifierOpts: IdentifierOptsType;
-  args: RedeemReferralCodeArgsType;
+	autumn: Autumn;
+	identifierOpts: IdentifierOptsType;
+	args: RedeemReferralCodeArgsType;
 }) => {
-  return await wrapSdkCall(() =>
-    autumn.referrals.redeemCode({
-      customer_id: identifierOpts.customerId,
-      code: args.code,
-    })
-  );
+	return await wrapSdkCall(() =>
+		autumn.referrals.redeemCode({
+			customer_id: identifierOpts.customerId,
+			code: args.code,
+		}),
+	);
 };
