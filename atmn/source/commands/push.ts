@@ -1,14 +1,14 @@
 import {confirm} from '@inquirer/prompts';
 import chalk from 'chalk';
 import yoctoSpinner from 'yocto-spinner';
-import type {Feature, Product} from '../compose/index.js';
+import type {Feature, Plan} from '../compose/index.js';
 import {FRONTEND_URL} from '../constants.js';
 import {deleteFeature, deleteProduct} from '../core/api.js';
 import {
 	checkForDeletables,
-	checkProductForConfirmation,
+	checkPlanForConfirmation,
 	upsertFeature,
-	upsertProduct,
+	upsertPlan,
 } from '../core/push.js';
 import {initSpinner} from '../core/utils.js';
 import {
@@ -29,30 +29,30 @@ const createSpinner = ({message}: {message?: string}) => {
 	return spinner;
 };
 
-const gatherProductDeletionDecisions = async ({
-	productsToDelete,
+const gatherPlanDeletionDecisions = async ({
+	plansToDelete,
 	yes,
 }: {
-	productsToDelete: string[];
+	plansToDelete: string[];
 	yes: boolean;
 }) => {
-	const productDeletionDecisions = new Map<
+	const planDeletionDecisions = new Map<
 		string,
 		'delete' | 'archive' | 'skip'
 	>();
-	const batchCheckProducts = [];
+	const batchCheckPlans = [];
 
-	for (const productId of productsToDelete) {
-		batchCheckProducts.push(getProductDeleteInfo({productId}));
+	for (const planId of plansToDelete) {
+		batchCheckPlans.push(getProductDeleteInfo({productId: planId}));
 	}
 
-	const checkProductResults = await Promise.all(batchCheckProducts);
+	const checkPlanResults = await Promise.all(batchCheckPlans);
 
-	for (let i = 0; i < productsToDelete.length; i++) {
-		const productId = productsToDelete[i];
-		const result = checkProductResults[i];
+	for (let i = 0; i < plansToDelete.length; i++) {
+		const planId = plansToDelete[i];
+		const result = checkPlanResults[i];
 
-		if (!productId) continue;
+		if (!planId) continue;
 
 		if (result && result.totalCount > 0) {
 			const otherCustomersText =
@@ -63,51 +63,51 @@ const gatherProductDeletionDecisions = async ({
 			const shouldArchive =
 				yes ||
 				(await confirm({
-					message: `Product ${productId} has customer ${customerNameText}${otherCustomersText}. As such, you cannot delete it. Would you like to archive the product instead?`,
+					message: `Plan ${planId} has customer ${customerNameText}${otherCustomersText}. As such, you cannot delete it. Would you like to archive the plan instead?`,
 				}));
-			productDeletionDecisions.set(
-				productId,
+			planDeletionDecisions.set(
+				planId,
 				shouldArchive ? 'archive' : 'skip',
 			);
 		} else {
-			productDeletionDecisions.set(productId, 'delete');
+			planDeletionDecisions.set(planId, 'delete');
 		}
 	}
 
-	return productDeletionDecisions;
+	return planDeletionDecisions;
 };
 
-const handleProductDeletion = async ({
-	productsToDelete,
+const handlePlanDeletion = async ({
+	plansToDelete,
 	yes,
 }: {
-	productsToDelete: string[];
+	plansToDelete: string[];
 	yes: boolean;
 }) => {
-	const productDeletionDecisions = await gatherProductDeletionDecisions({
-		productsToDelete,
+	const planDeletionDecisions = await gatherPlanDeletionDecisions({
+		plansToDelete,
 		yes,
 	});
 
-	for (const productId of productsToDelete) {
-		const decision = productDeletionDecisions.get(productId);
+	for (const planId of plansToDelete) {
+		const decision = planDeletionDecisions.get(planId);
 
 		if (decision === 'delete') {
 			const shouldDelete =
 				yes ||
 				(await confirm({
-					message: `Delete product [${productId}]?`,
+					message: `Delete plan [${planId}]?`,
 				}));
 
 			if (shouldDelete) {
-				const s = createSpinner({message: `Deleting product [${productId}]`});
-				await deleteProduct({id: productId});
-				s.success(`Product [${productId}] deleted successfully!`);
+				const s = createSpinner({message: `Deleting plan [${planId}]`});
+				await deleteProduct({id: planId});
+				s.success(`Plan [${planId}] deleted successfully!`);
 			}
 		} else if (decision === 'archive') {
-			const s = createSpinner({message: `Archiving product [${productId}]`});
-			await updateProduct({productId, update: {archived: true}});
-			s.success(`Product [${productId}] archived successfully!`);
+			const s = createSpinner({message: `Archiving plan [${planId}]`});
+			await updateProduct({productId: planId, update: {archived: true}});
+			s.success(`Plan [${planId}] archived successfully!`);
 		}
 	}
 };
@@ -160,45 +160,45 @@ const pushFeatures = async ({
 	console.log(); // Empty line for spacing
 };
 
-const gatherProductDecisions = async ({
-	products,
-	curProducts,
+const gatherPlanDecisions = async ({
+	plans,
+	curPlans,
 	yes,
 }: {
-	products: Product[];
-	curProducts: any[];
+	plans: Plan[];
+	curPlans: any[];
 	yes: boolean;
 }) => {
-	const productDecisions = new Map();
-	const batchCheckProducts = [];
+	const planDecisions = new Map();
+	const batchCheckPlans = [];
 
-	for (const product of products) {
-		batchCheckProducts.push(
-			checkProductForConfirmation({
-				curProducts,
-				product,
+	for (const plan of plans) {
+		batchCheckPlans.push(
+			checkPlanForConfirmation({
+				curPlans,
+				plan,
 			}),
 		);
 	}
 
-	const checkProductResults = await Promise.all(batchCheckProducts);
+	const checkPlanResults = await Promise.all(batchCheckPlans);
 
-	for (const result of checkProductResults) {
+	for (const result of checkPlanResults) {
 		if (result.archived) {
 			const shouldUnarchive =
 				yes ||
 				(await confirm({
-					message: `Product ${result.id} is currently archived. Would you like to un-archive it before pushing?`,
+					message: `Plan ${result.id} is currently archived. Would you like to un-archive it before pushing?`,
 				}));
 			if (shouldUnarchive) {
 				const s = createSpinner({
-					message: `Un-archiving product [${result.id}]`,
+					message: `Un-archiving plan [${result.id}]`,
 				});
 				await updateProduct({productId: result.id, update: {archived: false}});
-				s.success(`Product [${result.id}] un-archived successfully!`);
-				productDecisions.set(result.id, true);
+				s.success(`Plan [${result.id}] un-archived successfully!`);
+				planDecisions.set(result.id, true);
 			} else {
-				productDecisions.set(result.id, false);
+				planDecisions.set(result.id, false);
 			}
 		}
 
@@ -206,42 +206,42 @@ const gatherProductDecisions = async ({
 			const shouldUpdate =
 				yes ||
 				(await confirm({
-					message: `Product ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
+					message: `Plan ${result.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
 				}));
-			productDecisions.set(result.id, shouldUpdate);
+			planDecisions.set(result.id, shouldUpdate);
 		} else {
-			productDecisions.set(result.id, true);
+			planDecisions.set(result.id, true);
 		}
 	}
 
-	return productDecisions;
+	return planDecisions;
 };
 
-const pushProducts = async ({
-	products,
-	curProducts,
-	productDecisions,
+const pushPlans = async ({
+	plans,
+	curPlans,
+	planDecisions,
 	yes,
 }: {
-	products: Product[];
-	curProducts: any[];
-	productDecisions: Map<string, boolean>;
+	plans: Plan[];
+	curPlans: any[];
+	planDecisions: Map<string, boolean>;
 	yes: boolean;
 }) => {
-	const s2 = initSpinner(`Pushing products`);
-	const batchProducts = [];
+	const s2 = initSpinner(`Pushing plans`);
+	const batchPlans = [];
 
-	for (const product of products) {
-		const shouldUpdate = productDecisions.get(product.id);
-		batchProducts.push(
-			upsertProduct({curProducts, product, spinner: s2, shouldUpdate}),
+	for (const plan of plans) {
+		const shouldUpdate = planDecisions.get(plan.id);
+		batchPlans.push(
+			upsertPlan({curPlans, plan, spinner: s2, shouldUpdate}),
 		);
 	}
 
-	const prodResults = await Promise.all(batchProducts);
-	s2.success(`Products pushed successfully!`);
-	console.log(chalk.dim('\nProducts pushed:'));
-	prodResults.forEach((result: {id: string; action: string}) => {
+	const planResults = await Promise.all(batchPlans);
+	s2.success(`Plans pushed successfully!`);
+	console.log(chalk.dim('\nPlans pushed:'));
+	planResults.forEach((result: {id: string; action: string}) => {
 		const action = result.action;
 		console.log(
 			chalk.cyan(
@@ -251,7 +251,7 @@ const pushProducts = async ({
 	});
 	console.log(); // Empty line for spacing
 
-	return prodResults;
+	return planResults;
 };
 
 const gatherFeatureDeletionDecisions = async ({
@@ -345,13 +345,13 @@ const showSuccessMessage = ({env, prod}: {env: string; prod: boolean}) => {
 	if (prod) {
 		console.log(
 			chalk.magentaBright(
-				`You can view the products at ${FRONTEND_URL}/products`,
+				`You can view the plans at ${FRONTEND_URL}/products`,
 			),
 		);
 	} else {
 		console.log(
 			chalk.magentaBright(
-				`You can view the products at ${FRONTEND_URL}/sandbox/products`,
+				`You can view the plans at ${FRONTEND_URL}/sandbox/products`,
 			),
 		);
 	}
@@ -364,13 +364,13 @@ export default async function Push({
 }: {
 	config: {
 		features: Feature[];
-		products: Product[];
+		plans: Plan[];
 		env: string;
 	};
 	yes: boolean;
 	prod: boolean;
 }) {
-	const {features, products, env} = config;
+	const {features, plans, env} = config;
 
 	if (env === 'prod') {
 		const shouldProceed =
@@ -386,18 +386,18 @@ export default async function Push({
 		}
 	}
 
-	const {allFeatures, curProducts, featuresToDelete, productsToDelete} =
-		await checkForDeletables(features, products);
+	const {allFeatures, curPlans, featuresToDelete, plansToDelete} =
+		await checkForDeletables(features, plans);
 
-	await handleProductDeletion({productsToDelete, yes});
+	await handlePlanDeletion({plansToDelete, yes});
 	await pushFeatures({features, allFeatures, yes});
 
-	const productDecisions = await gatherProductDecisions({
-		products,
-		curProducts,
+	const planDecisions = await gatherPlanDecisions({
+		plans,
+		curPlans,
 		yes,
 	});
-	await pushProducts({products, curProducts, productDecisions, yes});
+	await pushPlans({plans, curPlans, planDecisions, yes});
 	await handleFeatureDeletion({featuresToDelete, yes});
 
 	showSuccessMessage({env, prod});

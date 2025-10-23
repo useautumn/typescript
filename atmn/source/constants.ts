@@ -1,14 +1,12 @@
-// export const FRONTEND_URL = 'http://localhost:3000';
-// export const BACKEND_URL = 'http://localhost:8080';
-export const FRONTEND_URL = 'http://app.useautumn.com';
-export const BACKEND_URL = 'https://api.useautumn.com';
+export const FRONTEND_URL = "http://localhost:3000";
+export const BACKEND_URL = "http://localhost:8080";
+// export const FRONTEND_URL = 'http://app.useautumn.com';
+// export const BACKEND_URL = 'https://api.useautumn.com';
 
 export const DEFAULT_CONFIG = `import {
 	feature,
-	product,
-	priceItem,
-	featureItem,
-	pricedFeatureItem,
+	plan,
+	planFeature,
 } from 'atmn';
 
 export const seats = feature({
@@ -23,28 +21,34 @@ export const messages = feature({
 	type: 'single_use',
 });
 
-export const pro = product({
+export const pro = plan({
 	id: 'pro',
 	name: 'Pro',
-	items: [
+	description: 'Professional plan for growing teams',
+	add_on: false,
+	default: false,
+	price: {
+		amount: 50,
+		interval: 'month',
+	},
+	features: [
 		// 500 messages per month
-		featureItem({
+		planFeature({
 			feature_id: messages.id,
-			included_usage: 500,
-			interval: 'month',
+			granted: 500,
+			reset: { interval: 'month' },
 		}),
 
 		// $10 per seat per month
-		pricedFeatureItem({
+		planFeature({
 			feature_id: seats.id,
-			price: 10,
-			interval: 'month',
-		}),
-
-		// $50 / month
-		priceItem({
-			price: 50,
-			interval: 'month',
+			granted: 1,
+			price: {
+				amount: 10,
+				interval: 'month',
+				usage_model: 'pay_per_use',
+				billing_units: 1,
+			},
 		}),
 	],
 });

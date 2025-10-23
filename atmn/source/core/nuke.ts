@@ -51,13 +51,13 @@ async function deleteCustomer(id: string) {
 	});
 }
 
-export async function nukeProducts(ids: string[]) {
-	const s = initSpinner('Deleting products');
+export async function nukePlans(ids: string[]) {
+	const s = initSpinner('Deleting plans');
 	for (const id of ids) {
-		s.text = `Deleting product [${id}] ${ids.indexOf(id) + 1} / ${ids.length}`;
+		s.text = `Deleting plan [${id}] ${ids.indexOf(id) + 1} / ${ids.length}`;
 		await deleteProduct({id, allVersions: true});
 	}
-	s.success('Products deleted successfully!');
+	s.success('Plans deleted successfully!');
 }
 
 export async function nukeFeatures(ids: string[]) {

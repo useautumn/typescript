@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import {confirm} from '@inquirer/prompts';
 import chalk from 'chalk';
-import {nukeCustomers, nukeFeatures, nukeProducts} from '../core/nuke.js';
-import {getAllProducts, getCustomers, getFeatures} from '../core/pull.js';
+import {nukeCustomers, nukeFeatures, nukePlans} from '../core/nuke.js';
+import {getAllPlans, getCustomers, getFeatures} from '../core/pull.js';
 import {initSpinner, isSandboxKey, readFromEnv} from '../core/utils.js';
 import {getOrg} from '../core/requests/orgRequests.js';
-import {Feature} from '../compose/models/composeModels.js';
+import {Feature} from '../compose/models/featureModels.js';
 
 async function promptAndConfirmNuke(orgName: string): Promise<boolean> {
 	console.log('\n' + chalk.bgRed.white.bold('  DANGER: SANDBOX NUKE  '));
@@ -20,13 +20,13 @@ async function promptAndConfirmNuke(orgName: string): Promise<boolean> {
 				`\n  • ` +
 				chalk.yellowBright('features') +
 				`\n  • ` +
-				chalk.yellowBright('products') +
+				chalk.yellowBright('plans') +
 				`\n`,
 		),
 	);
 
 	const shouldProceed = await confirm({
-		message: `Confirm to continue. This will delete ${chalk.redBright.bold('all')} your ${chalk.redBright.bold('products')}, ${chalk.redBright.bold('features')} and ${chalk.redBright.bold('customers')} from your sandbox environment. You will confirm twice.`,
+		message: `Confirm to continue. This will delete ${chalk.redBright.bold('all')} your ${chalk.redBright.bold('plans')}, ${chalk.redBright.bold('features')} and ${chalk.redBright.bold('customers')} from your sandbox environment. You will confirm twice.`,
 		default: false,
 	});
 
@@ -70,14 +70,14 @@ export default async function Nuke() {
 		console.log(chalk.red('Nuking sandbox...'));
 
 		const s = initSpinner(
-			`Preparing ${chalk.yellowBright('customers')}, ${chalk.yellowBright('features')} and ${chalk.yellowBright('products')} for deletion...`,
+			`Preparing ${chalk.yellowBright('customers')}, ${chalk.yellowBright('features')} and ${chalk.yellowBright('plans')} for deletion...`,
 		);
-		const products = await getAllProducts({archived: true});
+		const plans = await getAllPlans({archived: true});
 		const features = await getFeatures();
 		const customers = await getCustomers();
 
 		s.success(
-			`Loaded all ${chalk.yellowBright('customers')}, ${chalk.yellowBright('features')} and ${chalk.yellowBright('products')} for deletion`,
+			`Loaded all ${chalk.yellowBright('customers')}, ${chalk.yellowBright('features')} and ${chalk.yellowBright('plans')} for deletion`,
 		);
 
 		features.sort((a: Feature, b: Feature) => {
@@ -89,7 +89,7 @@ export default async function Nuke() {
 
 		try {
 			await nukeCustomers(customers);
-			await nukeProducts(products.map((product: {id: string}) => product.id));
+			await nukePlans(plans.map((plan: {id: string}) => plan.id));
 			await nukeFeatures(features.map((feature: {id: string}) => feature.id));
 		} catch (e: unknown) {
 			console.error(chalk.red('Failed to nuke sandbox:'));

@@ -13,7 +13,7 @@
 		"build": "tsup",
 		"dev": "tsup --watch",
 		"test2": "prettier --check . && xo && ava",
-		"test": "node --trace-deprecation -- ./dist/cli.js"
+		"test-cli": "node --trace-deprecation -- ./dist/cli.js"
 	},
 	"files": [
 		"dist",

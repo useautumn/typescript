@@ -68,6 +68,38 @@ export interface TypeConfig {
 	omitFields?: string[];
 	/** Additional fields to extend the schema with (field name -> Zod schema) */
 	extendFields?: Record<string, { zodType: string; description?: string }>;
+	/** Source type: "interface" (TypeScript interface) or "zod" (Zod schema) */
+	sourceType?: "interface" | "zod";
+	/** Whether to keep snake_case (true) or convert to camelCase (false). Default: false for autumn-js, true for atmn */
+	keepCase?: boolean;
+	/** Fields to rename (oldName -> newName) */
+	renameFields?: Record<string, string>;
+	/** Replace all enum references with z.string() */
+	replaceEnumsWithStrings?: boolean;
+	/** Skip exporting the TypeScript type (useful when manually defining discriminated unions) */
+	skipTypeExport?: boolean;
+}
+
+/**
+ * Configuration for a builder function
+ */
+export interface BuilderConfig {
+	/** Builder function name (e.g., "plan", "feature") */
+	builderName: string;
+	/** Schema name to reference (e.g., "PlanSchema") */
+	schemaName: string;
+	/** Parameter type name (e.g., "Plan", "Feature") */
+	paramType: string;
+	/** Source file to extract JSDoc from (optional) */
+	sourceFile?: string;
+	/** Target file to write builder to */
+	targetFile: string;
+	/** Whether to include runtime validation (.parse()) */
+	validationEnabled?: boolean;
+	/** Custom JSDoc override */
+	jsdocOverride?: string;
+	/** Default values for fields (undefined -> default value) */
+	defaults?: Record<string, string | number | boolean | null>;
 }
 
 /**
@@ -78,6 +110,13 @@ export interface TypeGenerationConfig {
 	configs: TypeConfig[];
 	/** Relative path within target package for generated types */
 	outputDir: string;
+	/** Builder function configurations (optional) */
+	builders?: BuilderConfig[];
+	/** Manual type unions to append after generated types */
+	manualTypeUnions?: Array<{
+		targetFile: string;
+		typeCode: string;
+	}>;
 }
 
 /**
@@ -302,13 +341,42 @@ export function getAutumnJSMethodConfigs(
 			interfaceDescription:
 				"Methods available in useCustomer hook for managing customer subscriptions and features",
 			methods: [
-				{ sourceName: "attach", targetName: "attach", exclusions: ["body.customer_id"] },
-				{ sourceName: "checkout", targetName: "checkout", exclusions: ["body.customer_id"] },
-				{ sourceName: "check", targetName: "check", isSync: true, exclusions: ["body.customer_id"] },
-				{ sourceName: "track", targetName: "track", exclusions: ["body.customer_id"] },
-				{ sourceName: "cancel", targetName: "cancel", exclusions: ["body.customer_id"] },
-				{ sourceName: "setupPayment", targetName: "setupPayment", exclusions: ["body.customer_id"] },
-				{ sourceName: "billingPortal", targetName: "openBillingPortal", exclusions: ["body.customer_id"] },
+				{
+					sourceName: "attach",
+					targetName: "attach",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "checkout",
+					targetName: "checkout",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "check",
+					targetName: "check",
+					isSync: true,
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "track",
+					targetName: "track",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "cancel",
+					targetName: "cancel",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "setupPayment",
+					targetName: "setupPayment",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "billingPortal",
+					targetName: "openBillingPortal",
+					exclusions: ["body.customer_id"],
+				},
 			],
 		},
 		// UseEntity methods
@@ -322,10 +390,27 @@ export function getAutumnJSMethodConfigs(
 			interfaceDescription:
 				"Methods available in useEntity hook for entity-scoped subscription operations",
 			methods: [
-				{ sourceName: "attach", targetName: "attach", exclusions: ["body.customer_id"] },
-				{ sourceName: "cancel", targetName: "cancel", exclusions: ["body.customer_id"] },
-				{ sourceName: "track", targetName: "track", exclusions: ["body.customer_id"] },
-				{ sourceName: "check", targetName: "check", isSync: true, exclusions: ["body.customer_id"] },
+				{
+					sourceName: "attach",
+					targetName: "attach",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "cancel",
+					targetName: "cancel",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "track",
+					targetName: "track",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "check",
+					targetName: "check",
+					isSync: true,
+					exclusions: ["body.customer_id"],
+				},
 			],
 		},
 	];
@@ -392,12 +477,204 @@ export function getConvexTypeConfigs(
 
 /**
  * Type configurations for atmn CLI generation
- * TODO: Implement when ready to generate CLI types
+ * Generates Plan V2 API types from @autumn/shared schemas
  */
 export function getAtmnTypeConfigs(
-	_tsSDKPath: string,
-	_atmnPath: string,
-): TypeConfig[] {
-	// Placeholder for future CLI type generation
-	return [];
+	serverPath: string, // Path to @autumn/shared
+	atmnPath: string, // Path to atmn package
+): TypeGenerationConfig {
+	// Source files from @autumn/shared
+	const planOpModelsFile = path.join(
+		serverPath,
+		"api/products/planOpModels.ts",
+	);
+	const planFeatureOpModelsFile = path.join(
+		serverPath,
+		"api/products/planFeature/planFeatureOpModels.ts",
+	);
+	const apiPlanFile = path.join(serverPath, "api/products/apiPlan.ts");
+	const apiFeatureFile = path.join(serverPath, "api/features/apiFeature.ts");
+
+	// Target directories in atmn
+	const modelsDir = path.join(atmnPath, "source/compose/models");
+	const buildersDir = path.join(atmnPath, "source/compose/builders");
+
+	return {
+		outputDir: "source/compose/models",
+		configs: [
+			// ==================
+			// PLAN
+			// ==================
+			{
+				sourceName: "CreatePlanParamsSchema",
+				targetName: "Plan",
+				sourceFile: planOpModelsFile,
+				targetFile: path.join(modelsDir, "planModels.ts"),
+				sourceType: "zod",
+				keepCase: true, // Keep snake_case
+				replaceEnumsWithStrings: true,
+				skipTypeExport: true, // Override type manually to use PlanFeature union
+				omitFields: ["version", "id", "name", "group"],
+				extendFields: {
+					id: {
+						zodType: "z.string().nonempty().regex(idRegex)",
+						description: "Unique identifier for the plan",
+					},
+					name: {
+						zodType: "z.string().nonempty()",
+						description: "Display name for the plan",
+					},
+					group: {
+						zodType: 'z.string().default("")',
+						description: "Group for organizing plans",
+					},
+				},
+			},
+
+			// ==================
+			// PLAN FEATURE (features in a plan)
+			// ==================
+			{
+				sourceName: "UpdatePlanFeatureSchema",
+				targetName: "PlanFeature",
+				sourceFile: planFeatureOpModelsFile,
+				targetFile: path.join(modelsDir, "planModels.ts"),
+				sourceType: "zod",
+				keepCase: true,
+				replaceEnumsWithStrings: true,
+				omitFields: [],
+				extendFields: {},
+				skipTypeExport: true, // Don't export type - we'll add discriminated union manually
+			},
+
+			// ==================
+			// FEATURE (reusable feature definitions)
+			// ==================
+			{
+				sourceName: "ApiFeatureSchema",
+				targetName: "Feature",
+				sourceFile: apiFeatureFile,
+				targetFile: path.join(modelsDir, "featureModels.ts"),
+				sourceType: "zod",
+				keepCase: true,
+				omitFields: ["type", "display"],
+				extendFields: {
+					type: {
+						zodType: "z.string()",
+						description: "The type of the feature (boolean, single_use, continuous_use, credit_system)",
+					},
+				},
+			},
+
+			// ==================
+			// FREE TRIAL
+			// ==================
+			{
+				sourceName: "ApiFreeTrialV2Schema",
+				targetName: "FreeTrial",
+				sourceFile: apiPlanFile,
+				targetFile: path.join(modelsDir, "planModels.ts"),
+				sourceType: "zod",
+				keepCase: true,
+				replaceEnumsWithStrings: true,
+				skipTypeExport: true, // Exported in manual unions
+				omitFields: [],
+				extendFields: {},
+			},
+		],
+
+		// ==================
+		// BUILDER FUNCTIONS
+		// ==================
+		builders: [
+			{
+				builderName: "plan",
+				schemaName: "PlanSchema",
+				paramType: "Plan",
+				targetFile: path.join(buildersDir, "builderFunctions.ts"),
+				defaults: {
+					description: null,
+					add_on: false,
+					default: false,
+					group: "",
+				},
+				jsdocOverride: `/**
+ * Define a pricing plan in your Autumn configuration
+ *
+ * @param p - Plan configuration
+ * @returns Plan object for use in autumn.config.ts
+ *
+ * @example
+ * export const pro = plan({
+ *   id: 'pro',
+ *   name: 'Pro Plan',
+ *   description: 'For growing teams',
+ *   features: [
+ *     planFeature({ feature_id: seats.id, granted: 10 }),
+ *     planFeature({
+ *       feature_id: messages.id,
+ *       granted: 1000,
+ *       reset: { interval: 'month' }
+ *     })
+ *   ],
+ *   price: { amount: 50, interval: 'month' }
+ * });
+ */`,
+			},
+			{
+				builderName: "feature",
+				schemaName: "FeatureSchema",
+				paramType: "Feature",
+				targetFile: path.join(buildersDir, "builderFunctions.ts"),
+				jsdocOverride: `/**
+ * Define a feature that can be included in plans
+ *
+ * @param f - Feature configuration
+ * @returns Feature object for use in autumn.config.ts
+ *
+ * @example
+ * export const seats = feature({
+ *   id: 'seats',
+ *   name: 'Team Seats',
+ *   type: 'continuous_use'
+ * });
+ */`,
+			},
+			{
+				builderName: "planFeature",
+				schemaName: "PlanFeatureSchema",
+				paramType: "PlanFeature",
+				targetFile: path.join(buildersDir, "builderFunctions.ts"),
+				jsdocOverride: `/**
+ * Include a feature in a plan with specific configuration
+ *
+ * @param config - Feature configuration for this plan
+ * @returns PlanFeature for use in plan's features array
+ *
+ * @example
+ * // Simple included usage
+ * planFeature({
+ *   feature_id: messages.id,
+ *   granted: 1000,
+ *   reset: { interval: 'month' }
+ * })
+ *
+ * @example
+ * // Priced feature with tiers
+ * planFeature({
+ *   feature_id: seats.id,
+ *   granted: 5,
+ *   price: {
+ *     tiers: [
+ *       { to: 10, amount: 10 },
+ *       { to: 'inf', amount: 8 }
+ *     ],
+ *     interval: 'month',
+ *     usage_model: 'pay_per_use'
+ *   }
+ * })
+ */`,
+			},
+		],
+	};
 }

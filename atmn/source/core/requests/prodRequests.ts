@@ -1,4 +1,4 @@
-import {Product} from '../../compose/index.js';
+import {Plan} from '../../compose/index.js';
 import {externalRequest} from '../api.js';
 
 export const getProductDeleteInfo = async ({
@@ -18,7 +18,7 @@ export const updateProduct = async ({
 	update,
 }: {
 	productId: string;
-	update: Partial<Product & {archived: boolean}>;
+	update: Partial<Plan & {archived: boolean}>;
 }) => {
 	const response = await externalRequest({
 		method: 'POST',

@@ -3,9 +3,8 @@
 The CLI tool for [Autumn](https://useautumn.com)'s REST API.
 
 ## Features
-Features
 
-- Create your features in products **in-code**.
+- Create your features and plans **in-code**.
 - Authenticate with the CLI tool.
 - Easily push and pull changes to and from Autumn.
 
@@ -49,53 +48,57 @@ production key, and comment out your sandbox key.
 ```typescript autumn.config.ts
 import {
 	feature,
-	product,
-	priceItem,
-	featureItem,
-	pricedFeatureItem,
-} from 'autumn-js/compose';
+	plan,
+	planFeature,
+} from 'atmn';
 
-const seats = feature({
+export const seats = feature({
 	id: 'seats',
 	name: 'Seats',
 	type: 'continuous_use',
 });
 
-const messages = feature({
+export const messages = feature({
 	id: 'messages',
 	name: 'Messages',
 	type: 'single_use',
 });
 
-const pro = product({
+export const pro = plan({
 	id: 'pro',
 	name: 'Pro',
-	items: [
+	description: 'Professional plan for growing teams',
+	add_on: false,
+	default: false,
+	price: {
+		amount: 50,
+		interval: 'month',
+	},
+	features: [
 		// 500 messages per month
-		featureItem({
+		planFeature({
 			feature_id: messages.id,
-			included_usage: 500,
-			interval: 'month',
+			granted: 500,
+			reset: { interval: 'month' },
 		}),
 
 		// $10 per seat per month
-		pricedFeatureItem({
+		planFeature({
 			feature_id: seats.id,
-			price: 10,
-			interval: 'month',
-		}),
-
-		// $50 / month
-		priceItem({
-			price: 50,
-			interval: 'month',
+			granted: 1,
+			price: {
+				amount: 10,
+				interval: 'month',
+				usage_model: 'pay_per_use',
+				billing_units: 1,
+			},
 		}),
 	],
 });
 
 export default {
 	features: [seats, messages],
-	products: [pro],
+	plans: [pro],
 };
 ```
 

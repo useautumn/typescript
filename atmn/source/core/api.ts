@@ -49,6 +49,7 @@ export async function request({
 			params: queryParams,
 			headers: {
 				'Content-Type': 'application/json',
+				'X-API-Version': '2.0.0',
 				...headers,
 				Authorization: customAuth || `Bearer ${apiKey}`,
 			},

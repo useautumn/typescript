@@ -1,11 +1,11 @@
 import type {Spinner} from 'yocto-spinner';
-import type {Feature, Product} from '../compose/index.js';
+import type {Feature, Plan} from '../compose/index.js';
 import {externalRequest} from './api.js';
-import {getAllProducts, getFeatures} from './pull.js';
+import {getAllPlans, getFeatures} from './pull.js';
 
 export async function checkForDeletables(
 	currentFeatures: Feature[],
-	currentProducts: Product[],
+	currentPlans: Plan[],
 ) {
 	const features = await getFeatures({includeArchived: true}); // Get from AUTUMN
 
@@ -19,21 +19,21 @@ export async function checkForDeletables(
 			),
 	);
 
-	const products = await getAllProducts();
-	const productIds = products.map((product: Product) => product.id);
-	const currentProductIds = currentProducts.map(
-		(product: Product) => product.id,
+	const plans = await getAllPlans();
+	const planIds = plans.map((plan: Plan) => plan.id);
+	const currentPlanIds = currentPlans.map(
+		(plan: Plan) => plan.id,
 	);
-	const productsToDelete = productIds.filter(
-		(productId: string) => !currentProductIds.includes(productId),
+	const plansToDelete = planIds.filter(
+		(planId: string) => !currentPlanIds.includes(planId),
 	);
 
 	return {
 		allFeatures: features,
 		curFeatures: features.filter((feature: Feature) => !feature.archived),
-		curProducts: products,
+		curPlans: plans,
 		featuresToDelete,
-		productsToDelete,
+		plansToDelete,
 	};
 }
 
@@ -81,87 +81,75 @@ export async function upsertFeature(feature: Feature, s: Spinner) {
 	}
 }
 
-export async function checkProductForConfirmation({
-	curProducts,
-	product,
+export async function checkPlanForConfirmation({
+	curPlans,
+	plan,
 }: {
-	curProducts: Product[];
-	product: Product;
+	curPlans: Plan[];
+	plan: Plan;
 }) {
-	const curProduct = curProducts.find(p => p.id === product.id);
-	if (!curProduct) {
-		// return { needsConfirmation: false, shouldUpdate: true };
+	const curPlan = curPlans.find(p => p.id === plan.id);
+	if (!curPlan) {
 		return {
-			id: product.id,
+			id: plan.id,
 			will_version: false,
 		};
 	}
 
 	const res1 = await externalRequest({
 		method: 'GET',
-		path: `/products/${product.id}/has_customers`,
-		data: product,
+		path: `/products/${plan.id}/has_customers`,
+		data: plan,
 	});
 
 	return {
-		id: product.id,
+		id: plan.id,
 		will_version: res1.will_version,
 		archived: res1.archived,
 	};
-
-	// const {will_version} = res1;
-
-	// if (will_version) {
-	// const shouldUpdate = await confirm({
-	// 	message: `Product ${product.id} has customers on it and updating it will create a new version.\nAre you sure you'd like to continue? `,
-	// });
-	// return { needsConfirmation: true, shouldUpdate };
-	// }
-
-	// return { needsConfirmation: false, shouldUpdate: true };
 }
 
-export async function upsertProduct({
-	curProducts,
-	product,
+export async function upsertPlan({
+	curPlans,
+	plan,
 	spinner,
 	shouldUpdate = true,
 }: {
-	curProducts: Product[];
-	product: Product;
+	curPlans: Plan[];
+	plan: Plan;
 	spinner: Spinner;
 	shouldUpdate?: boolean;
 }) {
 	if (!shouldUpdate) {
-		spinner.text = `Skipping update to product ${product.id}`;
+		spinner.text = `Skipping update to plan ${plan.id}`;
 		return {
-			id: product.id,
+			id: plan.id,
 			action: 'skipped',
 		};
 	}
 
-	const curProduct = curProducts.find(p => p.id === product.id);
-	if (!curProduct) {
+	const curPlan = curPlans.find(p => p.id === plan.id);
+	if (!curPlan) {
 		await externalRequest({
 			method: 'POST',
 			path: `/products`,
-			data: product,
+			data: plan,
 		});
-		spinner.text = `Created product [${product.id}]`;
+		spinner.text = `Created plan [${plan.id}]`;
 		return {
-			id: product.id,
+			id: plan.id,
 			action: 'create',
 		};
 	} else {
 		await externalRequest({
 			method: 'POST',
-			path: `/products/${product.id}`,
-			data: product,
+			path: `/products/${plan.id}`,
+			data: plan,
 		});
 
-		spinner.text = `Updated product [${product.id}]`;
+		spinner.text = `Updated plan [${plan.id}]`;
 		return {
-			id: product.id,
+			id: plan.id,
 			action: 'updated',
 		};
 	}

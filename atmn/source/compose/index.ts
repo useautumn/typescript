@@ -1,21 +1,29 @@
 import {
 	feature,
-	featureItem,
-	pricedFeatureItem,
-	priceItem,
-	product,
+	plan,
+	planFeature,
 } from "./builders/builderFunctions.js";
-import type { Feature, Product } from "./models/composeModels.js";
-import type { ProductItem } from "./models/productItemModels.js";
+import type { Feature } from "./models/featureModels.js";
+import type {
+	Plan,
+	PlanFeature,
+	FreeTrial,
+} from "./models/planModels.js";
 
-export { product, priceItem, feature, featureItem, pricedFeatureItem };
+export { plan, feature, planFeature };
 
-export type { Feature, Product, ProductItem };
+export type {
+	Feature,
+	Plan,
+	PlanFeature,
+	FreeTrial,
+};
+
 export type Infinity = "infinity";
 
-// CLi types
+// CLI types
 
 export type AutumnConfig = {
-	products: Product[];
+	plans: Plan[];
 	features: Feature[];
 };

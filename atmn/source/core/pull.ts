@@ -1,8 +1,9 @@
 import chalk from 'chalk';
-import type {Feature, Product} from '../compose/models/composeModels.js';
+import type {Feature} from '../compose/models/featureModels.js';
+import type {Plan} from '../compose/models/planModels.js';
 import {externalRequest} from './api.js';
 
-export async function getProducts(ids: string[]): Promise<Product[]> {
+export async function getPlans(ids: string[]): Promise<Plan[]> {
 	return await Promise.all(
 		ids.map(id =>
 			externalRequest({
@@ -13,46 +14,46 @@ export async function getProducts(ids: string[]): Promise<Product[]> {
 	);
 }
 
-export async function getAllProducts(params?: {
+export async function getAllPlans(params?: {
 	archived?: boolean;
-}): Promise<Product[]> {
-	const {list: products} = await externalRequest({
+}): Promise<Plan[]> {
+	const {list: plans} = await externalRequest({
 		method: 'GET',
 		path: `/products`,
 		queryParams: {include_archived: params?.archived ? true : false},
 	});
 
-	return [...products];
+	return [...plans];
 }
 
-export async function getAllProductVariants() {
+export async function getAllPlanVariants() {
 	const {list} = await externalRequest({
 		method: 'GET',
 		path: '/products',
 	});
 
-	const allProducts = [];
-	allProducts.push(
-		...list.flatMap((product: {name: string; version: number; id: string}) => {
-			if (product.version > 1) {
-				// Get all versions of this product
-				return Array.from({length: product.version}, (_, i) => ({
-					id: product.id,
-					name: product.name,
+	const allPlans = [];
+	allPlans.push(
+		...list.flatMap((plan: {name: string; version: number; id: string}) => {
+			if (plan.version > 1) {
+				// Get all versions of this plan
+				return Array.from({length: plan.version}, (_, i) => ({
+					id: plan.id,
+					name: plan.name,
 					version: i + 1,
 				}));
 			} else {
 				return [
 					{
-						id: product.id,
-						name: product.name,
-						version: product.version,
+						id: plan.id,
+						name: plan.name,
+						version: plan.version,
 					},
 				];
 			}
 		}),
 	);
-	return allProducts;
+	return allPlans;
 }
 
 export async function getFeatures(params?: {includeArchived?: boolean}) {

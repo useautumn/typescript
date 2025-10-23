@@ -3,7 +3,7 @@
 // DO NOT EDIT MANUALLY - changes will be overwritten
 //
 // To update documentation:
-// 1. Edit JSDoc in backend: sirtenzin-autumn/shared/api/core/coreOpenApi.ts
+// 1. Edit JSDoc in backend server's shared/api directory
 // 2. Regenerate OpenAPI spec and SDK
 // 3. Run: pnpm run gen:autumn-js
 

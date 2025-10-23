@@ -7,11 +7,14 @@ import {execSync} from 'child_process';
 import chalk from 'chalk';
 import {confirm, select} from '@inquirer/prompts';
 import {
-	ProductSchema,
+	PlanSchema,
+	type Plan,
+	type FreeTrial,
+} from '../compose/models/planModels.js';
+import {
 	FeatureSchema,
-	type Product,
 	type Feature,
-} from '../compose/models/composeModels.js';
+} from '../compose/models/featureModels.js';
 import {readFromEnv} from './utils.js';
 
 function checkAtmnInstalled(): boolean {
@@ -78,9 +81,9 @@ async function installAtmn(): Promise<boolean> {
 	}
 }
 
-function isProduct(value: any): value is Product {
+function isPlan(value: any): value is Plan {
 	try {
-		ProductSchema.parse(value);
+		PlanSchema.strict().parse(value);
 		return true;
 	} catch (error) {
 		return false;
@@ -89,17 +92,17 @@ function isProduct(value: any): value is Product {
 
 function isFeature(value: any): value is Feature {
 	try {
-		FeatureSchema.parse(value);
+		FeatureSchema.strict().parse(value);
 		return true;
 	} catch {
 		return false;
 	}
 }
 
-function detectObjectType(value: any): 'product' | 'feature' | 'unknown' {
+function detectObjectType(value: any): 'plan' | 'feature' | 'unknown' {
 	if (value && typeof value === 'object') {
-		if (value.items && Array.isArray(value.items)) {
-			return 'product';
+		if (value.features && Array.isArray(value.features)) {
+			return 'plan';
 		}
 		if (value.type) {
 			return 'feature';
@@ -155,15 +158,24 @@ export async function loadAutumnConfigFile() {
 	const jiti = createJiti(import.meta.url);
 	const mod = await jiti.import(fileUrl);
 
-	const products: Product[] = [];
+	const plans: Plan[] = [];
 	const features: Feature[] = [];
 
 	// Check for old-style default export first
 	const defaultExport = (mod as any).default;
-	if (defaultExport && defaultExport.products && defaultExport.features) {
-		// Old format: default export with products and features arrays
+	if (defaultExport && defaultExport.plans && defaultExport.features) {
+		// Old format: default export with plans and features arrays
+		if (Array.isArray(defaultExport.plans)) {
+			plans.push(...defaultExport.plans);
+		}
+		if (Array.isArray(defaultExport.features)) {
+			features.push(...defaultExport.features);
+		}
+	} else if (defaultExport && defaultExport.products && defaultExport.features) {
+		// Legacy format: default export with products (backwards compatibility)
+		console.warn(chalk.yellow('⚠️  Using legacy "products" export. Please migrate to "plans" export.'));
 		if (Array.isArray(defaultExport.products)) {
-			products.push(...defaultExport.products);
+			plans.push(...defaultExport.products);
 		}
 		if (Array.isArray(defaultExport.features)) {
 			features.push(...defaultExport.features);
@@ -173,18 +185,18 @@ export async function loadAutumnConfigFile() {
 		for (const [key, value] of Object.entries(mod as Record<string, any>)) {
 			if (key === 'default') continue;
 
-			if (isProduct(value)) {
-				products.push(value as Product);
+			if (isPlan(value)) {
+				plans.push(value as Plan);
 			} else if (isFeature(value)) {
 				features.push(value as Feature);
 			} else {
 				// Object doesn't match either schema - provide helpful error
 				const detectedType = detectObjectType(value);
 
-				if (detectedType === 'product') {
-					const validationError = getValidationError(ProductSchema, value);
-					console.error('\n' + chalk.red('❌ Invalid product configuration'));
-					console.error(chalk.yellow(`Product: "${key}"`));
+				if (detectedType === 'plan') {
+					const validationError = getValidationError(PlanSchema, value);
+					console.error('\n' + chalk.red('❌ Invalid plan configuration'));
+					console.error(chalk.yellow(`Plan: "${key}"`));
 					console.error(chalk.red('Validation errors:') + validationError);
 					process.exit(1);
 				} else if (detectedType === 'feature') {
@@ -198,7 +210,7 @@ export async function loadAutumnConfigFile() {
 					console.error(chalk.yellow(`Object: "${key}"`));
 					console.error(
 						chalk.red('Error:') +
-							" Object must be either a product (with 'items' field) or feature (with 'type' field)",
+							" Object must be either a plan (with 'features' field) or feature (with 'type' field)",
 					);
 					process.exit(1);
 				}
@@ -215,7 +227,7 @@ export async function loadAutumnConfigFile() {
 	}
 
 	return {
-		products,
+		plans,
 		features,
 		env: secretKey?.includes('live') ? 'prod' : 'sandbox',
 	};

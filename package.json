@@ -4,7 +4,7 @@
 	"packageManager": "pnpm@10.14.0",
 	"scripts": {
 		"test-cli": "pnpm --filter atmn test-cli",
-		"gen": "pnpm gen:ajs && pnpm gen:convex",
+		"gen": "pnpm gen:ajs && pnpm gen:convex && pnpm gen:atmn",
 		"gen:autumn-js": "bun typegen/generate-autumn-js-types.ts",
 		"gen:ajs": "bun typegen/generate-autumn-js-types.ts",
 		"gen:convex": "bun typegen/generate-convex-types.ts",

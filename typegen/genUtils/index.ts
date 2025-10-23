@@ -10,3 +10,23 @@ export { MethodGenerator } from "./MethodGenerator.js";
 export { TypeGenerator } from "./TypeGenerator.js";
 export { ConvexValidatorGenerator } from "./ConvexValidatorGenerator.js";
 export { TypeGeneratorUtils } from "./utils.js";
+export {
+	extractZodSchema,
+	transformZodSchema,
+	generateZodSchemaFile,
+	generateTypeScriptInterfaceWithJSDoc,
+	extractMetaDescriptions,
+} from "./ZodSchemaGenerator.js";
+export {
+	generateBuilderFunction,
+	generateBuilderFunctionsFile,
+	type BuilderConfig,
+} from "./BuilderGenerator.js";
+export {
+	generatePlanFeatureDiscriminatedUnion,
+	generatePlanTypeWithJSDoc,
+	generateTypeWithJSDoc,
+	generateDiscriminatedUnion,
+	type FieldConfig,
+	type DiscriminatedVariantConfig,
+} from "./atmnTypeHelpers.js";

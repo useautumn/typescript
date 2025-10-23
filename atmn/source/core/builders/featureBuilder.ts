@@ -1,8 +1,8 @@
 import {Feature} from '../../compose/index.js';
-import {idToVar} from '../utils.js';
+import {idToVar, notNullish} from '../utils.js';
 
 const creditSchemaBuilder = (feature: Feature) => {
-	if (feature.type == 'credit_system') {
+	if (feature.type === 'credit_system' && feature.credit_schema) {
 		let creditSchema = feature.credit_schema || [];
 		return `
     credit_schema: [
@@ -14,17 +14,19 @@ const creditSchemaBuilder = (feature: Feature) => {
         }`,
 					)
 					.join(',\n        ')}
-    ]`;
+    ],`;
 	}
 	return '';
 };
 
 export function featureBuilder(feature: Feature) {
+	const nameStr = notNullish(feature.name) ? `\n    name: '${feature.name}',` : '';
+	const creditSchemaStr = creditSchemaBuilder(feature);
+
 	const snippet = `
 export const ${idToVar({id: feature.id, prefix: 'feature'})} = feature({
-    id: '${feature.id}',
-    name: '${feature.name}',
-    type: '${feature.type}',${creditSchemaBuilder(feature)}
+    id: '${feature.id}',${nameStr}
+    type: '${feature.type}',${creditSchemaStr}
 })`;
 	return snippet;
 }

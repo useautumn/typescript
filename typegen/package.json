@@ -12,6 +12,7 @@
 	"license": "ISC",
 	"packageManager": "pnpm@10.14.0",
 	"dependencies": {
-		"@types/node": "^24.7.1"
+		"@types/node": "^24.7.1",
+		"dotenv": "^17.2.3"
 	}
 }
