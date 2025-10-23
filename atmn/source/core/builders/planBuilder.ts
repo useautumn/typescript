@@ -171,7 +171,7 @@ function planFeatureBuilder({
 		}
 	}
 
-	// Proration
+	// Proration (only if configured)
 	if (planFeature.proration) {
 		const prorationParts: string[] = [];
 		if (planFeature.proration.on_increase) {
@@ -185,7 +185,7 @@ function planFeatureBuilder({
 		}
 	}
 
-	// Rollover
+	// Rollover (only if configured)
 	if (planFeature.rollover) {
 		const rolloverParts: string[] = [];
 		if (notNullish(planFeature.rollover.max)) {
@@ -194,7 +194,7 @@ function planFeatureBuilder({
 		if (planFeature.rollover.expiry_duration_type) {
 			rolloverParts.push(`expiry_duration_type: '${planFeature.rollover.expiry_duration_type}'`);
 		}
-		if (notNullish(planFeature.rollover.expiry_duration_length)) {
+		if (notNullish(planFeature.rollover.expiry_duration_length) && planFeature.rollover.expiry_duration_length !== 1) {
 			rolloverParts.push(`expiry_duration_length: ${planFeature.rollover.expiry_duration_length}`);
 		}
 		if (rolloverParts.length > 0) {
