@@ -443,6 +443,9 @@ importers:
 
   frameworks/quick-test:
     dependencies:
+      '@useautumn/sdk':
+        specifier: workspace:*
+        version: link:../../ts-sdk
       atmn:
         specifier: workspace:*
         version: link:../../atmn
