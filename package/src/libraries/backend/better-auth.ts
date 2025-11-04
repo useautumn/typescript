@@ -25,6 +25,7 @@ import {
   CancelParamsSchema,
   CheckParamsSchema,
   OpenBillingPortalParamsSchema,
+  QueryParamsSchema,
   TrackParamsSchema,
 } from "@/client/types/clientGenTypes";
 import {
@@ -53,6 +54,7 @@ const betterAuthPathMap: Record<string, string> = {
   check: "check",
   track: "track",
   cancel: "cancel",
+  query: "query",
   "referrals/redeem-code": "referrals/redeem",
   "referrals/create-code": "referrals/code",
   "open-billing-portal": "billing_portal",
@@ -251,6 +253,15 @@ export const autumn = (options?: AutumnOptions) => {
           method: "POST",
           use: [],
           body: CancelParamsSchema,
+        },
+        async (ctx) => await handleReq({ ctx, options, method: "POST" })
+      ),
+      query: createAuthEndpoint(
+        "/autumn/query",
+        {
+          method: "POST",
+          use: [],
+          body: QueryParamsSchema,
         },
         async (ctx) => await handleReq({ ctx, options, method: "POST" })
       ),
