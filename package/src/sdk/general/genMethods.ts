@@ -29,7 +29,11 @@ export const handleCheckout = async ({
   instance: Autumn;
   params: CheckoutParams;
 }): AutumnPromise<CheckoutResult> => {
-  return instance.post("/checkout", params);
+  const finalParams = {
+    ...params,
+    success_url: params.success_url ?? instance.defaultReturnUrl,
+  };
+  return instance.post("/checkout", finalParams);
 };
 
 export const handleAttach = async ({
@@ -39,7 +43,11 @@ export const handleAttach = async ({
   instance: Autumn;
   params: AttachParams;
 }): AutumnPromise<AttachResult> => {
-  return instance.post("/attach", params);
+  const finalParams = {
+    ...params,
+    success_url: params.success_url ?? instance.defaultReturnUrl,
+  };
+  return instance.post("/attach", finalParams);
 };
 
 export const handleSetupPayment = async ({
@@ -49,7 +57,11 @@ export const handleSetupPayment = async ({
   instance: Autumn;
   params: SetupPaymentParams;
 }): AutumnPromise<SetupPaymentResult> => {
-  return instance.post("/setup_payment", params);
+  const finalParams = {
+    ...params,
+    success_url: params.success_url ?? instance.defaultReturnUrl,
+  };
+  return instance.post("/setup_payment", finalParams);
 };
 
 export const handleCancel = async ({

@@ -124,7 +124,11 @@ export const billingPortal = async ({
   id: string;
   params?: BillingPortalParams;
 }): AutumnPromise<BillingPortalResult> => {
-  return instance.post(`/customers/${id}/billing_portal`, params);
+  const finalParams = {
+    ...params,
+    return_url: params?.return_url ?? instance.defaultReturnUrl,
+  };
+  return instance.post(`/customers/${id}/billing_portal`, finalParams);
 };
 
 export const updateBalances = async ({

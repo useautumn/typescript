@@ -49,6 +49,7 @@ export interface AutumnClientConfig {
   betterAuthUrl?: string;
   headers?: Record<string, string>;
   pathPrefix?: string; // Optional API path prefix override
+  defaultReturnUrl?: string;
 }
 
 export interface IAutumnClient {
@@ -115,6 +116,7 @@ export class AutumnClient implements IAutumnClient {
   public readonly camelCase: boolean;
   public readonly headers?: Record<string, string>;
   public readonly framework?: string;
+  public readonly defaultReturnUrl?: string;
 
   constructor({
     backendUrl,
@@ -124,6 +126,7 @@ export class AutumnClient implements IAutumnClient {
     betterAuthUrl,
     headers,
     pathPrefix,
+    defaultReturnUrl,
   }: AutumnClientConfig) {
     this.backendUrl = backendUrl;
     this.getBearerToken = getBearerToken;
@@ -153,6 +156,7 @@ export class AutumnClient implements IAutumnClient {
     // Feature-flags for input camelCase:
     if (betterAuthUrl) camelCase = true;
     this.camelCase = camelCase;
+    this.defaultReturnUrl = defaultReturnUrl;
   }
 
   /**
