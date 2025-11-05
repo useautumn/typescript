@@ -40,6 +40,7 @@ export class Autumn {
   private headers: Record<string, string>;
   private url: string;
   private logger: any = console;
+  public readonly defaultReturnUrl?: string;
 
   constructor(options?: {
     secretKey?: string;
@@ -48,6 +49,7 @@ export class Autumn {
     version?: string;
     headers?: Record<string, string>;
     logLevel?: string;
+    defaultReturnUrl?: string;
   }) {
     try {
       this.secretKey = options?.secretKey || process.env.AUTUMN_SECRET_KEY;
@@ -70,6 +72,7 @@ export class Autumn {
 
     this.logger = logger;
     this.logger.level = options?.logLevel || "info";
+    this.defaultReturnUrl = options?.defaultReturnUrl;
   }
 
   async get(path: string) {

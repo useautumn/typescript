@@ -55,14 +55,16 @@ export type OmitCustomerType =
 export interface NextAutumnClientConfig {
   encryptedCustomerId?: string;
   customerData?: CustomerData;
+  defaultReturnUrl?: string;
 }
 
 export class NextAutumnClient extends AutumnClient {
   private readonly encryptedCustomerId?: string;
 
-  constructor({ encryptedCustomerId, customerData }: NextAutumnClientConfig) {
+  constructor({ encryptedCustomerId, customerData, defaultReturnUrl }: NextAutumnClientConfig) {
     super({
       customerData,
+      defaultReturnUrl,
     });
     this.encryptedCustomerId = encryptedCustomerId;
   }

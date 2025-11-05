@@ -24,7 +24,11 @@ export async function checkoutMethod(
   this: AutumnClient,
   params: CheckoutParams
 ): AutumnPromise<CheckoutResult> {
-  const res = await this.post(`${this.prefix}/checkout`, params);
+  const finalParams = {
+    ...params,
+    successUrl: params.successUrl ?? this.defaultReturnUrl,
+  };
+  const res = await this.post(`${this.prefix}/checkout`, finalParams);
   return res;
 }
 
@@ -32,14 +36,22 @@ export async function attachMethod(
   this: AutumnClient,
   params: AttachParams
 ): AutumnPromise<AttachResult> {
-  const res = await this.post(`${this.prefix}/attach`, params);
+  const finalParams = {
+    ...params,
+    successUrl: params.successUrl ?? this.defaultReturnUrl,
+  };
+  const res = await this.post(`${this.prefix}/attach`, finalParams);
   return res;
 }
 export async function setupPaymentMethod(
   this: AutumnClient,
   params: SetupPaymentParams
 ): AutumnPromise<SetupPaymentResult> {
-  const res = await this.post(`${this.prefix}/setup_payment`, params);
+  const finalParams = {
+    ...params,
+    successUrl: params.successUrl ?? this.defaultReturnUrl,
+  };
+  const res = await this.post(`${this.prefix}/setup_payment`, finalParams);
   return res;
 }
 
@@ -77,7 +89,11 @@ export async function openBillingPortalMethod(
   this: AutumnClient,
   params?: OpenBillingPortalParams
 ): AutumnPromise<BillingPortalResult> {
-  const res = await this.post(`${this.prefix}/billing_portal`, params || {});
+  const finalParams = {
+    ...(params || {}),
+    returnUrl: params?.returnUrl ?? this.defaultReturnUrl,
+  };
+  const res = await this.post(`${this.prefix}/billing_portal`, finalParams);
   return res;
 }
 

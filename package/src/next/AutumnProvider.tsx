@@ -9,6 +9,7 @@ interface AutumnProviderProps {
   customerData?: CustomerData;
   authPlugin?: AuthPluginOptions;
   children?: React.ReactNode;
+  defaultReturnUrl?: string;
 }
 
 const notNullish = (value: any) => {
@@ -20,6 +21,7 @@ export const AutumnProvider = ({
   customerData,
   authPlugin,
   children,
+  defaultReturnUrl,
 }: AutumnProviderProps) => {
   if (typeof window !== "undefined") {
     throw new Error(
@@ -46,6 +48,7 @@ export const AutumnProvider = ({
     <NextAutumnProvider
       encryptedCustomerId={encryptedCustomerId}
       customerData={customerData}
+      defaultReturnUrl={defaultReturnUrl}
     >
       {children}
     </NextAutumnProvider>
