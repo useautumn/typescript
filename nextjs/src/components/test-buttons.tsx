@@ -199,13 +199,7 @@ export default function TestButtons() {
 							successUrl: "https://facebook.com",
 							openInNewTab: true,
 							dialog: CheckoutDialog,
-							checkoutSessionParams: {
-								subscription_data: {
-									metadata: {
-										heyThere: "test",
-									},
-								},
-							},
+							freeTrial: false,
 						});
 						console.log(res);
 					}}
