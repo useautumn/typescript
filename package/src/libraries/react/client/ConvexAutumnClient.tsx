@@ -113,12 +113,13 @@ export class ConvexAutumnClient implements IAutumnClient {
   attach = async (args: any) => {
     try {
       // Filter out frontend-only parameters
-      const { dialog, ...backendArgs } = args;
+      const { dialog, openInNewTab, ...backendArgs } = args;
 
       const result = await this.convex.action(
         this.convexApi.attach,
         backendArgs
       );
+
       return result;
     } catch (error: any) {
       return {
@@ -134,12 +135,13 @@ export class ConvexAutumnClient implements IAutumnClient {
   checkout = async (args: any) => {
     try {
       // Filter out frontend-only parameters
-      const { dialog, ...backendArgs } = args;
+      const { dialog, openInNewTab, ...backendArgs } = args;
 
       const result = await this.convex.action(
         this.convexApi.checkout,
         backendArgs
       );
+
       return result;
     } catch (error: any) {
       return {
@@ -199,10 +201,13 @@ export class ConvexAutumnClient implements IAutumnClient {
 
   openBillingPortal = async (args: any) => {
     try {
-      const result = await this.convex.action(this.convexApi.billingPortal, {
-        ...args,
-        openInNewTab: undefined,
-      });
+      // Filter out frontend-only parameters
+      const { openInNewTab, ...backendArgs } = args;
+
+      const result = await this.convex.action(
+        this.convexApi.billingPortal,
+        backendArgs
+      );
 
       return result;
     } catch (error: any) {
