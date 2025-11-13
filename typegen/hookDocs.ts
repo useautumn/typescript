@@ -94,7 +94,7 @@ export const useCustomerHookDoc = createHookJSDoc({
 	],
 	returns: [
 		{
-			name: "customer",
+			name: "data",
 			type: "Autumn.Customer | null",
 			description: "Customer object with subscription and feature data",
 		},
@@ -117,7 +117,7 @@ export const useCustomerHookDoc = createHookJSDoc({
 			name: "...methods",
 			type: "UseCustomerMethods",
 			description:
-				"All subscription methods (attach, checkout, cancel, track, setupPayment, openBillingPortal)",
+				"All subscription methods (attach, checkout, cancel, track, setupPayment, openBillingPortal, createReferralCode, redeemReferralCode)",
 		},
 		{
 			name: "createEntity",
@@ -151,9 +151,9 @@ export const useEntityHookDoc = createHookJSDoc({
 	],
 	returns: [
 		{
-			name: "entity",
+			name: "data",
 			type: "Autumn.Entity | null",
-			description: "The entity object containing all entity data",
+			description: "Entity object with subscription and feature data",
 		},
 		{
 			name: "isLoading",

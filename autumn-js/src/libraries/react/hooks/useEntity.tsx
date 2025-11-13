@@ -10,7 +10,7 @@ import { useEntityBase } from "./useEntityBase";
  * @param entityId - The ID of the entity to retrieve
  * @param params.expand - Additional data to include in entity response (optional)
  *
- * @returns entity - The entity object containing all entity data
+ * @returns data - Entity object with subscription and feature data
  * @returns isLoading - Whether entity data is being fetched
  * @returns error - Any error that occurred while fetching
  * @returns refetch - Refetch entity data

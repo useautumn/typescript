@@ -1,21 +1,20 @@
-import useSWR from "swr";
-import { useContext } from "react";
 import type { Autumn, AutumnError } from "@sdk";
-import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
+import { useContext } from "react";
+import useSWR from "swr";
+import type {
+	AttachParams,
+	CancelParams,
+	CheckParams,
+	EntityGetParams,
+} from "@/clientTypes";
+import { type AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { handleCheck, openDialog } from "./helpers/handleCheck";
 import { useAutumnBase } from "./helpers/useAutumnBase";
-import {
-  EntityGetParams,
-  CancelParams,
-  CheckParams,
-  TrackParams,
-  AttachParams,
-} from "@/clientTypes";
 import type { UseEntityMethods } from "./types/useEntityMethods";
 
 export interface UseEntityResult extends UseEntityMethods {
 	/** The entity object containing all entity data */
-	entity: Autumn.Entity | null;
+	data: Autumn.Entity | null;
 
 	/** Whether entity data is currently being loaded */
 	isLoading: boolean;
@@ -30,94 +29,88 @@ export interface UseEntityResult extends UseEntityMethods {
 }
 
 export const useEntityBase = ({
-  entityId,
-  params,
-  AutumnContext,
+	entityId,
+	params,
+	AutumnContext,
 }: {
-  entityId: string | null;
-  params?: EntityGetParams;
-  AutumnContext: React.Context<AutumnContextParams>;
+	entityId: string | null;
+	params?: EntityGetParams;
+	AutumnContext: React.Context<AutumnContextParams>;
 }): UseEntityResult => {
-  const { client } = useContext(AutumnContext);
-  const queryKey = ["entity", entityId, params?.expand];
+	const { client } = useContext(AutumnContext);
+	const queryKey = ["entity", entityId, params?.expand];
 
-  const context = useAutumnContext({
-    AutumnContext,
-    name: "useEntity",
-  });
+	const context = useAutumnContext({
+		AutumnContext,
+		name: "useEntity",
+	});
 
-  const fetchEntity = async () => {
-    if (!entityId) {
-      return null;
-    }
+	const fetchEntity = async () => {
+		if (!entityId) {
+			return null;
+		}
 
-    
-    return await client.entities.get(entityId, params);
-  };
+		return await client.entities.get(entityId, params);
+	};
 
-  const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity, {
-    fallbackData: null,
-    shouldRetryOnError: false,
-    onErrorRetry: (error: any, key: any, config: any) => {
-      if (error.code == "entity_not_found") {
-        return false;
-      }
+	const { data, error, isLoading, mutate } = useSWR(queryKey, fetchEntity, {
+		fallbackData: null,
+		shouldRetryOnError: false,
+		onErrorRetry: (error: any, key: any, config: any) => {
+			if (error.code === "entity_not_found") {
+				return false;
+			}
 
-      return true;
-    },
-  });
+			return true;
+		},
+	});
 
-  const {
-    attach: attachAutumn,
-    cancel: cancelAutumn,
-    track: trackAutumn,
-  } = useAutumnBase({ context, client });
+	const { attach: attachAutumn, cancel: cancelAutumn } = useAutumnBase({
+		context,
+		client,
+	});
 
-  const check = (params: CheckParams) => {
-    const result = handleCheck({ customer: data, params, isEntity: true });
+	const check = (params: CheckParams) => {
+		const result = handleCheck({ customer: data, params, isEntity: true });
 
-    openDialog({
-      result: result,
-      params,
-      context: context!,
-    });
+		openDialog({
+			result: result,
+			params,
+			context: context,
+		});
 
-    return result;
-  };
+		return result;
+	};
 
-  const attach = (params: AttachParams) =>
-    attachAutumn({ ...params, entityId: entityId || undefined });
-  const cancel = (params: CancelParams) =>
-    cancelAutumn({ ...params, entityId: entityId || undefined });
-  const track = (params: TrackParams) =>
-    trackAutumn({ ...params, entityId: entityId || undefined });
+	const attach = (params: AttachParams) =>
+		attachAutumn({ ...params, entityId: entityId || undefined });
+	const cancel = (params: CancelParams) =>
+		cancelAutumn({ ...params, entityId: entityId || undefined });
 
-  const refetch = async () => {
-    const result = await mutate();
-    return result ?? null;
-  };
+	const refetch = async () => {
+		const result = await mutate();
+		return result ?? null;
+	};
 
-  if (!entityId) {
-    return {
-      entity: null,
-      isLoading: false,
-      error: null,
-      refetch,
-      check,
-      attach,
-      cancel,
-      track,
-    };
-  }
+	if (!entityId) {
+		return {
+			data: null,
+			isLoading: false,
+			error: null,
+			refetch,
+			check,
+			attach,
+			cancel,
+		};
+	}
 
-  return {
-    entity: error ? null : data,
-    isLoading,
-    error,
-    refetch,
-    check,
-    attach,
-    cancel,
-    track,
-  };
+	return {
+		data: error ? null : data,
+		isLoading,
+		error,
+		refetch,
+		check,
+		attach,
+		cancel,
+	};
 };

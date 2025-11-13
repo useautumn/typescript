@@ -12,11 +12,11 @@ import type {
   AttachParams,
   BillingPortalParams,
   CancelParams,
-  CheckoutParams,
   CheckParams,
-  QueryParams,
+  CheckoutParams,
+  ReferralCreateCodeParams,
+  ReferralRedeemCodeParams,
   SetupPaymentParams,
-  TrackParams,
 } from "@/clientTypes";
 
 /**
@@ -80,50 +80,32 @@ export interface UseCustomerMethods {
   checkout: (params: CheckoutParams) => Promise<Autumn.CheckoutResponse>;
 
   /**
-   * Check whether a customer has access to a product, feature or remaining usage.
+   * Creates a checkout session for a customer to purchase a product with payment collection.
+   * Use this for new customers or when payment info is needed.
+   * For customers with existing payment methods, use `attach` instead.
    *
-   * @param params.feature_id - The ID of the feature to check access for
-   * @param params.product_id - The ID of the product to check
-   * @param params.entity_id - The ID of the entity (optional)
-   * @param params.customer_data - Customer data to create or update the customer if they don't exist
-   * @param params.required_balance - The required balance for the check
-   * @param params.send_event - Whether to send a usage event if allowed
-   * @param params.with_preview - Whether to include preview information in the response
-   * @param params.entity_data - Entity data to create the entity if it doesn't exist
+   * @param params.product_id - Product ID, set when creating the product in the Autumn dashboard
+   * @param params.entity_id - If attaching a product to an entity, can be used to auto create the entity
+   * @param params.customer_data - If auto creating a customer, the properties from this field will be used.
+   * @param params.entity_data - If attaching a product to an entity and auto creating the entity, the properties from this field will be used. feature_id is required.
+   * @param params.product_ids - Can be used to attach multiple products to the customer at once. For example, attaching a main product and an add-on.
+   * @param params.options - Pass in quantities for prepaid features
+   * @param params.free_trial - If the product has a free trial, this field can be used to disable it when attaching (by passing in false)
+   * @param params.success_url - URL to redirect to after the purchase is successful
+   * @param params.force_checkout - Always return a Stripe Checkout URL, even if the customer's card is already on file
+   * @param params.checkout_session_params - Additional parameters to pass onto Stripe when creating the checkout session
+   * @param params.reward - An Autumn promo_code or reward_id to apply at checkout
    *
    * @example
-   * ```typescript // Check feature access const response = await client.check({ customer_id: "cus_123", feature_id: "api_calls", }); ```
+   * ```typescript // Create a checkout session const response = await client.checkout({ customer_id: "cus_123", product_id: "pro_plan", }); ```
+   *
+   * @see
+   * {@link https://docs.useautumn.com/api-reference/core/checkout Checkout Sessions}
    *
    * @example
    * ```ts const response = await client.check({ customer_id: 'customer_id', }); ```
    */
   check: (params: CheckParams) => Autumn.CheckResponse;
-
-  /**
-   * Track usage events for metered features or record analytics events.
-   * Use this to increment usage counters for pay-as-you-go features or track customer activity.
-   *
-   * @param params.customer_data - Customer data to create or update the customer if they don't exist
-   * @param params.event_name - The name of the event to track
-   * @param params.feature_id - The ID of the feature (alternative to event_name for usage events)
-   * @param params.properties - Additional properties for the event
-   * @param params.timestamp - Unix timestamp in milliseconds when the event occurred
-   * @param params.idempotency_key - Idempotency key to prevent duplicate events
-   * @param params.value - The value/count of the event
-   * @param params.set_usage - Whether to set the usage to this value instead of increment
-   * @param params.entity_id - The ID of the entity this event is associated with
-   * @param params.entity_data - Data for creating the entity if it doesn't exist
-   *
-   * @example
-   * ```typescript // Track a usage event const response = await client.track({ customer_id: "cus_123", feature_id: "api_calls", value: 1, }); ```
-   *
-   * @see
-   * {@link https://docs.useautumn.com/api-reference/core/track Usage Tracking}
-   *
-   * @example
-   * ```ts const response = await client.track({ customer_id: 'x' }); ```
-   */
-  track: (params: TrackParams) => Promise<Autumn.TrackResponse>;
 
   /**
    * Cancel a customer's subscription to a product.
@@ -142,7 +124,7 @@ export interface UseCustomerMethods {
    * {@link https://docs.useautumn.com/api-reference/core/cancel Cancel Subscriptions}
    *
    * @example
-   * ```ts const response = await client.cancel({ customer_id: 'customer_id', product_id: 'product_id', }); ```
+   * ```ts const response = await client.cancel({ customer_id: 'cus_123', product_id: 'pro_plan', }); ```
    */
   cancel: (params: CancelParams) => Promise<Autumn.CancelResponse>;
 
@@ -160,7 +142,7 @@ export interface UseCustomerMethods {
    * {@link https://docs.useautumn.com/api-reference/core/setup-payment Payment Setup}
    *
    * @example
-   * ```ts const response = await client.setupPayment({ customer_id: 'customer_id', }); ```
+   * ```ts const response = await client.setupPayment({ customer_id: 'cus_123', }); ```
    */
   setupPayment: (params: SetupPaymentParams) => Promise<Autumn.SetupPaymentResponse>;
 
@@ -177,7 +159,25 @@ export interface UseCustomerMethods {
    * {@link https://docs.useautumn.com/api-reference/core/billing-portal Billing Portal}
    *
    * @example
-   * ```ts const response = await client.billingPortal({ customer_id: 'customer_id', }); ```
+   * ```ts const response = await client.billingPortal({ customer_id: 'cus_123', }); ```
    */
   openBillingPortal: (params: BillingPortalParams) => Promise<Autumn.BillingPortalResponse>;
+
+  /**
+   * Create a referral code.
+   *
+   *
+   * @example
+   * ```ts const response = await client.referrals.createCode({ customer_id: 'cus_123', program_id: 'prog_123', }); ```
+   */
+  createReferralCode: (params: ReferralCreateCodeParams) => Promise<Autumn.ReferralCreateCodeResponse>;
+
+  /**
+   * Redeem a referral code.
+   *
+   *
+   * @example
+   * ```ts const response = await client.referrals.redeemCode({ code: 'REF123ABC', customer_id: 'cus_456', }); ```
+   */
+  redeemReferralCode: (params: ReferralRedeemCodeParams) => Promise<Autumn.ReferralRedeemCodeResponse>;
 }

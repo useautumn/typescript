@@ -1,7 +1,7 @@
 "use client";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 // import type { CheckoutParams, CheckoutResult, ProductItem } from "@sdk";
-import { Autumn } from "@sdk";
+import type { Autumn } from "@sdk";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -92,12 +92,14 @@ export default function CheckoutDialog(params: CheckoutDialogProps) {
 						onClick={async () => {
 							setLoading(true);
 
-							const options = checkoutResult.options?.map((option: Autumn.CheckoutResponse.Option) => {
-								return {
-									featureId: option.feature_id,
-									quantity: option.quantity,
-								};
-							});
+							const options = checkoutResult.options?.map(
+								(option: Autumn.CheckoutResponse.Option) => {
+									return {
+										featureId: option.feature_id,
+										quantity: option.quantity,
+									};
+								},
+							);
 
 							await attach({
 								productId: checkoutResult.product?.id,
@@ -150,7 +152,11 @@ function PriceInformation({
 	);
 }
 
-function DueAmounts({ checkoutResult }: { checkoutResult: Autumn.CheckoutResponse }) {
+function DueAmounts({
+	checkoutResult,
+}: {
+	checkoutResult: Autumn.CheckoutResponse;
+}) {
 	const { next_cycle, product } = checkoutResult;
 	const nextCycleAtStr = next_cycle
 		? new Date(next_cycle.starts_at).toLocaleDateString()
@@ -247,7 +253,11 @@ function ProductItems({
 	);
 }
 
-function CheckoutLines({ checkoutResult }: { checkoutResult: Autumn.CheckoutResponse }) {
+function CheckoutLines({
+	checkoutResult,
+}: {
+	checkoutResult: Autumn.CheckoutResponse;
+}) {
 	return (
 		<Accordion type="single" collapsible>
 			<AccordionItem value="total" className="au-border-b-0">
@@ -267,7 +277,10 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: Autumn.CheckoutResp
 						.filter((line: Autumn.CheckoutResponse.Line) => line.amount !== 0)
 						.map((line, index) => {
 							return (
-								<div key={index} className="au-flex au-justify-between">
+								<div
+									key={`${line.description}-${index}`}
+									className="au-flex au-justify-between"
+								>
 									<p className="au-text-muted-foreground">{line.description}</p>
 									<p className="au-text-muted-foreground">
 										{new Intl.NumberFormat("en-US", {

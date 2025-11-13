@@ -1,78 +1,55 @@
 // Auto-generated Zod schema
 import { z } from "zod";
-import { CustomerDataSchema } from "./customerDataTypes";
-import { EntityDataSchema } from "./entityDataTypes";
 import type { CustomerData } from "./customerDataTypes";
+import { CustomerDataSchema } from "./customerDataTypes";
 import type { EntityData } from "./entityDataTypes";
-
-export const CheckParamsCustomerDataSchema = z.object({
-  email: z.string().nullable().optional(),
-  fingerprint: z.string().nullable().optional(),
-  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
-  name: z.string().nullable().optional(),
-  stripeId: z.string().nullable().optional()
-});
-
-export const CheckParamsEntityDataSchema = z.object({
-  featureId: z.string(),
-  name: z.string().optional()
-});
+import { EntityDataSchema } from "./entityDataTypes";
 
 export const CheckParamsSchema = z.object({
-  customerData: CheckParamsCustomerDataSchema.optional(),
-  entityData: CheckParamsEntityDataSchema.optional(),
-  entityId: z.string().optional(),
-  featureId: z.string().optional(),
-  productId: z.string().optional(),
-  requiredBalance: z.number().optional(),
-  sendEvent: z.boolean().optional(),
-  withPreview: z.boolean().optional(),
-  dialog: z.any().optional().describe("Dialog configuration for feature check flow"),
-  properties: z.record(z.string(), z.any()).optional().describe("Additional properties for the feature check")
+	customerData: CustomerDataSchema.describe(
+		"Used to add customer details like name or email when auto-creating a customer.",
+	).optional(),
+	entityData: EntityDataSchema.optional(),
+	entityId: z.string().optional(),
+	featureId: z.string().optional(),
+	productId: z.string().optional(),
+	properties: z.record(z.string(), z.unknown()).optional(),
+	requiredBalance: z.number().optional(),
+	requiredQuantity: z.number().optional(),
+	sendEvent: z.boolean().optional(),
+	withPreview: z.boolean().optional(),
+	dialog: z
+		.any()
+		.optional()
+		.describe("Dialog configuration for feature check flow"),
 });
 
-export interface CheckParamsCustomerData {
-  email?: string | null;
-
-  fingerprint?: string | null;
-
-  metadata?: { [key: string]: unknown } | null;
-
-  name?: string | null;
-
-  stripeId?: string | null;
-}
-
-export interface CheckParamsEntityData {
-  featureId: string;
-
-  name?: string;
-}
-
 export interface CheckParams {
-  customerData?: CheckParamsCustomerData;
+	/**
+	 * Used to add customer details like name or email when auto-creating a customer.
+	 */
+	customerData?: CustomerData;
 
-  entityData?: CheckParamsEntityData;
+	entityData?: EntityData;
 
-  entityId?: string;
+	entityId?: string;
 
-  featureId?: string;
+	featureId?: string;
 
-  productId?: string;
+	productId?: string;
 
-  requiredBalance?: number;
+	properties?: { [key: string]: unknown };
 
-  sendEvent?: boolean;
+	requiredBalance?: number;
 
-  withPreview?: boolean;
+	requiredQuantity?: number;
 
-  /**
-   * Dialog configuration for feature check flow
-   */
-  dialog?: any;
+	sendEvent?: boolean;
 
-  /**
-   * Additional properties for the feature check
-   */
-  properties?: Record<string, any>;
+	withPreview?: boolean;
+
+	/**
+	 * Dialog configuration for feature check flow
+	 */
+	dialog?: any;
 }

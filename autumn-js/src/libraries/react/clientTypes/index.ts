@@ -15,5 +15,4 @@ export * from './billingPortalTypes';
 export * from './setupPaymentTypes';
 export * from './cancelTypes';
 export * from './checkTypes';
-export * from './trackTypes';
 export * from './queryTypes';

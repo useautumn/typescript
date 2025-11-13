@@ -1,66 +1,74 @@
-import { type ProductWithDisplay } from "@/index";
+import type Autumn from "@sdk";
 
-export const getPricingTableContent = (product: ProductWithDisplay) => {
-  const { scenario, properties } = product;
-  const { is_one_off = false, updateable = false, has_trial = false } = properties || {};
+export const getPricingTableContent = ({
+	plan,
+}: {
+	plan: Autumn.Plan | null;
+}) => {
+	if (!plan) {
+		return {
+			buttonText: <p>Get Started</p>,
+		};
+	}
 
-  if (has_trial) {
-    return {
-      buttonText: <p>Start Free Trial</p>,
-    };
-  }
+	// TODO 4: hasTrial = plan.free_trial and !trial_used
+	const hasTrial = plan.free_trial;
+	const isOneOff = plan.price?.interval === "one_off";
+	const scenario = plan.customer_eligibility?.scenario;
 
-  switch (scenario) {
-    case "scheduled":
-      return {
-        buttonText: <p>Plan Scheduled</p>,
-      };
+	console.log(`Plan: ${plan.id}, Scenario: ${scenario}`);
 
-    case "active":
-      if (updateable) {
-        return {
-          buttonText: <p>Update Plan</p>,
-        };
-      }
+	if (hasTrial) {
+		return {
+			buttonText: <p>Start Free Trial</p>,
+		};
+	}
 
-      return {
-        buttonText: <p>Current Plan</p>,
-      };
+	switch (scenario) {
+		case "scheduled":
+			return {
+				buttonText: <p>Plan Scheduled</p>,
+			};
 
-    case "new":
-      if (is_one_off) {
-        return {
-          buttonText: <p>Purchase</p>,
-        };
-      }
+		case "active":
+			return {
+				buttonText: <p>Current Plan</p>,
+			};
 
-      return {
-        buttonText: <p>Get started</p>,
-      };
+		case "new":
+			if (isOneOff) {
+				return {
+					buttonText: <p>Purchase</p>,
+				};
+			}
 
-    case "renew":
-      return {
-        buttonText: <p>Renew</p>,
-      };
+			return {
+				buttonText: <p>Get started</p>,
+			};
 
-    case "upgrade":
-      return {
-        buttonText: <p>Upgrade</p>,
-      };
+		case "renew":
+			return {
+				buttonText: <p>Renew</p>,
+			};
 
-    case "downgrade":
-      return {
-        buttonText: <p>Downgrade</p>,
-      };
+		case "upgrade":
+			return {
+				buttonText: <p>Upgrade</p>,
+			};
 
-    case "cancel":
-      return {
-        buttonText: <p>Cancel Plan</p>,
-      };
+		case "downgrade":
+			return {
+				buttonText: <p>Downgrade</p>,
+			};
 
-    default:
-      return {
-        buttonText: <p>Get Started</p>,
-      };
-  }
+		case "cancel":
+			return {
+				buttonText: <p>Cancel Plan</p>,
+			};
+
+		default:
+			return {
+				buttonText: <p>Get Started</p>,
+			};
+	}
 };

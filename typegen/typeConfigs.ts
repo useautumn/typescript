@@ -12,6 +12,10 @@ export interface MethodConfig {
 	isSync?: boolean;
 	/** @param tags to exclude from JSDoc (e.g., ["body.customer_id"]) */
 	exclusions?: string[];
+	/** Override param type name (if different from sourceName) */
+	paramType?: string;
+	/** Override return type name (if extraction fails) */
+	returnType?: string;
 }
 
 /**
@@ -295,19 +299,15 @@ export function getAutumnJSTypeConfigs(
 						zodType: "z.any().optional()",
 						description: "Dialog configuration for feature check flow",
 					},
-					properties: {
-						zodType: "z.record(z.string(), z.any()).optional()",
-						description: "Additional properties for the feature check",
-					},
 				},
 			},
-			{
-				sourceName: "TrackParams",
-				targetName: "TrackParams",
-				sourceFile: topLevelFile,
-				targetFile: path.join(generatedDir, "trackTypes.ts"),
-				omitFields: ["customer_id"], // Remove customerId - handled by client
-			},
+			// {
+			// 	sourceName: "TrackParams",
+			// 	targetName: "TrackParams",
+			// 	sourceFile: topLevelFile,
+			// 	targetFile: path.join(generatedDir, "trackTypes.ts"),
+			// 	omitFields: ["customer_id"], // Remove customerId - handled by client
+			// },
 			{
 				sourceName: "QueryParams",
 				targetName: "QueryParams",
@@ -358,11 +358,6 @@ export function getAutumnJSMethodConfigs(
 					exclusions: ["body.customer_id"],
 				},
 				{
-					sourceName: "track",
-					targetName: "track",
-					exclusions: ["body.customer_id"],
-				},
-				{
 					sourceName: "cancel",
 					targetName: "cancel",
 					exclusions: ["body.customer_id"],
@@ -375,6 +370,33 @@ export function getAutumnJSMethodConfigs(
 				{
 					sourceName: "billingPortal",
 					targetName: "openBillingPortal",
+					exclusions: ["body.customer_id"],
+				},
+			],
+		},
+		// Referral methods (from referrals resource, merged into UseCustomerMethods)
+		{
+			sourceFile: path.join(tsSDKPath, "src/resources/referrals.ts"),
+			targetFile: path.join(
+				autumnJSPath,
+				"src/libraries/react/hooks/types/useCustomerMethods.ts",
+			),
+			interfaceName: "UseCustomerMethods",
+			interfaceDescription:
+				"Methods available in useCustomer hook for managing customer subscriptions and features",
+			methods: [
+				{
+					sourceName: "createCode",
+					targetName: "createReferralCode",
+					paramType: "ReferralCreateCodeParams",
+					returnType: "ReferralCreateCodeResponse",
+					exclusions: ["body.customer_id"],
+				},
+				{
+					sourceName: "redeemCode",
+					targetName: "redeemReferralCode",
+					paramType: "ReferralRedeemCodeParams",
+					returnType: "ReferralRedeemCodeResponse",
 					exclusions: ["body.customer_id"],
 				},
 			],
@@ -400,11 +422,11 @@ export function getAutumnJSMethodConfigs(
 					targetName: "cancel",
 					exclusions: ["body.customer_id"],
 				},
-				{
-					sourceName: "track",
-					targetName: "track",
-					exclusions: ["body.customer_id"],
-				},
+				// {
+				// 	sourceName: "track",
+				// 	targetName: "track",
+				// 	exclusions: ["body.customer_id"],
+				// },
 				{
 					sourceName: "check",
 					targetName: "check",
@@ -561,7 +583,8 @@ export function getAtmnTypeConfigs(
 				extendFields: {
 					type: {
 						zodType: "z.string()",
-						description: "The type of the feature (boolean, single_use, continuous_use, credit_system)",
+						description:
+							"The type of the feature (boolean, single_use, continuous_use, credit_system)",
 					},
 				},
 			},

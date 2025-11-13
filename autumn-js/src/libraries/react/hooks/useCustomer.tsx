@@ -1,21 +1,20 @@
-import { useEffect } from "react";
 import { AutumnContext } from "../AutumnContext";
-import { useCustomerBase, UseCustomerParams } from "./useCustomerBase";
+import { type UseCustomerParams, useCustomerBase } from "./useCustomerBase";
 
 /**
  * React hook for managing customer billing, subscriptions, and feature access.
- * 
+ *
  * Provides access to all Autumn billing functions including product attachment,
  * subscription management, usage tracking, and feature gating. Automatically
  * handles customer data fetching and caching.
- * 
+ *
  * @param params - Optional configuration for the hook
  * @returns Object containing customer data and billing functions
- * 
+ *
  * @example
  * ```tsx
  * import { useCustomer } from "autumn-js/react";
- * 
+ *
  * function MyComponent() {
  *   const {
  *     customer,
@@ -32,7 +31,7 @@ import { useCustomerBase, UseCustomerParams } from "./useCustomerBase";
  *     createEntity,
  *     refetch
  *   } = useCustomer();
- * 
+ *
  *   return (
  *     <div>
  *       <button onClick={() => attach({ productId: "pro" })}>
@@ -45,7 +44,7 @@ import { useCustomerBase, UseCustomerParams } from "./useCustomerBase";
  *   );
  * }
  * ```
- * 
+ *
  * @returns {Object} Hook result object
  * @returns {Customer | null} returns.customer - Current customer data with subscription info
  * @returns {boolean} returns.isLoading - Whether customer data is loading
@@ -63,8 +62,8 @@ import { useCustomerBase, UseCustomerParams } from "./useCustomerBase";
  * @returns {Function} returns.refetch - Manually refetch customer data
  */
 export const useCustomer = (params?: UseCustomerParams) => {
-  return useCustomerBase({
-    params,
-    AutumnContext: AutumnContext,
-  });
+	return useCustomerBase({
+		params,
+		AutumnContext: AutumnContext,
+	});
 };

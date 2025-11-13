@@ -5,68 +5,80 @@ import { EntityDataSchema } from "./entityDataTypes";
 import type { CustomerData } from "./customerDataTypes";
 import type { EntityData } from "./entityDataTypes";
 
-export const TrackParamsCustomerDataSchema = z.object({
-  email: z.string().nullable().optional(),
-  fingerprint: z.string().nullable().optional(),
-  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
-  name: z.string().nullable().optional(),
-  stripeId: z.string().nullable().optional()
-});
-
-export const TrackParamsEntityDataSchema = z.object({
-  featureId: z.string(),
-  name: z.string().optional()
-});
-
 export const TrackParamsSchema = z.object({
-  customerData: TrackParamsCustomerDataSchema.nullable().optional(),
-  entityData: TrackParamsEntityDataSchema.nullable().optional(),
-  entityId: z.string().nullable().optional(),
-  eventName: z.string().optional(),
-  featureId: z.string().optional(),
-  idempotencyKey: z.string().nullable().optional(),
-  properties: z.record(z.string(), z.unknown()).nullable().optional(),
-  setUsage: z.boolean().nullable().optional(),
-  timestamp: z.number().nullable().optional(),
-  value: z.number().nullable().optional()
+  customerData: CustomerDataSchema.describe("Customer data to create or update the customer if they don't exist").optional(),
+  entityData: EntityDataSchema.describe("Data for creating the entity if it doesn't exist").optional(),
+  entityId: z.string().describe("The ID of the entity this event is associated with").optional(),
+  eventName: z.string().describe("The name of the event to track").optional(),
+  featureId: z.string().describe("The ID of the feature (alternative to event_name for usage events)").optional(),
+  idempotencyKey: z.string().describe("Idempotency key to prevent duplicate events").optional(),
+  overageBehavior: z.union([z.literal('cap'), z.literal('reject')]).describe("The behavior when the balance is insufficient").optional(),
+  properties: z.record(z.string(), z.unknown()).describe("Additional properties for the event").optional(),
+  setUsage: z.boolean().nullable().describe("Whether to set the usage to this value instead of increment").optional(),
+  skipEvent: z.boolean().describe("Skip event insertion (for stress tests). Balance is still deducted, but event is\nnot persisted to database.").optional(),
+  timestamp: z.number().describe("Unix timestamp in milliseconds when the event occurred").optional(),
+  value: z.number().describe("The value/count of the event").optional()
 });
-
-export interface TrackParamsCustomerData {
-  email?: string | null;
-
-  fingerprint?: string | null;
-
-  metadata?: { [key: string]: unknown } | null;
-
-  name?: string | null;
-
-  stripeId?: string | null;
-}
-
-export interface TrackParamsEntityData {
-  featureId: string;
-
-  name?: string;
-}
 
 export interface TrackParams {
-  customerData?: TrackParamsCustomerData | null;
+  /**
+   * Customer data to create or update the customer if they don't exist
+   */
+  customerData?: CustomerData;
 
-  entityData?: TrackParamsEntityData | null;
+  /**
+   * Data for creating the entity if it doesn't exist
+   */
+  entityData?: EntityData;
 
-  entityId?: string | null;
+  /**
+   * The ID of the entity this event is associated with
+   */
+  entityId?: string;
 
+  /**
+   * The name of the event to track
+   */
   eventName?: string;
 
+  /**
+   * The ID of the feature (alternative to event_name for usage events)
+   */
   featureId?: string;
 
-  idempotencyKey?: string | null;
+  /**
+   * Idempotency key to prevent duplicate events
+   */
+  idempotencyKey?: string;
 
-  properties?: { [key: string]: unknown } | null;
+  /**
+   * The behavior when the balance is insufficient
+   */
+  overageBehavior?: 'cap' | 'reject';
 
+  /**
+   * Additional properties for the event
+   */
+  properties?: { [key: string]: unknown };
+
+  /**
+   * Whether to set the usage to this value instead of increment
+   */
   setUsage?: boolean | null;
 
-  timestamp?: number | null;
+  /**
+   * Skip event insertion (for stress tests). Balance is still deducted, but event is
+not persisted to database.
+   */
+  skipEvent?: boolean;
 
-  value?: number | null;
+  /**
+   * Unix timestamp in milliseconds when the event occurred
+   */
+  timestamp?: number;
+
+  /**
+   * The value/count of the event
+   */
+  value?: number;
 }
