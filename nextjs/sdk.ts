@@ -1,31 +1,50 @@
 import "dotenv/config";
-// import { Autumn } from "autumn-js";
-// import { Autumn } from "@useautumn/sdk";
 
-// import { Autumn } from "autumn-js";
 import { Autumn } from "@useautumn/sdk";
-import { Knock } from "@knocklabs/node";
 
 const main = async () => {
+	const autumn = new Autumn({
+		baseURL: "http://localhost:8080/v1",
+		secretKey: process.env.AUTUMN_SECRET_KEY,
+	});
 
-  const autumn = new Autumn({
-    baseURL: "http://localhost:8080/v1",
-    secretKey: process.env.AUTUMN_SECRET_KEY,
-  })
+	// console.log(`API version:`, autumn.apiVersion);
 
-  const knock = new Knock({
-    apiKey: process.env.KNOCK_API_KEY,
-  })
+	// const customer = await autumn.customers.get("temp");
+	// console.log(`Customer:`, customer);
+	await autumn.plans.list({
+		query: {
+			customer_id: "customer_id",
+		},
+	});
 
-  await knock.channels.bulk.updateMessageStatus("123", "seen", {
-    recipient_ids: ["123"],
-  })
+	await autumn.customers.get("customer_id", {
+		expand: ["subscriptions.plan"],
+	});
 
-  
-  await autumn.attach({
-    customer_id: "123",
-    product_id: "pro",
-  })
+	try {
+		const deleted = await autumn.plans.delete("test-plan");
+		console.log(`Deleted plan, response:`, deleted);
+	} catch (error) {
+		console.error(`Failed to delete plan: ${error}`);
+	}
+
+	const created = await autumn.plans.create({
+		id: "test-plan",
+		name: "Test Plan",
+		description: "Test Description",
+		price: {
+			amount: 50,
+			interval: "month",
+		},
+		features: [
+			{
+				feature_id: "messages",
+				granted_balance: 40,
+			},
+		],
+	});
+	console.log(`Created plan, response:`, created);
 };
 
 main();
