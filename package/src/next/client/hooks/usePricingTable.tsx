@@ -4,6 +4,7 @@ import { ProductDetails } from "../../../libraries/react/client/types/clientPric
 
 export const usePricingTable = (params?: {
   productDetails?: ProductDetails[];
+  entityId?: string;
 }) => {
   const context = useAutumnContext({
     AutumnContext,

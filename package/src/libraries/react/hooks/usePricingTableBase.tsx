@@ -195,11 +195,14 @@ export const usePricingTableBase = ({
   client: AutumnClient | ConvexAutumnClient;
   params?: {
     productDetails?: ProductDetails[];
+    entityId?: string;
   };
 }) => {
   const fetcher = async () => {
     try {
-      const { data, error } = await client.products.list();
+      const { data, error } = await client.products.list({
+        entityId: params?.entityId,
+      });
       if (error) throw error;
 
       return data?.list || [];
@@ -212,7 +215,7 @@ export const usePricingTableBase = ({
   };
 
   const { data, error, mutate } = useSWR<Product[], AutumnError>(
-    ["pricing-table", client.backendUrl],
+    ["pricing-table", client.backendUrl, params?.entityId],
     fetcher,
     { ...defaultSWRConfig }
   );

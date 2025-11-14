@@ -7,12 +7,17 @@ const listProductsHandler = withAuth({
   fn: async ({
     autumn,
     customer_id,
+    searchParams,
   }: {
     autumn: Autumn;
     customer_id: string;
+    searchParams?: {
+      entityId?: string;
+    };
   }) => {
     return await autumn.products.list({
-      customer_id,
+      customer_id: customer_id,
+      entity_id: searchParams?.entityId,
     });
   },
   requireCustomer: false,

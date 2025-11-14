@@ -16,6 +16,7 @@ export interface AutumnContextParams {
   client: AutumnClient;
 
   // Internal
+  entityId?: string | null;
   paywallDialog: AutumnDialogContext;
   attachDialog: AutumnDialogContext;
   paywallRef: React.RefObject<any>;
@@ -27,20 +28,22 @@ export const AutumnContext = createContext<AutumnContextParams>({
 
   client: new AutumnClient({ backendUrl: "" }),
 
+  entityId: undefined,
+
   paywallDialog: {
     props: null,
-    setProps: () => {},
+    setProps: () => { },
     open: false,
-    setOpen: () => {},
-    setComponent: () => {},
+    setOpen: () => { },
+    setComponent: () => { },
   },
 
   attachDialog: {
     props: null,
-    setProps: () => {},
+    setProps: () => { },
     open: false,
-    setOpen: () => {},
-    setComponent: () => {},
+    setOpen: () => { },
+    setComponent: () => { },
   },
 
   paywallRef: { current: null },
@@ -50,10 +53,12 @@ export const useAutumnContext = ({
   AutumnContext,
   name,
   errorIfNotInitialized = true,
+  entityId,
 }: {
   AutumnContext: React.Context<AutumnContextParams>;
   name: string;
   errorIfNotInitialized?: boolean;
+  entityId?: string | null;
 }) => {
   const context = useContext(AutumnContext);
 
