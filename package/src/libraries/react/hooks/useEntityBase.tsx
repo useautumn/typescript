@@ -26,6 +26,7 @@ export const useEntityBase = ({
   const context = useAutumnContext({
     AutumnContext,
     name: "useEntity",
+    entityId,
   });
 
   const fetchEntity = async () => {
@@ -33,7 +34,7 @@ export const useEntityBase = ({
       return null;
     }
 
-    
+
     const { data, error } = await client.entities.get(entityId, params);
 
     if (error) {

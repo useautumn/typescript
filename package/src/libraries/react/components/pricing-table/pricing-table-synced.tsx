@@ -13,13 +13,15 @@ import { Loader2 } from "lucide-react";
 
 export default function PricingTable({
   productDetails,
+  entityId,
 }: {
   productDetails?: ProductDetails[];
+  entityId?: string;
 }) {
   const { customer, checkout } = useCustomer({ errorOnNotFound: false });
 
   const [isAnnual, setIsAnnual] = useState(false);
-  const { products, isLoading, error } = usePricingTable({ productDetails });
+  const { products, isLoading, error } = usePricingTable({ productDetails, entityId });
 
   if (isLoading) {
     return (
@@ -102,7 +104,7 @@ const PricingTableContext = createContext<{
   showFeatures: boolean;
 }>({
   isAnnualToggle: false,
-  setIsAnnualToggle: () => {},
+  setIsAnnualToggle: () => { },
   products: [],
   showFeatures: true,
 });
@@ -206,8 +208,8 @@ export const PricingCard = ({
   const isRecommended = productDisplay?.recommend_text ? true : false;
   const mainPriceDisplay = product.properties?.is_free
     ? {
-        primary_text: "Free",
-      }
+      primary_text: "Free",
+    }
     : product.items[0].display;
 
   const featureItems = product.properties?.is_free
@@ -219,7 +221,7 @@ export const PricingCard = ({
       className={cn(
         " au-w-full au-h-full au-py-6 au-text-foreground au-border au-rounded-lg au-shadow-sm au-max-w-xl",
         isRecommended &&
-          "lg:au--translate-y-6 lg:au-shadow-lg dark:au-shadow-zinc-800/80 lg:au-h-[calc(100%+48px)] au-bg-secondary/40",
+        "lg:au--translate-y-6 lg:au-shadow-lg dark:au-shadow-zinc-800/80 lg:au-h-[calc(100%+48px)] au-bg-secondary/40",
         className
       )}
     >

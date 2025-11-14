@@ -196,13 +196,11 @@ export const usePricingTableBase = ({
   params?: {
     productDetails?: ProductDetails[];
     entityId?: string;
-    customerId?: string;
   };
 }) => {
   const fetcher = async () => {
     try {
       const { data, error } = await client.products.list({
-        customerId: params?.customerId,
         entityId: params?.entityId,
       });
       if (error) throw error;
@@ -217,7 +215,7 @@ export const usePricingTableBase = ({
   };
 
   const { data, error, mutate } = useSWR<Product[], AutumnError>(
-    ["pricing-table", client.backendUrl],
+    ["pricing-table", client.backendUrl, params?.entityId],
     fetcher,
     { ...defaultSWRConfig }
   );

@@ -33,7 +33,7 @@ export const useAutumnBase = ({
 }) => {
   const { attachDialog, paywallDialog } = context || {};
 
-  const { refetch: refetchPricingTable } = usePricingTableBase({ client });
+  const { refetch: refetchPricingTable } = usePricingTableBase({ client, params: { entityId: context?.entityId || undefined } });
 
   const attachWithoutDialog = async (params: AttachParams) => {
     const result = await client.attach(params);

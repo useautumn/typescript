@@ -5,7 +5,6 @@ import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 export const usePricingTable = (params?: {
   productDetails?: ProductDetails[];
   entityId?: string;
-  customerId?: string;
 }) => {
   const context = useAutumnContext({
     AutumnContext,

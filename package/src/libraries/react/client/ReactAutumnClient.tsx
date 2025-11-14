@@ -103,7 +103,7 @@ export interface IAutumnClient {
   };
 
   products: {
-    list(): AutumnPromise<{ list: Product[] }>;
+    list(args: any): AutumnPromise<{ list: Product[] }>;
   };
 }
 
@@ -211,8 +211,7 @@ export class AutumnClient implements IAutumnClient {
           `[Autumn] Detected CORS credentials: ${corsResult.includeCredentials}`
         );
         console.warn(
-          `[Autumn] To disable this warning, you can set includeCredentials={${
-            corsResult.includeCredentials ? "true" : "false"
+          `[Autumn] To disable this warning, you can set includeCredentials={${corsResult.includeCredentials ? "true" : "false"
           }} in <AutumnProvider />`
         );
         this.includeCredentials = corsResult.includeCredentials;
@@ -260,10 +259,10 @@ export class AutumnClient implements IAutumnClient {
     body =
       method === "POST"
         ? {
-            ...body,
-            [this.camelCase ? "customerData" : "customer_data"]:
-              this.customerData || undefined,
-          }
+          ...body,
+          [this.camelCase ? "customerData" : "customer_data"]:
+            this.customerData || undefined,
+        }
         : undefined;
 
     const includeCredentials = await this.shouldIncludeCredentials();
