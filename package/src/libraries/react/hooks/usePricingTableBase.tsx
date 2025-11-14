@@ -195,11 +195,16 @@ export const usePricingTableBase = ({
   client: AutumnClient | ConvexAutumnClient;
   params?: {
     productDetails?: ProductDetails[];
+    entityId?: string;
+    customerId?: string;
   };
 }) => {
   const fetcher = async () => {
     try {
-      const { data, error } = await client.products.list();
+      const { data, error } = await client.products.list({
+        customerId: params?.customerId,
+        entityId: params?.entityId,
+      });
       if (error) throw error;
 
       return data?.list || [];
