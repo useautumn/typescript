@@ -135,7 +135,7 @@ const handleProductCheck = ({
   params: AllowedParams;
 }) => {
   let product = customer.products.find((p) => p.id == params.productId);
-  let allowed = product?.status === "active";
+  let allowed = product?.status === "active" || product?.status === "trialing";
 
   let result = {
     allowed,
