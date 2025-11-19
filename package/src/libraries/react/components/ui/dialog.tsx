@@ -13,7 +13,7 @@ const DialogTrigger: typeof DialogPrimitive.Trigger = DialogPrimitive.Trigger;
 const DialogPortal = ({
   children,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Portal>) => {
+}: React.ComponentProps<typeof DialogPrimitive.Portal>): React.JSX.Element => {
   return (
     <DialogPrimitive.Portal {...props}>
       <div className="au-root">{children}</div>
@@ -69,7 +69,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 const DialogHeader = ({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+}: React.HTMLAttributes<HTMLDivElement>): React.JSX.Element => (
   <div
     className={cn(
       "au-flex au-flex-col au-space-y-1.5 au-text-center sm:au-text-left",
@@ -83,7 +83,7 @@ DialogHeader.displayName = "DialogHeader";
 const DialogFooter = ({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+}: React.HTMLAttributes<HTMLDivElement>): React.JSX.Element => (
   <div
     className={cn(
       "au-flex au-flex-col-reverse sm:au-flex-row sm:au-justify-end sm:au-space-x-2",

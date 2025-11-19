@@ -2,6 +2,7 @@ import { encryptData } from "../utils/encryptUtils";
 import { CustomerData } from "../sdk";
 import { AuthPluginOptions, setupAuthPlugin } from "./server/auth/authPlugin";
 import { NextAutumnProvider } from "./client/NextAutumnProvider";
+import React from "react";
 
 
 interface AutumnProviderProps {
@@ -22,7 +23,7 @@ export const AutumnProvider = ({
   authPlugin,
   children,
   defaultReturnUrl,
-}: AutumnProviderProps) => {
+}: AutumnProviderProps): React.JSX.Element => {
   if (typeof window !== "undefined") {
     throw new Error(
       "AutumnProvider must be used in a server component. It cannot be used in client components."

@@ -1,5 +1,5 @@
 import type { AutumnPromise } from "@sdk/response";
-import type { Product } from "src/sdk/products/prodTypes";
+import type { Product } from "@sdk/products/prodTypes";
 import type { AutumnClient } from "./ReactAutumnClient";
 
 export async function listProductsMethod(this: AutumnClient): AutumnPromise<{

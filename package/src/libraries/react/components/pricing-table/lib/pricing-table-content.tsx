@@ -1,6 +1,8 @@
 import { type Product } from "@sdk";
 
-export const getPricingTableContent = (product: Product) => {
+import type React from "react";
+
+export const getPricingTableContent = (product: Product): { buttonText: React.JSX.Element } => {
   const { scenario, free_trial, properties } = product;
   const { is_one_off, updateable, has_trial } = properties;
 

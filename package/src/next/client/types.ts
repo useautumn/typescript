@@ -1,5 +1,5 @@
-import { Customer, CustomerData } from "src/sdk";
-import { Entity } from "src/sdk/customers/entities/entTypes";
+import { Customer, CustomerData } from "@sdk";
+import { Entity } from "@sdk/customers/entities/entTypes";
 
 export interface ProductDetails {
   id: string;

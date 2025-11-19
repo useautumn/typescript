@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { CustomerData } from "../../sdk";
 import { NextAutumnClient } from "./NextAutumnClient";
 import { AutumnContext } from "../../libraries/react/AutumnContext";
@@ -15,7 +16,7 @@ export const NextAutumnProvider = ({
   customerData?: CustomerData;
   children: React.ReactNode;
   defaultReturnUrl?: string;
-}) => {
+}): React.JSX.Element => {
   const client = new NextAutumnClient({
     encryptedCustomerId,
     customerData,

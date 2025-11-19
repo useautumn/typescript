@@ -196,7 +196,7 @@ export const usePricingTableBase = ({
   params?: {
     productDetails?: ProductDetails[];
   };
-}) => {
+}): { products: Product[] | null; isLoading: boolean; error: AutumnError | undefined; refetch: () => void } => {
   const fetcher = async () => {
     try {
       const { data, error } = await client.products.list();

@@ -15,7 +15,7 @@ export default function PricingTable({
   productDetails,
 }: {
   productDetails?: ProductDetails[];
-}) {
+}) : React.JSX.Element {
   const { customer, checkout } = useCustomer({ errorOnNotFound: false });
 
   const [isAnnual, setIsAnnual] = useState(false);
@@ -133,7 +133,7 @@ export const PricingTableContainer = ({
   isAnnualToggle: boolean;
   setIsAnnualToggle: (isAnnual: boolean) => void;
   multiInterval: boolean;
-}) => {
+}): React.JSX.Element => {
   if (!products) {
     throw new Error("products is required in <PricingTable />");
   }
@@ -190,7 +190,7 @@ export const PricingCard = ({
   productId,
   className,
   buttonProps,
-}: PricingCardProps) => {
+}: PricingCardProps): React.JSX.Element => {
   const { products, showFeatures } = usePricingTableContext("PricingCard");
 
   const product = products.find((p) => p.id === productId);
@@ -292,7 +292,7 @@ export const PricingFeatureList = ({
   items: ProductItem[];
   everythingFrom?: string;
   className?: string;
-}) => {
+}): React.JSX.Element => {
   return (
     <div className={cn("au-flex-grow", className)}>
       {everythingFrom && (
@@ -333,7 +333,7 @@ export interface PricingCardButtonProps extends React.ComponentProps<"button"> {
 export const PricingCardButton = React.forwardRef<
   HTMLButtonElement,
   PricingCardButtonProps
->(({ recommended, children, className, onClick, ...props }, ref) => {
+>(({ recommended, children, className, onClick, ...props }, ref): React.JSX.Element => {
   const [loading, setLoading] = useState(false);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -385,7 +385,7 @@ export const AnnualSwitch = ({
 }: {
   isAnnualToggle: boolean;
   setIsAnnualToggle: (isAnnual: boolean) => void;
-}) => {
+}): React.JSX.Element => {
   return (
     <div className="au-flex au-items-center au-space-x-2 au-mb-4">
       <span className="au-text-sm au-text-muted-foreground">Monthly</span>
@@ -399,7 +399,7 @@ export const AnnualSwitch = ({
   );
 };
 
-export const RecommendedBadge = ({ recommended }: { recommended: string }) => {
+export const RecommendedBadge = ({ recommended }: { recommended: string }): React.JSX.Element => {
   return (
     <div className="au-bg-secondary au-absolute au-border au-text-muted-foreground au-text-sm au-font-medium lg:au-rounded-full au-px-3 lg:au-py-0.5 lg:au-top-4 lg:au-right-4 au-top-[-1px] au-right-[-1px] au-rounded-bl-lg">
       {recommended}

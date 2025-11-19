@@ -10,6 +10,7 @@ import {
   TrackParams,
 } from "@/client/types/clientGenTypes";
 import { AttachParams } from "@/client/types/clientAttachTypes";
+import { AutumnError, CheckResult, Entity } from "@sdk";
 
 export const useEntityBase = ({
   entityId,
@@ -19,7 +20,16 @@ export const useEntityBase = ({
   entityId: string | null;
   params?: GetEntityParams;
   AutumnContext: React.Context<AutumnContextParams>;
-}) => {
+}): {
+  entity: Entity | null;
+  isLoading: boolean;
+  error: AutumnError | undefined | null;
+  refetch: () => void;
+  check: (params: CheckParams) => { data: CheckResult, error: null } | { data: null, error: AutumnError };
+  attach: (params: AttachParams) => void;
+  cancel: (params: CancelParams) => void;
+  track: (params: TrackParams) => void;
+} => {
   const { client } = useContext(AutumnContext);
   const queryKey = ["entity", entityId, params?.expand];
 

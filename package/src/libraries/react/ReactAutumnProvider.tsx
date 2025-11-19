@@ -4,6 +4,7 @@ import { CustomerData } from "../../sdk";
 import { AutumnContext } from "./AutumnContext";
 import { IAutumnClient } from "./client/ReactAutumnClient";
 import { ConvexAutumnClient } from "./client/ConvexAutumnClient";
+import React from "react";
 
 const getBackendUrl = (backendUrl?: string) => {
   if (backendUrl) {
@@ -39,7 +40,7 @@ export const ReactAutumnProvider = ({
   headers?: Record<string, string>;
   convexApi?: any; // The exported autumn.api() object from Convex
   pathPrefix?: string; // Optional path prefix to override default "/api/autumn"
-}) => {
+}): React.JSX.Element => {
   let client: IAutumnClient = convexApi
     ? new ConvexAutumnClient({
         convex,

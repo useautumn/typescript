@@ -14,7 +14,7 @@ export function BaseAutumnProvider({
   client: IAutumnClient;
   children: React.ReactNode;
   AutumnContext: any;
-}) {
+}): React.JSX.Element {
   const [components, setComponents] = useState<{
     paywallDialog?: any;
     productChangeDialog?: any;
