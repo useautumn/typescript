@@ -4,20 +4,18 @@
 
 ```sh
 npm i
-cd example
-npm i
-npx convex dev
+npm run dev
 ```
 
 ## Testing
 
 ```sh
-rm -rf dist/ && npm run build
+npm run clean
+npm ci
+npm run build
 npm run typecheck
 npm run test
-cd example
 npm run lint
-cd ..
 ```
 
 ## Deploying
@@ -25,7 +23,8 @@ cd ..
 ### Building a one-off package
 
 ```sh
-rm -rf dist/ && npm run build
+npm run clean
+npm run build
 npm pack
 ```
 
