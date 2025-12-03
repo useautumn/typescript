@@ -1,7 +1,5 @@
 import { actionGeneric } from "convex/server";
 import { v } from "convex/values";
-import type { Mounts } from "../component/_generated/api.js";
-import type { UseApi } from "./types.js";
 import {
   type TrackArgsType,
   type CheckoutArgsType,
@@ -30,6 +28,7 @@ import {
   type CreateReferralCodeArgsType,
   type RedeemReferralCodeArgsType,
 } from "../types.js";
+import type { ComponentApi } from "../component/_generated/component.js";
 
 import { Autumn as AutumnSDK } from "autumn-js";
 
@@ -38,7 +37,7 @@ import * as autumnHelpers from "./helpers/index.js";
 // UseApi<typeof api> is an alternative that has jump-to-definition but is
 // less stable and reliant on types within the component files, which can cause
 // issues where passing `components.foo` doesn't match the argument
-export type AutumnComponent = UseApi<Mounts>;
+export type AutumnComponent = ComponentApi;
 
 export class Autumn {
   constructor(
