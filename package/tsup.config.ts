@@ -9,6 +9,11 @@ const pathAliases = {
 	"@styles": path.resolve("./src/styles"),
 };
 
+// Path aliases for Svelte library
+const sveltePathAliases = {
+	"@sdk": path.resolve("./src/sdk"),
+};
+
 const reactConfigs: Options[] = [
 	// Backend
 	{
@@ -208,6 +213,28 @@ export default defineConfig([
 			};
 			options.platform = "node";
 			options.format = "esm";
+		},
+	},
+
+	// Svelte library - TypeScript files (including .svelte.ts runes files)
+	{
+		entry: [
+			"src/libraries/svelte/**/*.ts",
+			"!src/libraries/svelte/**/*.svelte",
+		],
+		format: ["cjs", "esm"],
+		dts: true,
+		clean: false,
+		outDir: "./dist/libraries/svelte",
+		external: ["svelte", "svelte/store", "@sveltejs/kit"],
+		bundle: true,
+		skipNodeModulesBundle: true,
+		esbuildOptions(options) {
+			options.plugins = options.plugins || [];
+			options.plugins.push(alias(sveltePathAliases));
+			options.define = {
+				...options.define,
+			};
 		},
 	},
 ]);

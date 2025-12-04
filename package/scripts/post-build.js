@@ -163,6 +163,32 @@ function processInjectedCss() {
   });
 }
 
+// Copy Svelte component files to dist (they need to be processed by user's Svelte compiler)
+function copySvelteFiles() {
+  const svelteSourceDir = path.join(__dirname, '../src/libraries/svelte');
+  const svelteDistDir = path.join(__dirname, '../dist/libraries/svelte');
+  
+  // Ensure dist directory exists
+  if (!fs.existsSync(svelteDistDir)) {
+    fs.mkdirSync(svelteDistDir, { recursive: true });
+  }
+  
+  // Find and copy all .svelte files
+  if (fs.existsSync(svelteSourceDir)) {
+    const files = fs.readdirSync(svelteSourceDir);
+    files.forEach(file => {
+      if (file.endsWith('.svelte')) {
+        const sourcePath = path.join(svelteSourceDir, file);
+        const destPath = path.join(svelteDistDir, file);
+        fs.copyFileSync(sourcePath, destPath);
+        console.log('📄 Copied Svelte component:', file);
+      }
+    });
+    console.log('✅ Svelte component files copied to dist');
+  }
+}
+
 // Run the processing
 processCssFiles();
-processInjectedCss(); 
+processInjectedCss();
+copySvelteFiles(); 
