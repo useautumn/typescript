@@ -19,6 +19,7 @@ export const FreeTrialSchema = z.object({
 export const ProductSchema = z.object({
 	id: z.string().min(1, "Product ID is required and cannot be empty"),
 	name: z.string().min(1, "Product name is required and cannot be empty"),
+	group: z.string().optional(),
 	is_add_on: z.boolean().prefault(false).optional(),
 	is_default: z.boolean().prefault(false).optional(),
 	items: z.array(ProductItemSchema, {
