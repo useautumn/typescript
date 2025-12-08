@@ -153,10 +153,28 @@ export async function upsertProduct({
 			action: 'create',
 		};
 	} else {
+		// Prepare the update payload
+		const updatePayload = { ...product };
+
+		// If local product has no group but upstream has one, explicitly unset it
+		if (!product.group && curProduct.group) {
+			updatePayload.group = null;
+		}
+
+		// If local product has undefined is_add_on but upstream is true, explicitly set to false
+		if (product.is_add_on === undefined && curProduct.is_add_on === true) {
+			updatePayload.is_add_on = false;
+		}
+
+		// If local product has undefined is_default but upstream is true, explicitly set to false
+		if (product.is_default === undefined && curProduct.is_default === true) {
+			updatePayload.is_default = false;
+		}
+
 		await externalRequest({
 			method: 'POST',
 			path: `/products/${product.id}`,
-			data: product,
+			data: updatePayload,
 		});
 
 		spinner.text = `Updated product [${product.id}]`;

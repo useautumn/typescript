@@ -39,11 +39,18 @@ export function productBuilder({
 	product: Product;
 	features: Feature[];
 }) {
+	const optionalFields = [
+		product.group ? `group: '${product.group}'` : "",
+		product.is_add_on ? `is_add_on: true` : "",
+		product.is_default ? `is_default: true` : "",
+	]
+		.filter(Boolean)
+		.join(",\n\t");
+
 	const snippet = `
 export const ${idToVar({ id: product.id, prefix: "product" })} = product({
     id: '${product.id}',
-    name: '${product.name}',
-	${product.group ? `group: '${product.group}',` : ""}
+    name: '${product.name}',${optionalFields ? `\n\t${optionalFields},` : ""}
     items: [${product.items
 			.map(
 				(item: ProductItem) =>
