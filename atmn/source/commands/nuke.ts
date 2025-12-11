@@ -7,7 +7,18 @@ import {initSpinner, isSandboxKey, readFromEnv} from '../core/utils.js';
 import {getOrg} from '../core/requests/orgRequests.js';
 import {Feature} from '../compose/models/composeModels.js';
 
-async function promptAndConfirmNuke(orgName: string): Promise<boolean> {
+interface NukeOptions {
+	backup: boolean;
+	deleteStripeCustomers: boolean;
+}
+
+async function promptAndConfirmNuke(orgName: string): Promise<NukeOptions> {
+	// Ask about Stripe first so we can include it in the warning
+	const deleteStripeCustomers = await confirm({
+		message: `Also delete customers from your ${chalk.blueBright.bold('Stripe')} test account?`,
+		default: false,
+	});
+
 	console.log('\n' + chalk.bgRed.white.bold('  DANGER: SANDBOX NUKE  '));
 	console.log(
 		chalk.red(
@@ -21,12 +32,15 @@ async function promptAndConfirmNuke(orgName: string): Promise<boolean> {
 				chalk.yellowBright('features') +
 				`\n  • ` +
 				chalk.yellowBright('products') +
+				(deleteStripeCustomers
+					? `\n  • ` + chalk.blueBright.bold('Stripe customers')
+					: '') +
 				`\n`,
 		),
 	);
 
 	const shouldProceed = await confirm({
-		message: `Confirm to continue. This will delete ${chalk.redBright.bold('all')} your ${chalk.redBright.bold('products')}, ${chalk.redBright.bold('features')} and ${chalk.redBright.bold('customers')} from your sandbox environment. You will confirm twice.`,
+		message: `Confirm to continue. This will delete ${chalk.redBright.bold('all')} your ${chalk.redBright.bold('products')}, ${chalk.redBright.bold('features')} and ${chalk.redBright.bold('customers')}${deleteStripeCustomers ? chalk.blueBright.bold(' (including Stripe)') : ''} from your sandbox environment. You will confirm twice.`,
 		default: false,
 	});
 
@@ -51,7 +65,10 @@ async function promptAndConfirmNuke(orgName: string): Promise<boolean> {
 		default: true,
 	});
 
-	return backupConfirm;
+	return {
+		backup: backupConfirm,
+		deleteStripeCustomers,
+	};
 }
 
 export default async function Nuke() {
@@ -60,9 +77,9 @@ export default async function Nuke() {
 
 	if (isSandbox) {
 		const org = await getOrg();
-		const backupConfirm = await promptAndConfirmNuke(org.name);
+		const {backup, deleteStripeCustomers} = await promptAndConfirmNuke(org.name);
 
-		if (backupConfirm) {
+		if (backup) {
 			fs.copyFileSync('autumn.config.ts', 'autumn.config.ts.backup');
 			console.log(chalk.green('Backup created successfully!'));
 		}
@@ -88,7 +105,7 @@ export default async function Nuke() {
 		});
 
 		try {
-			await nukeCustomers(customers);
+			await nukeCustomers(customers, deleteStripeCustomers);
 			await nukeProducts(products.map((product: {id: string}) => product.id));
 			await nukeFeatures(features.map((feature: {id: string}) => feature.id));
 		} catch (e: unknown) {
