@@ -13,12 +13,6 @@ interface NukeOptions {
 }
 
 async function promptAndConfirmNuke(orgName: string): Promise<NukeOptions> {
-	// Ask about Stripe first so we can include it in the warning
-	const deleteStripeCustomers = await confirm({
-		message: `Also delete customers from your ${chalk.blueBright.bold('Stripe')} test account?`,
-		default: false,
-	});
-
 	console.log('\n' + chalk.bgRed.white.bold('  DANGER: SANDBOX NUKE  '));
 	console.log(
 		chalk.red(
@@ -32,12 +26,14 @@ async function promptAndConfirmNuke(orgName: string): Promise<NukeOptions> {
 				chalk.yellowBright('features') +
 				`\n  • ` +
 				chalk.yellowBright('products') +
-				(deleteStripeCustomers
-					? `\n  • ` + chalk.blueBright.bold('Stripe customers')
-					: '') +
 				`\n`,
 		),
 	);
+
+	const deleteStripeCustomers = await confirm({
+		message: `Also delete customers from your ${chalk.blueBright.bold('Stripe')} test account?`,
+		default: false,
+	});
 
 	const shouldProceed = await confirm({
 		message: `Confirm to continue. This will delete ${chalk.redBright.bold('all')} your ${chalk.redBright.bold('products')}, ${chalk.redBright.bold('features')} and ${chalk.redBright.bold('customers')}${deleteStripeCustomers ? chalk.blueBright.bold(' (including Stripe)') : ''} from your sandbox environment. You will confirm twice.`,
