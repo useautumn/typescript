@@ -30,9 +30,13 @@ export {
   TrackParamsSchema,
   TrackResultSchema,
   CheckParamsSchema,
-  QueryParamsSchema,
-  QueryRangeEnum,
 } from "./general/genTypes";
+
+export {
+  QueryParamsSchema,
+  type QueryParams,
+  type QueryResult
+} from "./events/eventTypes";
 
 export {
   AttachFeatureOptionsSchema,

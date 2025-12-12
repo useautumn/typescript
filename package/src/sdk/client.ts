@@ -14,7 +14,6 @@ import {
 import {
   CancelParams,
   CheckParams,
-  QueryParams,
   SetupPaymentParams,
   TrackParams,
   UsageParams,
@@ -31,6 +30,8 @@ import { toContainerResult } from "./response";
 import { staticWrapper } from "./utils";
 import { logger } from "../utils/logger";
 import { featureMethods } from "./features/featureMethods";
+import { eventMethods } from "./events/eventMethods";
+import { QueryParams } from "./events/eventTypes";
 
 const LATEST_API_VERSION = "1.2";
 
@@ -111,13 +112,14 @@ export class Autumn {
   static entities = entityMethods();
   static referrals = referralMethods();
   static features = featureMethods();
+  static events = eventMethods();
 
   customers = customerMethods(this);
   products = productMethods(this);
   entities = entityMethods(this);
   referrals = referralMethods(this);
   features = featureMethods(this);
-
+  events = eventMethods(this);
 
 
   /**
@@ -367,4 +369,6 @@ export class Autumn {
       params,
     });
   }
+
+
 }
