@@ -1,3 +1,7 @@
+import {
+	CursorPaginationQuerySchema,
+	createCursorPaginatedResponseSchema,
+} from "@sdk/general/cursorTypes";
 import { z } from "zod/v4";
 
 export const QueryRangeEnum = z.enum([
@@ -37,3 +41,32 @@ export type QueryResult = {
 		}
 	>;
 };
+
+export const LogParamsSchema = CursorPaginationQuerySchema.extend({
+	customer_id: z.string(),
+	feature_id: z.string().or(z.array(z.string())),
+	time_range: z
+		.object({
+			start: z.coerce.number().optional(),
+			end: z.coerce.number().optional(),
+		})
+		.optional(),
+});
+
+export type LogParams = z.infer<typeof LogParamsSchema>;
+
+export const EventLogSchema = z.object({
+	id: z.string().describe("Event ID (KSUID)"),
+	timestamp: z.number().describe("Event timestamp (epoch milliseconds)"),
+	event_name: z.string().describe("Name of the event"),
+	customer_id: z.string().describe("Customer identifier"),
+	value: z.number().describe("Event value/count"),
+	properties: z.object({}).describe("Event properties (JSONB)"),
+});
+
+export type EventLog = z.infer<typeof EventLogSchema>;
+
+export const EventLogResponseSchema =
+	createCursorPaginatedResponseSchema(EventLogSchema);
+
+export type EventLogResponse = z.infer<typeof EventLogResponseSchema>;
