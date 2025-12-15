@@ -26,6 +26,7 @@ export const AttachParamsSchema = z.object({
   checkout_session_params: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
   invoice: z.boolean().optional(),
+  new_billing_subscription: z.boolean().optional(),
 });
 
 export type AttachParams = z.infer<typeof AttachParamsSchema>;
@@ -63,6 +64,7 @@ export const CheckoutParamsSchema = z.object({
   entity_data: z.any().optional(),
   checkout_session_params: z.record(z.string(), z.any()).optional(),
   reward: z.string().optional(),
+  new_billing_subscription: z.boolean().optional(),
 });
 
 export type CheckoutParams = z.infer<typeof CheckoutParamsSchema>;

@@ -30,6 +30,7 @@ export const AttachParamsSchema = z.object({
 	openInNewTab: z.boolean().optional(),
 	reward: z.string().optional(),
 	checkoutSessionParams: z.record(z.string(), z.any()).optional(),
+	newBillingSubscription: z.boolean().optional(),
 });
 
 export type AttachParams = z.infer<typeof AttachParamsSchema>;
@@ -49,6 +50,7 @@ export const CheckoutParamsSchema = z.object({
 
 	checkoutSessionParams: z.record(z.string(), z.any()).optional(),
 	reward: z.string().optional(),
+	newBillingSubscription: z.boolean().optional(),
 });
 
 export type CheckoutParams = z.infer<typeof CheckoutParamsSchema>;
