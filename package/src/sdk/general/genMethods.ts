@@ -12,8 +12,6 @@ import {
   CancelResult,
   CheckParams,
   CheckResult,
-  QueryParams,
-  QueryResult,
   SetupPaymentParams,
   SetupPaymentResult,
   TrackParams,
@@ -21,6 +19,7 @@ import {
   UsageParams,
   UsageResult,
 } from "./genTypes";
+import { QueryParams, QueryResult  } from "../events/eventTypes";
 
 export const handleCheckout = async ({
   instance,

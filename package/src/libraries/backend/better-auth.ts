@@ -29,6 +29,10 @@ import {
   TrackParamsSchema,
 } from "@/client/types/clientGenTypes";
 import {
+  EventListParamsSchema,
+  EventAggregationParamsSchema,
+} from "@/client/types/clientAnalyticsTypes";
+import {
   CreateReferralCodeParamsSchema,
   RedeemReferralCodeParamsSchema,
 } from "@/client/types/clientReferralTypes";
@@ -329,6 +333,24 @@ export const autumn = (options?: AutumnOptions) => {
           use: [],
         },
         async (ctx) => await handleReq({ ctx, options, method: "DELETE" })
+      ),
+      listEvents: createAuthEndpoint(
+        "/autumn/events/list",
+        {
+          method: "POST",
+          use: [],
+          body: EventListParamsSchema,
+        },
+        async (ctx) => await handleReq({ ctx, options, method: "POST" })
+      ),
+      aggregateEvents: createAuthEndpoint(
+        "/autumn/events/aggregate",
+        {
+          method: "POST",
+          use: [],
+          body: EventAggregationParamsSchema,
+        },
+        async (ctx) => await handleReq({ ctx, options, method: "POST" })
       ),
     },
   } satisfies BetterAuthPlugin;

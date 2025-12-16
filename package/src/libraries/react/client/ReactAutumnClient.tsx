@@ -8,7 +8,6 @@ import {
   toContainerResult,
 } from "../../../sdk";
 import { logFetchError } from "../errorUtils/logFetchError";
-import { getPricingTableMethod } from "./clientCompMethods";
 import { createCustomerMethod } from "./clientCusMethods";
 import {
   createEntityMethod,
@@ -28,6 +27,13 @@ import {
 } from "./clientGenMethods";
 import { listProductsMethod } from "./clientProdMethods";
 import { createCode, redeemCode } from "./clientReferralMethods";
+import { eventAggregateMethod, eventListMethod } from "./clientAnalyticsMethods";
+import type {
+  EventListParams,
+  EventListResponse,
+  EventAggregationParams,
+  EventAggregationResponse,
+} from "./types/clientAnalyticsTypes";
 
 export interface ErrorResponse {
   message: string;
@@ -104,6 +110,11 @@ export interface IAutumnClient {
 
   products: {
     list(): AutumnPromise<{ list: Product[] }>;
+  };
+
+  events: {
+    list(params: EventListParams): AutumnPromise<EventListResponse>;
+    aggregate(params: EventAggregationParams): AutumnPromise<EventAggregationResponse>;
   };
 }
 
@@ -359,5 +370,10 @@ export class AutumnClient implements IAutumnClient {
 
   products = {
     list: listProductsMethod.bind(this),
+  };
+
+  events = {
+    list: eventListMethod.bind(this),
+    aggregate: eventAggregateMethod.bind(this),
   };
 }

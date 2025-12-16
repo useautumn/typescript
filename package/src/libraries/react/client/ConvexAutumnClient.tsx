@@ -7,6 +7,12 @@ import {
   Product,
 } from "../../../sdk";
 import { IAutumnClient } from "./ReactAutumnClient";
+import type {
+  EventListParams,
+  EventListResponse,
+  EventAggregationParams,
+  EventAggregationResponse,
+} from "./types/clientAnalyticsTypes";
 
 export interface ErrorResponse {
   message: string;
@@ -383,6 +389,46 @@ export class ConvexAutumnClient implements IAutumnClient {
         const result = await this.convex.action(
           this.convexApi.listProducts,
           {}
+        );
+        return result;
+      } catch (error: any) {
+        return {
+          data: null,
+          error: new AutumnError({
+            message: error.message,
+            code: "convex_action_failed",
+          }),
+        };
+      }
+    },
+  };
+
+  events = {
+    list: async (params: EventListParams): AutumnPromise<EventListResponse> => {
+      try {
+        const result = await this.convex.action(
+          this.convexApi.listEvents,
+          params
+        );
+        return result;
+      } catch (error: any) {
+        return {
+          data: null,
+          error: new AutumnError({
+            message: error.message,
+            code: "convex_action_failed",
+          }),
+        };
+      }
+    },
+
+    aggregate: async (
+      params: EventAggregationParams
+    ): AutumnPromise<EventAggregationResponse> => {
+      try {
+        const result = await this.convex.action(
+          this.convexApi.aggregateEvents,
+          params
         );
         return result;
       } catch (error: any) {

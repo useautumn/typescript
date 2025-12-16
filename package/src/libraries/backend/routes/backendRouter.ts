@@ -11,6 +11,7 @@ import { BASE_PATH } from "../constants";
 import { addEntityRoutes } from "./entityRoutes";
 import { addReferralRoutes } from "./referralRoutes";
 import { addProductRoutes } from "./productRoutes";
+import { addAnalyticsRoutes } from "./analyticsRoutes";
 
 type RouteData = {
   handler: any;
@@ -94,6 +95,7 @@ export const createRouterWithOptions = () => {
   addEntityRoutes(router);
   addReferralRoutes(router);
   addProductRoutes(router);
+  addAnalyticsRoutes(router);
 
   return router;
 };

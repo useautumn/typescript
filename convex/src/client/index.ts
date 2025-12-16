@@ -27,6 +27,10 @@ import {
   type CreateEntityArgsType,
   type CreateReferralCodeArgsType,
   type RedeemReferralCodeArgsType,
+  EventListArgs,
+  EventAggregateArgs,
+  type EventListArgsType,
+  type EventAggregateArgsType,
 } from "../types.js";
 import type { ComponentApi } from "../component/_generated/component.js";
 
@@ -59,6 +63,7 @@ export class Autumn {
     const identifierOpts = await this.getIdentifierOpts(ctx);
     const autumn = new AutumnSDK({
       secretKey: this.options.secretKey || process.env.AUTUMN_SECRET_KEY,
+      url: this.options.url,
     });
 
     if (requireAuth) {
@@ -223,6 +228,23 @@ export class Autumn {
       return await autumnHelpers.referrals.redeemCode({
         autumn,
         identifierOpts,
+        args,
+      });
+    },
+  };
+
+  events = {
+    list: async (ctx: any, args: EventListArgsType) => {
+      const { autumn } = await this.getAuthParams({ ctx, requireAuth: false });
+      return await autumnHelpers.events.list({
+        autumn,
+        args,
+      });
+    },
+    aggregate: async (ctx: any, args: EventAggregateArgsType) => {
+      const { autumn } = await this.getAuthParams({ ctx, requireAuth: false });
+      return await autumnHelpers.events.aggregate({
+        autumn,
         args,
       });
     },
@@ -446,6 +468,34 @@ export class Autumn {
           return await autumnHelpers.entities.get({
             autumn,
             identifierOpts,
+            args,
+          });
+        },
+      }),
+
+      listEvents: actionGeneric({
+        args: EventListArgs,
+        handler: async (ctx, args) => {
+          const { autumn } = await this.getAuthParams({
+            ctx,
+            requireAuth: false,
+          });
+          return await autumnHelpers.events.list({
+            autumn,
+            args,
+          });
+        },
+      }),
+
+      aggregateEvents: actionGeneric({
+        args: EventAggregateArgs,
+        handler: async (ctx, args) => {
+          const { autumn } = await this.getAuthParams({
+            ctx,
+            requireAuth: false,
+          });
+          return await autumnHelpers.events.aggregate({
+            autumn,
             args,
           });
         },
