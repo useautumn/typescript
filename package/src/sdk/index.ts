@@ -37,10 +37,10 @@ export {
 	QueryRangeEnum,
 	type QueryParams,
 	type QueryResult,
-	EventLogResponseSchema,
-	EventLogSchema,
-	type EventLog,
-	type EventLogResponse,
+	EventListResponseSchema,
+	EventListSchema,
+	type EventList,
+	type EventListResponse,
 } from "./events/eventTypes";
 
 export {

@@ -42,7 +42,7 @@ export type QueryResult = {
 	>;
 };
 
-export const LogParamsSchema = CursorPaginationQuerySchema.extend({
+export const ListParamsSchema = CursorPaginationQuerySchema.extend({
 	customer_id: z.string(),
 	feature_id: z.string().or(z.array(z.string())),
 	time_range: z
@@ -53,9 +53,9 @@ export const LogParamsSchema = CursorPaginationQuerySchema.extend({
 		.optional(),
 });
 
-export type LogParams = z.infer<typeof LogParamsSchema>;
+export type ListParams = z.infer<typeof ListParamsSchema>;
 
-export const EventLogSchema = z.object({
+export const EventListSchema = z.object({
 	id: z.string().describe("Event ID (KSUID)"),
 	timestamp: z.number().describe("Event timestamp (epoch milliseconds)"),
 	event_name: z.string().describe("Name of the event"),
@@ -64,9 +64,9 @@ export const EventLogSchema = z.object({
 	properties: z.object({}).describe("Event properties (JSONB)"),
 });
 
-export type EventLog = z.infer<typeof EventLogSchema>;
+export type EventList = z.infer<typeof EventListSchema>;
 
-export const EventLogResponseSchema =
-	createCursorPaginatedResponseSchema(EventLogSchema);
+export const EventListResponseSchema =
+	createCursorPaginatedResponseSchema(EventListSchema);
 
-export type EventLogResponse = z.infer<typeof EventLogResponseSchema>;
+export type EventListResponse = z.infer<typeof EventListResponseSchema>;
