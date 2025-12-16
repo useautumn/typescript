@@ -12,7 +12,8 @@ export const CursorPaginationQuerySchema = z.object({
 		.int()
 		.min(1)
 		.max(PaginationDefaults.MaxLimit)
-		.default(PaginationDefaults.Limit),
+		.default(PaginationDefaults.Limit)
+		.optional(),
 });
 
 export type CursorPaginationQuery = z.infer<typeof CursorPaginationQuerySchema>;
