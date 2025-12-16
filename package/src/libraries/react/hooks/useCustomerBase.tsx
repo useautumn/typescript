@@ -16,7 +16,6 @@ import type {
 import type { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
 import type { Success } from "@sdk/response";
 import type React from "react";
-import { useEffect } from "react";
 import useSWR, { type SWRConfiguration } from "swr";
 import type {
   AttachParams,
@@ -127,6 +126,7 @@ export interface UseCustomerParams {
   errorOnNotFound?: boolean;
   expand?: CustomerExpandOption[];
   swrConfig?: SWRConfiguration;
+  extraQueryKey?: string[];
 }
 
 export const useCustomerBase = ({
@@ -153,7 +153,7 @@ export const useCustomerBase = ({
   }
 
   const baseUrl = client?.backendUrl || "";
-  const queryKey = ["customer", baseUrl, params?.expand];
+  const queryKey = ["customer", baseUrl, params?.expand, ...(params?.extraQueryKey || [])];
 
   const fetchCustomer = async () => {
     const { data, error } = await client!.createCustomer({
