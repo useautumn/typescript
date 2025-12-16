@@ -1,9 +1,11 @@
 "use client";
-import { PricingTable, useCustomer } from "autumn-js/react";
+import { PricingTable, useCustomer, useListEvents, useAggregateEvents } from "autumn-js/react";
 
 import { authClient } from "@/lib/auth-client";
 import { TestBetterAuth } from "@/components/test-better-auth";
 import { CustomerDataViewer } from "@/components/customer-data-viewer";
+import { EventLogViewer } from "@/components/event-log-viewer";
+import { EventAggregateViewer } from "@/components/event-aggregate-viewer";
 import TestButtons from "@/components/test-buttons";
 
 export default function Home() {
@@ -18,6 +20,19 @@ export default function Home() {
 
   const { customer } = useCustomer({ expand: ["invoices"] });
 
+  // Event hooks - only fetch if customer exists
+  const { list: eventLogs, isLoading: eventsLoading } = useListEvents({
+    customer_id: customer?.id ?? "",
+    feature_id: "invoice_bug",
+  });
+
+  const { list: aggregateList, total: aggregateTotal, isLoading: aggregateLoading } = useAggregateEvents({
+    customer_id: customer?.id ?? "",
+    feature_id: "invoice_bug",
+    group_by: "properties.random_word_key",
+    bin_size: "day",
+    range: "7d",
+  });
 
   if (isPending) return <div>Loading...</div>;
   else
@@ -106,6 +121,14 @@ export default function Home() {
           )}
 
           {customer && <CustomerDataViewer customer={customer} />}
+
+          {eventLogs && eventLogs.length > 0 && (
+            <EventLogViewer events={eventLogs} />
+          )}
+
+          {aggregateList && aggregateTotal && (
+            <EventAggregateViewer data={{ list: aggregateList, total: aggregateTotal }} />
+          )}
 
           {/* {entity && (
             <details className="p-4 rounded-lg">

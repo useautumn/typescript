@@ -25,44 +25,51 @@ export { toContainerResult } from "./response";
 
 // Export Zod schemas for convex integration
 export {
-  CancelParamsSchema,
-  CancelResultSchema,
-  TrackParamsSchema,
-  TrackResultSchema,
-  CheckParamsSchema,
-  QueryParamsSchema,
-  QueryRangeEnum,
+	CancelParamsSchema,
+	CancelResultSchema,
+	TrackParamsSchema,
+	TrackResultSchema,
+	CheckParamsSchema,
 } from "./general/genTypes";
 
 export {
-  AttachFeatureOptionsSchema,
-  AttachParamsSchema,
-  AttachResultSchema,
-  CheckoutParamsSchema,
+	QueryParamsSchema,
+	QueryRangeEnum,
+	type QueryParams,
+	type QueryResult,
+	EventLogResponseSchema,
+	EventLogSchema,
+	type EventLog,
+	type EventLogResponse,
+	LogParamsSchema,
+	type LogParams,
+} from "./events/eventTypes";
+
+export {
+	AttachFeatureOptionsSchema,
+	AttachParamsSchema,
+	AttachResultSchema,
+	CheckoutParamsSchema,
 } from "./general/attachTypes";
 
 export {
-  CustomerDataSchema,
-  CoreCusFeatureSchema,
-  CreateCustomerParamsSchema,
-  BillingPortalParamsSchema,
-  UpdateBalancesParamsSchema,
+	CustomerDataSchema,
+	CoreCusFeatureSchema,
+	CreateCustomerParamsSchema,
+	BillingPortalParamsSchema,
+	UpdateBalancesParamsSchema,
 } from "./customers/cusTypes";
 
 export {
-  EntityDataSchema,
-  TransferProductParamsSchema,
+	EntityDataSchema,
+	TransferProductParamsSchema,
 } from "./customers/entities/entTypes";
 
 export {
-  CreateReferralCodeParamsSchema,
-  RedeemReferralCodeParamsSchema,
+	CreateReferralCodeParamsSchema,
+	RedeemReferralCodeParamsSchema,
 } from "./referrals/referralTypes";
 
-export {
-  CheckFeatureResultSchema,
-} from "./general/checkTypes";
+export { CheckFeatureResultSchema } from "./general/checkTypes";
 
-export {
-  FeatureSchema,
-} from "./features/featureTypes";
+export { FeatureSchema } from "./features/featureTypes";

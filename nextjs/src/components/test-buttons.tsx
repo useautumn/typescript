@@ -83,7 +83,7 @@ export default function TestButtons() {
 						});
 						refetchSession();
 						refetchCustomer();
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Set Active Organization 1
@@ -156,7 +156,7 @@ export default function TestButtons() {
 							returnUrl: "https://facebook.com",
 							openInNewTab: true,
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Open Billing Portal
@@ -167,7 +167,7 @@ export default function TestButtons() {
 							productId: "pro",
 							cancelImmediately: true,
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Cancel
@@ -177,7 +177,7 @@ export default function TestButtons() {
 						const res = await check({
 							featureId: "messages",
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Check
@@ -187,7 +187,7 @@ export default function TestButtons() {
 						const res = await track({
 							featureId: "egsgsg",
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Track
@@ -201,7 +201,7 @@ export default function TestButtons() {
 							dialog: CheckoutDialog,
 							freeTrial: false,
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Checkout
@@ -209,20 +209,42 @@ export default function TestButtons() {
 				<Button
 					onClick={async () => {
 						const res = await attach({
-							productId: "ecoinvent_monthly",
+							productId: "test",
 							openInNewTab: true,
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
-					Attach
+					Attach test
+				</Button>
+				<Button
+					onClick={async () => {
+						const res = await attach({
+							productId: "pro",
+							openInNewTab: true,
+						});
+						alert(JSON.stringify(res));
+					}}
+				>
+					Attach pro
+				</Button>
+				<Button
+					onClick={async () => {
+						const res = await attach({
+							productId: "add_on",
+							openInNewTab: true,
+						});
+						alert(JSON.stringify(res));
+					}}
+				>
+					Attach add on
 				</Button>
 				<Button
 					onClick={async () => {
 						const res = await createReferralCode({
 							programId: "test",
 						});
-						console.log(res);
+						alert(JSON.stringify(res));
 					}}
 				>
 					Create Referral Code
@@ -232,7 +254,7 @@ export default function TestButtons() {
 						const res = await redeemReferralCode({
 							code: "XCA1I1",
 						});
-						console.log(res);
+							alert(JSON.stringify(res));
 					}}
 				>
 					Redeem Referral Code
@@ -240,16 +262,30 @@ export default function TestButtons() {
 				<Button
 					onClick={async () => {
 						const res = await fetch(
-							"http://localhost:3001/api/test/queryTest",
+							"http://localhost:3002/api/test/queryTest",
 							{
 								method: "GET",
 							},
 						);
 						const data = await res.json();
-						console.log(data);
+						alert(JSON.stringify(data));
 					}}
 				>
-					Query
+					Query test (log)
+				</Button>
+				<Button
+					onClick={async () => {
+						const res = await fetch(
+							"http://localhost:3002/api/test/queryTest",
+							{
+								method: "PATCH",
+							},
+						);
+						const data = await res.json();
+						alert(JSON.stringify(data));
+					}}
+				>
+					Query test (aggregate)
 				</Button>
 			</div>
 		</section>

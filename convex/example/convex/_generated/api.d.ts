@@ -42,4 +42,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  autumn: import("@useautumn/convex/_generated/component.js").ComponentApi<"autumn">;
+};

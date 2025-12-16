@@ -11,6 +11,8 @@ export { usePricingTable } from "./hooks/usePricingTable";
 export { useEntity } from "./hooks/useEntity";
 export { useAnalytics } from "./hooks/useAnalytics";
 export { usePaywall } from "./hooks/usePaywall";
+export { useListEvents } from "./hooks/useListEvents";
+export { useAggregateEvents } from "./hooks/useAggregateEvents";
 
 /** @deprecated */
 export const useAutumn = () => {};
