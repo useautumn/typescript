@@ -34,6 +34,7 @@ export {
 
 export {
 	QueryParamsSchema,
+	QueryRangeEnum,
 	type QueryParams,
 	type QueryResult,
 	EventLogResponseSchema,

@@ -1,4 +1,4 @@
-import { QueryRangeEnum } from "@sdk/events/eventTypes";
+import { QueryRangeEnum } from "@sdk";
 import { z } from "zod/v4";
 
 export const CancelParamsSchema = z.object({
