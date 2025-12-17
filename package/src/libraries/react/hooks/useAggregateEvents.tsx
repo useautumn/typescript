@@ -1,44 +1,68 @@
+import { AutumnError, type AutumnErrorWithStatus } from "@sdk";
+import useSWR from "swr";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 import type {
-  EventAggregationParams,
-  EventAggregationResponse,
+	EventAggregationParams,
+	EventAggregationResponse,
 } from "@/client/types/clientAnalyticsTypes";
-import { AutumnError } from "@sdk";
-import useSWR from "swr";
 
 export const useAggregateEvents = (params: EventAggregationParams) => {
-  const context = useAutumnContext({
-    AutumnContext,
-    name: "useAggregateEvents",
-  });
+	const context = useAutumnContext({
+		AutumnContext,
+		name: "useAggregateEvents",
+	});
 
-  const client = context.client;
+	const client = context.client;
 
-  const fetcher = async () => {
-    try {
-      const { data, error } = await client.events.aggregate(params);
-      if (error) throw error;
+	const fetcher = async () => {
+		const res = await client.events.aggregate(params);
+		if (res.error) {
+			const err: AutumnErrorWithStatus = new AutumnError({
+				message: res.error.message,
+				code: res.error.code,
+			});
+			err.statusCode = res.statusCode;
+			throw err;
+		}
+		return res.data;
+	};
 
-      return data;
-    } catch (error) {
-      throw new AutumnError({
-        message: "Failed to fetch event aggregation",
-        code: "fetch_event_aggregation_failed",
-      });
-    }
-  };
+	const startDate = params.customRange?.start
+		? new Date(params.customRange.start).toISOString().slice(0, 13)
+		: undefined;
 
-  const { data, error, mutate } = useSWR<EventAggregationResponse, AutumnError>(
-    ["eventAggregate", params.customer_id, params.feature_id, params.range, params.bin_size],
-    fetcher,
-    { refreshInterval: 0 }
-  );
+	const endDate = params.customRange?.end
+		? new Date(params.customRange.end).toISOString().slice(0, 13)
+		: undefined;
 
-  return {
-    list: data?.list,
-    total: data?.total,
-    isLoading: !error && !data,
-    error,
-    refetch: mutate,
-  };
+	const { data, error, mutate } = useSWR<EventAggregationResponse, AutumnError>(
+		[
+			"eventAggregate",
+			params.featureId,
+			params.groupBy,
+			params.range,
+			startDate,
+			endDate,
+			params.binSize,
+		],
+		fetcher,
+		{
+			refreshInterval: 0,
+			dedupingInterval: 2000,
+			revalidateOnFocus: false,
+			revalidateOnReconnect: false,
+			shouldRetryOnError: (error) =>
+				(error as AutumnErrorWithStatus).statusCode === 429,
+			errorRetryCount: 3,
+		},
+	);
+
+	return {
+		list: data?.list,
+		total: data?.total,
+
+		isLoading: !error && !data,
+		error,
+		refetch: mutate,
+	};
 };

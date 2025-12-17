@@ -1,7 +1,7 @@
-import { addRoute, RouterContext } from "rou3";
-import type { Autumn, LogParams, QueryParams } from "../../../sdk";
-import { withAuth } from "../utils/withAuth";
+import type { Autumn, EventsListParams, QueryParams } from "@sdk";
+import { addRoute, type RouterContext } from "rou3";
 import { BASE_PATH } from "../constants";
+import { withAuth } from "../utils/withAuth";
 
 const sanitizeBody = (body: any) => {
 	const bodyCopy = { ...body };
@@ -18,7 +18,7 @@ const listEventsHandler = withAuth({
 	}: {
 		autumn: Autumn;
 		customer_id: string;
-		body: LogParams;
+		body: EventsListParams;
 	}) => {
 		return await autumn.events.list({
 			...sanitizeBody(body),

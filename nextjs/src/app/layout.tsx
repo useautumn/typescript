@@ -18,9 +18,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" className="h-full w-full min-w-screen">
 			<body className="h-full m-0 p-0 w-full min-w-screen">
-				<AutumnProvider betterAuthUrl="http://localhost:3002">
-					{children}
-				</AutumnProvider>
+				<AutumnProvider>{children}</AutumnProvider>
 			</body>
 		</html>
 	);

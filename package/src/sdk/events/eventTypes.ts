@@ -1,7 +1,7 @@
 import {
-	CursorPaginationQuerySchema,
-	createCursorPaginatedResponseSchema,
-} from "@sdk/general/cursorTypes";
+	createPagePaginatedResponseSchema,
+	PagePaginationQuerySchema,
+} from "@sdk/general/pageTypes";
 import { z } from "zod/v4";
 
 export const QueryRangeEnum = z.enum([
@@ -42,10 +42,12 @@ export type QueryResult = {
 	>;
 };
 
-export const LogParamsSchema = CursorPaginationQuerySchema.extend({
+// EVENT LIST PARAMS
+
+export const EventsListParamsSchema = PagePaginationQuerySchema.extend({
 	customer_id: z.string(),
 	feature_id: z.string().or(z.array(z.string())),
-	time_range: z
+	custom_range: z
 		.object({
 			start: z.coerce.number().optional(),
 			end: z.coerce.number().optional(),
@@ -53,9 +55,9 @@ export const LogParamsSchema = CursorPaginationQuerySchema.extend({
 		.optional(),
 });
 
-export type LogParams = z.infer<typeof LogParamsSchema>;
+export type EventsListParams = z.infer<typeof EventsListParamsSchema>;
 
-export const EventListItemSchema = z.object({
+export const EventsListItemSchema = z.object({
 	id: z.string().describe("Event ID (KSUID)"),
 	timestamp: z.number().describe("Event timestamp (epoch milliseconds)"),
 	feature_id: z.string().describe("Name of the event"),
@@ -64,9 +66,9 @@ export const EventListItemSchema = z.object({
 	properties: z.object({}).describe("Event properties (JSONB)"),
 });
 
-export type EventListItem = z.infer<typeof EventListItemSchema>;
+export type EventsListItem = z.infer<typeof EventsListItemSchema>;
 
-export const EventListResponseSchema =
-	createCursorPaginatedResponseSchema(EventListItemSchema);
+export const EventsListResponseSchema =
+	createPagePaginatedResponseSchema(EventsListItemSchema);
 
-export type EventListResponse = z.infer<typeof EventListResponseSchema>;
+export type EventsListResponse = z.infer<typeof EventsListResponseSchema>;

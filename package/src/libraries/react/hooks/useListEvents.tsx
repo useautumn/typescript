@@ -1,45 +1,101 @@
-import { AutumnContext, useAutumnContext } from "@/AutumnContext";
-import type {
-    EventListParams,
-    EventListResponse,
-} from "@/client/types/clientAnalyticsTypes";
-import { AutumnError } from "@sdk";
+import {
+	AutumnError,
+	type AutumnErrorWithStatus,
+	type EventsListResponse,
+} from "@sdk";
+import { useCallback, useState } from "react";
 import useSWR from "swr";
+import { AutumnContext, useAutumnContext } from "@/AutumnContext";
+import type { EventsListParams } from "@/client/types/clientAnalyticsTypes";
 
-export const useListEvents = (params: EventListParams) => {
-  const context = useAutumnContext({
-    AutumnContext,
-    name: "useListEvents",
-  });
+export const useListEvents = (params: EventsListParams) => {
+	const context = useAutumnContext({
+		AutumnContext,
+		name: "useListEvents",
+	});
 
-  const client = context.client;
+	const client = context.client;
+	const limit = params.limit ?? 100;
+	const [page, setPage] = useState(0);
 
-  const fetcher = async () => {
-    try {
-      const { data, error } = await client.events.list(params);
-      if (error) throw error;
+	const startDate = params.customRange?.start
+		? new Date(params.customRange.start).toISOString().slice(0, 13)
+		: undefined;
 
-      return data;
-    } catch (error) {
-      throw new AutumnError({
-        message: "Failed to fetch event list",
-        code: "fetch_event_list_failed",
-      });
-    }
-  };
+	const endDate = params.customRange?.end
+		? new Date(params.customRange.end).toISOString().slice(0, 13)
+		: undefined;
 
-  const { data, error, mutate } = useSWR<EventListResponse, AutumnError>(
-    ["eventList", params.customer_id, params.feature_id, params.time_range],
-    fetcher,
-    { refreshInterval: 0 }
-  );
+	const offset = page * limit;
 
-  return {
-    list: data?.list,
-    hasMore: data?.has_more,
-    nextCursor: data?.next_cursor,
-    isLoading: !error && !data,
-    error,
-    refetch: mutate,
-  };
+	const fetcher = async () => {
+		const res = await client.events.list({
+			...params,
+			offset,
+			limit,
+		});
+
+		if (res.error) {
+			const err: AutumnErrorWithStatus = new AutumnError({
+				message: res.error.message,
+				code: res.error.code,
+			});
+			err.statusCode = res.statusCode;
+			throw err;
+		}
+		return res.data;
+	};
+
+	const { data, error, mutate, isLoading } = useSWR<
+		EventsListResponse,
+		AutumnError
+	>(
+		["eventList", params.featureId, startDate, endDate, offset, limit],
+		fetcher,
+		{
+			dedupingInterval: 2000,
+			revalidateOnFocus: false,
+			revalidateOnReconnect: false,
+			shouldRetryOnError: (error) =>
+				(error as AutumnErrorWithStatus).statusCode === 429,
+			errorRetryCount: 3,
+		},
+	);
+
+	const hasMore = data?.has_more ?? false;
+	const hasPrevious = page > 0;
+
+	const nextPage = useCallback(() => {
+		if (hasMore) {
+			setPage((p) => p + 1);
+		}
+	}, [hasMore]);
+
+	const prevPage = useCallback(() => {
+		if (hasPrevious) {
+			setPage((p) => p - 1);
+		}
+	}, [hasPrevious]);
+
+	const goToPage = useCallback((pageNum: number) => {
+		setPage(Math.max(0, pageNum));
+	}, []);
+
+	const resetPagination = useCallback(() => {
+		setPage(0);
+	}, []);
+
+	return {
+		list: data?.list,
+		hasMore,
+		hasPrevious,
+		page,
+		isLoading,
+		error,
+		refetch: mutate,
+		nextPage,
+		prevPage,
+		goToPage,
+		resetPagination,
+	};
 };

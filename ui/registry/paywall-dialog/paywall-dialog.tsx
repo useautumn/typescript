@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { usePaywall } from "autumn-js/react";
 import { getPaywallContent } from "@/registry/paywall-dialog/lib/paywall-content";
 import { cn } from "@/lib/utils";
+import { JSX } from "react";
 
 export interface PaywallDialogProps {
   open: boolean;
@@ -19,7 +20,7 @@ export interface PaywallDialogProps {
   entityId?: string;
 }
 
-export default function PaywallDialog(params?: PaywallDialogProps) {
+export default function PaywallDialog(params?: PaywallDialogProps): JSX.Element {
   const { data: preview } = usePaywall({
     featureId: params?.featureId,
     entityId: params?.entityId,

@@ -46,7 +46,7 @@ const formatCurrency = ({
 	}).format(amount);
 };
 
-export default function CheckoutDialog(params: CheckoutDialogProps) {
+export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.Element {
 	const { attach } = useCustomer();
 	const [checkoutResult, setCheckoutResult] = useState<
 		CheckoutResult | undefined
@@ -433,7 +433,7 @@ export const PriceItem = ({
 }: {
 	children: React.ReactNode;
 	className?: string;
-} & React.HTMLAttributes<HTMLDivElement>) => {
+} & React.HTMLAttributes<HTMLDivElement>): React.JSX.Element => {
 	return (
 		<div
 			className={cn(
@@ -459,7 +459,7 @@ export const PricingDialogButton = ({
 	onClick: () => void;
 	disabled?: boolean;
 	className?: string;
-}) => {
+}): React.JSX.Element => {
 	return (
 		<Button
 			onClick={onClick}
