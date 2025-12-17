@@ -256,9 +256,9 @@ export const BinSizeEnum = v.union(v.literal("day"), v.literal("hour"));
 export const EventListArgs = v.object({
 	customerId: v.string(),
 	featureId: v.union(v.string(), v.array(v.string())),
-	startingAfter: v.optional(v.string()),
+	offset: v.optional(v.number()),
 	limit: v.optional(v.number()),
-	timeRange: v.optional(
+	customRange: v.optional(
 		v.object({
 			start: v.optional(v.number()),
 			end: v.optional(v.number()),
