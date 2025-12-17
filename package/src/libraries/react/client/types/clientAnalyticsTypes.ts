@@ -49,7 +49,7 @@ export type EventListParams = z.infer<typeof EventListParamsSchema>;
 export const EventListItemSchema = z.object({
 	id: z.string().describe("Event ID (KSUID)"),
 	timestamp: z.number().describe("Event timestamp (epoch milliseconds)"),
-	event_name: z.string().describe("Name of the event"),
+	feature_id: z.string().describe("Name of the event"),
 	customer_id: z.string().describe("Customer identifier"),
 	value: z.number().describe("Event value/count"),
 	properties: z.object({}).describe("Event properties (JSONB)"),

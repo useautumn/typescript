@@ -1,6 +1,6 @@
-import type { EventLog } from "autumn-js";
+import type { EventListItem } from "autumn-js";
 
-export function EventLogViewer({ events }: { events: EventLog[] }) {
+export function EventListViewer({ events }: { events: EventListItem[] }) {
   if (events.length === 0) {
     return (
       <details className="p-4 rounded-lg">
@@ -28,7 +28,7 @@ export function EventLogViewer({ events }: { events: EventLog[] }) {
               <span className="font-mono text-sm">{event.id}</span>
             </p>
             <p>
-              <span className="font-medium">Event Name:</span> {event.event_name}
+              <span className="font-medium">Feature ID:</span> {event.feature_id}
             </p>
             <p>
               <span className="font-medium">Customer ID:</span>{" "}

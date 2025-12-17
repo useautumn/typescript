@@ -2,10 +2,10 @@ import type { AutumnPromise } from "@sdk/response";
 import { staticWrapper } from "@sdk/utils";
 import type { Autumn } from "../client";
 import type {
-	EventLogResponse,
-	LogParams,
-	QueryParams,
-	QueryResult,
+    EventListResponse,
+    LogParams,
+    QueryParams,
+    QueryResult,
 } from "./eventTypes";
 
 export const eventMethods = (instance?: Autumn) => {
@@ -23,7 +23,7 @@ const handleEventList = async ({
 }: {
 	instance: Autumn;
 	params: LogParams;
-}): AutumnPromise<EventLogResponse> => {
+}): AutumnPromise<EventListResponse> => {
 	return instance.post("/events/list", params);
 };
 const handleEventAggregate = async ({

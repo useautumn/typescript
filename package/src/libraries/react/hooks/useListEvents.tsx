@@ -1,7 +1,7 @@
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 import type {
-  EventListParams,
-  EventListResponse,
+    EventListParams,
+    EventListResponse,
 } from "@/client/types/clientAnalyticsTypes";
 import { AutumnError } from "@sdk";
 import useSWR from "swr";

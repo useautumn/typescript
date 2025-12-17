@@ -4,7 +4,7 @@ import { PricingTable, useCustomer, useListEvents, useAggregateEvents } from "au
 import { authClient } from "@/lib/auth-client";
 import { TestBetterAuth } from "@/components/test-better-auth";
 import { CustomerDataViewer } from "@/components/customer-data-viewer";
-import { EventLogViewer } from "@/components/event-log-viewer";
+import { EventListViewer } from "@/components/event-list-viewer";
 import { EventAggregateViewer } from "@/components/event-aggregate-viewer";
 import TestButtons from "@/components/test-buttons";
 
@@ -123,7 +123,7 @@ export default function Home() {
           {customer && <CustomerDataViewer customer={customer} />}
 
           {eventLogs && eventLogs.length > 0 && (
-            <EventLogViewer events={eventLogs} />
+            <EventListViewer events={eventLogs} />
           )}
 
           {aggregateList && aggregateTotal && (
