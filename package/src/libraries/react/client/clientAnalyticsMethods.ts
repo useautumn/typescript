@@ -12,7 +12,7 @@ export async function eventListMethod(
 	params: EventsListParams,
 ): AutumnPromise<EventsListResponse> {
 	const res = await this.post(`${this.prefix}/events/list`, params);
-	console.log("res", res);
+
 	return res;
 }
 

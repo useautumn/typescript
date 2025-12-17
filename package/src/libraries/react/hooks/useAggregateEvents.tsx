@@ -1,12 +1,14 @@
 import { AutumnError, type AutumnErrorWithStatus } from "@sdk";
-import useSWR from "swr";
+import useSWR, { type SWRConfiguration } from "swr";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 import type {
 	EventAggregationParams,
 	EventAggregationResponse,
 } from "@/client/types/clientAnalyticsTypes";
 
-export const useAggregateEvents = (params: EventAggregationParams) => {
+export const useAggregateEvents = (
+	params: EventAggregationParams & { swrConfig?: SWRConfiguration },
+) => {
 	const context = useAutumnContext({
 		AutumnContext,
 		name: "useAggregateEvents",
@@ -47,13 +49,13 @@ export const useAggregateEvents = (params: EventAggregationParams) => {
 		],
 		fetcher,
 		{
-			refreshInterval: 0,
 			dedupingInterval: 2000,
 			revalidateOnFocus: false,
 			revalidateOnReconnect: false,
 			shouldRetryOnError: (error) =>
 				(error as AutumnErrorWithStatus).statusCode === 429,
 			errorRetryCount: 3,
+			...params.swrConfig,
 		},
 	);
 

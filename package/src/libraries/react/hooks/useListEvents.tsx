@@ -4,11 +4,13 @@ import {
 	type EventsListResponse,
 } from "@sdk";
 import { useCallback, useState } from "react";
-import useSWR from "swr";
+import useSWR, { type SWRConfiguration } from "swr";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 import type { EventsListParams } from "@/client/types/clientAnalyticsTypes";
 
-export const useListEvents = (params: EventsListParams) => {
+export const useListEvents = (
+	params: EventsListParams & { swrConfig?: SWRConfiguration },
+) => {
 	const context = useAutumnContext({
 		AutumnContext,
 		name: "useListEvents",
@@ -59,6 +61,7 @@ export const useListEvents = (params: EventsListParams) => {
 			shouldRetryOnError: (error) =>
 				(error as AutumnErrorWithStatus).statusCode === 429,
 			errorRetryCount: 3,
+			...params.swrConfig,
 		},
 	);
 

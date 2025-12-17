@@ -182,8 +182,8 @@ export const useCustomerBase = ({
 		swrConfig: {
 			shouldRetryOnError: false,
 			refreshInterval: 0,
-			...params?.swrConfig,
 			dedupingInterval: 2000,
+			...params?.swrConfig,
 		},
 	});
 
