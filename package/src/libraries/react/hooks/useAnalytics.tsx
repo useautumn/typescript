@@ -3,6 +3,9 @@ import { QueryParams } from "@/client/types/clientGenTypes";
 import { AutumnError, QueryResult } from "@sdk";
 import useSWR from "swr";
 
+/**
+ * @deprecated Use useAggregateEvents or useListEvents instead
+ */
 export const useAnalytics = (params: QueryParams) => {
   const context = useAutumnContext({
     AutumnContext,
