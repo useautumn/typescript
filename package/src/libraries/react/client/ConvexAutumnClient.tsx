@@ -32,6 +32,7 @@ export interface ConvexAutumnClientConfig {
 	headers?: Record<string, string>;
 	getBearerToken?: () => Promise<string | null>;
 	convex: any;
+	suppressLogs?: boolean; // Suppress error logging to browser console
 }
 
 export class ConvexAutumnClient implements IAutumnClient {
@@ -43,6 +44,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 	public readonly backendUrl?: string = undefined;
 	public readonly prefix: string = "/api/convex";
 	public readonly getBearerToken?: () => Promise<string | null>;
+	public readonly suppressLogs: boolean;
 
 	// Stub implementations for HTTP-specific methods that the interface requires
 	async detectCors() {
@@ -82,6 +84,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 		headers,
 		getBearerToken,
 		convex,
+		suppressLogs,
 	}: ConvexAutumnClientConfig) {
 		this.convex = convex;
 		this.convexApi = convexApi;
@@ -89,6 +92,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 		this.getBearerToken = getBearerToken;
 		this.customerData = customerData;
 		this.headers = headers;
+		this.suppressLogs = suppressLogs ?? false;
 	}
 
 	async createCustomer(
@@ -302,7 +306,9 @@ export class ConvexAutumnClient implements IAutumnClient {
 
 				return result;
 			} catch (error: any) {
-				console.error("Error fetching entity: ", error);
+				if (!this.suppressLogs) {
+					console.error("Error fetching entity: ", error);
+				}
 				return {
 					data: null,
 					error: new AutumnError({

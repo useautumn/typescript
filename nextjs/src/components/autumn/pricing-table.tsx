@@ -198,7 +198,7 @@ export const PricingCard = ({
 		throw new Error(`Product with id ${productId} not found`);
 	}
 
-	const { name, display: productDisplay, items } = product;
+	const { name, display: productDisplay } = product;
 
 	const { buttonText } = getPricingTableContent(product);
 
@@ -282,7 +282,6 @@ export const PricingCard = ({
 // Pricing Feature List
 export const PricingFeatureList = ({
 	items,
-	showIcon = true,
 	everythingFrom,
 	className,
 }: {

@@ -14,6 +14,7 @@ export const auth = betterAuth({
 		organization(),
 		autumn({
 			url: "http://localhost:8080/v1",
+			suppressLogs: true,
 			identify: async () => {
 				return {
 					customerId: "1234",

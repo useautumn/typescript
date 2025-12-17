@@ -1,7 +1,6 @@
 import { Autumn, CustomerData } from "../../../sdk";
 import { toBackendError, toBackendRes } from "./backendRes";
 import { AuthResult } from "./AuthFunction";
-import { logBackendErrors } from "./logBackendErrors";
 import { logger } from "../../../utils/logger";
 import { toSnakeCase } from "@utils/toSnakeCase";
 
@@ -9,6 +8,7 @@ import { toSnakeCase } from "@utils/toSnakeCase";
 export const withAuth = <T extends {}>({
   fn,
   requireCustomer = true,
+  suppressLogs = false,
 }: {
   fn: (args: {
     autumn: Autumn;
@@ -19,6 +19,7 @@ export const withAuth = <T extends {}>({
     searchParams?: Record<string, string>;
   }) => Promise<any>;
   requireCustomer?: boolean;
+  suppressLogs?: boolean;
 }) => {
   return async ({
     autumn,
@@ -45,9 +46,11 @@ export const withAuth = <T extends {}>({
           body: null,
         };
       } else {
-        logger.error(
-          `[Autumn]: customerId returned from identify function is ${customerId}`
-        );
+        if (!suppressLogs) {
+          logger.error(
+            `[Autumn]: customerId returned from identify function is ${customerId}`
+          );
+        }
         return toBackendError({
           path,
           message: `customerId returned from identify function is ${customerId}`,
@@ -78,7 +81,9 @@ export const withAuth = <T extends {}>({
 
       return toBackendRes({ res });
     } catch (error: any) {
-      logger.error(`${error.message}`);
+      if (!suppressLogs) {
+        logger.error(`${error.message}`);
+      }
       return toBackendError({
         path,
         message: error.message || "unknown error",

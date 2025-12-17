@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 export function MetricCard({ title, value }: { title: string; value: string | number }) {
@@ -34,7 +34,7 @@ export function FilterButton({ children, active = false }: { children: React.Rea
 
 interface UsageData {
   period: string | number;
-  [key: string]: string | number;
+  [key: string]: string | number | Record<string, number>;
 }
 
 interface AnalyticsChartProps {
@@ -63,7 +63,7 @@ function formatPeriod(timestamp: string | number): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function filterDataPoints(data: any[], maxPoints: number = 15) {
+export function filterDataPoints(data: unknown[]) {
   // Show all data points instead of filtering
   return data;
 }

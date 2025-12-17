@@ -2,6 +2,7 @@ import type { Autumn, EventsListParams, QueryParams } from "@sdk";
 import { addRoute, type RouterContext } from "rou3";
 import { BASE_PATH } from "../constants";
 import { withAuth } from "../utils/withAuth";
+import type { RouterOptions } from "./backendRouter";
 
 const sanitizeBody = (body: any) => {
 	const bodyCopy = { ...body };
@@ -10,7 +11,7 @@ const sanitizeBody = (body: any) => {
 	return bodyCopy;
 };
 
-const listEventsHandler = withAuth({
+const listEventsHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -25,9 +26,10 @@ const listEventsHandler = withAuth({
 			customer_id,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const aggregateEventsHandler = withAuth({
+const aggregateEventsHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -42,13 +44,14 @@ const aggregateEventsHandler = withAuth({
 			customer_id,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-export const addAnalyticsRoutes = (router: RouterContext) => {
+export const addAnalyticsRoutes = (router: RouterContext, options?: RouterOptions) => {
 	addRoute(router, "POST", `${BASE_PATH}/events/list`, {
-		handler: listEventsHandler,
+		handler: listEventsHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/events/aggregate`, {
-		handler: aggregateEventsHandler,
+		handler: aggregateEventsHandler(options),
 	});
 };

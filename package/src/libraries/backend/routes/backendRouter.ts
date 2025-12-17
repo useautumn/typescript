@@ -18,6 +18,10 @@ type RouteData = {
   requireCustomer?: boolean;
 };
 
+export interface RouterOptions {
+  suppressLogs?: boolean;
+}
+
 const sanitizeCustomerBody = (body: any) => {
   let bodyCopy = { ...body };
   delete bodyCopy.id;
@@ -27,7 +31,7 @@ const sanitizeCustomerBody = (body: any) => {
   return bodyCopy;
 };
 
-const createCustomerHandler = withAuth({
+const createCustomerHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -47,9 +51,10 @@ const createCustomerHandler = withAuth({
 
     return res;
   },
+  suppressLogs: options?.suppressLogs,
 });
 
-const getPricingTableHandler = withAuth({
+const getPricingTableHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -65,9 +70,10 @@ const getPricingTableHandler = withAuth({
     });
   },
   requireCustomer: false,
+  suppressLogs: options?.suppressLogs,
 });
 
-export const createRouterWithOptions = () => {
+export const createRouterWithOptions = (options?: RouterOptions) => {
   const router = createRouter<RouteData>();
 
   addRoute(router, "POST", `${BASE_PATH}/cors`, {
@@ -83,19 +89,19 @@ export const createRouterWithOptions = () => {
   });
 
   addRoute(router, "POST", `${BASE_PATH}/customers`, {
-    handler: createCustomerHandler,
+    handler: createCustomerHandler(options),
   });
 
   addRoute(router, "GET", `${BASE_PATH}/components/pricing_table`, {
-    handler: getPricingTableHandler,
+    handler: getPricingTableHandler(options),
     requireCustomer: false,
   });
 
-  addGenRoutes(router);
-  addEntityRoutes(router);
-  addReferralRoutes(router);
-  addProductRoutes(router);
-  addAnalyticsRoutes(router);
+  addGenRoutes(router, options);
+  addEntityRoutes(router, options);
+  addReferralRoutes(router, options);
+  addProductRoutes(router, options);
+  addAnalyticsRoutes(router, options);
 
   return router;
 };

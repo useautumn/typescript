@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const x = await client.events.aggregate({
+  await client.events.aggregate({
     customer_id: "cus_123",
     feature_id: "tasks",
     range: "7d",

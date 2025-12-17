@@ -14,4 +14,5 @@ export type AutumnOptions = {
     session: Session;
     organization?: (Organization & { ownerEmail: string | null }) | null;
   }) => AuthResult;
+  suppressLogs?: boolean;
 };

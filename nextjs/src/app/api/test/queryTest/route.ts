@@ -1,12 +1,12 @@
 "use server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Autumn } from "autumn-js";
 const client = new Autumn({
   secretKey: process.env.AUTUMN_SECRET_KEY,
   url: "http://localhost:8080/v1",
 });
 
-export async function GET(req: NextRequest) {
+export async function GET() {
 	console.log("HTTP GET request received");
   const res = await client.events.aggregate({
     customer_id: "1234",
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(res);
 }
 
-export async function PATCH(req: NextRequest) {
+export async function PATCH() {
 	// eclare const LogParamsSchema: z.ZodObject<{
 	// 	starting_after: z.ZodOptional<z.ZodString>;
 	// 	limit: z.ZodOptional<z.ZodDefault<z.ZodCoercedNumber<unknown>>>;

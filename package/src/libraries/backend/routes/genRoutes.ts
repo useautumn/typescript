@@ -12,6 +12,7 @@ import type {
 } from "../../../sdk";
 import { BASE_PATH } from "../constants";
 import { withAuth } from "../utils/withAuth";
+import type { RouterOptions } from "./backendRouter";
 
 const sanitizeBody = (body: any) => {
 	const bodyCopy = { ...body };
@@ -20,7 +21,7 @@ const sanitizeBody = (body: any) => {
 	return bodyCopy;
 };
 
-const checkoutHandler = withAuth({
+const checkoutHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -40,8 +41,10 @@ const checkoutHandler = withAuth({
 
 		return result;
 	},
+	suppressLogs: options?.suppressLogs,
 });
-const attachHandler = withAuth({
+
+const attachHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -61,8 +64,10 @@ const attachHandler = withAuth({
 			customer_data,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
-const setupPaymentHandler = withAuth({
+
+const setupPaymentHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -80,9 +85,10 @@ const setupPaymentHandler = withAuth({
 			customer_data,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const cancelHandler = withAuth({
+const cancelHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -97,9 +103,10 @@ const cancelHandler = withAuth({
 			customer_id,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const checkHandler = withAuth({
+const checkHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -119,9 +126,10 @@ const checkHandler = withAuth({
 
 		return result;
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const trackHandler = withAuth({
+const trackHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -139,9 +147,10 @@ const trackHandler = withAuth({
 			customer_data,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const openBillingPortalHandler = withAuth({
+const openBillingPortalHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -153,9 +162,10 @@ const openBillingPortalHandler = withAuth({
 	}) => {
 		return await autumn.customers.billingPortal(customer_id, body);
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const queryHandler = withAuth({
+const queryHandler = (options?: RouterOptions) => withAuth({
 	fn: async ({
 		autumn,
 		customer_id,
@@ -170,32 +180,33 @@ const queryHandler = withAuth({
 			customer_id,
 		});
 	},
+	suppressLogs: options?.suppressLogs,
 });
 
-const addGenRoutes = (router: RouterContext) => {
+const addGenRoutes = (router: RouterContext, options?: RouterOptions) => {
 	addRoute(router, "POST", `${BASE_PATH}/checkout`, {
-		handler: checkoutHandler,
+		handler: checkoutHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/attach`, {
-		handler: attachHandler,
+		handler: attachHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/cancel`, {
-		handler: cancelHandler,
+		handler: cancelHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/check`, {
-		handler: checkHandler,
+		handler: checkHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/track`, {
-		handler: trackHandler,
+		handler: trackHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/billing_portal`, {
-		handler: openBillingPortalHandler,
+		handler: openBillingPortalHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/setup_payment`, {
-		handler: setupPaymentHandler,
+		handler: setupPaymentHandler(options),
 	});
 	addRoute(router, "POST", `${BASE_PATH}/query`, {
-		handler: queryHandler,
+		handler: queryHandler(options),
 	});
 };
 

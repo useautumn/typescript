@@ -11,8 +11,9 @@ export function autumnHandler(options: {
   identify: (request: any) => AuthResult;
   url?: string;
   secretKey?: string;
+  suppressLogs?: boolean;
 }) {
-  const router = createRouterWithOptions();
+  const router = createRouterWithOptions({ suppressLogs: options.suppressLogs });
 
   async function handler(request: any, response?: any) {
     let { found, error: resError } = secretKeyCheck(options.secretKey);

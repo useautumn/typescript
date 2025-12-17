@@ -44,8 +44,6 @@ import {
 import type { AutumnOptions } from "./utils/betterAuth/types";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 
-const router = createRouterWithOptions();
-
 const betterAuthPathMap: Record<string, string> = {
 	// "create-customer": "customers",
 	// "customers/get": "customers",
@@ -83,6 +81,8 @@ const handleReq = async ({
 		url: options?.url,
 		secretKey: options?.secretKey,
 	});
+
+	const router = createRouterWithOptions({ suppressLogs: options?.suppressLogs });
 
 	let searchParams: Record<string, string> = {};
 	try {

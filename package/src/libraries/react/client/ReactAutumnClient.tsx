@@ -58,6 +58,7 @@ export interface AutumnClientConfig {
 	headers?: Record<string, string>;
 	pathPrefix?: string; // Optional API path prefix override
 	defaultReturnUrl?: string;
+	suppressLogs?: boolean; // Suppress error logging to browser console
 }
 
 export interface IAutumnClient {
@@ -132,6 +133,7 @@ export class AutumnClient implements IAutumnClient {
 	public readonly headers?: Record<string, string>;
 	public readonly framework?: string;
 	public readonly defaultReturnUrl?: string;
+	public readonly suppressLogs: boolean;
 
 	constructor({
 		backendUrl,
@@ -142,6 +144,7 @@ export class AutumnClient implements IAutumnClient {
 		headers,
 		pathPrefix,
 		defaultReturnUrl,
+		suppressLogs,
 	}: AutumnClientConfig) {
 		this.backendUrl = backendUrl;
 		this.getBearerToken = getBearerToken;
@@ -172,6 +175,7 @@ export class AutumnClient implements IAutumnClient {
 		if (betterAuthUrl) camelCase = true;
 		this.camelCase = camelCase;
 		this.defaultReturnUrl = defaultReturnUrl;
+		this.suppressLogs = suppressLogs ?? false;
 	}
 
 	/**
@@ -291,20 +295,24 @@ export class AutumnClient implements IAutumnClient {
 				credentials: includeCredentials ? "include" : "omit",
 			});
 
-			const loggedError = await logAuthError(response);
+			const loggedError = this.suppressLogs
+				? false
+				: await logAuthError(response);
 
 			return await toContainerResult({
 				response,
 				logger: console,
-				logError: !loggedError,
+				logError: !this.suppressLogs && !loggedError,
 			});
 		} catch (error: unknown) {
-			logFetchError({
-				method,
-				backendUrl: this.backendUrl || "",
-				path,
-				error,
-			});
+			if (!this.suppressLogs) {
+				logFetchError({
+					method,
+					backendUrl: this.backendUrl || "",
+					path,
+					error,
+				});
+			}
 			return {
 				data: null,
 				error: new AutumnError({
