@@ -81,7 +81,7 @@ export const EventAggregationParamsSchema = z.object({
 	),
 	binSize: BinSizeEnumSchema.describe(
 		"Bin size for aggregation: 'day' or 'hour'",
-	),
+	).optional(),
 	customRange: z
 		.object({
 			start: z.number().describe("Start timestamp (epoch milliseconds)"),
