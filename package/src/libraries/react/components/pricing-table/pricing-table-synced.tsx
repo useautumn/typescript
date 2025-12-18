@@ -7,14 +7,16 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import CheckoutDialog from "../checkout-dialog/checkout-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
-import type { Product, ProductItem } from "@sdk";
+import type { Product, ProductItem, CheckoutParams } from "@sdk";
 import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
 import { Loader2 } from "lucide-react";
 
 export default function PricingTable({
   productDetails,
+  checkoutParams,
 }: {
   productDetails?: ProductDetails[];
+  checkoutParams?: CheckoutParams;
 }) : React.JSX.Element {
   const { customer, checkout } = useCustomer({ errorOnNotFound: false });
 
@@ -79,6 +81,7 @@ export default function PricingTable({
                 onClick: async () => {
                   if (product.id && customer) {
                     await checkout({
+                      ...checkoutParams,
                       productId: product.id,
                       dialog: CheckoutDialog,
                     });
