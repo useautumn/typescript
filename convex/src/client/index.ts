@@ -304,6 +304,13 @@ export class Autumn {
         args: CheckoutArgs,
         handler: async (ctx, args) => {
           const { autumn, identifierOpts } = await this.getAuthParams({ ctx });
+          if(args.productId && args.productIds) {
+            throw new Error("Cannot specify both productId and productIds");
+          }
+
+          if(!args.productId && !args.productIds) {
+            throw new Error("Must specify either productId or productIds");
+          }
 
           return await autumnHelpers.checkout({
             autumn,

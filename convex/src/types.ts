@@ -68,7 +68,7 @@ export const AttachArgs = v.object({
 export type AttachArgsType = Infer<typeof AttachArgs>;
 
 export const CheckoutArgs = v.object({
-	productId: v.string(),
+	productId: v.optional(v.string()),
 	productIds: v.optional(v.array(v.string())),
 	entityId: v.optional(v.string()),
 	options: v.optional(v.array(AttachFeatureOptionsConvex)), // Changed to use proper schema
