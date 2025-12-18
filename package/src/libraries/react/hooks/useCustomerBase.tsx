@@ -71,7 +71,7 @@ export interface UseCustomerResult {
 	 * Collects payment information without immediately charging.
 	 */
 	setupPayment: (
-		params: SetupPaymentParams,
+		params?: SetupPaymentParams,
 	) => AutumnPromise<SetupPaymentResult>;
 
 	/**

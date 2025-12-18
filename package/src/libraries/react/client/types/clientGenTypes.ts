@@ -48,7 +48,7 @@ export const SetupPaymentParamsSchema = z.object({
 	successUrl: z.string().optional(),
 	checkoutSessionParams: z.record(z.string(), z.any()).optional(),
 	openInNewTab: z.boolean().optional(),
-});
+}).optional();
 
 export type SetupPaymentParams = z.infer<typeof SetupPaymentParamsSchema>;
 

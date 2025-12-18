@@ -45,7 +45,7 @@ export async function attachMethod(
 }
 export async function setupPaymentMethod(
 	this: AutumnClient,
-	params: SetupPaymentParams,
+	params: SetupPaymentParams = {},
 ): AutumnPromise<SetupPaymentResult> {
 	const finalParams = {
 		...params,
