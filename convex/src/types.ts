@@ -79,6 +79,7 @@ export const CheckoutArgs = v.object({
 	entityData: v.optional(v.any()), // Added to match SDK
 	checkoutSessionParams: v.optional(v.record(v.string(), v.any())),
 	reward: v.optional(v.string()),
+	freeTrial: v.optional(v.boolean()),
 });
 
 export type CheckoutArgsType = Infer<typeof CheckoutArgs>;
