@@ -1,4 +1,5 @@
 #!/bin/bash
+npm login
 pnpm build
 
 if [ "$1" = "--tag" ] && [ "$2" = "beta" ]; then
@@ -7,4 +8,3 @@ else
   npm version patch
   npm publish --access public
 fi
-

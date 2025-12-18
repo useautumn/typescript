@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+npm login
 npm run build
 
 if [ "$1" = "--tag" ] && [ "$2" = "beta" ]; then
