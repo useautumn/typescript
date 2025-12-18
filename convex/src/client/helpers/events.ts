@@ -1,38 +1,45 @@
-import type { Autumn, LogParams, QueryParams } from "autumn-js";
+import type { Autumn, EventsListParams, QueryParams } from "autumn-js";
 import { wrapSdkCall } from "./utils.js";
-import type {
-	EventListArgsType,
-	EventAggregateArgsType,
-} from "../../types.js";
 import { toSnakeCase } from "../../utils.js";
+import { EventAggregateArgsType, EventListArgsType, IdentifierOptsType } from "../../types.js";
 
 export const list = async ({
 	autumn,
+	identifierOpts,
 	args,
 }: {
 	autumn: Autumn;
+	identifierOpts: IdentifierOptsType;
 	args: EventListArgsType;
 }) => {
 	return await wrapSdkCall(() =>
 		autumn.events.list(
 			toSnakeCase({
-				obj: args,
-			}) as unknown as LogParams,
+				obj: {
+					customer_id: identifierOpts.customerId,
+					...args,
+				},
+			}) as unknown as EventsListParams,
 		),
 	);
 };
 
 export const aggregate = async ({
 	autumn,
+	identifierOpts,
 	args,
 }: {
 	autumn: Autumn;
+	identifierOpts: IdentifierOptsType;
 	args: EventAggregateArgsType;
 }) => {
 	return await wrapSdkCall(() =>
 		autumn.events.aggregate(
 			toSnakeCase({
-				obj: args,
+				obj: {
+					customer_id: identifierOpts.customerId,
+					...args,
+				},
 			}) as unknown as QueryParams,
 		),
 	);

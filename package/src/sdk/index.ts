@@ -17,18 +17,7 @@ export {
 	TransferProductParamsSchema,
 } from "./customers/entities/entTypes";
 export * from "./error";
-export {
-	type EventsListItem,
-	EventsListItemSchema,
-	type EventsListParams,
-	EventsListParamsSchema,
-	type EventsListResponse,
-	EventsListResponseSchema,
-	type QueryParams,
-	QueryParamsSchema,
-	QueryRangeEnum,
-	type QueryResult,
-} from "./events/eventTypes";
+export * from "./events/eventTypes";
 export { FeatureSchema } from "./features/featureTypes";
 export * from "./general/attachTypes";
 export {

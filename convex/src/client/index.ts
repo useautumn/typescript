@@ -235,16 +235,18 @@ export class Autumn {
 
   events = {
     list: async (ctx: any, args: EventListArgsType) => {
-      const { autumn } = await this.getAuthParams({ ctx, requireAuth: false });
+      const { autumn, identifierOpts } = await this.getAuthParams({ ctx, requireAuth: false });
       return await autumnHelpers.events.list({
         autumn,
+        identifierOpts,
         args,
       });
     },
     aggregate: async (ctx: any, args: EventAggregateArgsType) => {
-      const { autumn } = await this.getAuthParams({ ctx, requireAuth: false });
+      const { autumn, identifierOpts } = await this.getAuthParams({ ctx, requireAuth: false });
       return await autumnHelpers.events.aggregate({
         autumn,
+        identifierOpts,
         args,
       });
     },
@@ -476,12 +478,13 @@ export class Autumn {
       listEvents: actionGeneric({
         args: EventListArgs,
         handler: async (ctx, args) => {
-          const { autumn } = await this.getAuthParams({
+          const { autumn, identifierOpts } = await this.getAuthParams({
             ctx,
             requireAuth: false,
           });
           return await autumnHelpers.events.list({
             autumn,
+            identifierOpts,
             args,
           });
         },
@@ -490,12 +493,13 @@ export class Autumn {
       aggregateEvents: actionGeneric({
         args: EventAggregateArgs,
         handler: async (ctx, args) => {
-          const { autumn } = await this.getAuthParams({
+          const { autumn, identifierOpts } = await this.getAuthParams({
             ctx,
             requireAuth: false,
           });
           return await autumnHelpers.events.aggregate({
             autumn,
+            identifierOpts,
             args,
           });
         },
