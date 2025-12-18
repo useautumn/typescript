@@ -61,6 +61,7 @@ export const useListEvents = (
 			shouldRetryOnError: (error) =>
 				(error as AutumnErrorWithStatus).statusCode === 429,
 			errorRetryCount: 3,
+			refreshInterval: 0,
 			...params.swrConfig,
 		},
 	);
