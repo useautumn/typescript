@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import CheckoutDialog from "../checkout-dialog/checkout-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
-import type { Product, ProductItem, CheckoutParams } from "@sdk";
+import type { CheckoutParams } from "@/client/types/clientAttachTypes";
+import type { Product, ProductItem } from "@sdk";
 import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
 import { Loader2 } from "lucide-react";
 
@@ -84,7 +85,7 @@ export default function PricingTable({
                       ...checkoutParams,
                       productId: product.id,
                       dialog: CheckoutDialog,
-                    });
+                    } satisfies CheckoutParams);
                   } else if (product.display?.button_url) {
                     window.open(product.display?.button_url, "_blank");
                   }
