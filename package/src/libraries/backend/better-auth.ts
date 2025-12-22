@@ -82,7 +82,9 @@ const handleReq = async ({
 		secretKey: options?.secretKey,
 	});
 
-	const router = createRouterWithOptions({ suppressLogs: options?.suppressLogs });
+	const router = createRouterWithOptions({
+		suppressLogs: options?.suppressLogs,
+	});
 
 	let searchParams: Record<string, string> = {};
 	try {
@@ -212,7 +214,6 @@ export const autumn = (options?: AutumnOptions) => {
 					body: CheckoutParamsSchema,
 				},
 				async (ctx) => {
-					console.log("Body: ", ctx.body);
 					return await handleReq({ ctx, options, method: "POST" });
 				},
 			),
