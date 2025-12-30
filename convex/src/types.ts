@@ -256,7 +256,7 @@ export const RangeEnum = v.union(
 export const BinSizeEnum = v.union(v.literal("day"), v.literal("hour"));
 
 export const EventListArgs = v.object({
-	customerId: v.string(),
+	customerId: v.optional(v.string()),
 	featureId: v.union(v.string(), v.array(v.string())),
 	offset: v.optional(v.number()),
 	limit: v.optional(v.number()),
@@ -271,7 +271,7 @@ export const EventListArgs = v.object({
 export type EventListArgsType = Infer<typeof EventListArgs>;
 
 export const EventAggregateArgs = v.object({
-	customerId: v.string(),
+	customerId: v.optional(v.string()),
 	featureId: v.union(v.string(), v.array(v.string())),
 	groupBy: v.optional(v.string()),
 	range: v.optional(RangeEnum),
