@@ -1,4 +1,5 @@
 import type { ProductItem } from "@sdk/products/prodTypes";
+import { z } from "zod/v4";
 import type { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
 import {
@@ -6,7 +7,6 @@ import {
   type CustomerExpandOption,
   type ProductStatus,
 } from "./cusEnums";
-import { z } from "zod/v4";
 
 export const CoreCusFeatureSchema = z.object({
   unlimited: z.boolean().optional(),
@@ -33,7 +33,7 @@ export const CoreCusFeatureSchema = z.object({
         usage: z.number().optional(),
         included_usage: z.number().optional(),
         next_reset_at: z.number().optional(),
-      })
+      }),
     )
     .optional(),
 
@@ -42,7 +42,7 @@ export const CoreCusFeatureSchema = z.object({
       z.object({
         feature_id: z.string(),
         credit_amount: z.number(),
-      })
+      }),
     )
     .optional(),
 });
@@ -181,8 +181,19 @@ export const UpdateBalancesParamsSchema = z
       z.object({
         feature_id: z.string(),
         balance: z.number(),
-      })
-    )
+      }),
+    ),
+  )
+  .or(
+    z.object({
+      entity_id: z.string().optional(),
+      balances: z.array(
+        z.object({
+          feature_id: z.string(),
+          balance: z.number(),
+        }),
+      ),
+    }),
   );
 
 export const DeleteCustomerParamsSchema = z.object({
@@ -198,5 +209,3 @@ export type ListCustomersParams = z.infer<typeof ListCustomersParamsSchema>;
 export type DeleteCustomerParams = z.infer<typeof DeleteCustomerParamsSchema>;
 export type UpdateBalancesParams = z.infer<typeof UpdateBalancesParamsSchema>;
 export type UpdateBalancesResult = { success: boolean };
-
-
