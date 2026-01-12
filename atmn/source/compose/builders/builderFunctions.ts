@@ -19,10 +19,10 @@ type PlanInput = Omit<Plan, 'description' | 'add_on' | 'default' | 'group'> & Pa
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
  *   features: [
- *     planFeature({ feature_id: seats.id, granted: 10 }),
+ *     planFeature({ feature_id: seats.id, included: 10 }),
  *     planFeature({
  *       feature_id: messages.id,
- *       granted: 1000,
+ *       included: 1000,
  *       reset: { interval: 'month' }
  *     })
  *   ],
@@ -46,10 +46,21 @@ export const plan = (params: PlanInput): Plan => {
  * @returns Feature object for use in autumn.config.ts
  *
  * @example
+ * // Metered consumable feature (like API calls, tokens)
+ * export const apiCalls = feature({
+ *   id: 'api_calls',
+ *   name: 'API Calls',
+ *   type: 'metered',
+ *   consumable: true
+ * });
+ *
+ * @example
+ * // Metered non-consumable feature (like seats)
  * export const seats = feature({
  *   id: 'seats',
  *   name: 'Team Seats',
- *   type: 'continuous_use'
+ *   type: 'metered',
+ *   consumable: false
  * });
  */
 export const feature = (params: Feature): Feature => {
@@ -66,7 +77,7 @@ export const feature = (params: Feature): Feature => {
  * // Simple included usage
  * planFeature({
  *   feature_id: messages.id,
- *   granted: 1000,
+ *   included: 1000,
  *   reset: { interval: 'month' }
  * })
  *
@@ -74,7 +85,7 @@ export const feature = (params: Feature): Feature => {
  * // Priced feature with tiers
  * planFeature({
  *   feature_id: seats.id,
- *   granted: 5,
+ *   included: 5,
  *   price: {
  *     tiers: [
  *       { to: 10, amount: 10 },

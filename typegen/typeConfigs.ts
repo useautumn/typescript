@@ -515,7 +515,7 @@ export function getAtmnTypeConfigs(
 		"api/products/planFeature/planFeatureOpModels.ts",
 	);
 	const apiPlanFile = path.join(serverPath, "api/products/apiPlan.ts");
-	const apiFeatureFile = path.join(serverPath, "api/features/apiFeature.ts");
+	const apiFeatureFile = path.join(serverPath, "api/features/apiFeatureV1.ts");
 
 	// Target directories in atmn
 	const modelsDir = path.join(atmnPath, "source/compose/models");
@@ -566,6 +566,9 @@ export function getAtmnTypeConfigs(
 				replaceEnumsWithStrings: true,
 				omitFields: [],
 				extendFields: {},
+				renameFields: {
+					granted_balance: "included",
+				},
 				skipTypeExport: true, // Don't export type - we'll add discriminated union manually
 			},
 
@@ -573,20 +576,16 @@ export function getAtmnTypeConfigs(
 			// FEATURE (reusable feature definitions)
 			// ==================
 			{
-				sourceName: "ApiFeatureSchema",
+				sourceName: "ApiFeatureV1Schema",
 				targetName: "Feature",
 				sourceFile: apiFeatureFile,
 				targetFile: path.join(modelsDir, "featureModels.ts"),
 				sourceType: "zod",
 				keepCase: true,
-				omitFields: ["type", "display"],
-				extendFields: {
-					type: {
-						zodType: "z.string()",
-						description:
-							"The type of the feature (boolean, single_use, continuous_use, credit_system)",
-					},
-				},
+				replaceEnumsWithStrings: true,
+				omitFields: ["display", "archived", "consumable", "type"],
+				extendFields: {},
+				skipTypeExport: true, // We'll add discriminated union manually
 			},
 
 			// ==================
@@ -633,10 +632,10 @@ export function getAtmnTypeConfigs(
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
  *   features: [
- *     planFeature({ feature_id: seats.id, granted: 10 }),
+ *     planFeature({ feature_id: seats.id, included: 10 }),
  *     planFeature({
  *       feature_id: messages.id,
- *       granted: 1000,
+ *       included: 1000,
  *       reset: { interval: 'month' }
  *     })
  *   ],
@@ -656,10 +655,21 @@ export function getAtmnTypeConfigs(
  * @returns Feature object for use in autumn.config.ts
  *
  * @example
+ * // Metered consumable feature (like API calls, tokens)
+ * export const apiCalls = feature({
+ *   id: 'api_calls',
+ *   name: 'API Calls',
+ *   type: 'metered',
+ *   consumable: true
+ * });
+ *
+ * @example
+ * // Metered non-consumable feature (like seats)
  * export const seats = feature({
  *   id: 'seats',
  *   name: 'Team Seats',
- *   type: 'continuous_use'
+ *   type: 'metered',
+ *   consumable: false
  * });
  */`,
 			},
@@ -678,7 +688,7 @@ export function getAtmnTypeConfigs(
  * // Simple included usage
  * planFeature({
  *   feature_id: messages.id,
- *   granted: 1000,
+ *   included: 1000,
  *   reset: { interval: 'month' }
  * })
  *
@@ -686,7 +696,7 @@ export function getAtmnTypeConfigs(
  * // Priced feature with tiers
  * planFeature({
  *   feature_id: seats.id,
- *   granted: 5,
+ *   included: 5,
  *   price: {
  *     tiers: [
  *       { to: 10, amount: 10 },

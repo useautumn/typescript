@@ -13,166 +13,62 @@ const idRegex = /^[a-zA-Z0-9_-]+$/;
 
 
 export const PlanFeatureSchema = z.object({
-  feature_id: z.string().meta({
-    description: "Reference to the feature being configured",
-    example: "seats",
-    }),
-  granted: z.number().optional().meta({
-    description: "Amount of usage granted to customers",
-    example: 1000,
-    }),
-  unlimited: z.boolean().optional().meta({
-    description: "Whether usage is unlimited",
-    example: false,
-    }),
+  feature_id: z.string(),
+    granted_balance: z.number().optional(),
+  unlimited: z.boolean().optional(),
   reset: z
     .object({
-    interval: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]).optional().meta({
-    description: "How often usage resets",
-    example: "month",
-    }),
-    interval_count: z.number().optional().meta({
-    description: "Number of intervals between resets",
-    example: 1,
-    }),
-    when_enabled: z.boolean().optional().meta({
-    description: "Whether to reset usage when feature is enabled",
-    example: true,
-    }),
+    interval: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]),
+    interval_count: z.number().optional(),
+    reset_when_enabled: z.boolean().optional(),
     })
-    .optional()
-    .meta({
-    description: "Reset configuration for metered features",
-    example: { interval: "month" },
-    }),
+    .optional(),
   price: z
     .object({
-    amount: z.number().optional().meta({
-    description: "Flat price per unit in cents",
-    example: 1000,
-    }),
-    tiers: z.array(UsageTierSchema).optional().meta({
-    description: "Tiered pricing structure based on usage ranges",
-    example: [{ to: 10, amount: 1000 }, { to: "inf", amount: 800 }],
-    }),
+    amount: z.number().optional(),
+    tiers: z.array(UsageTierSchema).optional(),
     
-    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]).meta({
-    description: "Billing frequency (cannot be used with reset.interval)",
-    example: "month",
-    }),
-    interval_count: z.number().default(1).optional().meta({
-    description: "Number of intervals between billing",
-    example: 1,
-    }),
+    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
+    interval_count: z.number().default(1).optional(),
     
-    billing_units: z.number().default(1).optional().meta({
-    description: "Number of units per billing cycle",
-    example: 1,
-    }),
-    usage_model: z.union([z.literal("prepaid"), z.literal("pay_per_use")]).meta({
-    description: "Billing model: 'prepaid' or 'pay_per_use'",
-    example: "pay_per_use",
-    }),
-    max_purchase: z.number().optional().meta({
-    description: "Maximum purchasable quantity",
-    example: 100,
-    }),
+    billing_units: z.number().default(1).optional(),
+    usage_model: z.union([z.literal("prepaid"), z.literal("pay_per_use")]),
+    max_purchase: z.number().optional(),
     })
-    .optional()
-    .meta({
-    description: "Pricing configuration for usage-based billing",
-    example: { interval: "month", usage_model: "pay_per_use" },
-    }),
+    .optional(),
   proration: z
     .object({
-    on_increase: z.union([z.literal("prorate"), z.literal("charge_immediately")]).meta({
-    description: "Behavior when quantity increases",
-    example: "prorate",
-    }),
-    on_decrease: z.union([z.literal("prorate"), z.literal("refund_immediately"), z.literal("no_action")]).meta({
-    description: "Behavior when quantity decreases",
-    example: "no_action",
-    }),
+    on_increase: z.union([z.literal("prorate"), z.literal("charge_immediately")]),
+    on_decrease: z.union([z.literal("prorate"), z.literal("refund_immediately"), z.literal("no_action")]),
     })
-    .optional()
-    .meta({
-    description: "Proration rules for quantity changes",
-    example: { on_increase: "prorate", on_decrease: "no_action" },
-    }),
+    .optional(),
   rollover: z
     .object({
-    max: z.number().meta({
-    description: "Maximum amount that can roll over",
-    example: 1000,
-    }),
-    expiry_duration_type: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]).meta({
-    description: "How long rollover lasts before expiring",
-    example: "month",
-    }),
-    expiry_duration_length: z.number().optional().meta({
-    description: "Duration length for rollover expiry",
-    example: 1,
-    }),
+    max: z.number(),
+    expiry_duration_type: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]),
+    expiry_duration_length: z.number().optional(),
     })
     .optional()
-    .meta({
-    description: "Rollover policy for unused usage",
-    example: { max: 1000, expiry_duration_type: "month" },
-    })
 });
 
 export const FreeTrialSchema = z.object({
-  duration_type: z.union([z.literal("day"), z.literal("month"), z.literal("year")]).meta({
-    description: "Unit of time: 'day', 'month', or 'year'",
-    example: "day",
-    }),
-  duration_length: z.number().meta({
-    description: "Number of duration units",
-    example: 14,
-    }),
-  card_required: z.boolean().meta({
-    description: "Whether credit card is required upfront",
-    example: true,
-    })
+  duration_type: z.union([z.literal("day"), z.literal("month"), z.literal("year")]),
+    duration_length: z.number(),
+  card_required: z.boolean()
 });
 
 export const PlanSchema = z.object({
-  description: z.string().nullable().default(null).meta({
-    description: "Optional description explaining what this plan offers",
-    example: "Perfect for growing teams",
-    }),
-  add_on: z.boolean().default(false).meta({
-    description: "Whether this plan can be purchased alongside other plans",
-    example: false,
-    }),
-  default: z.boolean().default(false).meta({
-    description: "Whether this is the default plan for new customers",
-    example: false,
-    }),
+  description: z.string().nullable().default(null),
+  add_on: z.boolean().default(false),
+    default: z.boolean().default(false),
   price: z
     .object({
-    amount: z.number().meta({
-    description: "Price in cents (e.g., 5000 for $50.00)",
-    example: 5000,
-    }),
-    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]).meta({
-    description: "Billing frequency",
-    example: "month",
-    }),
+    amount: z.number(),
+    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
     })
-    .optional()
-    .meta({
-    description: "Base subscription price for the plan",
-    example: { amount: 5000, interval: "month" },
-    }),
-  features: z.array(PlanFeatureSchema).optional().meta({
-    description: "Features included with usage limits and pricing",
-    example: [],
-    }),
-  free_trial: FreeTrialSchema.nullable().optional().meta({
-    description: "Free trial period before billing begins",
-    example: { duration_type: "day", duration_length: 14, card_required: true },
-    }),
+    .optional(),
+  features: z.array(PlanFeatureSchema).optional(),
+    free_trial: FreeTrialSchema.nullable().optional(),
   /** Unique identifier for the plan */
   id: z.string().nonempty().regex(idRegex),
   /** Display name for the plan */
@@ -199,8 +95,8 @@ export type PlanFeatureWithReset = {
   /** Reference to the feature being configured */
   feature_id: string;
 
-  /** Amount of usage granted to customers */
-  granted?: number;
+  /** Amount of usage included in this plan */
+  included?: number;
 
   /** Whether usage is unlimited */
   unlimited?: boolean;
@@ -266,8 +162,8 @@ export type PlanFeatureWithPrice = {
   /** Reference to the feature being configured */
   feature_id: string;
 
-  /** Amount of usage granted to customers */
-  granted?: number;
+  /** Amount of usage included in this plan */
+  included?: number;
 
   /** Whether usage is unlimited */
   unlimited?: boolean;
@@ -333,8 +229,8 @@ export type PlanFeatureBasic = {
   /** Reference to the feature being configured */
   feature_id: string;
 
-  /** Amount of usage granted to customers */
-  granted?: number;
+  /** Amount of usage included in this plan */
+  included?: number;
 
   /** Whether usage is unlimited */
   unlimited?: boolean;

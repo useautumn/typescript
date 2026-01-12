@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import { writeFileSync } from "fs";
 import { TypeGenerator, TypeGeneratorUtils, generateBuilderFunctionsFile, extractZodSchema } from "./genUtils/index.js";
 import { getAtmnTypeConfigs } from "./typeConfigs.js";
-import { generatePlanFeatureDiscriminatedUnion, generatePlanTypeWithJSDoc } from "./genUtils/atmnTypeHelpers.js";
+import { generatePlanFeatureDiscriminatedUnion, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
 
 /**
  * Generate snake_case types for atmn CLI from @autumn/shared
@@ -71,7 +71,21 @@ async function main() {
 			const newContent = existingContent + "\n" + planFeatureUnion + "\n" + planType + "\n";
 			fs.writeFileSync(planModelsFile, newContent);
 
-			console.log(`   📝 Added discriminated unions with JSDoc`);
+			console.log(`   📝 Added Plan discriminated unions with JSDoc`);
+		}
+
+		// Add Feature discriminated union
+		const featureConfig = typeConfig.configs.find(c => c.targetName === "Feature");
+		if (featureConfig) {
+			const featureModelsFile = path.join(atmnPath, "source/compose/models/featureModels.ts");
+			const featureUnion = generateFeatureDiscriminatedUnion();
+
+			const fs = await import("fs");
+			const existingContent = fs.readFileSync(featureModelsFile, "utf-8");
+			const newContent = existingContent + "\n" + featureUnion + "\n";
+			fs.writeFileSync(featureModelsFile, newContent);
+
+			console.log(`   📝 Added Feature discriminated unions with JSDoc`);
 		}
 
 		// Generate builder functions (plan(), feature(), planFeature())

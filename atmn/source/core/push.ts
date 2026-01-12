@@ -108,6 +108,28 @@ export async function checkPlanForConfirmation({
 	};
 }
 
+/**
+ * Transform plan data for API submission.
+ * Maps SDK field names to API field names (e.g., 'included' -> 'granted_balance')
+ */
+function transformPlanForApi(plan: Plan): Record<string, unknown> {
+	const transformed = { ...plan } as Record<string, unknown>;
+
+	// Transform features array: 'included' -> 'granted_balance'
+	if (plan.features && Array.isArray(plan.features)) {
+		transformed.features = plan.features.map(feature => {
+			const transformedFeature = { ...feature } as Record<string, unknown>;
+			if ('included' in feature && feature.included !== undefined) {
+				transformedFeature.granted_balance = feature.included;
+				delete transformedFeature.included;
+			}
+			return transformedFeature;
+		});
+	}
+
+	return transformed;
+}
+
 export async function upsertPlan({
 	curPlans,
 	plan,
@@ -128,11 +150,15 @@ export async function upsertPlan({
 	}
 
 	const curPlan = curPlans.find(p => p.id === plan.id);
+	
+	// Transform SDK field names to API field names
+	const apiPlan = transformPlanForApi(plan);
+	
 	if (!curPlan) {
 		await externalRequest({
 			method: 'POST',
 			path: `/products`,
-			data: plan,
+			data: apiPlan,
 		});
 		spinner.text = `Created plan [${plan.id}]`;
 		return {
@@ -141,7 +167,7 @@ export async function upsertPlan({
 		};
 	} else {
 		// Prepare the update payload
-		const updatePayload = { ...plan } as Record<string, unknown>;
+		const updatePayload = { ...apiPlan };
 
 		// If local plan has no group but upstream has one, explicitly unset it
 		if (!plan.group && curPlan.group) {
