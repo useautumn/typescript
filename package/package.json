@@ -1,7 +1,7 @@
 {
 	"name": "autumn-js",
 	"description": "Autumn JS Library",
-	"version": "0.1.64",
+	"version": "0.1.66",
 	"repository": "github:useautumn/autumn-js",
 	"homepage": "https://docs.useautumn.com",
 	"main": "./dist/sdk/index.js",
@@ -155,6 +155,9 @@
 			"optional": true
 		},
 		"better-call": {
+			"optional": true
+		},
+		"convex": {
 			"optional": true
 		}
 	},
