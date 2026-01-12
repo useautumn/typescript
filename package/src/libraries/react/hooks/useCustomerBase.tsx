@@ -8,6 +8,7 @@ import type {
 	Customer,
 	CustomerExpandOption,
 	Entity,
+	ExpandedCustomer,
 	RedeemReferralCodeResult,
 	SetupPaymentResult,
 	TrackResult,
@@ -39,9 +40,11 @@ import type {
 import { handleCheck, openDialog } from "./helpers/handleCheck";
 import { useAutumnBase } from "./helpers/useAutumnBase";
 
-export interface UseCustomerResult {
+export interface UseCustomerResult<
+	T extends readonly CustomerExpandOption[] = readonly [],
+> {
 	/** The current customer data including subscription and feature information */
-	customer: Customer | null;
+	customer: ExpandedCustomer<T> | null;
 	/** Whether customer data is currently being loaded */
 	isLoading: boolean;
 	/** Any error that occurred while fetching customer data */
@@ -89,7 +92,7 @@ export interface UseCustomerResult {
 	checkout: (params: CheckoutParams) => AutumnPromise<CheckoutResult>;
 
 	/** Refetches the customer data from the server */
-	refetch: () => Promise<Customer | null>;
+	refetch: () => Promise<ExpandedCustomer<T> | null>;
 
 	/**
 	 * Creates new entities for granular feature tracking.
@@ -122,21 +125,25 @@ export interface UseCustomerResult {
 	check: (params: CheckParams) => Success<CheckResult>;
 }
 
-export interface UseCustomerParams {
+export interface UseCustomerParams<
+	T extends readonly CustomerExpandOption[] = readonly [],
+> {
 	errorOnNotFound?: boolean;
-	expand?: CustomerExpandOption[];
+	expand?: T;
 	swrConfig?: SWRConfiguration;
 }
 
-export const useCustomerBase = ({
+export const useCustomerBase = <
+	const T extends readonly CustomerExpandOption[] = readonly [],
+>({
 	params,
 	AutumnContext,
 	client,
 }: {
-	params?: UseCustomerParams;
+	params?: UseCustomerParams<T>;
 	AutumnContext?: React.Context<any>;
 	client?: AutumnClient | ConvexAutumnClient;
-}): UseCustomerResult => {
+}): UseCustomerResult<T> => {
 	let context: AutumnContextParams | undefined;
 
 	if (AutumnContext) {
@@ -157,7 +164,7 @@ export const useCustomerBase = ({
 	const fetchCustomer = async () => {
 		const { data, error } = await client!.createCustomer({
 			errorOnNotFound: params?.errorOnNotFound,
-			expand: params?.expand,
+			expand: params?.expand as CustomerExpandOption[] | undefined,
 		});
 
 		if (error) {
@@ -197,7 +204,7 @@ export const useCustomerBase = ({
 		customer: error ? null : customer,
 		isLoading,
 		error,
-		refetch: mutate as () => Promise<Customer | null>,
+		refetch: mutate as () => Promise<ExpandedCustomer<T> | null>,
 
 		...autumnFunctions,
 		createEntity: client.entities.create,

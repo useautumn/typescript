@@ -1,3 +1,4 @@
+import type { CustomerExpandOption } from "@sdk";
 import { AutumnContext } from "../../../libraries/react/AutumnContext";
 import {
   type UseCustomerParams,
@@ -5,9 +6,13 @@ import {
   useCustomerBase,
 } from "../../../libraries/react/hooks/useCustomerBase";
 
-export const useCustomer = (params?: UseCustomerParams): UseCustomerResult => {
-	return useCustomerBase({
-		params,
-		AutumnContext: AutumnContext,
-	});
+export const useCustomer = <
+  const T extends readonly CustomerExpandOption[] = readonly [],
+>(
+  params?: UseCustomerParams<T>,
+): UseCustomerResult<T> => {
+  return useCustomerBase({
+    params,
+    AutumnContext: AutumnContext,
+  });
 };

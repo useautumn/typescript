@@ -7,6 +7,7 @@ import {
   type CustomerExpandOption,
   type ProductStatus,
 } from "./cusEnums";
+import type { Entity } from "./entities/entTypes";
 
 export const CoreCusFeatureSchema = z.object({
   unlimited: z.boolean().optional(),
@@ -102,11 +103,42 @@ export interface Customer {
   products: CustomerProduct[];
   features: Record<string, CustomerFeature>;
 
-  // Expanded fields
-  invoices?: CustomerInvoice[];
+  // Expanded fields (payment_method and referrals kept as optional fallbacks until types are finalized)
   payment_method?: any;
   referrals?: CustomerReferral[];
 }
+
+/**
+ * Maps expand option strings to their corresponding types.
+ * Used for conditional type expansion based on the expand parameter.
+ */
+export interface CustomerExpandedFields {
+  invoices: CustomerInvoice[];
+  entities: Entity[];
+  referrals: CustomerReferral[];
+  // TODO: Add proper types when defined
+  rewards: unknown;
+  trials_used: unknown;
+  payment_method: unknown;
+}
+
+/**
+ * Utility type that creates a Customer with additional expanded fields
+ * based on the expand array passed to the API.
+ *
+ * @example
+ * // Base customer without expanded fields
+ * type Base = ExpandedCustomer<[]>;
+ *
+ * // Customer with invoices and entities expanded
+ * type WithExpansion = ExpandedCustomer<['invoices', 'entities']>;
+ * // Result: Customer & { invoices: CustomerInvoice[]; entities: Entity[] }
+ */
+export type ExpandedCustomer<
+  T extends readonly CustomerExpandOption[] = readonly [],
+> = Customer & {
+  [K in T[number]]: CustomerExpandedFields[K];
+};
 
 export const CustomerDataSchema = z.object({
   name: z.string().nullish(),
