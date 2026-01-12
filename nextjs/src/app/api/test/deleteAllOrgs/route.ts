@@ -1,18 +1,20 @@
 import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
 	const orgs = await auth.api.listOrganizations();
 
 	console.log("Orgs list", orgs);
 
-    const res = await auth.api.deleteOrganization({
+	const res = await auth.api.deleteOrganization({
+		headers: new Headers(),
 		body: {
 			organizationId: "test-organization-2",
 		},
 	});
 
 	const res2 = await auth.api.deleteOrganization({
+		headers: new Headers(),
 		body: {
 			organizationId: "test-organization",
 		},

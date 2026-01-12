@@ -212,3 +212,4 @@ export * as customers from "./customers.js";
 export * as entities from "./entities.js";
 export * as products from "./products.js";
 export * as referrals from "./referrals.js";
+export * as events from "./events.js";

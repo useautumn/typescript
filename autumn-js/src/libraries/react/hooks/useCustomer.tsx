@@ -1,5 +1,10 @@
+import type { CustomerExpandOption } from "@sdk";
 import { AutumnContext } from "../AutumnContext";
-import { type UseCustomerParams, useCustomerBase } from "./useCustomerBase";
+import {
+  useCustomerBase,
+  type UseCustomerParams,
+  type UseCustomerResult,
+} from "./useCustomerBase";
 
 /**
  * React hook for managing customer billing, subscriptions, and feature access.
@@ -45,6 +50,14 @@ import { type UseCustomerParams, useCustomerBase } from "./useCustomerBase";
  * }
  * ```
  *
+ * @example
+ * ```tsx
+ * // With expanded fields - customer.entities will be typed
+ * const { customer } = useCustomer({ expand: ['entities', 'invoices'] });
+ * customer?.entities; // Entity[] - fully typed!
+ * customer?.invoices; // CustomerInvoice[] - fully typed!
+ * ```
+ *
  * @returns {Object} Hook result object
  * @returns {Customer | null} returns.customer - Current customer data with subscription info
  * @returns {boolean} returns.isLoading - Whether customer data is loading
@@ -61,9 +74,13 @@ import { type UseCustomerParams, useCustomerBase } from "./useCustomerBase";
  * @returns {Function} returns.createEntity - Create entities for granular tracking
  * @returns {Function} returns.refetch - Manually refetch customer data
  */
-export const useCustomer = (params?: UseCustomerParams) => {
-	return useCustomerBase({
-		params,
-		AutumnContext: AutumnContext,
-	});
+export const useCustomer = <
+  const T extends readonly CustomerExpandOption[] = readonly [],
+>(
+  params?: UseCustomerParams<T>,
+): UseCustomerResult<T> => {
+  return useCustomerBase({
+    params,
+    AutumnContext: AutumnContext,
+  });
 };

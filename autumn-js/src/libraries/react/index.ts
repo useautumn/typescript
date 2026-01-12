@@ -1,13 +1,17 @@
 // Import CSS for tsup injectStyle
 import "../../styles/global.css";
 
-// export type { PricingTableProduct } from "@sdk/components/componentTypes";
+export type { PricingTableProduct } from "@sdk/components/componentTypes";
+export type { ProductDetails } from "./client/types/clientPricingTableTypes";
+export { useAggregateEvents } from "./hooks/useAggregateEvents";
 
+/** @deprecated Use useAggregateEvents or useListEvents instead */
 export { useAnalytics } from "./hooks/useAnalytics";
 export { useCustomer } from "./hooks/useCustomer";
 export { useEntity } from "./hooks/useEntity";
+export { useListEvents } from "./hooks/useListEvents";
 export { usePaywall } from "./hooks/usePaywall";
-export { usePricingTable } from "./hooks/usePricingTable/usePricingTable";
+export { usePricingTable } from "./hooks/usePricingTable";
 export { ReactAutumnProvider as AutumnProvider } from "./ReactAutumnProvider";
 
 /** @deprecated */

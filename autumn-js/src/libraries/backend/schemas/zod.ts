@@ -22,7 +22,8 @@ export const attachParamsSchema = z.object({
   entityData: entityDataParamsSchema.optional(),
   openInNewTab: z.boolean().optional(),
   reward: z.string().optional(),
-  checkoutSessionParams: z.record(z.string(), z.any()).optional()
+  checkoutSessionParams: z.record(z.string(), z.any()).optional(),
+  newBillingSubscription: z.boolean().optional()
 })
 
 export const cancelParamsSchema = z.object({

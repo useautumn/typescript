@@ -1,6 +1,8 @@
 import { Autumn } from "autumn-js";
 
-export const getCheckoutContent = (checkoutResult: Autumn.CheckoutResponse) => {
+import type React from "react";
+
+export const getCheckoutContent = (checkoutResult: CheckoutResult): { title: React.JSX.Element; message: React.JSX.Element } => {
   const { product, current_product, next_cycle } = checkoutResult;
   const { is_one_off, is_free, has_trial, updateable } = product?.properties || {
     is_one_off: false,

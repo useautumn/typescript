@@ -1,8 +1,8 @@
-import axios, {AxiosError} from 'axios';
-import chalk from 'chalk';
+import axios, { AxiosError } from "axios";
+import chalk from "chalk";
 
-import {BACKEND_URL} from '../constants.js';
-import {isLocalFlag, readFromEnv} from './utils.js';
+import { BACKEND_URL } from "../constants.js";
+import { isLocalFlag, readFromEnv } from "./utils.js";
 
 let INTERNAL_BASE: string = BACKEND_URL;
 let EXTERNAL_BASE: string = `${BACKEND_URL}/v1`;
@@ -27,19 +27,19 @@ export async function request({
 	customAuth?: string;
 	throwOnError?: boolean;
 	secretKey?: string;
-	queryParams?: Record<string, string>;
+	queryParams?: Record<string, string | boolean>;
 	bypass?: boolean;
 }) {
 	if (isLocalFlag()) {
-		INTERNAL_BASE = 'http://localhost:8080';
-		EXTERNAL_BASE = 'http://localhost:8080/v1';
+		INTERNAL_BASE = "http://localhost:8080";
+		EXTERNAL_BASE = "http://localhost:8080/v1";
 
 		if (base) {
-			base = base.replace(BACKEND_URL, 'http://localhost:8080');
+			base = base.replace(BACKEND_URL, "http://localhost:8080");
 		}
 	}
 
-	const apiKey = secretKey || readFromEnv({bypass});
+	const apiKey = secretKey || readFromEnv({ bypass });
 
 	try {
 		const response = await axios.request({
@@ -48,8 +48,8 @@ export async function request({
 			data,
 			params: queryParams,
 			headers: {
-				'Content-Type': 'application/json',
-				'X-API-Version': '2.0.0',
+				"Content-Type": "application/json",
+				"X-API-Version": "2.0.0",
 				...headers,
 				Authorization: customAuth || `Bearer ${apiKey}`,
 			},
@@ -62,16 +62,16 @@ export async function request({
 		}
 
 		// Pretty-print a concise error summary (status, code, message) without raw Axios dump
-		console.error('\n' + chalk.bgRed.white.bold('  API REQUEST FAILED  '));
+		console.error(`\n${chalk.bgRed.white.bold("  API REQUEST FAILED  ")}`);
 		const methodPath = `${method.toUpperCase()} ${base}${path}`;
 		console.error(chalk.red(methodPath));
 
 		if (error instanceof AxiosError) {
 			const status = error.response?.status;
 			const data = error.response?.data as any;
-			const code = data?.code || data?.error || 'unknown_error';
+			const code = data?.code || data?.error || "unknown_error";
 			const message =
-				data?.message || error.message || 'An unknown error occurred';
+				data?.message || error.message || "An unknown error occurred";
 
 			if (status) {
 				console.error(chalk.redBright(`[${status}] ${code}`));
@@ -128,7 +128,7 @@ export async function externalRequest({
 	headers?: Record<string, string>;
 	customAuth?: string;
 	throwOnError?: boolean;
-	queryParams?: Record<string, any>;
+	queryParams?: Record<string, string | boolean>;
 }) {
 	return await request({
 		method,
@@ -142,13 +142,13 @@ export async function externalRequest({
 	});
 }
 
-export async function deleteFeature({id}: {id: string}) {
+export async function deleteFeature({ id }: { id: string }) {
 	return await externalRequest({
-		method: 'DELETE',
+		method: "DELETE",
 		path: `/features/${id}`,
 	});
 }
-export async function deleteProduct({
+export async function deletePlan({
 	id,
 	allVersions,
 }: {
@@ -156,9 +156,9 @@ export async function deleteProduct({
 	allVersions?: boolean;
 }) {
 	return await externalRequest({
-		method: 'DELETE',
+		method: "DELETE",
 		path: `/products/${id}`,
-		queryParams: {all_versions: allVersions ? true : false},
+		queryParams: { all_versions: !!allVersions },
 	});
 }
 
@@ -171,9 +171,9 @@ export async function updateCLIStripeKeys({
 }) {
 	return await request({
 		base: EXTERNAL_BASE,
-		method: 'POST',
-		path: '/organization/stripe',
-		data: {secret_key: stripeSecretKey},
+		method: "POST",
+		path: "/organization/stripe",
+		data: { secret_key: stripeSecretKey },
 		secretKey: autumnSecretKey,
 	});
 }

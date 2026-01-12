@@ -1,28 +1,28 @@
 import {Plan} from '../../compose/index.js';
 import {externalRequest} from '../api.js';
 
-export const getProductDeleteInfo = async ({
-	productId,
+export const getPlanDeleteInfo = async ({
+	planId,
 }: {
-	productId: string;
+	planId: string;
 }) => {
 	const response = await externalRequest({
 		method: 'GET',
-		path: `/products/${productId}/deletion_info`,
+		path: `/products/${planId}/deletion_info`,
 	});
 	return response;
 };
 
-export const updateProduct = async ({
-	productId,
+export const updatePlan = async ({
+	planId,
 	update,
 }: {
-	productId: string;
+	planId: string;
 	update: Partial<Plan & {archived: boolean}>;
 }) => {
 	const response = await externalRequest({
 		method: 'POST',
-		path: `/products/${productId}`,
+		path: `/products/${planId}`,
 		data: update,
 	});
 	return response;

@@ -6,8 +6,9 @@ import {
 } from "@sdk";
 import { withAuth } from "../utils/withAuth";
 import { BASE_PATH } from "../constants";
+import type { RouterOptions } from "./backendRouter";
 
-const createReferralCodeHandler = withAuth({
+const createReferralCodeHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -25,9 +26,10 @@ const createReferralCodeHandler = withAuth({
 
     // return res;
   },
+  suppressLogs: options?.suppressLogs,
 });
 
-const redeemReferralCodeHandler = withAuth({
+const redeemReferralCodeHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -42,14 +44,15 @@ const redeemReferralCodeHandler = withAuth({
     //   customer_id,
     // });
   },
+  suppressLogs: options?.suppressLogs,
 });
 
-export const addReferralRoutes = async (router: RouterContext) => {
+export const addReferralRoutes = async (router: RouterContext, options?: RouterOptions) => {
   addRoute(router, "POST", `${BASE_PATH}/referrals/code`, {
-    handler: createReferralCodeHandler,
+    handler: createReferralCodeHandler(options),
   });
 
   addRoute(router, "POST", `${BASE_PATH}/referrals/redeem`, {
-    handler: redeemReferralCodeHandler,
+    handler: redeemReferralCodeHandler(options),
   });
 };

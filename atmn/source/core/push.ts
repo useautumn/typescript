@@ -1,13 +1,13 @@
-import type {Spinner} from 'yocto-spinner';
-import type {Feature, Plan} from '../compose/index.js';
-import {externalRequest} from './api.js';
-import {getAllPlans, getFeatures} from './pull.js';
+import type { Spinner } from 'yocto-spinner';
+import type { Feature, Plan } from '../compose/index.js';
+import { externalRequest } from './api.js';
+import { getAllPlans, getFeatures } from './pull.js';
 
 export async function checkForDeletables(
 	currentFeatures: Feature[],
 	currentPlans: Plan[],
 ) {
-	const features = await getFeatures({includeArchived: true}); // Get from AUTUMN
+	const features = await getFeatures({ includeArchived: true }); // Get from AUTUMN
 
 	const featureIds = features.map((feature: Feature) => feature.id);
 	const currentFeatureIds = currentFeatures.map(feature => feature.id);
@@ -68,8 +68,7 @@ export async function upsertFeature(feature: Feature, s: Spinner) {
 		}
 
 		console.error(
-			`\nFailed to push feature ${feature.id}: ${
-				error.response?.data?.message || 'Unknown error'
+			`\nFailed to push feature ${feature.id}: ${error.response?.data?.message || 'Unknown error'
 			}`,
 		);
 		process.exit(1);
@@ -141,10 +140,28 @@ export async function upsertPlan({
 			action: 'create',
 		};
 	} else {
+		// Prepare the update payload
+		const updatePayload = { ...plan } as Record<string, unknown>;
+
+		// If local plan has no group but upstream has one, explicitly unset it
+		if (!plan.group && curPlan.group) {
+			updatePayload['group'] = null;
+		}
+
+		// If local plan has undefined is_add_on but upstream is true, explicitly set to false
+		if (plan.add_on === undefined && curPlan.add_on === true) {
+			updatePayload['add_on'] = false;
+		}
+
+		// If local plan has undefined is_default but upstream is true, explicitly set to false
+		if (plan.default === undefined && curPlan.default === true) {
+			updatePayload['default'] = false;
+		}
+
 		await externalRequest({
 			method: 'POST',
 			path: `/products/${plan.id}`,
-			data: plan,
+			data: updatePayload,
 		});
 
 		spinner.text = `Updated plan [${plan.id}]`;

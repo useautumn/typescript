@@ -1,63 +1,66 @@
+import type { Context, Next } from "hono";
 import { findRoute } from "rou3";
-import { Autumn } from "@sdk";
-import { createRouterWithOptions } from "./routes/backendRouter";
-import { Context, Next } from "hono";
-import { AuthResult } from "./utils/AuthFunction";
+import { Autumn } from "../../sdk";
 import { autumnApiUrl } from "./constants";
+import { createRouterWithOptions } from "./routes/backendRouter";
+import type { AuthResult } from "./utils/AuthFunction";
 import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export const autumnHandler = <ContextType extends Context = Context>(options: {
-  identify: (c: ContextType) => AuthResult;
-  baseURL?: string;
-  version?: string;
-  secretKey?: string;
+	identify: (c: ContextType) => AuthResult;
+	url?: string;
+	version?: string;
+	secretKey?: string;
 }) => {
-  const autumn = new Autumn({
-    baseURL: options.baseURL || autumnApiUrl,
-    apiVersion: options.version,
-  });
+	const autumn = new Autumn({
+		url: options.url || autumnApiUrl,
+		version: options.version,
+		secretKey: options.secretKey,
+	});
 
-  const router = createRouterWithOptions();
+	const router = createRouterWithOptions();
 
-  let { found, error: resError } = secretKeyCheck(options?.secretKey);
-  return async (c: Context, next: Next) => {
-    if (!found && !options.secretKey) {
-      return c.json(resError!, 500);
-    }
+	const { found, error: resError } = secretKeyCheck(options?.secretKey);
+	return async (c: Context, next: Next) => {
+		if (!found && !options.secretKey) {
+			return c.json(resError!, 500);
+		}
 
-    const request = new URL(c.req.url);
-    const path = request.pathname;
+		const request = new URL(c.req.url);
+		const path = request.pathname;
 
-    const searchParams = Object.fromEntries(request.searchParams);
-    const match = findRoute(router, c.req.method, path);
+		const searchParams = Object.fromEntries(request.searchParams);
+		const match = findRoute(router, c.req.method, path);
 
-    if (match) {
-      const { data, params: pathParams } = match;
-      const { handler } = data;
+		if (match) {
+			const { data, params: pathParams } = match;
+			const { handler } = data;
 
-      
+			let body = null;
+			if (
+				c.req.method === "POST" ||
+				c.req.method === "PUT" ||
+				c.req.method === "PATCH"
+			) {
+				try {
+					body = await c.req.json();
+				} catch (error) {}
+			}
 
-      let body = null;
-      if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "PATCH") {
-        try {
-          body = await c.req.json();
-        } catch (error) {}
-      }
+			const result = await handler({
+				autumn,
+				body,
+				path: c.req.path,
+				getCustomer: async () => {
+					return await options.identify(c as ContextType);
+				},
+				pathParams,
+				searchParams,
+			});
 
-      let result = await handler({
-        autumn,
-        body,
-        path: c.req.path,
-        getCustomer: async () => {
-          return await options.identify(c as ContextType);
-        },
-        pathParams,
-        searchParams,
-      });
+			return c.json(result.body, result.statusCode);
+		}
 
-      return c.json(result.body, result.statusCode);
-    }
-
-    await next();
-  };
+		await next();
+	};
 };

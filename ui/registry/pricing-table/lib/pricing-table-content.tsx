@@ -1,15 +1,10 @@
 import type Autumn from "autumn-js";
 
-export const getPricingTableContent = ({
-	plan,
-}: {
-	plan: Autumn.Plan | null;
-}) => {
-	if (!plan) {
-		return {
-			buttonText: <p>Get Started</p>,
-		};
-	}
+import type React from "react";
+
+export const getPricingTableContent = (product: Product): { buttonText: React.JSX.Element } => {
+  const { scenario, free_trial, properties } = product;
+  const { is_one_off, updateable, has_trial } = properties;
 
 	// TODO 4: hasTrial = plan.free_trial and !trial_used
 	const hasTrial = plan.free_trial;

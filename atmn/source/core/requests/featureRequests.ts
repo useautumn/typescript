@@ -1,15 +1,15 @@
-import {Feature} from '../../compose/index.js';
-import {externalRequest, internalRequest} from '../api.js';
+import type { Feature } from "../../compose/index.js";
+import { externalRequest } from "../api.js";
 
 export const updateFeature = async ({
 	id,
 	update,
 }: {
 	id: string;
-	update: Partial<Feature & {archived: boolean}>;
+	update: Partial<Feature & { archived: boolean }>;
 }) => {
 	return await externalRequest({
-		method: 'POST',
+		method: "POST",
 		path: `/features/${id}`,
 		data: update,
 	});
@@ -21,7 +21,7 @@ export const checkFeatureDeletionData = async ({
 	featureId: string;
 }) => {
 	const res = await externalRequest({
-		method: 'GET',
+		method: "GET",
 		path: `/features/${featureId}/deletion_info`,
 	});
 

@@ -14,4 +14,13 @@ packages:
   - ts-sdk
 
 ignoredBuiltDependencies:
+  - '@parcel/watcher'
   - better-sqlite3
+  - msw
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - '@clerk/shared'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - sharp

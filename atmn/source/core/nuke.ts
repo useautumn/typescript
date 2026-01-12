@@ -1,4 +1,4 @@
-import {deleteFeature, deleteProduct, externalRequest} from './api.js';
+import {deleteFeature, deletePlan, externalRequest} from './api.js';
 import {initSpinner} from './utils.js';
 
 export async function nukeCustomers(
@@ -55,7 +55,7 @@ export async function nukePlans(ids: string[]) {
 	const s = initSpinner('Deleting plans');
 	for (const id of ids) {
 		s.text = `Deleting plan [${id}] ${ids.indexOf(id) + 1} / ${ids.length}`;
-		await deleteProduct({id, allVersions: true});
+		await deletePlan({id, allVersions: true});
 	}
 	s.success('Plans deleted successfully!');
 }

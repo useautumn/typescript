@@ -12,22 +12,47 @@
     "noEmit": true,
     "outDir": "dist",
     "jsx": "react-jsx",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "skipLibCheck": true,
-
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/libraries/react/*"],
-      "@/components/*": ["src/libraries/react/components/*"],
-      "@/lib/*": ["src/libraries/react/lib/*"],
-      "@/hooks/*": ["src/libraries/react/hooks/*"],
-      "@sdk": ["src/sdk/index"],
-      "@sdk/*": ["src/sdk/*"],
-      "@styles": ["src/styles/*"],
-      "@compose": ["src/compose/*"],
-      "@utils/*": ["src/utils/*"]
+      "@/*": [
+        "./src/libraries/react/*"
+      ],
+      "@/components/*": [
+        "./src/libraries/react/components/*"
+      ],
+      "@/lib/*": [
+        "./src/libraries/react/lib/*"
+      ],
+      "@/hooks/*": [
+        "./src/libraries/react/hooks/*"
+      ],
+      "@sdk": [
+        "./src/sdk/index"
+      ],
+      "@sdk/*": [
+        "./src/sdk/*"
+      ],
+      "@styles": [
+        "./src/styles/*"
+      ],
+      "@compose": [
+        "./src/compose/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ]
     }
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules",
+    "./src/archives"
+  ]
 }

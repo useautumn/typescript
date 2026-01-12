@@ -2,13 +2,13 @@ import { RouterContext } from "rou3";
 import { addRoute } from "rou3";
 import {
   Autumn,
-  // CreateEntityParams,
-  // CustomerData,
-  // GetEntityParams,
-} from "@sdk";
+  CreateEntityParams,
+  GetEntityParams,
+} from "../../../sdk";
 import { withAuth } from "../utils/withAuth";
+import type { RouterOptions } from "./backendRouter";
 
-const createEntityHandler = withAuth({
+const createEntityHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -20,9 +20,10 @@ const createEntityHandler = withAuth({
   }) => {
     return await autumn.entities.create(customer_id, body);
   },
+  suppressLogs: options?.suppressLogs,
 });
 
-const getEntityHandler = withAuth({
+const getEntityHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -49,9 +50,10 @@ const getEntityHandler = withAuth({
       expand: searchParams?.expand ? searchParams?.expand.split(",") as "invoices"[] : undefined,
     });
   },
+  suppressLogs: options?.suppressLogs,
 });
 
-const deleteEntityHandler = withAuth({
+const deleteEntityHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
@@ -75,16 +77,17 @@ const deleteEntityHandler = withAuth({
       customer_id: customer_id,
     });
   },
+  suppressLogs: options?.suppressLogs,
 });
 
-export const addEntityRoutes = async (router: RouterContext) => {
+export const addEntityRoutes = async (router: RouterContext, options?: RouterOptions) => {
   addRoute(router, "POST", "/api/autumn/entities", {
-    handler: createEntityHandler,
+    handler: createEntityHandler(options),
   });
   addRoute(router, "GET", "/api/autumn/entities/:entityId", {
-    handler: getEntityHandler,
+    handler: getEntityHandler(options),
   });
   addRoute(router, "DELETE", "/api/autumn/entities/:entityId", {
-    handler: deleteEntityHandler,
+    handler: deleteEntityHandler(options),
   });
 };
