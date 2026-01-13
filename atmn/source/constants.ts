@@ -26,7 +26,7 @@ export const pro = plan({
 	name: 'Pro',
 	description: 'Professional plan for growing teams',
 	add_on: false,
-	default: false,
+	auto_enable: false,
 	price: {
 		amount: 50,
 		interval: 'month',
@@ -46,7 +46,7 @@ export const pro = plan({
 			price: {
 				amount: 10,
 				interval: 'month',
-				usage_model: 'pay_per_use',
+				billing_method: 'pay_per_use',
 				billing_units: 1,
 			},
 		}),

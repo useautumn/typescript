@@ -276,7 +276,8 @@ ${imports}
       BillingInterval: ['month', 'quarter', 'semi_annual', 'year'],
       ResetInterval: ['one_off', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
       RolloverExpiryDurationType: ['one_off', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
-      UsageModel: ['prepaid', 'pay_per_use'],
+      UsageModel: ['prepaid', 'pay_per_use'], // Legacy - maps to BillingMethod in SDK
+      BillingMethod: ['prepaid', 'pay_per_use'],
       OnIncrease: ['prorate', 'charge_immediately'],
       OnDecrease: ['prorate', 'refund_immediately', 'no_action'],
       FreeTrialDuration: ['day', 'month', 'year'],

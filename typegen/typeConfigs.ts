@@ -568,6 +568,8 @@ export function getAtmnTypeConfigs(
 				extendFields: {},
 				renameFields: {
 					granted_balance: "included",
+					// Note: usage_model -> billing_method is handled in atmnTypeHelpers.ts 
+					// for the discriminated union types, and in push.ts for API transformation
 				},
 				skipTypeExport: true, // Don't export type - we'll add discriminated union manually
 			},
@@ -617,7 +619,7 @@ export function getAtmnTypeConfigs(
 				defaults: {
 					description: null,
 					add_on: false,
-					default: false,
+					auto_enable: false,
 					group: "",
 				},
 				jsdocOverride: `/**
@@ -703,7 +705,7 @@ export function getAtmnTypeConfigs(
  *       { to: 'inf', amount: 8 }
  *     ],
  *     interval: 'month',
- *     usage_model: 'pay_per_use'
+ *     billing_method: 'pay_per_use'
  *   }
  * })
  */`,

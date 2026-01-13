@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import type {Feature} from '../compose/models/featureModels.js';
 import type {Plan} from '../compose/models/planModels.js';
 import {externalRequest} from './api.js';
 
@@ -56,14 +55,25 @@ export async function getAllPlanVariants() {
 	return allPlans;
 }
 
-export async function getFeatures(params?: {includeArchived?: boolean}) {
+// API feature type (what comes from the server)
+export type ApiFeature = {
+	id: string;
+	name?: string | null;
+	type: 'boolean' | 'single_use' | 'continuous_use' | 'credit_system' | 'static';
+	credit_schema?: Array<{
+		metered_feature_id: string;
+		credit_cost: number;
+	}>;
+};
+
+export async function getFeatures(params?: {includeArchived?: boolean}): Promise<ApiFeature[]> {
 	const {list} = await externalRequest({
 		method: 'GET',
 		path: '/features',
 		queryParams: {include_archived: params?.includeArchived ? true : false},
 	});
 
-	return list.map((feature: Feature) => feature as Feature);
+	return list as ApiFeature[];
 }
 
 const MAX_RECURSION_LIMIT = 500;

@@ -39,6 +39,15 @@ describe('full workflow', () => {
       spawnOpts,
     });
 
+    // Wait for backup prompt (comes first now) then answer
+    await waitFor(() => {
+      const stdout = nukeInstance.stdoutArr.map(s => s.contents.toString()).join('');
+      expect(stdout).toMatch(/backup/i);
+    }, { timeout: 10000 });
+
+    // Skip backup (n + Enter)
+    await nukeInstance.userEvent.keyboard('n[Enter]');
+
     // Wait for first confirmation prompt then answer
     await waitFor(() => {
       const stdout = nukeInstance.stdoutArr.map(s => s.contents.toString()).join('');
@@ -54,15 +63,6 @@ describe('full workflow', () => {
     }, { timeout: 10000 });
 
     await nukeInstance.userEvent.keyboard('y[Enter]');
-
-    // Wait for backup prompt then answer
-    await waitFor(() => {
-      const stdout = nukeInstance.stdoutArr.map(s => s.contents.toString()).join('');
-      expect(stdout).toMatch(/backup/i);
-    }, { timeout: 10000 });
-
-    // Skip backup (n + Enter)
-    await nukeInstance.userEvent.keyboard('n[Enter]');
 
     // Wait for nuke to complete
     await waitFor(() => {

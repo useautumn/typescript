@@ -7,3 +7,11 @@ export const getOrg = async () => {
 	});
 	return response;
 };
+
+export const getOrgMe = async (): Promise<{ name: string; slug: string; env: string }> => {
+	const response = await externalRequest({
+		method: "GET",
+		path: "/organization/me",
+	});
+	return response;
+};

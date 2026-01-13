@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import { writeFileSync } from "fs";
 import { TypeGenerator, TypeGeneratorUtils, generateBuilderFunctionsFile, extractZodSchema } from "./genUtils/index.js";
 import { getAtmnTypeConfigs } from "./typeConfigs.js";
-import { generatePlanFeatureDiscriminatedUnion, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
+import { generatePlanFeatureType, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
 
 /**
  * Generate snake_case types for atmn CLI from @autumn/shared
@@ -62,7 +62,7 @@ async function main() {
 
 			// Generate manual type unions with JSDoc
 			const planModelsFile = path.join(atmnPath, "source/compose/models/planModels.ts");
-			const planFeatureUnion = generatePlanFeatureDiscriminatedUnion(planFeatureMeta);
+			const planFeatureUnion = generatePlanFeatureType(planFeatureMeta);
 			const planType = generatePlanTypeWithJSDoc(planMeta);
 
 			// Read existing content and append

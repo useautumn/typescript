@@ -41,6 +41,15 @@ describe('nuke command', () => {
       spawnOpts,
     });
 
+    // Wait for backup prompt (comes first now) then answer
+    await waitFor(() => {
+      const stdout = instance.stdoutArr.map(s => s.contents.toString()).join('');
+      expect(stdout).toMatch(/backup/i);
+    }, { timeout: 10000 });
+
+    // Skip backup (n + Enter)
+    await instance.userEvent.keyboard('n[Enter]');
+
     // Wait for first confirmation prompt then answer
     await waitFor(() => {
       const stdout = instance.stdoutArr.map(s => s.contents.toString()).join('');
@@ -58,15 +67,6 @@ describe('nuke command', () => {
 
     // Confirm final prompt (y + Enter)
     await instance.userEvent.keyboard('y[Enter]');
-
-    // Wait for backup prompt then answer
-    await waitFor(() => {
-      const stdout = instance.stdoutArr.map(s => s.contents.toString()).join('');
-      expect(stdout).toMatch(/backup/i);
-    }, { timeout: 10000 });
-
-    // Skip backup (n + Enter)
-    await instance.userEvent.keyboard('n[Enter]');
 
     // Wait for process to exit
     await waitFor(() => {

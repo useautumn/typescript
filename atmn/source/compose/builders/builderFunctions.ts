@@ -5,7 +5,7 @@
 import type { Plan, PlanFeature, FreeTrial } from "../models/planModels.js";
 import type { Feature } from "../models/featureModels.js";
 
-type PlanInput = Omit<Plan, 'description' | 'add_on' | 'default' | 'group'> & Partial<Pick<Plan, 'description' | 'add_on' | 'default' | 'group'>>;
+type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> & Partial<Pick<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'>>;
 
 /**
  * Define a pricing plan in your Autumn configuration
@@ -34,7 +34,7 @@ export const plan = (params: PlanInput): Plan => {
     ...params,
     description: params.description ?? null,
     add_on: params.add_on ?? false,
-    default: params.default ?? false,
+    auto_enable: params.auto_enable ?? false,
     group: params.group ?? ""
   };
 };
@@ -92,7 +92,7 @@ export const feature = (params: Feature): Feature => {
  *       { to: 'inf', amount: 8 }
  *     ],
  *     interval: 'month',
- *     usage_model: 'pay_per_use'
+ *     billing_method: 'pay_per_use'
  *   }
  * })
  */

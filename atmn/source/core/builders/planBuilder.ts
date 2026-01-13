@@ -1,4 +1,4 @@
-import {Plan, PlanFeature, Feature} from '../../compose/index.js';
+import {Plan, Feature} from '../../compose/index.js';
 import {idToVar, notNullish, nullish} from '../utils.js';
 
 export function importBuilder() {
@@ -30,8 +30,9 @@ export function planBuilder({
 	plan: Plan;
 	features: Feature[];
 }) {
+	// Plan from API has nested reset structure, cast to ApiPlanFeature for builder
 	const planFeaturesStr = plan.features
-		?.map((pf: PlanFeature) => planFeatureBuilder({planFeature: pf, features}))
+		?.map((pf: any) => planFeatureBuilder({planFeature: pf as ApiPlanFeature, features}))
 		.join(',\n        ') || '';
 
 	const priceStr = plan.price
@@ -50,8 +51,8 @@ export function planBuilder({
 		? `\n    add_on: true,`
 		: '';
 
-	const defaultStr = plan.default === true
-		? `\n    default: true,`
+	const autoEnableStr = plan.default === true
+		? `\n    auto_enable: true,`
 		: '';
 
 	const freeTrialStr = plan.free_trial && plan.free_trial !== null
@@ -61,7 +62,7 @@ export function planBuilder({
 	const snippet = `
 export const ${idToVar({id: plan.id, prefix: 'plan'})} = plan({
     id: '${plan.id}',
-    name: '${plan.name}',${descriptionStr}${groupStr}${addOnStr}${defaultStr}${priceStr}
+    name: '${plan.name}',${descriptionStr}${groupStr}${addOnStr}${autoEnableStr}${priceStr}
     features: [
         ${planFeaturesStr}
     ],${freeTrialStr}
@@ -85,13 +86,42 @@ export const getFeatureIdStr = ({
 	return `${idToVar({id: featureId, prefix: 'feature'})}.id`;
 };
 
-// Plan Feature Builder
+// API PlanFeature type (what comes from server - has nested reset object)
+type ApiPlanFeature = {
+	feature_id: string;
+	granted_balance?: number;
+	unlimited?: boolean;
+	reset?: {
+		interval?: string;
+		interval_count?: number;
+		reset_when_enabled?: boolean;
+	};
+	price?: {
+		amount?: number;
+		tiers?: Array<{ to: number | 'inf'; amount: number }>;
+		interval?: string;
+		interval_count?: number;
+		billing_units?: number;
+		usage_model?: string;
+		max_purchase?: number;
+	};
+	proration?: {
+		on_increase?: string;
+		on_decrease?: string;
+	};
+	rollover?: {
+		max?: number;
+		expiry_duration_type?: string;
+		expiry_duration_length?: number;
+	};
+};
 
+// Plan Feature Builder - transforms API response to SDK format (flattened)
 function planFeatureBuilder({
 	planFeature,
 	features,
 }: {
-	planFeature: PlanFeature;
+	planFeature: ApiPlanFeature;
 	features: Feature[];
 }) {
 	const featureIdStr = getFeatureIdStr({
@@ -101,9 +131,9 @@ function planFeatureBuilder({
 
 	let parts: string[] = [`feature_id: ${featureIdStr}`];
 
-	// Granted usage (only if has a value)
-	if (notNullish(planFeature.granted) && planFeature.granted > 0) {
-		parts.push(`granted: ${planFeature.granted}`);
+	// Included usage (API: granted_balance -> SDK: included)
+	if (notNullish(planFeature.granted_balance) && planFeature.granted_balance > 0) {
+		parts.push(`included: ${planFeature.granted_balance}`);
 	}
 
 	// Unlimited (only if true)
@@ -111,27 +141,25 @@ function planFeatureBuilder({
 		parts.push(`unlimited: true`);
 	}
 
-	// Reset configuration (only if has meaningful fields)
-	if (planFeature.reset) {
-		const resetParts: string[] = [];
-		if (planFeature.reset.interval) {
-			resetParts.push(`interval: '${planFeature.reset.interval}'`);
-		}
-		if (notNullish(planFeature.reset.interval_count) && planFeature.reset.interval_count !== 1) {
-			resetParts.push(`interval_count: ${planFeature.reset.interval_count}`);
-		}
-		if (planFeature.reset.when_enabled === true) {
-			resetParts.push(`when_enabled: true`);
-		}
-		if (planFeature.reset.when_enabled === false) {
-			resetParts.push(`when_enabled: false`);
-		}
-		if (resetParts.length > 0) {
-			parts.push(`reset: { ${resetParts.join(', ')} }`);
-		}
+	// Flattened reset fields (API: reset.interval -> SDK: interval at top level)
+	if (planFeature.reset?.interval) {
+		parts.push(`interval: '${planFeature.reset.interval}'`);
+	}
+	if (notNullish(planFeature.reset?.interval_count) && planFeature.reset!.interval_count !== 1) {
+		parts.push(`interval_count: ${planFeature.reset!.interval_count}`);
+	}
+	// API: reset_when_enabled (true = reset on enable) -> SDK: carry_over_usage (true = keep existing)
+	// They are inverted: reset_when_enabled=false means carry_over_usage=true (default)
+	// Only output if explicitly false (meaning carry_over_usage=true, which is non-default behavior)
+	if (planFeature.reset?.reset_when_enabled === false) {
+		parts.push(`carry_over_usage: true`);
+	} else if (planFeature.reset?.reset_when_enabled === true) {
+		// reset_when_enabled=true is the default, so carry_over_usage=false
+		// Only output if we want to be explicit
+		parts.push(`carry_over_usage: false`);
 	}
 
-	// Price configuration (only if has meaningful fields)
+	// Price configuration (NO interval/interval_count - they don't exist in SDK price)
 	if (planFeature.price) {
 		const priceParts: string[] = [];
 
@@ -146,20 +174,15 @@ function planFeatureBuilder({
 			priceParts.push(`tiers: [${tiersStr}]`);
 		}
 
-		if (planFeature.price.interval) {
-			priceParts.push(`interval: '${planFeature.price.interval}'`);
-		}
-
-		if (notNullish(planFeature.price.interval_count) && planFeature.price.interval_count !== 1) {
-			priceParts.push(`interval_count: ${planFeature.price.interval_count}`);
-		}
+		// Note: price.interval and price.interval_count are NOT in SDK - they come from top-level interval
 
 		if (notNullish(planFeature.price.billing_units) && planFeature.price.billing_units !== 1) {
 			priceParts.push(`billing_units: ${planFeature.price.billing_units}`);
 		}
 
+		// API: usage_model -> SDK: billing_method
 		if (planFeature.price.usage_model) {
-			priceParts.push(`usage_model: '${planFeature.price.usage_model}'`);
+			priceParts.push(`billing_method: '${planFeature.price.usage_model}'`);
 		}
 
 		if (notNullish(planFeature.price.max_purchase)) {

@@ -10,7 +10,7 @@ describe('env command', () => {
     await cleanup();
   });
 
-  test('shows environment type', async () => {
+  test('shows organization info and environment', async () => {
     const instance = await render('node', [QUOTED_CLI_PATH, 'env'], {
       spawnOpts,
     });
@@ -19,10 +19,19 @@ describe('env command', () => {
     await waitFor(() => {
       const exit = instance.hasExit();
       expect(exit).toBeTruthy();
+      expect(exit?.exitCode).toBe(0);
     }, { timeout: 10000 });
 
-    // Should show either Sandbox or Production
     const stdout = instance.stdoutArr.map(s => s.contents.toString()).join('');
+    
+    // Should show organization name
+    expect(stdout).toMatch(/Organization:/i);
+    
+    // Should show organization slug
+    expect(stdout).toMatch(/Slug:/i);
+    
+    // Should show environment (Sandbox or Production)
     expect(stdout).toMatch(/Environment:/i);
+    expect(stdout).toMatch(/Sandbox|Production/i);
   });
 });

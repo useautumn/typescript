@@ -110,19 +110,83 @@ export async function checkPlanForConfirmation({
 
 /**
  * Transform plan data for API submission.
- * Maps SDK field names to API field names (e.g., 'included' -> 'granted_balance')
+ * Maps SDK field names to API field names:
+ * - 'auto_enable' -> 'default'
+ * - 'included' -> 'granted_balance'
+ * - 'billing_method' -> 'usage_model'
+ * - Flattened interval/interval_count/carry_over_usage -> nested reset object
  */
 function transformPlanForApi(plan: Plan): Record<string, unknown> {
 	const transformed = { ...plan } as Record<string, unknown>;
 
-	// Transform features array: 'included' -> 'granted_balance'
+	// 'auto_enable' -> 'default'
+	if ('auto_enable' in plan) {
+		transformed.default = plan.auto_enable;
+		delete transformed.auto_enable;
+	}
+
+	// Transform features array
 	if (plan.features && Array.isArray(plan.features)) {
 		transformed.features = plan.features.map(feature => {
 			const transformedFeature = { ...feature } as Record<string, unknown>;
+			
+			// 'included' -> 'granted_balance'
 			if ('included' in feature && feature.included !== undefined) {
 				transformedFeature.granted_balance = feature.included;
 				delete transformedFeature.included;
 			}
+			
+			// Transform flattened reset fields to nested reset object
+			// SDK: interval, interval_count, carry_over_usage -> API: reset.interval, reset.interval_count, reset.reset_when_enabled
+			const featureAny = feature as Record<string, unknown>;
+			if ('interval' in featureAny || 'interval_count' in featureAny || 'carry_over_usage' in featureAny) {
+				const reset: Record<string, unknown> = {};
+				
+				if ('interval' in featureAny && featureAny.interval !== undefined) {
+					reset.interval = featureAny.interval;
+					delete transformedFeature.interval;
+				}
+				
+				if ('interval_count' in featureAny && featureAny.interval_count !== undefined) {
+					reset.interval_count = featureAny.interval_count;
+					delete transformedFeature.interval_count;
+				}
+				
+				// SDK: carry_over_usage (true = keep existing) -> API: reset_when_enabled (true = reset on enable)
+				// They are inverted
+				if ('carry_over_usage' in featureAny && featureAny.carry_over_usage !== undefined) {
+					reset.reset_when_enabled = !featureAny.carry_over_usage;
+					delete transformedFeature.carry_over_usage;
+				}
+				
+				if (Object.keys(reset).length > 0) {
+					transformedFeature.reset = reset;
+				}
+			}
+			
+			// Transform nested price object: 'billing_method' -> 'usage_model'
+			// Also add interval/interval_count to price from reset if price exists
+			if ('price' in feature && feature.price && typeof feature.price === 'object') {
+				const price = feature.price as Record<string, unknown>;
+				const transformedPrice = { ...price };
+				
+				if ('billing_method' in price) {
+					transformedPrice.usage_model = price.billing_method;
+					delete transformedPrice.billing_method;
+				}
+				
+				// If we have a reset interval and a price, copy interval to price for API
+				const resetObj = transformedFeature.reset as Record<string, unknown> | undefined;
+				if (resetObj?.interval) {
+					transformedPrice.interval = resetObj.interval;
+					if (resetObj.interval_count) {
+						transformedPrice.interval_count = resetObj.interval_count;
+					}
+				}
+				
+				transformedFeature.price = transformedPrice;
+			}
+			
 			return transformedFeature;
 		});
 	}
@@ -179,8 +243,8 @@ export async function upsertPlan({
 			updatePayload['add_on'] = false;
 		}
 
-		// If local plan has undefined is_default but upstream is true, explicitly set to false
-		if (plan.default === undefined && curPlan.default === true) {
+		// If local plan has undefined auto_enable but upstream default is true, explicitly set to false
+		if (plan.auto_enable === undefined && curPlan.default === true) {
 			updatePayload['default'] = false;
 		}
 

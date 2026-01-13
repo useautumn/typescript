@@ -136,43 +136,24 @@ export function generateDiscriminatedUnion({
 }
 
 /**
- * Generate PlanFeature discriminated union (using generic helpers)
+ * Generate simplified PlanFeature type (no discriminated union needed)
+ * 
+ * SDK structure (flattened):
+ * - interval, interval_count at top level (from reset.interval, reset.interval_count)
+ * - carry_over_usage at top level (inverted from reset.reset_when_enabled)
+ * - price has NO interval/interval_count fields
  */
-export function generatePlanFeatureDiscriminatedUnion(
+export function generatePlanFeatureType(
 	metaDescriptions: Record<string, string>,
 ): string {
 	const typeAliases = {
 		ResetInterval:
 			'"one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"',
 		BillingInterval: '"month" | "quarter" | "semi_annual" | "year"',
-		UsageModel: '"prepaid" | "pay_per_use"',
+		BillingMethod: '"prepaid" | "pay_per_use"',
 		OnIncrease: '"prorate" | "charge_immediately"',
 		OnDecrease: '"prorate" | "refund_immediately" | "no_action"',
 	};
-
-	// Common fields for all variants
-	const commonFields: FieldConfig[] = [
-		{
-			name: "feature_id",
-			type: "string",
-			descriptionKey: "feature_id",
-			defaultDescription: "Reference to the feature being configured",
-		},
-		{
-			name: "included",
-			type: "number",
-			optional: true,
-			descriptionKey: "included",
-			defaultDescription: "Amount of usage included in this plan",
-		},
-		{
-			name: "unlimited",
-			type: "boolean",
-			optional: true,
-			descriptionKey: "unlimited",
-			defaultDescription: "Whether usage is unlimited",
-		},
-	];
 
 	const prorationFields: FieldConfig[] = [
 		{
@@ -211,338 +192,131 @@ export function generatePlanFeatureDiscriminatedUnion(
 		},
 	];
 
-	const variants: DiscriminatedVariantConfig[] = [
-		// Variant 1: With reset interval
+	const planFeatureFields: FieldConfig[] = [
 		{
-			name: "PlanFeatureWithReset",
-			description: "Reset with interval (price cannot have interval)",
-			fields: [
-				...commonFields,
+			name: "feature_id",
+			type: "string",
+			descriptionKey: "feature_id",
+			defaultDescription: "Reference to the feature being configured",
+		},
+		{
+			name: "included",
+			type: "number",
+			optional: true,
+			descriptionKey: "included",
+			defaultDescription: "Amount of usage included in this plan",
+		},
+		{
+			name: "unlimited",
+			type: "boolean",
+			optional: true,
+			descriptionKey: "unlimited",
+			defaultDescription: "Whether usage is unlimited",
+		},
+		// Flattened reset fields
+		{
+			name: "interval",
+			type: "ResetInterval",
+			optional: true,
+			descriptionKey: "interval",
+			defaultDescription: "How often usage resets (e.g., 'month', 'day')",
+		},
+		{
+			name: "interval_count",
+			type: "number",
+			optional: true,
+			descriptionKey: "interval_count",
+			defaultDescription: "Number of intervals between resets (default: 1)",
+		},
+		{
+			name: "carry_over_usage",
+			type: "boolean",
+			optional: true,
+			descriptionKey: "carry_over_usage",
+			defaultDescription: "Whether to carry over existing usage when feature is enabled (default: true)",
+		},
+		// Price object (no interval/interval_count)
+		{
+			name: "price",
+			type: "object",
+			optional: true,
+			defaultDescription: "Pricing configuration for usage-based billing",
+			nestedFields: [
 				{
-					name: "reset",
-					type: "object",
-					defaultDescription: "Reset configuration for metered features",
-					nestedFields: [
-						{
-							name: "interval",
-							type: "ResetInterval",
-							descriptionKey: "reset.interval",
-							defaultDescription: "How often usage resets",
-						},
-						{
-							name: "interval_count",
-							type: "number",
-							optional: true,
-							descriptionKey: "reset.interval_count",
-							defaultDescription: "Number of intervals between resets",
-						},
-						{
-							name: "when_enabled",
-							type: "boolean",
-							optional: true,
-							descriptionKey: "reset.when_enabled",
-							defaultDescription:
-								"Whether to reset usage when feature is enabled",
-						},
-					],
+					name: "amount",
+					type: "number",
+					optional: true,
+					descriptionKey: "price.amount",
+					defaultDescription: "Flat price per unit in cents",
 				},
 				{
-					name: "price",
-					type: "object",
+					name: "tiers",
+					type: 'Array<{ to: number | "inf"; amount: number }>',
 					optional: true,
-					defaultDescription:
-						"Pricing configuration (interval not allowed when using reset.interval)",
-					nestedFields: [
-						{
-							name: "amount",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.amount",
-							defaultDescription: "Flat price per unit in cents",
-						},
-						{
-							name: "tiers",
-							type: 'Array<{ to: number | "inf"; amount: number }>',
-							optional: true,
-							descriptionKey: "price.tiers",
-							defaultDescription:
-								"Tiered pricing structure based on usage ranges",
-						},
-						{
-							name: "interval",
-							type: "never",
-							optional: true,
-							defaultDescription: "Cannot be used with reset.interval",
-						},
-						{
-							name: "interval_count",
-							type: "never",
-							optional: true,
-							defaultDescription: "Cannot be used with reset.interval",
-						},
-						{
-							name: "billing_units",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.billing_units",
-							defaultDescription: "Number of units per billing cycle",
-						},
-						{
-							name: "usage_model",
-							type: "UsageModel",
-							optional: true,
-							descriptionKey: "price.usage_model",
-							defaultDescription: "Billing model: 'prepaid' or 'pay_per_use'",
-						},
-						{
-							name: "max_purchase",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.max_purchase",
-							defaultDescription: "Maximum purchasable quantity",
-						},
-					],
+					descriptionKey: "price.tiers",
+					defaultDescription: "Tiered pricing structure based on usage ranges",
 				},
 				{
-					name: "proration",
-					type: "object",
+					name: "billing_units",
+					type: "number",
 					optional: true,
-					defaultDescription: "Proration rules for quantity changes",
-					nestedFields: prorationFields,
+					descriptionKey: "price.billing_units",
+					defaultDescription: "Number of units per billing cycle",
 				},
 				{
-					name: "rollover",
-					type: "object",
+					name: "billing_method",
+					type: "BillingMethod",
 					optional: true,
-					defaultDescription: "Rollover policy for unused usage",
-					nestedFields: rolloverFields,
+					descriptionKey: "price.billing_method",
+					defaultDescription: "Billing method: 'prepaid' or 'pay_per_use'",
+				},
+				{
+					name: "max_purchase",
+					type: "number",
+					optional: true,
+					descriptionKey: "price.max_purchase",
+					defaultDescription: "Maximum purchasable quantity",
 				},
 			],
 		},
-		// Variant 2: With price interval
 		{
-			name: "PlanFeatureWithPrice",
-			description: "Price with interval (reset cannot have interval)",
-			fields: [
-				...commonFields,
-				{
-					name: "reset",
-					type: "object",
-					optional: true,
-					defaultDescription:
-						"Reset configuration (interval not allowed when using price.interval)",
-					nestedFields: [
-						{
-							name: "interval",
-							type: "never",
-							optional: true,
-							defaultDescription: "Cannot be used with price.interval",
-						},
-						{
-							name: "interval_count",
-							type: "never",
-							optional: true,
-							defaultDescription: "Cannot be used with price.interval",
-						},
-						{
-							name: "when_enabled",
-							type: "boolean",
-							optional: true,
-							descriptionKey: "reset.when_enabled",
-							defaultDescription:
-								"Whether to reset usage when feature is enabled",
-						},
-					],
-				},
-				{
-					name: "price",
-					type: "object",
-					defaultDescription: "Pricing configuration for usage-based billing",
-					nestedFields: [
-						{
-							name: "amount",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.amount",
-							defaultDescription: "Flat price per unit in cents",
-						},
-						{
-							name: "tiers",
-							type: 'Array<{ to: number | "inf"; amount: number }>',
-							optional: true,
-							descriptionKey: "price.tiers",
-							defaultDescription:
-								"Tiered pricing structure based on usage ranges",
-						},
-						{
-							name: "interval",
-							type: "BillingInterval",
-							descriptionKey: "price.interval",
-							defaultDescription:
-								"Billing frequency (cannot be used with reset.interval)",
-						},
-						{
-							name: "interval_count",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.interval_count",
-							defaultDescription: "Number of intervals between billing",
-						},
-						{
-							name: "billing_units",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.billing_units",
-							defaultDescription: "Number of units per billing cycle",
-						},
-						{
-							name: "usage_model",
-							type: "UsageModel",
-							descriptionKey: "price.usage_model",
-							defaultDescription: "Billing model: 'prepaid' or 'pay_per_use'",
-						},
-						{
-							name: "max_purchase",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.max_purchase",
-							defaultDescription: "Maximum purchasable quantity",
-						},
-					],
-				},
-				{
-					name: "proration",
-					type: "object",
-					optional: true,
-					defaultDescription: "Proration rules for quantity changes",
-					nestedFields: prorationFields,
-				},
-				{
-					name: "rollover",
-					type: "object",
-					optional: true,
-					defaultDescription: "Rollover policy for unused usage",
-					nestedFields: rolloverFields,
-				},
-			],
+			name: "proration",
+			type: "object",
+			optional: true,
+			defaultDescription: "Proration rules for quantity changes",
+			nestedFields: prorationFields,
 		},
-		// Variant 3: Basic (neither has interval)
 		{
-			name: "PlanFeatureBasic",
-			description: "Neither has interval",
-			fields: [
-				...commonFields,
-				{
-					name: "reset",
-					type: "object",
-					optional: true,
-					defaultDescription: "Reset configuration (no interval)",
-					nestedFields: [
-						{
-							name: "interval",
-							type: "never",
-							optional: true,
-							defaultDescription: "Not allowed in this variant",
-						},
-						{
-							name: "interval_count",
-							type: "never",
-							optional: true,
-							defaultDescription: "Not allowed in this variant",
-						},
-						{
-							name: "when_enabled",
-							type: "boolean",
-							optional: true,
-							descriptionKey: "reset.when_enabled",
-							defaultDescription:
-								"Whether to reset usage when feature is enabled",
-						},
-					],
-				},
-				{
-					name: "price",
-					type: "object",
-					optional: true,
-					defaultDescription: "Pricing configuration (no interval)",
-					nestedFields: [
-						{
-							name: "amount",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.amount",
-							defaultDescription: "Flat price per unit in cents",
-						},
-						{
-							name: "tiers",
-							type: 'Array<{ to: number | "inf"; amount: number }>',
-							optional: true,
-							descriptionKey: "price.tiers",
-							defaultDescription:
-								"Tiered pricing structure based on usage ranges",
-						},
-						{
-							name: "interval",
-							type: "never",
-							optional: true,
-							defaultDescription: "Not allowed in this variant",
-						},
-						{
-							name: "interval_count",
-							type: "never",
-							optional: true,
-							defaultDescription: "Not allowed in this variant",
-						},
-						{
-							name: "billing_units",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.billing_units",
-							defaultDescription: "Number of units per billing cycle",
-						},
-						{
-							name: "usage_model",
-							type: "UsageModel",
-							optional: true,
-							descriptionKey: "price.usage_model",
-							defaultDescription: "Billing model: 'prepaid' or 'pay_per_use'",
-						},
-						{
-							name: "max_purchase",
-							type: "number",
-							optional: true,
-							descriptionKey: "price.max_purchase",
-							defaultDescription: "Maximum purchasable quantity",
-						},
-					],
-				},
-				{
-					name: "proration",
-					type: "object",
-					optional: true,
-					defaultDescription: "Proration rules for quantity changes",
-					nestedFields: prorationFields,
-				},
-				{
-					name: "rollover",
-					type: "object",
-					optional: true,
-					defaultDescription: "Rollover policy for unused usage",
-					nestedFields: rolloverFields,
-				},
-			],
+			name: "rollover",
+			type: "object",
+			optional: true,
+			defaultDescription: "Rollover policy for unused usage",
+			nestedFields: rolloverFields,
 		},
 	];
 
-	return generateDiscriminatedUnion({
-		baseTypeName: "PlanFeature",
-		unionTypeName: "PlanFeature",
-		variants,
+	let result = "";
+
+	// Add type aliases
+	result += "// Type aliases for literal unions\n";
+	for (const [name, union] of Object.entries(typeAliases)) {
+		result += `export type ${name} = ${union};\n`;
+	}
+	result += "\n";
+
+	// Add base type reference
+	result += "// Base type for PlanFeature\n";
+	result += "type PlanFeatureBase = z.infer<typeof PlanFeatureSchema>;\n\n";
+
+	// Generate the single PlanFeature type
+	result += generateTypeWithJSDoc({
+		typeName: "PlanFeature",
+		fields: planFeatureFields,
 		metaDescriptions,
-		typeAliases,
-		comment:
-			"Plan feature configuration with compile-time mutual exclusivity validation. Use reset.interval OR price.interval, but not both.",
+		comment: "Plan feature configuration with flattened reset fields. Use interval/interval_count at top level.",
 	});
+
+	return result;
 }
 
 /**
@@ -596,11 +370,11 @@ export function generatePlanTypeWithJSDoc(
 				"Whether this plan can be purchased alongside other plans",
 		},
 		{
-			name: "default",
+			name: "auto_enable",
 			type: "boolean",
 			optional: true,
-			descriptionKey: "default",
-			defaultDescription: "Whether this is the default plan for new customers",
+			descriptionKey: "auto_enable",
+			defaultDescription: "Whether to automatically enable this plan for new customers",
 		},
 		{
 			name: "price",
@@ -615,12 +389,12 @@ export function generatePlanTypeWithJSDoc(
 					descriptionKey: "price.amount",
 					defaultDescription: "Price in your currency (e.g., 50 for $50.00)",
 				},
-				{
-					name: "interval",
-					type: "BillingInterval",
-					descriptionKey: "price.interval",
-					defaultDescription: "Billing frequency",
-				},
+			{
+				name: "interval",
+				type: "BillingInterval | ResetInterval",
+				descriptionKey: "price.interval",
+				defaultDescription: "Billing frequency",
+			},
 			],
 		},
 		{

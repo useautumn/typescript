@@ -9,7 +9,8 @@ import Pull from './commands/pull.js';
 import Push from './commands/push.js';
 import {DEFAULT_CONFIG, FRONTEND_URL} from './constants.js';
 import {loadAutumnConfigFile, writeConfig} from './core/config.js';
-import {isSandboxKey, readFromEnv} from './core/utils.js';
+import {getOrgMe} from './core/requests/orgRequests.js';
+import {readFromEnv} from './core/utils.js';
 
 declare const VERSION: string;
 
@@ -24,10 +25,18 @@ program.option('-l, --local', 'Use local autumn environment');
 
 program
 	.command('env')
-	.description('Check the environment of your API key')
+	.description('Check the environment and organization info')
 	.action(async () => {
-		const env = await isSandboxKey(readFromEnv() ?? '');
-		console.log(chalk.green(`Environment: ${env ? 'Sandbox' : 'Production'}`));
+		// Ensure API key is present
+		readFromEnv();
+		
+		// Fetch organization info from API
+		const orgInfo = await getOrgMe();
+		
+		const envDisplay = orgInfo.env === 'sandbox' ? 'Sandbox' : 'Production';
+		console.log(chalk.green(`Organization: ${orgInfo.name}`));
+		console.log(chalk.green(`Slug: ${orgInfo.slug}`));
+		console.log(chalk.green(`Environment: ${envDisplay}`));
 	});
 
 program

@@ -81,7 +81,7 @@ export const PlanSchema = z.object({
 // Type aliases for literal unions
 export type ResetInterval = "one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year";
 export type BillingInterval = "month" | "quarter" | "semi_annual" | "year";
-export type UsageModel = "prepaid" | "pay_per_use";
+export type BillingMethod = "prepaid" | "pay_per_use";
 export type OnIncrease = "prorate" | "charge_immediately";
 export type OnDecrease = "prorate" | "refund_immediately" | "no_action";
 
@@ -89,9 +89,9 @@ export type OnDecrease = "prorate" | "refund_immediately" | "no_action";
 type PlanFeatureBase = z.infer<typeof PlanFeatureSchema>;
 
 /**
- * Reset with interval (price cannot have interval)
+ * Plan feature configuration with flattened reset fields. Use interval/interval_count at top level.
  */
-export type PlanFeatureWithReset = {
+export type PlanFeature = {
   /** Reference to the feature being configured */
   feature_id: string;
 
@@ -101,152 +101,16 @@ export type PlanFeatureWithReset = {
   /** Whether usage is unlimited */
   unlimited?: boolean;
 
-  /** Reset configuration for metered features */
-  reset: {
-    /** How often usage resets */
-    interval: ResetInterval;
+  /** How often usage resets (e.g., 'month', 'day') */
+  interval?: ResetInterval;
 
-    /** Number of intervals between resets */
-    interval_count?: number;
+  /** Number of intervals between resets (default: 1) */
+  interval_count?: number;
 
-    /** Whether to reset usage when feature is enabled */
-    when_enabled?: boolean;  }
-
-  /** Pricing configuration (interval not allowed when using reset.interval) */
-  price?: {
-    /** Flat price per unit in cents */
-    amount?: number;
-
-    /** Tiered pricing structure based on usage ranges */
-    tiers?: Array<{ to: number | "inf"; amount: number }>;
-
-    /** Cannot be used with reset.interval */
-    interval?: never;
-
-    /** Cannot be used with reset.interval */
-    interval_count?: never;
-
-    /** Number of units per billing cycle */
-    billing_units?: number;
-
-    /** Billing model: 'prepaid' or 'pay_per_use' */
-    usage_model?: UsageModel;
-
-    /** Maximum purchasable quantity */
-    max_purchase?: number;  }
-
-  /** Proration rules for quantity changes */
-  proration?: {
-    /** Behavior when quantity increases */
-    on_increase: OnIncrease;
-
-    /** Behavior when quantity decreases */
-    on_decrease: OnDecrease;  }
-
-  /** Rollover policy for unused usage */
-  rollover?: {
-    /** Maximum amount that can roll over */
-    max: number;
-
-    /** How long rollover lasts before expiring */
-    expiry_duration_type: ResetInterval;
-
-    /** Duration length for rollover expiry */
-    expiry_duration_length?: number;  }
-};
-
-/**
- * Price with interval (reset cannot have interval)
- */
-export type PlanFeatureWithPrice = {
-  /** Reference to the feature being configured */
-  feature_id: string;
-
-  /** Amount of usage included in this plan */
-  included?: number;
-
-  /** Whether usage is unlimited */
-  unlimited?: boolean;
-
-  /** Reset configuration (interval not allowed when using price.interval) */
-  reset?: {
-    /** Cannot be used with price.interval */
-    interval?: never;
-
-    /** Cannot be used with price.interval */
-    interval_count?: never;
-
-    /** Whether to reset usage when feature is enabled */
-    when_enabled?: boolean;  }
+  /** Whether to carry over existing usage when feature is enabled (default: true) */
+  carry_over_usage?: boolean;
 
   /** Pricing configuration for usage-based billing */
-  price: {
-    /** Flat price per unit in cents */
-    amount?: number;
-
-    /** Tiered pricing structure based on usage ranges */
-    tiers?: Array<{ to: number | "inf"; amount: number }>;
-
-    /** Billing frequency (cannot be used with reset.interval) */
-    interval: BillingInterval;
-
-    /** Number of intervals between billing */
-    interval_count?: number;
-
-    /** Number of units per billing cycle */
-    billing_units?: number;
-
-    /** Billing model: 'prepaid' or 'pay_per_use' */
-    usage_model: UsageModel;
-
-    /** Maximum purchasable quantity */
-    max_purchase?: number;  }
-
-  /** Proration rules for quantity changes */
-  proration?: {
-    /** Behavior when quantity increases */
-    on_increase: OnIncrease;
-
-    /** Behavior when quantity decreases */
-    on_decrease: OnDecrease;  }
-
-  /** Rollover policy for unused usage */
-  rollover?: {
-    /** Maximum amount that can roll over */
-    max: number;
-
-    /** How long rollover lasts before expiring */
-    expiry_duration_type: ResetInterval;
-
-    /** Duration length for rollover expiry */
-    expiry_duration_length?: number;  }
-};
-
-/**
- * Neither has interval
- */
-export type PlanFeatureBasic = {
-  /** Reference to the feature being configured */
-  feature_id: string;
-
-  /** Amount of usage included in this plan */
-  included?: number;
-
-  /** Whether usage is unlimited */
-  unlimited?: boolean;
-
-  /** Reset configuration (no interval) */
-  reset?: {
-    /** Not allowed in this variant */
-    interval?: never;
-
-    /** Not allowed in this variant */
-    interval_count?: never;
-
-    /** Whether to reset usage when feature is enabled */
-    when_enabled?: boolean;  }
-
-  /** Pricing configuration (no interval) */
   price?: {
     /** Flat price per unit in cents */
     amount?: number;
@@ -254,17 +118,11 @@ export type PlanFeatureBasic = {
     /** Tiered pricing structure based on usage ranges */
     tiers?: Array<{ to: number | "inf"; amount: number }>;
 
-    /** Not allowed in this variant */
-    interval?: never;
-
-    /** Not allowed in this variant */
-    interval_count?: never;
-
     /** Number of units per billing cycle */
     billing_units?: number;
 
-    /** Billing model: 'prepaid' or 'pay_per_use' */
-    usage_model?: UsageModel;
+    /** Billing method: 'prepaid' or 'pay_per_use' */
+    billing_method?: BillingMethod;
 
     /** Maximum purchasable quantity */
     max_purchase?: number;  }
@@ -288,11 +146,6 @@ export type PlanFeatureBasic = {
     /** Duration length for rollover expiry */
     expiry_duration_length?: number;  }
 };
-
-/**
- * Plan feature configuration with compile-time mutual exclusivity validation. Use reset.interval OR price.interval, but not both.
- */
-export type PlanFeature = PlanFeatureWithReset | PlanFeatureWithPrice | PlanFeatureBasic;
 
 
 // Override Plan type to use PlanFeature discriminated union
@@ -315,8 +168,8 @@ export type Plan = {
   /** Whether this plan can be purchased alongside other plans */
   add_on?: boolean;
 
-  /** Whether this is the default plan for new customers */
-  default?: boolean;
+  /** Whether to automatically enable this plan for new customers */
+  auto_enable?: boolean;
 
   /** Base price for the plan */
   price?: {
@@ -324,7 +177,7 @@ export type Plan = {
     amount: number;
 
     /** Billing frequency */
-    interval: BillingInterval;  }
+    interval: BillingInterval | ResetInterval;  }
 
   /** Features included with usage limits and pricing */
   features?: PlanFeature[];

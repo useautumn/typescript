@@ -1,8 +1,10 @@
 {
 	"name": "atmn",
-	"version": "1.0.0-beta.1",
+	"version": "1.0.0-beta.2",
 	"license": "MIT",
-	"bin": "dist/cli.js",
+	"bin": {
+		"atmn": "dist/cli.js"
+	},
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"type": "module",
