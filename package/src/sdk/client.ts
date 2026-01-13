@@ -32,6 +32,7 @@ import { logger } from "../utils/logger";
 import { featureMethods } from "./features/featureMethods";
 import { eventMethods } from "./events/eventMethods";
 import { QueryParams } from "./events/eventTypes";
+import { balanceMethods } from "./balances/balancesMethods";
 
 const LATEST_API_VERSION = "1.2";
 
@@ -113,6 +114,7 @@ export class Autumn {
   static referrals = referralMethods();
   static features = featureMethods();
   static events = eventMethods();
+  static balances = balanceMethods();
 
   customers = customerMethods(this);
   products = productMethods(this);
@@ -120,6 +122,7 @@ export class Autumn {
   referrals = referralMethods(this);
   features = featureMethods(this);
   events = eventMethods(this);
+  balances = balanceMethods(this);
 
 
   /**

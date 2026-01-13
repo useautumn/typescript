@@ -46,5 +46,7 @@ export {
 	CreateReferralCodeParamsSchema,
 	RedeemReferralCodeParamsSchema,
 } from "./referrals/referralTypes";
+export * from "./balances/balancesTypes";
+export { CreateBalanceParamsSchema } from "./balances/balancesTypes";
 export type { AutumnPromise } from "./response";
 export { toContainerResult } from "./response";
