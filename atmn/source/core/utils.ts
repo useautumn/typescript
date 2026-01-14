@@ -57,24 +57,26 @@ async function upsertEnvVar(
 ) {
 	const content = fs.readFileSync(filePath, "utf-8");
 	const lines = content.split("\n");
-	let found = false;
+	let foundIndex = -1;
 
+	// Find the first occurrence of the variable
 	for (let i = 0; i < lines.length; i++) {
 		if (lines[i]?.startsWith(`${varName}=`)) {
-			const shouldOverwrite = await confirm({
-				message: `${varName} already exists in .env. Overwrite?`,
-				default: false,
-			});
-			if (shouldOverwrite) {
-				lines[i] = `${varName}=${newValue}`;
-				found = true;
-				break;
-			}
+			foundIndex = i;
+			break;
 		}
 	}
 
-	// If variable wasn't found, add it to the end
-	if (!found) {
+	if (foundIndex !== -1) {
+		const shouldOverwrite = await confirm({
+			message: `${varName} already exists in .env. Overwrite?`,
+			default: false,
+		});
+		if (shouldOverwrite) {
+			lines[foundIndex] = `${varName}=${newValue}`;
+		}
+	} else {
+		// Variable wasn't found, add it to the end
 		lines.push(`${varName}=${newValue}`);
 	}
 

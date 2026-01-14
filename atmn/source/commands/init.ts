@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { readFromEnv } from "../core/utils.js";
-import AuthCommand from "./auth.js";
+import AuthCommand from "../../src/commands/auth/command.js";
 import Pull from "./pull.js";
 
 export default async function Init() {
