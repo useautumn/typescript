@@ -1,6 +1,16 @@
 import { z } from "zod/v4";
 
-export const ResetInterval = ["day", "week", "month", "year"] as const;
+export const ResetInterval = [
+	"one_off",
+	"minute",
+	"hour",
+	"day",
+	"week",
+	"month",
+	"quarter",
+	"semi_annual",
+	"year",
+] as const;
 
 export const CreateBalanceParamsSchema = z.object({
 	feature_id: z.string().describe("The feature ID to create the balance for"),
