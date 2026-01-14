@@ -1,216 +1,120 @@
 import * as http from "node:http";
-import * as crypto from "node:crypto";
+import * as arctic from "arctic";
 import open from "open";
 import { BACKEND_URL } from "../../../source/constants.js";
 import { OAUTH_PORTS, getOAuthRedirectUri } from "./constants.js";
 import { getSuccessHtml, getErrorHtml } from "../../views/html/oauth-callback.js";
 
-// Generate PKCE code verifier (43-128 chars, URL safe)
-function generateCodeVerifier(): string {
-	const array = crypto.randomBytes(32);
-	return array
-		.toString("base64")
-		.replace(/\+/g, "-")
-		.replace(/\//g, "_")
-		.replace(/=/g, "");
-}
-
-// Generate PKCE code challenge from verifier (S256 method)
-async function generateCodeChallenge(verifier: string): Promise<string> {
-	const hash = crypto.createHash("sha256").update(verifier).digest();
-	return hash
-		.toString("base64")
-		.replace(/\+/g, "-")
-		.replace(/\//g, "_")
-		.replace(/=/g, "");
-}
-
-export interface OAuthTokens {
-	access_token: string;
-	token_type: string;
-	expires_in?: number;
-	refresh_token?: string;
-	scope?: string;
-	id_token?: string;
-}
-
-// Exchange authorization code for tokens
-async function exchangeCodeForTokens(
-	code: string,
-	codeVerifier: string,
-	clientId: string,
-	redirectUri: string,
-): Promise<OAuthTokens> {
-	const params = new URLSearchParams({
-		grant_type: "authorization_code",
-		code,
-		redirect_uri: redirectUri,
-		client_id: clientId,
-		code_verifier: codeVerifier,
-	});
-
-	const response = await fetch(`${BACKEND_URL}/api/auth/oauth2/token`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
-		},
-		body: params.toString(),
-	});
-
-	if (!response.ok) {
-		const error = await response.json().catch(() => ({}));
-		throw new Error(
-			error.error_description || error.error || "Token exchange failed",
-		);
-	}
-
-	return response.json();
-}
+const AUTHORIZATION_ENDPOINT = `${BACKEND_URL}/api/auth/oauth2/authorize`;
+const TOKEN_ENDPOINT = `${BACKEND_URL}/api/auth/oauth2/token`;
 
 export interface OAuthResult {
-	tokens: OAuthTokens;
-	orgId?: string;
+	tokens: {
+		access_token: string;
+		token_type: string;
+		expires_in?: number;
+		refresh_token?: string;
+	};
 }
 
-/** Try to start a server on the given port, returns true if successful */
-function tryListenOnPort(server: http.Server, port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const onError = (err: NodeJS.ErrnoException) => {
-			if (err.code === "EADDRINUSE") {
-				resolve(false);
-			} else {
-				resolve(false);
-			}
-		};
+type CallbackResult = { html: string; result?: OAuthResult; error?: Error };
 
-		server.once("error", onError);
-		server.listen(port, () => {
-			server.removeListener("error", onError);
-			resolve(true);
-		});
-	});
-}
-
-// Symbol to indicate port was in use (not an error)
-const PORT_IN_USE = Symbol("PORT_IN_USE");
-
-/** Start OAuth flow and wait for callback */
-export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
-	const codeVerifier = generateCodeVerifier();
-	const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-	// Try each port in sequence until one works
-	for (const port of OAUTH_PORTS) {
-		const result = await tryOAuthFlowOnPort(
-			clientId,
-			codeVerifier,
-			codeChallenge,
-			port,
-		);
-
-		if (result === PORT_IN_USE) {
-			// Try next port
-			continue;
-		}
-
-		// Success or error (not port-in-use)
-		return result;
-	}
-
-	// All ports failed
-	throw new Error(
-		`All OAuth ports (${OAUTH_PORTS[0]}-${OAUTH_PORTS[OAUTH_PORTS.length - 1]}) are in use. ` +
-			`Please close any other applications using these ports.`,
-	);
-}
-
-/** Try to run OAuth flow on a specific port */
-async function tryOAuthFlowOnPort(
-	clientId: string,
-	codeVerifier: string,
-	codeChallenge: string,
+/** Start a one-shot HTTP server, returns null if port in use */
+async function startCallbackServer(
 	port: number,
-): Promise<OAuthResult | typeof PORT_IN_USE> {
-	const redirectUri = getOAuthRedirectUri(port);
-
+	onCallback: (url: URL) => Promise<CallbackResult>,
+	onListening: () => void,
+): Promise<OAuthResult | null> {
 	return new Promise((resolve, reject) => {
-		let timeoutId: ReturnType<typeof setTimeout>;
-
-		// Create local server to receive callback
 		const server = http.createServer(async (req, res) => {
 			const url = new URL(req.url || "/", `http://localhost:${port}`);
-
-			if (url.pathname === "/") {
-				const code = url.searchParams.get("code");
-				const error = url.searchParams.get("error");
-				const errorDescription = url.searchParams.get("error_description");
-
-				if (error) {
-					res.writeHead(200, { "Content-Type": "text/html" });
-					res.end(getErrorHtml(errorDescription || error));
-					clearTimeout(timeoutId);
-					server.close();
-					reject(new Error(errorDescription || error));
-					return;
-				}
-
-				if (code) {
-					res.writeHead(200, { "Content-Type": "text/html" });
-					res.end(getSuccessHtml());
-
-					clearTimeout(timeoutId);
-					server.close();
-
-					try {
-						const tokens = await exchangeCodeForTokens(
-							code,
-							codeVerifier,
-							clientId,
-							redirectUri,
-						);
-						resolve({ tokens });
-					} catch (err) {
-						reject(err);
-					}
-					return;
-				}
-
-				res.writeHead(400, { "Content-Type": "text/plain" });
-				res.end("Missing authorization code");
-			} else {
-				res.writeHead(404, { "Content-Type": "text/plain" });
-				res.end("Not found");
-			}
-		});
-
-		// Try to listen on the port
-		tryListenOnPort(server, port).then((success) => {
-			if (!success) {
-				resolve(PORT_IN_USE);
+			if (url.pathname !== "/") {
+				res.writeHead(404).end("Not found");
 				return;
 			}
 
-			// Server started, open browser
-			const params = new URLSearchParams({
-				client_id: clientId,
-				response_type: "code",
-				redirect_uri: redirectUri,
-				scope: "openid profile email",
-				code_challenge: codeChallenge,
-				code_challenge_method: "S256",
-				prompt: "consent",
-			});
-
-			const authUrl = `${BACKEND_URL}/api/auth/oauth2/authorize?${params.toString()}`;
-			open(authUrl);
-
-			// Timeout after 5 minutes
-			timeoutId = setTimeout(() => {
-				server.close();
-				reject(new Error("Authorization timed out. Please try again."));
-			}, 5 * 60 * 1000);
+			const { html, result, error } = await onCallback(url);
+			res.writeHead(200, { "Content-Type": "text/html" }).end(html);
+			clearTimeout(timeoutId);
+			server.close();
+			error ? reject(error) : resolve(result!);
 		});
+
+		const timeoutId = setTimeout(() => {
+			server.close();
+			reject(new Error("Authorization timed out. Please try again."));
+		}, 5 * 60 * 1000);
+
+		server.once("error", (err: NodeJS.ErrnoException) => {
+			err.code === "EADDRINUSE" ? resolve(null) : reject(err);
+		});
+
+		server.listen(port, onListening);
 	});
+}
+
+/** Start OAuth flow and wait for callback */
+export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
+	const codeVerifier = arctic.generateCodeVerifier();
+	const state = arctic.generateState();
+
+	for (const port of OAUTH_PORTS) {
+		const redirectUri = getOAuthRedirectUri(port);
+		const client = new arctic.OAuth2Client(clientId, null, redirectUri);
+
+		const authUrl = client.createAuthorizationURLWithPKCE(
+			AUTHORIZATION_ENDPOINT,
+			state,
+			arctic.CodeChallengeMethod.S256,
+			codeVerifier,
+			["openid", "profile", "email"],
+		);
+		authUrl.searchParams.set("prompt", "consent");
+
+		const result = await startCallbackServer(
+			port,
+			async (url) => {
+				const error = url.searchParams.get("error");
+				const errorDesc = url.searchParams.get("error_description");
+				if (error) {
+					return { html: getErrorHtml(errorDesc || error), error: new Error(errorDesc || error) };
+				}
+
+				if (url.searchParams.get("state") !== state) {
+					return { html: getErrorHtml("Invalid state"), error: new Error("Invalid state - possible CSRF") };
+				}
+
+				const code = url.searchParams.get("code");
+				if (!code) {
+					return { html: getErrorHtml("Missing code"), error: new Error("Missing authorization code") };
+				}
+
+				try {
+					const tokens = await client.validateAuthorizationCode(TOKEN_ENDPOINT, code, codeVerifier);
+					return {
+						html: getSuccessHtml(),
+						result: {
+							tokens: {
+								access_token: tokens.accessToken(),
+								token_type: "Bearer",
+								expires_in: tokens.accessTokenExpiresInSeconds(),
+								refresh_token: tokens.hasRefreshToken() ? tokens.refreshToken() : undefined,
+							},
+						},
+					};
+				} catch (err) {
+					const msg = err instanceof arctic.OAuth2RequestError ? `OAuth error: ${err.code}` : "Token exchange failed";
+					return { html: getErrorHtml(msg), error: new Error(msg) };
+				}
+			},
+			() => open(authUrl.toString()), // Open browser once server is listening
+		);
+
+		if (result) return result;
+		// Port was in use, try next
+	}
+
+	throw new Error(`All OAuth ports (${OAUTH_PORTS[0]}-${OAUTH_PORTS[OAUTH_PORTS.length - 1]}) are in use.`);
 }
 
 /** Get or create API keys using the OAuth access token */
@@ -219,21 +123,14 @@ export async function getApiKeysWithToken(
 ): Promise<{ sandboxKey: string; prodKey: string; orgId: string }> {
 	const response = await fetch(`${BACKEND_URL}/cli/api-keys`, {
 		method: "POST",
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-			"Content-Type": "application/json",
-		},
+		headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
 	});
 
 	if (!response.ok) {
-		const error = await response.json().catch(() => ({ error: "Unknown error" }));
+		const error = await response.json().catch(() => ({}));
 		throw new Error(error.error || "Failed to create API keys");
 	}
 
 	const data = await response.json();
-	return {
-		sandboxKey: data.sandbox_key,
-		prodKey: data.prod_key,
-		orgId: data.org_id,
-	};
+	return { sandboxKey: data.sandbox_key, prodKey: data.prod_key, orgId: data.org_id };
 }

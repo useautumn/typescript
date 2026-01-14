@@ -27,6 +27,7 @@
 	"dependencies": {
 		"@inquirer/prompts": "^7.6.0",
 		"@types/prettier": "^3.0.0",
+		"arctic": "^3.7.0",
 		"axios": "^1.10.0",
 		"chalk": "^5.2.0",
 		"commander": "^14.0.0",
