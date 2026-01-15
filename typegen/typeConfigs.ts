@@ -498,6 +498,38 @@ export function getConvexTypeConfigs(
 }
 
 /**
+ * API response type configurations for atmn CLI
+ * Generates raw API types (not transformed for SDK use)
+ */
+export function getAtmnApiTypeConfigs(
+	serverPath: string,
+	atmnPath: string,
+): Array<{ schemaName: string; typeName: string; sourceFile: string; outputFile: string }> {
+	const apiTypesDir = path.join(atmnPath, "src/lib/api/types");
+
+	return [
+		{
+			schemaName: "ApiPlanSchema",
+			typeName: "ApiPlan",
+			sourceFile: path.join(serverPath, "api/products/apiPlan.ts"),
+			outputFile: path.join(apiTypesDir, "plan.ts"),
+		},
+		{
+			schemaName: "ApiPlanFeatureSchema",
+			typeName: "ApiPlanFeature",
+			sourceFile: path.join(serverPath, "api/products/planFeature/apiPlanFeature.ts"),
+			outputFile: path.join(apiTypesDir, "planFeature.ts"),
+		},
+		{
+			schemaName: "ApiFeatureV1Schema",
+			typeName: "ApiFeature",
+			sourceFile: path.join(serverPath, "api/features/apiFeatureV1.ts"),
+			outputFile: path.join(apiTypesDir, "feature.ts"),
+		},
+	];
+}
+
+/**
  * Type configurations for atmn CLI generation
  * Generates Plan V2 API types from @autumn/shared schemas
  */

@@ -2,10 +2,11 @@
 
 import path from "node:path";
 import dotenv from "dotenv";
-import { writeFileSync } from "fs";
+import { writeFileSync, mkdirSync } from "fs";
 import { TypeGenerator, TypeGeneratorUtils, generateBuilderFunctionsFile, extractZodSchema } from "./genUtils/index.js";
-import { getAtmnTypeConfigs } from "./typeConfigs.js";
+import { getAtmnTypeConfigs, getAtmnApiTypeConfigs } from "./typeConfigs.js";
 import { generatePlanFeatureType, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
+import { generateApiTypeFile, generateApiTypesIndex } from "./genUtils/atmnApiTypeHelpers.js";
 
 /**
  * Generate snake_case types for atmn CLI from @autumn/shared
@@ -39,6 +40,57 @@ async function main() {
 			{ name: "Autumn server/shared", path: serverPath },
 			{ name: "atmn", path: atmnPath },
 		]);
+
+		// Generate API response types first
+		const apiStart = Date.now();
+		console.log(`📡 Generating API response types...`);
+		const apiConfigs = getAtmnApiTypeConfigs(serverPath, atmnPath);
+		
+		// Create output directory
+		const apiTypesDir = path.join(atmnPath, "src/lib/api/types");
+		mkdirSync(apiTypesDir, { recursive: true });
+		
+		// Generate each API type file
+		for (const config of apiConfigs) {
+			generateApiTypeFile(
+				{
+					schemaName: config.schemaName,
+					typeName: config.typeName,
+					sourceFile: config.sourceFile,
+				},
+				config.outputFile,
+			);
+		}
+		
+	// Generate index file
+	const apiIndexConfigs = apiConfigs.map(c => ({
+		typeName: c.typeName,
+		outputFile: c.outputFile,
+	}));
+	generateApiTypesIndex(apiIndexConfigs, path.join(apiTypesDir, "index.ts"));
+		
+		// Manually create organization type (not generated from schema)
+		const orgTypeFile = path.join(apiTypesDir, "organization.ts");
+		writeFileSync(
+			orgTypeFile,
+			`// Manual type - not auto-generated
+
+/**
+ * Organization API response type
+ */
+export interface ApiOrganization {
+	id: string;
+	name: string;
+	slug: string;
+	stripe_connection?: string;
+	created_at: number;
+}
+`,
+			"utf-8",
+		);
+		
+		console.log(`   ⏱️  API types generated in ${Date.now() - apiStart}ms`);
+		console.log(`   📝 Generated: ApiPlan, ApiPlanFeature, ApiFeature, ApiOrganization`);
 
 		// Get type generation configuration
 		const typeConfig = getAtmnTypeConfigs(serverPath, atmnPath);
@@ -110,7 +162,7 @@ async function main() {
 		const totalTime = Date.now() - startTime;
 		console.log(`\n✅ All type generation completed in ${totalTime}ms!`);
 		console.log(
-			`\n📝 Generated files:\n   - source/compose/models/planModels.ts\n   - source/compose/models/featureModels.ts\n   - source/compose/builders/builderFunctions.ts`,
+			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - source/compose/models/planModels.ts\n   - source/compose/models/featureModels.ts\n   - source/compose/builders/builderFunctions.ts`,
 		);
 	} catch (error) {
 		console.error("💥 atmn type generation failed:", error);

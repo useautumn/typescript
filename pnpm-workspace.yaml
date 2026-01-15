@@ -5,6 +5,7 @@ packages:
   - compose
   - cli
   - atmn
+  - atmn/atmn-tests
   - ui
   - test-worker
   - next15

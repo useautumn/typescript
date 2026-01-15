@@ -345,9 +345,12 @@ ${imports}
   private async generateIndexFile(configs: TypeConfig[], outputDir: string): Promise<void> {
     const indexPath = path.join(this.targetPath, outputDir, "index.ts");
     
-    const exports = configs.map(config => {
-      const fileName = path.basename(config.targetFile, '.ts');
-      return `export * from './${fileName}';`;
+    // Get unique target files (remove duplicates)
+    const uniqueFiles = [...new Set(configs.map(c => c.targetFile))];
+    
+    const exports = uniqueFiles.map(targetFile => {
+      const fileName = path.basename(targetFile, '.ts');
+      return `export * from './${fileName}.js';`;
     }).join('\n');
 
     const content = `// Auto-generated exports for all camelCase types
