@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import {program} from 'commander';
 import open from 'open';
 import AuthCommand from '../src/commands/auth/command.js';
+import {testTemplateCommand} from '../src/commands/test-template.js';
 import Init from './commands/init.js';
 import Nuke from './commands/nuke.js';
 import Pull from './commands/pull.js';
@@ -96,6 +97,13 @@ program
 	.description('Show the version of Autumn')
 	.action(() => {
 		console.log(computedVersion);
+	});
+
+program
+	.command('test-template')
+	.description('Test template selector UI (prototype)')
+	.action(() => {
+		testTemplateCommand();
 	});
 
 /**

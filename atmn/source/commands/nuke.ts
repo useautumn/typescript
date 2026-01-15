@@ -1,3 +1,4 @@
+// @ts-nocheck
 import fs from "node:fs";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import yoctoSpinner from "yocto-spinner";

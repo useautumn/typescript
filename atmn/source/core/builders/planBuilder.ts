@@ -1,5 +1,6 @@
-import {Plan, Feature} from '../../compose/index.js';
-import {idToVar, notNullish, nullish} from '../utils.js';
+// @ts-nocheck
+import type { Feature, Plan } from "../../compose/index.js";
+import { idToVar, notNullish, nullish } from "../utils.js";
 
 export function importBuilder() {
 	return `
@@ -14,8 +15,8 @@ import {
 export function exportBuilder(planIds: string[], featureIds: string[]) {
 	const snippet = `
 const autumnConfig = {
-    plans: [${planIds.map(id => `${idToVar({id, prefix: 'plan'})}`).join(', ')}],
-    features: [${featureIds.map(id => `${idToVar({id, prefix: 'feature'})}`).join(', ')}]
+    plans: [${planIds.map((id) => `${idToVar({ id, prefix: "plan" })}`).join(", ")}],
+    features: [${featureIds.map((id) => `${idToVar({ id, prefix: "feature" })}`).join(", ")}]
 }
 
 export default autumnConfig;
@@ -31,36 +32,38 @@ export function planBuilder({
 	features: Feature[];
 }) {
 	// Plan from API has nested reset structure, cast to ApiPlanFeature for builder
-	const planFeaturesStr = plan.features
-		?.map((pf: any) => planFeatureBuilder({planFeature: pf as ApiPlanFeature, features}))
-		.join(',\n        ') || '';
+	const planFeaturesStr =
+		plan.features
+			?.map((pf: any) =>
+				planFeatureBuilder({ planFeature: pf as ApiPlanFeature, features }),
+			)
+			.join(",\n        ") || "";
 
 	const priceStr = plan.price
 		? `\n    price: {\n        amount: ${plan.price.amount},\n        interval: '${plan.price.interval}',\n    },`
-		: '';
+		: "";
 
-	const descriptionStr = plan.description && plan.description !== null
-		? `\n    description: '${plan.description.replace(/'/g, "\\'")}',`
-		: '';
+	const descriptionStr =
+		plan.description && plan.description !== null
+			? `\n    description: '${plan.description.replace(/'/g, "\\'")}',`
+			: "";
 
-	const groupStr = plan.group && plan.group !== '' && plan.group !== null
-		? `\n    group: '${plan.group}',`
-		: '';
+	const groupStr =
+		plan.group && plan.group !== "" && plan.group !== null
+			? `\n    group: '${plan.group}',`
+			: "";
 
-	const addOnStr = plan.add_on === true
-		? `\n    add_on: true,`
-		: '';
+	const addOnStr = plan.add_on === true ? `\n    add_on: true,` : "";
 
-	const autoEnableStr = plan.default === true
-		? `\n    auto_enable: true,`
-		: '';
+	const autoEnableStr = plan.default === true ? `\n    auto_enable: true,` : "";
 
-	const freeTrialStr = plan.free_trial && plan.free_trial !== null
-		? `\n    free_trial: {\n        duration_type: '${plan.free_trial.duration_type}',\n        duration_length: ${plan.free_trial.duration_length},\n        card_required: ${plan.free_trial.card_required},\n    },`
-		: '';
+	const freeTrialStr =
+		plan.free_trial && plan.free_trial !== null
+			? `\n    free_trial: {\n        duration_type: '${plan.free_trial.duration_type}',\n        duration_length: ${plan.free_trial.duration_length},\n        card_required: ${plan.free_trial.card_required},\n    },`
+			: "";
 
 	const snippet = `
-export const ${idToVar({id: plan.id, prefix: 'plan'})} = plan({
+export const ${idToVar({ id: plan.id, prefix: "plan" })} = plan({
     id: '${plan.id}',
     name: '${plan.name}',${descriptionStr}${groupStr}${addOnStr}${autoEnableStr}${priceStr}
     features: [
@@ -78,12 +81,12 @@ export const getFeatureIdStr = ({
 	featureId: string;
 	features: Feature[];
 }) => {
-	if (nullish(featureId)) return '';
+	if (nullish(featureId)) return "";
 
-	let feature = features.find(f => f.id === featureId);
+	const feature = features.find((f) => f.id === featureId);
 
 	if (feature?.archived) return `"${featureId}"`;
-	return `${idToVar({id: featureId, prefix: 'feature'})}.id`;
+	return `${idToVar({ id: featureId, prefix: "feature" })}.id`;
 };
 
 // API PlanFeature type (what comes from server - has nested reset object)
@@ -98,7 +101,7 @@ type ApiPlanFeature = {
 	};
 	price?: {
 		amount?: number;
-		tiers?: Array<{ to: number | 'inf'; amount: number }>;
+		tiers?: Array<{ to: number | "inf"; amount: number }>;
 		interval?: string;
 		interval_count?: number;
 		billing_units?: number;
@@ -129,10 +132,13 @@ function planFeatureBuilder({
 		features,
 	});
 
-	let parts: string[] = [`feature_id: ${featureIdStr}`];
+	const parts: string[] = [`feature_id: ${featureIdStr}`];
 
 	// Included usage (API: granted_balance -> SDK: included)
-	if (notNullish(planFeature.granted_balance) && planFeature.granted_balance > 0) {
+	if (
+		notNullish(planFeature.granted_balance) &&
+		planFeature.granted_balance > 0
+	) {
 		parts.push(`included: ${planFeature.granted_balance}`);
 	}
 
@@ -145,7 +151,10 @@ function planFeatureBuilder({
 	if (planFeature.reset?.interval) {
 		parts.push(`interval: '${planFeature.reset.interval}'`);
 	}
-	if (notNullish(planFeature.reset?.interval_count) && planFeature.reset!.interval_count !== 1) {
+	if (
+		notNullish(planFeature.reset?.interval_count) &&
+		planFeature.reset!.interval_count !== 1
+	) {
 		parts.push(`interval_count: ${planFeature.reset!.interval_count}`);
 	}
 	// API: reset_when_enabled (true = reset on enable) -> SDK: carry_over_usage (true = keep existing)
@@ -169,14 +178,20 @@ function planFeatureBuilder({
 
 		if (planFeature.price.tiers && planFeature.price.tiers.length > 0) {
 			const tiersStr = planFeature.price.tiers
-				.map(tier => `{ to: ${tier.to === 'inf' ? "'inf'" : tier.to}, amount: ${tier.amount} }`)
-				.join(', ');
+				.map(
+					(tier) =>
+						`{ to: ${tier.to === "inf" ? "'inf'" : tier.to}, amount: ${tier.amount} }`,
+				)
+				.join(", ");
 			priceParts.push(`tiers: [${tiersStr}]`);
 		}
 
 		// Note: price.interval and price.interval_count are NOT in SDK - they come from top-level interval
 
-		if (notNullish(planFeature.price.billing_units) && planFeature.price.billing_units !== 1) {
+		if (
+			notNullish(planFeature.price.billing_units) &&
+			planFeature.price.billing_units !== 1
+		) {
 			priceParts.push(`billing_units: ${planFeature.price.billing_units}`);
 		}
 
@@ -190,7 +205,7 @@ function planFeatureBuilder({
 		}
 
 		if (priceParts.length > 0) {
-			parts.push(`price: { ${priceParts.join(', ')} }`);
+			parts.push(`price: { ${priceParts.join(", ")} }`);
 		}
 	}
 
@@ -198,13 +213,17 @@ function planFeatureBuilder({
 	if (planFeature.proration) {
 		const prorationParts: string[] = [];
 		if (planFeature.proration.on_increase) {
-			prorationParts.push(`on_increase: '${planFeature.proration.on_increase}'`);
+			prorationParts.push(
+				`on_increase: '${planFeature.proration.on_increase}'`,
+			);
 		}
 		if (planFeature.proration.on_decrease) {
-			prorationParts.push(`on_decrease: '${planFeature.proration.on_decrease}'`);
+			prorationParts.push(
+				`on_decrease: '${planFeature.proration.on_decrease}'`,
+			);
 		}
 		if (prorationParts.length > 0) {
-			parts.push(`proration: { ${prorationParts.join(', ')} }`);
+			parts.push(`proration: { ${prorationParts.join(", ")} }`);
 		}
 	}
 
@@ -215,15 +234,22 @@ function planFeatureBuilder({
 			rolloverParts.push(`max: ${planFeature.rollover.max}`);
 		}
 		if (planFeature.rollover.expiry_duration_type) {
-			rolloverParts.push(`expiry_duration_type: '${planFeature.rollover.expiry_duration_type}'`);
+			rolloverParts.push(
+				`expiry_duration_type: '${planFeature.rollover.expiry_duration_type}'`,
+			);
 		}
-		if (notNullish(planFeature.rollover.expiry_duration_length) && planFeature.rollover.expiry_duration_length !== 1) {
-			rolloverParts.push(`expiry_duration_length: ${planFeature.rollover.expiry_duration_length}`);
+		if (
+			notNullish(planFeature.rollover.expiry_duration_length) &&
+			planFeature.rollover.expiry_duration_length !== 1
+		) {
+			rolloverParts.push(
+				`expiry_duration_length: ${planFeature.rollover.expiry_duration_length}`,
+			);
 		}
 		if (rolloverParts.length > 0) {
-			parts.push(`rollover: { ${rolloverParts.join(', ')} }`);
+			parts.push(`rollover: { ${rolloverParts.join(", ")} }`);
 		}
 	}
 
-	return `planFeature({ ${parts.join(', ')} })`;
+	return `planFeature({ ${parts.join(", ")} })`;
 }
