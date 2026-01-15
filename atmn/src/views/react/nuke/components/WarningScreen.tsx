@@ -25,7 +25,7 @@ export function WarningScreen({
 }: WarningScreenProps) {
 	const [input, setInput] = useState("");
 
-	useInput((inputChar, key) => {
+	useInput((_inputChar, key) => {
 		if (key.escape) {
 			onCancel();
 		}

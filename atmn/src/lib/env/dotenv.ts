@@ -50,7 +50,7 @@ export function readDotenvFile(filePath: string): Map<string, string> {
 	try {
 		const content = readFileSync(filePath, "utf-8");
 		return parseDotenv(content);
-	} catch (error) {
+	} catch (_error) {
 		return new Map();
 	}
 }

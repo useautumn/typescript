@@ -2,6 +2,7 @@
  * Batch deletion logic for nuke command
  */
 
+import { DELETE_CONCURRENCY } from "../../constants.js";
 import type { DeletionProgress } from "./types.js";
 
 /**
@@ -14,10 +15,7 @@ export async function deleteCustomersBatch(
 ): Promise<void> {
 	const concurrency = Math.max(
 		1,
-		Math.min(
-			customers.length,
-			Number(process.env['ATMN_DELETE_CONCURRENCY'] ?? 5) || 5
-		)
+		Math.min(customers.length, DELETE_CONCURRENCY)
 	);
 
 	let completed = 0;
@@ -57,8 +55,8 @@ export async function deletePlansSequential(
 ): Promise<void> {
 	const startTime = Date.now();
 
-	for (let i = 0; i < plans.length; i++) {
-		await deletePlanFn(plans[i]!.id, true); // allVersions = true
+	for (const [i, plan] of plans.entries()) {
+		await deletePlanFn(plan.id, true); // allVersions = true
 
 		if (onProgress) {
 			const elapsed = (Date.now() - startTime) / 1000;
@@ -84,14 +82,14 @@ export async function deleteFeaturesSequential(
 	onProgress?: (progress: DeletionProgress) => void
 ): Promise<void> {
 	// Sort: credit_system features first (they are dependencies)
-	const sorted = [...features].sort((a, b) =>
+	const sorted = [...features].sort((a) =>
 		a.type === "credit_system" ? -1 : 1
 	);
 
 	const startTime = Date.now();
 
-	for (let i = 0; i < sorted.length; i++) {
-		await deleteFeatureFn(sorted[i]!.id);
+	for (const [i, feature] of sorted.entries()) {
+		await deleteFeatureFn(feature.id);
 
 		if (onProgress) {
 			const elapsed = (Date.now() - startTime) / 1000;

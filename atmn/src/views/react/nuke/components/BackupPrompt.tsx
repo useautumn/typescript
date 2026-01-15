@@ -23,7 +23,7 @@ export function BackupPrompt({ onChoice }: BackupPromptProps) {
 		} else if (key.downArrow) {
 			setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
 		} else if (key.return) {
-			onChoice(options[selectedIndex]!.value);
+			onChoice(options[selectedIndex]?.value ?? false);
 		} else if (input.toLowerCase() === 'y') {
 			onChoice(true);
 		} else if (input.toLowerCase() === 'n') {

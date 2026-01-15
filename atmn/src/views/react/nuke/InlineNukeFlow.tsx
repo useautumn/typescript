@@ -14,7 +14,6 @@ import { DeletionProgress } from "./components/DeletionProgress.js";
 import { WarningScreen } from "./components/WarningScreen.js";
 
 type NukeState = 
-	| "validating"
 	| "loading"
 	| "error"
 	| "warning"
@@ -34,9 +33,25 @@ interface InlineNukeFlowProps {
  * Simplified flow without fullscreen takeover
  */
 export function InlineNukeFlow({ onComplete, onCancel }: InlineNukeFlowProps) {
-	const [state, setState] = useState<NukeState>("validating");
-	const [backupCreated, setBackupCreated] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const [state, setState] = useState<NukeState>(() => {
+		try {
+			const secretKey = getKey(AppEnv.Sandbox);
+			validateSandboxOnly(secretKey);
+			return "loading";
+		} catch {
+			return "error";
+		}
+	});
+	const [error, setError] = useState<string | null>(() => {
+		try {
+			const secretKey = getKey(AppEnv.Sandbox);
+			validateSandboxOnly(secretKey);
+			return null;
+		} catch (err) {
+			if (err instanceof NukeValidationError) return err.message;
+			return "Failed to validate environment";
+		}
+	});
 
 	// Fetch org and counts
 	const { data: nukeData, isLoading, error: fetchError } = useNukeData();
@@ -47,8 +62,8 @@ export function InlineNukeFlow({ onComplete, onCancel }: InlineNukeFlowProps) {
 		phases,
 		activePhase,
 		totalElapsed,
-		isNuking,
-		error: nukeError,
+		isNuking: _isNuking,
+		error: _nukeError,
 	} = useNuke({
 		onComplete: () => {
 			setState("explosion");
@@ -58,23 +73,6 @@ export function InlineNukeFlow({ onComplete, onCancel }: InlineNukeFlowProps) {
 			setState("error");
 		},
 	});
-
-	// Validation on mount
-	useEffect(() => {
-		try {
-			const secretKey = getKey(AppEnv.Sandbox);
-			validateSandboxOnly(secretKey);
-			setState("loading");
-		} catch (err) {
-			if (err instanceof NukeValidationError) {
-				setError(err.message);
-				setState("error");
-			} else {
-				setError("Failed to validate environment");
-				setState("error");
-			}
-		}
-	}, []);
 
 	// After data loads, validate customer limit
 	useEffect(() => {
@@ -102,8 +100,7 @@ export function InlineNukeFlow({ onComplete, onCancel }: InlineNukeFlowProps) {
 
 	const handleBackupChoice = (createBackup: boolean) => {
 		if (createBackup) {
-			const result = createConfigBackup();
-			setBackupCreated(result.created);
+			createConfigBackup();
 		}
 		setState("confirm");
 	};
@@ -126,19 +123,6 @@ export function InlineNukeFlow({ onComplete, onCancel }: InlineNukeFlowProps) {
 	};
 
 	// Render current state
-	if (state === "validating") {
-		return (
-			<Box flexDirection="column">
-				<Text>
-					<Text color="magenta">
-						<Spinner type="dots" />
-					</Text>{" "}
-					Validating environment...
-				</Text>
-			</Box>
-		);
-	}
-
 	if (state === "loading") {
 		if (isLoading) {
 			return (

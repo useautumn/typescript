@@ -5,7 +5,7 @@ interface FinalSummaryProps {
 	customers: number;
 	plans: number;
 	features: number;
-	backupPath?: string;
+	backupCreated?: boolean;
 }
 
 /**
@@ -16,7 +16,7 @@ export function FinalSummary({
 	customers,
 	plans,
 	features,
-	backupPath,
+	backupCreated,
 }: FinalSummaryProps) {
 	return (
 		<Box flexDirection="column" padding={1}>
@@ -28,9 +28,9 @@ export function FinalSummary({
 					<Text color="green">✓ {plans} plans deleted</Text>
 					<Text color="green">✓ {features} features deleted</Text>
 					<Box height={1} />
-					{backupPath && (
+					{backupCreated && (
 						<>
-							<Text dimColor>Backup saved: {backupPath}</Text>
+							<Text dimColor>Backup saved to autumn.config.ts.backup</Text>
 							<Box height={1} />
 						</>
 					)}

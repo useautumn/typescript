@@ -16,6 +16,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
 	const [activeIndex, setActiveIndex] = useState(1); // Start on RatGPT (middle)
 
+	const activeTemplate = templates[activeIndex];
+
 	useInput((input, key) => {
 		if (key.tab || key.rightArrow) {
 			// Next template
@@ -25,15 +27,28 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 			setActiveIndex((prev) => (prev - 1 + templates.length) % templates.length);
 		} else if (key.return) {
 			// Confirm selection
-			onSelect?.(templates[activeIndex]!);
+			if (activeTemplate) {
+				onSelect?.(activeTemplate);
+			}
 		} else if (key.escape) {
 			// Cancel
 			onCancel?.();
 		}
 	});
 
-	const activeTemplate = templates[activeIndex]!;
-	const plans = templateData[activeTemplate]!;
+	if (!activeTemplate) {
+		return <Text color="red">No template selected</Text>;
+	}
+
+	const plans = templateData[activeTemplate];
+	if (!plans) {
+		return <Text color="red">Invalid template data</Text>;
+	}
+
+	const [plan0, plan1, plan2] = plans;
+	if (!plan0 || !plan1 || !plan2) {
+		return <Text color="red">Incomplete plan data</Text>;
+	}
 
 	return (
 		<Box flexDirection="column" paddingX={2} paddingY={1}>
@@ -72,17 +87,17 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 					flexDirection="column"
 				>
 				<Text bold color="cyan" dimColor>
-					{plans[0]!.name}
+					{plan0.name}
 				</Text>
 				<Box marginTop={1} />
-				{plans[0]!.features.map((feature: string) => (
+				{plan0.features.map((feature: string) => (
 					<Box key={feature}>
 						<Text dimColor>• {feature}</Text>
 					</Box>
 				))}
 					<Box marginTop={1}>
 						<Text bold color="green">
-							{plans[0]!.price}
+							{plan0.price}
 						</Text>
 					</Box>
 				</Box>
@@ -96,22 +111,22 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 					flexDirection="column"
 				>
 					<Text bold color="magenta">
-						{plans[1]!.name}
+						{plan1.name}
 					</Text>
-					{plans[1]!.badge && (
+					{plan1.badge && (
 						<Text italic color="yellow">
-							{plans[1]!.badge}
+							{plan1.badge}
 						</Text>
 				)}
 				<Box marginTop={1} />
-				{plans[1]!.features.map((feature: string) => (
+				{plan1.features.map((feature: string) => (
 					<Box key={feature}>
 						<Text>• {feature}</Text>
 					</Box>
 				))}
 					<Box marginTop={1}>
 						<Text bold color="green">
-							{plans[1]!.price}
+							{plan1.price}
 						</Text>
 					</Box>
 				</Box>
@@ -125,17 +140,17 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 					flexDirection="column"
 				>
 				<Text bold color="cyan" dimColor>
-					{plans[2]!.name}
+					{plan2.name}
 				</Text>
 				<Box marginTop={1} />
-				{plans[2]!.features.map((feature: string) => (
+				{plan2.features.map((feature: string) => (
 					<Box key={feature}>
 						<Text dimColor>• {feature}</Text>
 					</Box>
 				))}
 					<Box marginTop={1}>
 						<Text bold color="green">
-							{plans[2]!.price}
+							{plan2.price}
 						</Text>
 					</Box>
 				</Box>

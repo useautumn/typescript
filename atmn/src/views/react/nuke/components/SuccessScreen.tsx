@@ -5,7 +5,7 @@ interface SuccessScreenProps {
 	customers: number;
 	plans: number;
 	features: number;
-	backupPath?: string;
+	backupCreated?: boolean;
 	onComplete: () => void;
 }
 
@@ -16,7 +16,7 @@ export function SuccessScreen({
 	customers,
 	plans,
 	features,
-	backupPath,
+	backupCreated,
 	onComplete,
 }: SuccessScreenProps) {
 	// Auto-advance to explosion after 1.5 seconds
@@ -38,9 +38,9 @@ export function SuccessScreen({
 					<Text color="green">✓ {plans} plans deleted</Text>
 					<Text color="green">✓ {features} features deleted</Text>
 					<Box height={1} />
-					{backupPath && (
+					{backupCreated && (
 						<>
-							<Text dimColor>Backup: {backupPath}</Text>
+							<Text dimColor>Backup saved to autumn.config.ts.backup</Text>
 							<Box height={1} />
 						</>
 					)}

@@ -9,9 +9,7 @@
  * - discriminate: conditional transforms based on a field value
  */
 
-type TransformFn<TInput, TOutput> = (input: TInput) => TOutput;
-
-export interface FieldMapping {
+export interface FieldMapping<TInput = unknown> {
 	/** Fields to copy as-is from API to SDK */
 	copy?: string[];
 	
@@ -25,13 +23,13 @@ export interface FieldMapping {
 	remove?: string[];
 	
 	/** Computed fields: { sdkField: (api) => computed value } */
-	compute?: Record<string, (api: any) => any>;
+	compute?: Record<string, (api: TInput) => unknown>;
 	
 	/** Default values for undefined/null fields: { sdkField: defaultValue } */
-	defaults?: Record<string, any>;
+	defaults?: Record<string, unknown>;
 	
 	/** Transform nested arrays: { sdkField: { from: 'apiField', transform: TransformConfig } } */
-	transformArrays?: Record<string, { from: string; transform: FieldMapping }>;
+	transformArrays?: Record<string, { from: string; transform: FieldMapping<unknown> }>;
 	
 	/** Fields that swap null to undefined when coming from API: ['field1', 'field2'] */
 	swapNullish?: string[];
@@ -40,23 +38,23 @@ export interface FieldMapping {
 	swapFalse?: string[];
 }
 
-export interface DiscriminatedTransform {
+export interface DiscriminatedTransform<TInput = unknown> {
 	/** Field to discriminate on (e.g., 'type') */
 	discriminator: string;
 	
 	/** Map of discriminator value → transform config */
-	cases: Record<string, FieldMapping>;
+	cases: Record<string, FieldMapping<TInput>>;
 	
 	/** Fallback transform if no case matches */
-	default?: FieldMapping;
+	default?: FieldMapping<TInput>;
 }
 
 /**
  * Generic transformer that applies field mappings declaratively
  */
-export class Transformer<TInput = any, TOutput = any> {
+export class Transformer<TInput = unknown, TOutput = unknown> {
 	constructor(
-		private config: FieldMapping | DiscriminatedTransform,
+		private config: FieldMapping<TInput> | DiscriminatedTransform<TInput>,
 	) {}
 
 	transform(input: TInput): TOutput {
@@ -69,9 +67,9 @@ export class Transformer<TInput = any, TOutput = any> {
 		return this.transformFields(input, this.config);
 	}
 
-	private transformDiscriminated(input: any): TOutput {
-		const config = this.config as DiscriminatedTransform;
-		const discriminatorValue = this.getNestedValue(input, config.discriminator);
+	private transformDiscriminated(input: TInput): TOutput {
+		const config = this.config as DiscriminatedTransform<TInput>;
+		const discriminatorValue = this.getNestedValue(input, config.discriminator) as string;
 		
 		const caseConfig = config.cases[discriminatorValue] || config.default;
 		if (!caseConfig) {
@@ -83,8 +81,8 @@ export class Transformer<TInput = any, TOutput = any> {
 		return this.transformFields(input, caseConfig);
 	}
 
-	private transformFields(input: any, mapping: FieldMapping): TOutput {
-		const output: any = {};
+	private transformFields(input: TInput, mapping: FieldMapping<TInput>): TOutput {
+		const output: Record<string, unknown> = {};
 
 		// Track which fields should swap null to undefined
 		const swapNullishSet = new Set(mapping.swapNullish || []);
@@ -187,15 +185,15 @@ export class Transformer<TInput = any, TOutput = any> {
 	/**
 	 * Get nested value using dot notation (e.g., 'reset.interval')
 	 */
-	private getNestedValue(obj: any, path: string): any {
+	private getNestedValue(obj: unknown, path: string): unknown {
 		const parts = path.split('.');
-		let value = obj;
+		let value: unknown = obj;
 		
 		for (const part of parts) {
 			if (value === null || value === undefined) {
 				return undefined;
 			}
-			value = value[part];
+			value = (value as Record<string, unknown>)[part];
 		}
 		
 		return value;
@@ -206,7 +204,7 @@ export class Transformer<TInput = any, TOutput = any> {
  * Helper to create a transformer with type safety
  */
 export function createTransformer<TInput, TOutput>(
-	config: FieldMapping | DiscriminatedTransform,
+	config: FieldMapping<TInput> | DiscriminatedTransform<TInput>,
 ): Transformer<TInput, TOutput> {
 	return new Transformer<TInput, TOutput>(config);
 }

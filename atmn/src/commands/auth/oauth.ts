@@ -20,6 +20,10 @@ export interface OAuthResult {
 	};
 }
 
+export interface StartOAuthOptions {
+	headless?: boolean;
+}
+
 type CallbackResult = { html: string; result?: OAuthResult; error?: Error };
 
 /** Start a one-shot HTTP server, returns null if port in use */
@@ -40,7 +44,13 @@ async function startCallbackServer(
 			res.writeHead(200, { "Content-Type": "text/html" }).end(html);
 			clearTimeout(timeoutId);
 			server.close();
-			error ? reject(error) : resolve(result!);
+			if (error) {
+				reject(error);
+			} else if (result) {
+				resolve(result);
+			} else {
+				reject(new Error("Unexpected callback state: no result or error"));
+			}
 		});
 
 		const timeoutId = setTimeout(
@@ -60,7 +70,10 @@ async function startCallbackServer(
 }
 
 /** Start OAuth flow and wait for callback */
-export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
+export async function startOAuthFlow(
+	clientId: string,
+	options?: StartOAuthOptions,
+): Promise<OAuthResult> {
 	const codeVerifier = arctic.generateCodeVerifier();
 	const state = arctic.generateState();
 
@@ -150,7 +163,13 @@ export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
 					return { html: getErrorHtml(msg), error: new Error(msg) };
 				}
 			},
-			() => open(authUrl.toString()), // Open browser once server is listening
+			() => {
+			if (options?.headless) {
+				console.log(`\nVisit this URL to authenticate:\n\n  ${authUrl.toString()}\n`);
+			} else {
+				open(authUrl.toString());
+			}
+		}, // Open browser once server is listening
 		);
 
 		if (result) return result;

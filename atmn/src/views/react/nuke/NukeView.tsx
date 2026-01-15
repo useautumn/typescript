@@ -16,7 +16,6 @@ import { WarningScreen } from "./components/WarningScreen.js";
 import Spinner from "ink-spinner";
 
 type NukeState = 
-	| "validating"
 	| "loading"
 	| "error"
 	| "warning"
@@ -33,14 +32,29 @@ type NukeState =
  */
 export function NukeView() {
 	const { exit } = useApp();
-	const [state, setState] = useState<NukeState>("validating");
+	const [state, setState] = useState<NukeState>(() => {
+		try {
+			const secretKey = getKey(AppEnv.Sandbox);
+			validateSandboxOnly(secretKey);
+			return "loading";
+		} catch {
+			return "error";
+		}
+	});
 	const [backupCreated, setBackupCreated] = useState(false);
-	const [backupPath, setBackupPath] = useState<string | undefined>();
-	const [error, setError] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(() => {
+		try {
+			const secretKey = getKey(AppEnv.Sandbox);
+			validateSandboxOnly(secretKey);
+			return null;
+		} catch (err) {
+			if (err instanceof NukeValidationError) return err.message;
+			return "Failed to validate environment";
+		}
+	});
 
 	// Fetch org and counts
 	const { data: nukeData, isLoading, error: fetchError } = useNukeData();
-	const [debugInfo, setDebugInfo] = useState<string>("");
 
 	// Nuke mutation
 	const {
@@ -48,8 +62,8 @@ export function NukeView() {
 		phases,
 		activePhase,
 		totalElapsed,
-		isNuking,
-		error: nukeError,
+		isNuking: _isNuking,
+		error: _nukeError,
 	} = useNuke({
 		onComplete: () => {
 			setState("success");
@@ -59,23 +73,6 @@ export function NukeView() {
 			setState("error");
 		},
 	});
-
-	// Validation on mount
-	useEffect(() => {
-		try {
-			const secretKey = getKey(AppEnv.Sandbox);
-			validateSandboxOnly(secretKey);
-			setState("loading");
-		} catch (err) {
-			if (err instanceof NukeValidationError) {
-				setError(err.message);
-				setState("error");
-			} else {
-				setError("Failed to validate environment");
-				setState("error");
-			}
-		}
-	}, []);
 
 	// After data loads, validate customer limit
 	useEffect(() => {
@@ -106,7 +103,6 @@ export function NukeView() {
 			const result = createConfigBackup();
 			if (result.created) {
 				setBackupCreated(true);
-				setBackupPath(result.path);
 			}
 		}
 		setState("confirm");
@@ -142,19 +138,6 @@ export function NukeView() {
 	}, [state, exit]);
 
 	// Render current state
-	if (state === "validating") {
-		return (
-			<Box flexDirection="column" padding={1}>
-				<Text>
-					<Text color="magenta">
-						<Spinner type="dots" />
-					</Text>{" "}
-					Validating environment...
-				</Text>
-			</Box>
-		);
-	}
-
 	if (state === "loading") {
 		if (isLoading) {
 			return (
@@ -234,7 +217,7 @@ export function NukeView() {
 					customers={nukeData.customersCount}
 					plans={nukeData.plansCount}
 					features={nukeData.featuresCount}
-					backupPath={backupPath}
+					backupCreated={backupCreated}
 					onComplete={handleSuccessComplete}
 				/>
 			);
@@ -253,7 +236,7 @@ export function NukeView() {
 					customers={nukeData.customersCount}
 					plans={nukeData.plansCount}
 					features={nukeData.featuresCount}
-					backupPath={backupPath}
+					backupCreated={backupCreated}
 				/>
 			);
 

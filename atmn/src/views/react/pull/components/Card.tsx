@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import React from "react";
 import { Box, Text } from "ink";
 
 interface CardProps {
 	title: string;
-	children?: React.ReactNode;
+	children?: ReactNode;
 }
 
 /**

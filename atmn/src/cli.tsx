@@ -146,7 +146,13 @@ program
 program
 	.command("init")
 	.description("Initialize an Autumn project.")
-	.action(async () => {
+	.option("--headless", "Run in headless mode (no interactive prompts)")
+	.action(async (options) => {
+		// Override TTY detection if --headless flag is passed
+		if (options.headless) {
+			process.stdout.isTTY = false;
+		}
+
 		if (process.stdout.isTTY) {
 			// Interactive mode - use new Ink-based init flow
 			render(
@@ -155,9 +161,15 @@ program
 				</QueryProvider>,
 			);
 		} else {
-			// Non-TTY (agent/CI mode) - use legacy init
-			writeConfig(DEFAULT_CONFIG);
-			await Init();
+			// Non-TTY (agent/CI mode) - use headless init flow
+			const { HeadlessInitFlow } = await import(
+				"./views/react/init/HeadlessInitFlow.js"
+			);
+			render(
+				<QueryProvider>
+					<HeadlessInitFlow />
+				</QueryProvider>,
+			);
 		}
 	});
 
