@@ -2,8 +2,11 @@ import * as http from "node:http";
 import * as arctic from "arctic";
 import open from "open";
 import { BACKEND_URL } from "../../../source/constants.js";
-import { OAUTH_PORTS, getOAuthRedirectUri } from "./constants.js";
-import { getSuccessHtml, getErrorHtml } from "../../views/html/oauth-callback.js";
+import {
+	getErrorHtml,
+	getSuccessHtml,
+} from "../../views/html/oauth-callback.js";
+import { getOAuthRedirectUri, OAUTH_PORTS } from "./constants.js";
 
 const AUTHORIZATION_ENDPOINT = `${BACKEND_URL}/api/auth/oauth2/authorize`;
 const TOKEN_ENDPOINT = `${BACKEND_URL}/api/auth/oauth2/token`;
@@ -40,10 +43,13 @@ async function startCallbackServer(
 			error ? reject(error) : resolve(result!);
 		});
 
-		const timeoutId = setTimeout(() => {
-			server.close();
-			reject(new Error("Authorization timed out. Please try again."));
-		}, 5 * 60 * 1000);
+		const timeoutId = setTimeout(
+			() => {
+				server.close();
+				reject(new Error("Authorization timed out. Please try again."));
+			},
+			5 * 60 * 1000,
+		);
 
 		server.once("error", (err: NodeJS.ErrnoException) => {
 			err.code === "EADDRINUSE" ? resolve(null) : reject(err);
@@ -67,7 +73,26 @@ export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
 			state,
 			arctic.CodeChallengeMethod.S256,
 			codeVerifier,
-			["openid", "profile", "email"],
+			[
+				"organisation:read",
+				"customers:create",
+				"customers:read",
+				"customers:list",
+				"customers:update",
+				"customers:delete",
+				"features:create",
+				"features:read",
+				"features:list",
+				"features:update",
+				"features:delete",
+				"plans:create",
+				"plans:read",
+				"plans:list",
+				"plans:update",
+				"plans:delete",
+				"apiKeys:create",
+				"apiKeys:read",
+			],
 		);
 		authUrl.searchParams.set("prompt", "consent");
 
@@ -77,20 +102,33 @@ export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
 				const error = url.searchParams.get("error");
 				const errorDesc = url.searchParams.get("error_description");
 				if (error) {
-					return { html: getErrorHtml(errorDesc || error), error: new Error(errorDesc || error) };
+					return {
+						html: getErrorHtml(errorDesc || error),
+						error: new Error(errorDesc || error),
+					};
 				}
 
 				if (url.searchParams.get("state") !== state) {
-					return { html: getErrorHtml("Invalid state"), error: new Error("Invalid state - possible CSRF") };
+					return {
+						html: getErrorHtml("Invalid state"),
+						error: new Error("Invalid state - possible CSRF"),
+					};
 				}
 
 				const code = url.searchParams.get("code");
 				if (!code) {
-					return { html: getErrorHtml("Missing code"), error: new Error("Missing authorization code") };
+					return {
+						html: getErrorHtml("Missing code"),
+						error: new Error("Missing authorization code"),
+					};
 				}
 
 				try {
-					const tokens = await client.validateAuthorizationCode(TOKEN_ENDPOINT, code, codeVerifier);
+					const tokens = await client.validateAuthorizationCode(
+						TOKEN_ENDPOINT,
+						code,
+						codeVerifier,
+					);
 					return {
 						html: getSuccessHtml(),
 						result: {
@@ -98,12 +136,17 @@ export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
 								access_token: tokens.accessToken(),
 								token_type: "Bearer",
 								expires_in: tokens.accessTokenExpiresInSeconds(),
-								refresh_token: tokens.hasRefreshToken() ? tokens.refreshToken() : undefined,
+								refresh_token: tokens.hasRefreshToken()
+									? tokens.refreshToken()
+									: undefined,
 							},
 						},
 					};
 				} catch (err) {
-					const msg = err instanceof arctic.OAuth2RequestError ? `OAuth error: ${err.code}` : "Token exchange failed";
+					const msg =
+						err instanceof arctic.OAuth2RequestError
+							? `OAuth error: ${err.code}`
+							: "Token exchange failed";
 					return { html: getErrorHtml(msg), error: new Error(msg) };
 				}
 			},
@@ -114,7 +157,9 @@ export async function startOAuthFlow(clientId: string): Promise<OAuthResult> {
 		// Port was in use, try next
 	}
 
-	throw new Error(`All OAuth ports (${OAUTH_PORTS[0]}-${OAUTH_PORTS[OAUTH_PORTS.length - 1]}) are in use.`);
+	throw new Error(
+		`All OAuth ports (${OAUTH_PORTS[0]}-${OAUTH_PORTS[OAUTH_PORTS.length - 1]}) are in use.`,
+	);
 }
 
 /** Get or create API keys using the OAuth access token */
@@ -123,7 +168,10 @@ export async function getApiKeysWithToken(
 ): Promise<{ sandboxKey: string; prodKey: string; orgId: string }> {
 	const response = await fetch(`${BACKEND_URL}/cli/api-keys`, {
 		method: "POST",
-		headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			"Content-Type": "application/json",
+		},
 	});
 
 	if (!response.ok) {
@@ -132,5 +180,9 @@ export async function getApiKeysWithToken(
 	}
 
 	const data = await response.json();
-	return { sandboxKey: data.sandbox_key, prodKey: data.prod_key, orgId: data.org_id };
+	return {
+		sandboxKey: data.sandbox_key,
+		prodKey: data.prod_key,
+		orgId: data.org_id,
+	};
 }

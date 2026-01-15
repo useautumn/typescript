@@ -1,7 +1,7 @@
 // OAuth constants for CLI authentication
 
 /** The OAuth client ID for the CLI (public client) */
-export const CLI_CLIENT_ID = "qncNuaPFAEBwzCypjFopNCGPHQDqkchp";
+export const CLI_CLIENT_ID = "khicXGthBbGMIWmpgodOTDcCCJHJMDpN";
 
 /** Base port for the local OAuth callback server */
 export const OAUTH_PORT_BASE = 31448;
