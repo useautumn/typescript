@@ -6,7 +6,7 @@ async function getVersion(): Promise<string> {
 async function build() {
 	console.time(`Building atmn v${await getVersion()}`);
 	await Bun.build({
-		entrypoints: ["./source/cli.ts", "./source/index.ts"],
+		entrypoints: ["./src/cli.tsx", "./source/cli.ts", "./source/index.ts"],
 		outdir: "./dist",
 		format: "esm",
 		target: "node",

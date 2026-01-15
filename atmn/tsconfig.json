@@ -4,7 +4,13 @@
 		"outDir": "dist",
 		"strict": true,
 		"noUnusedLocals": false,
-		"noUnusedParameters": false
+		"noUnusedParameters": false,
+		"skipLibCheck": true,
+		"paths": {
+			"@api/*": ["../../../sirtenzin-autumn/shared/api/*"],
+			"@models/*": ["../../../sirtenzin-autumn/shared/models/*"],
+			"@utils/*": ["../../../sirtenzin-autumn/shared/utils/*"]
+		}
 	},
 	"include": ["source", "src"]
 }
