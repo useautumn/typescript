@@ -1,21 +1,19 @@
 #!/usr/bin/env node
+/** biome-ignore-all lint/complexity/useLiteralKeys: necessary */
 import chalk from "chalk";
-import clipboard from "clipboardy";
 import { program } from "commander";
 import { render } from "ink";
 import open from "open";
 import React from "react";
 import Nuke from "../source/commands/nuke.js";
-import { FRONTEND_URL } from "./constants.js";
-import { isProd, setCliContext } from "./lib/env/cliContext.js";
 import { getOrgMe } from "../source/core/requests/orgRequests.js";
-import { readFromEnv } from "./lib/utils.js";
 // Import existing commands from source/ (legacy - will migrate incrementally)
 import AuthCommand from "./commands/auth/command.js";
 import { pull as newPull } from "./commands/pull/pull.js"; // New pull implementation
-import { pricingPrompt } from "./prompts/pricing.js";
+import { FRONTEND_URL } from "./constants.js";
+import { isProd, setCliContext } from "./lib/env/cliContext.js";
+import { readFromEnv } from "./lib/utils.js";
 // Import Ink views
-import App from "./views/App.js";
 import { QueryProvider } from "./views/react/components/providers/QueryProvider.js";
 import { InitFlow } from "./views/react/init/InitFlow.js";
 import { PullView } from "./views/react/pull/Pull.js";
@@ -31,8 +29,14 @@ program.version(computedVersion);
 // Global options - available for all commands
 // These are orthogonal: -p controls env (sandbox vs live), -l controls API server (remote vs localhost)
 // Combined as -lp: use live environment on localhost API server
-program.option("-p, --prod", "Use live/production environment (default: sandbox)");
-program.option("-l, --local", "Use localhost:8080 API server (default: api.useautumn.com)");
+program.option(
+	"-p, --prod",
+	"Use live/production environment (default: sandbox)",
+);
+program.option(
+	"-l, --local",
+	"Use localhost:8080 API server (default: api.useautumn.com)",
+);
 program.option("--headless", "Force non-interactive mode (for CI/agents)");
 
 // Set CLI context before any command runs
@@ -49,22 +53,6 @@ program.hook("preAction", (thisCommand) => {
 		process.stdout.isTTY = false;
 	}
 });
-
-// Demo command to test Ink rendering and TTY detection
-program
-	.command("demo")
-	.description("Demo command to test Ink rendering")
-	.action(() => {
-		if (process.stdout.isTTY) {
-			// Interactive mode - render Ink UI
-			render(<App />);
-		} else {
-			// Non-TTY (agent mode) - plain text output
-			console.log("atmn - Autumn CLI");
-			console.log("Running in non-interactive mode (agent/CI)");
-		}
-	});
-
 // === Existing commands (unchanged from source/cli.ts) ===
 
 program
@@ -260,22 +248,6 @@ program
 	.description("Show the version of Autumn")
 	.action(() => {
 		console.log(computedVersion);
-	});
-
-program
-	.command("pricing-builder")
-	.description("Get the pricing design agent prompt")
-	.action(async () => {
-		if (process.stdout.isTTY) {
-			await clipboard.write(pricingPrompt);
-			console.log(
-				chalk.green(
-					"Prompt copied to clipboard! You can paste it into your preferred agent now.",
-				),
-			);
-		} else {
-			console.log(pricingPrompt);
-		}
 	});
 
 program
