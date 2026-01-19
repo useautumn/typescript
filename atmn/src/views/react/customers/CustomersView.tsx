@@ -1,26 +1,31 @@
 import { Box, Text, useApp, useInput } from "ink";
-import React, { useEffect, useCallback, useMemo } from "react";
+import open from "open";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { AppEnv } from "../../../lib/env/detect.js";
-import { useCustomers } from "../../../lib/hooks/useCustomers.js";
+import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import { useCustomerExpanded } from "../../../lib/hooks/useCustomerExpanded.js";
 import { useCustomerNavigation } from "../../../lib/hooks/useCustomerNavigation.js";
-import { useClipboard } from "../../../lib/hooks/useClipboard.js";
-import type { ApiCustomer } from "../../../lib/api/endpoints/customers.js";
+import { useCustomers } from "../../../lib/hooks/useCustomers.js";
 import {
-	TitleBar,
-	CustomersTable,
 	CustomerSheet,
-	KeybindHints,
+	CustomersTable,
 	EmptyState,
 	ErrorState,
+	KeybindHints,
 	LoadingState,
+	SearchInput,
+	TitleBar,
 } from "./components/index.js";
-import { getPaginationDisplay, calculateColumnWidths } from "./types.js";
+import { calculateColumnWidths, getPaginationDisplay } from "./types.js";
+
+const AUTUMN_DASHBOARD_URL = "https://app.useautumn.com";
 
 const PAGE_SIZE = 50;
 
 export interface CustomersViewProps {
 	environment?: AppEnv;
+	/** Called when user exits (q or ctrl+c) - use to clear terminal */
+	onExit?: () => void;
 }
 
 /**
@@ -28,6 +33,7 @@ export interface CustomersViewProps {
  */
 export function CustomersView({
 	environment = AppEnv.Sandbox,
+	onExit,
 }: CustomersViewProps) {
 	const { exit } = useApp();
 	const { copy, showingFeedback } = useClipboard();
@@ -42,20 +48,20 @@ export function CustomersView({
 		closeSheet,
 		toggleFocus,
 		selectCustomer,
+		openSearch,
+		closeSearch,
+		setSearchQuery,
+		clearSearch,
 	} = useCustomerNavigation();
 
-	const {
-		data,
-		isLoading,
-		isError,
-		error,
-		refetch,
-		isFetching,
-	} = useCustomers({
-		page: state.page,
-		pageSize: PAGE_SIZE,
-		environment,
-	});
+	const { data, isLoading, isError, error, refetch, isFetching } = useCustomers(
+		{
+			page: state.page,
+			pageSize: PAGE_SIZE,
+			environment,
+			search: state.searchQuery,
+		},
+	);
 
 	// Lazy load expanded customer data when sheet is open
 	const {
@@ -81,9 +87,18 @@ export function CustomersView({
 	useInput(
 		useCallback(
 			(input, key) => {
+				// Don't handle input when search dialog is open (it handles its own input)
+				if (state.focusTarget === "search") {
+					return;
+				}
+
 				// Quit
 				if (input === "q") {
-					exit();
+					if (onExit) {
+						onExit();
+					} else {
+						exit();
+					}
 					return;
 				}
 
@@ -93,11 +108,30 @@ export function CustomersView({
 					return;
 				}
 
+				// Open search (/ or s)
+				if (input === "/" || input === "s") {
+					openSearch();
+					return;
+				}
+
+				// Clear search (x when search is active)
+				if (input === "x" && state.searchQuery) {
+					clearSearch();
+					return;
+				}
+
 				// Sheet-specific controls
 				if (state.focusTarget === "sheet" && state.sheetOpen) {
 					// Copy ID
 					if (input === "c" && state.selectedCustomer) {
 						copy(state.selectedCustomer.id);
+						return;
+					}
+
+					// Open in Autumn dashboard
+					if (input === "o" && state.selectedCustomer) {
+						const env = state.selectedCustomer.env === "live" ? "" : "/sandbox";
+						open(`${AUTUMN_DASHBOARD_URL}${env}/customers/${state.selectedCustomer.id}`);
 						return;
 					}
 
@@ -160,6 +194,7 @@ export function CustomersView({
 				customers,
 				pagination,
 				exit,
+				onExit,
 				refetch,
 				copy,
 				closeSheet,
@@ -169,13 +204,16 @@ export function CustomersView({
 				prevPage,
 				nextPage,
 				openSheet,
+				openSearch,
+				clearSearch,
 			],
 		),
 	);
 
 	// Calculate column widths based on actual customer data and terminal width
 	const columnWidths = useMemo(
-		() => calculateColumnWidths(customers, process.stdout.columns, state.sheetOpen),
+		() =>
+			calculateColumnWidths(customers, process.stdout.columns, state.sheetOpen),
 		[customers, state.sheetOpen],
 	);
 
@@ -208,9 +246,25 @@ export function CustomersView({
 	if (!customers.length && !isFetching) {
 		return (
 			<Box flexDirection="column" width="100%">
-				<TitleBar environment={environment} pagination={pagination} />
+				<TitleBar
+					environment={environment}
+					pagination={pagination}
+					searchQuery={state.searchQuery}
+				/>
+				{state.searchOpen && (
+					<Box marginTop={0} width="100%">
+						<SearchInput
+							initialValue={state.searchQuery}
+							onSubmit={setSearchQuery}
+							onCancel={closeSearch}
+						/>
+					</Box>
+				)}
 				<Box marginTop={1} width="100%">
-					<EmptyState environment={environment} />
+					<EmptyState
+						environment={environment}
+						searchQuery={state.searchQuery}
+					/>
 				</Box>
 				<Box marginTop={1} width="100%">
 					<KeybindHints
@@ -228,7 +282,22 @@ export function CustomersView({
 	return (
 		<Box flexDirection="column" width="100%">
 			{/* Title bar */}
-			<TitleBar environment={environment} pagination={pagination} />
+			<TitleBar
+				environment={environment}
+				pagination={pagination}
+				searchQuery={state.searchQuery}
+			/>
+
+			{/* Inline search input */}
+			{state.searchOpen && (
+				<Box marginTop={1} width="100%">
+					<SearchInput
+						initialValue={state.searchQuery}
+						onSubmit={setSearchQuery}
+						onCancel={closeSearch}
+					/>
+				</Box>
+			)}
 
 			{/* Main content: Table + Sheet side by side */}
 			<Box marginTop={1} flexDirection="row" width="100%" flexGrow={1}>
@@ -265,6 +334,12 @@ export function CustomersView({
 							onCopy={() => {
 								if (state.selectedCustomer) {
 									copy(state.selectedCustomer.id);
+								}
+							}}
+							onOpenInBrowser={() => {
+								if (state.selectedCustomer) {
+									const env = state.selectedCustomer.env === "live" ? "" : "/sandbox";
+									open(`${AUTUMN_DASHBOARD_URL}${env}/customers/${state.selectedCustomer.id}`);
 								}
 							}}
 							expandedCustomer={expandedCustomer}

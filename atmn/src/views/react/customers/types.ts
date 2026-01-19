@@ -201,6 +201,7 @@ export interface PaginationInfo {
 export interface TitleBarProps {
 	environment: AppEnv;
 	pagination: PaginationInfo;
+	searchQuery?: string;
 }
 
 /**
@@ -231,6 +232,7 @@ export interface CustomerSheetProps {
 	isFocused: boolean;
 	copiedFeedback: boolean;
 	onCopy: () => void;
+	onOpenInBrowser: () => void;
 	/** Expanded customer data (lazily loaded) */
 	expandedCustomer?: ApiCustomerExpanded;
 	/** Whether expanded data is loading */
@@ -254,6 +256,7 @@ export interface KeybindHintsProps {
  */
 export interface EmptyStateProps {
 	environment: AppEnv;
+	searchQuery?: string;
 }
 
 /**
