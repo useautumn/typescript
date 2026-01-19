@@ -21,6 +21,7 @@ export function CustomerSheet({
 	isFocused,
 	copiedFeedback,
 	onCopy: _onCopy,
+	onOpenInBrowser: _onOpenInBrowser,
 	expandedCustomer,
 	isLoadingExpanded,
 	expandedError,
@@ -43,6 +44,7 @@ export function CustomerSheet({
 			borderColor={borderColor}
 			paddingX={1}
 			minWidth={44}
+			height="100%"
 		>
 			{/* Customer Title */}
 			<Text bold color="white">
@@ -98,16 +100,11 @@ export function CustomerSheet({
 			{/* Expanded sections (only show when data is loaded) */}
 			{expandedCustomer && (
 				<Box flexDirection="column" marginTop={1}>
-					{/* Feature Balances */}
-					<BalancesSection balances={balances as Record<string, ApiBalance>} />
-
-					{/* Subscriptions */}
-					<Box marginTop={1}>
-						<SubscriptionsSection
-							subscriptions={expandedCustomer.subscriptions}
-							title="Subscriptions"
-						/>
-					</Box>
+					{/* Subscriptions - always at top */}
+					<SubscriptionsSection
+						subscriptions={expandedCustomer.subscriptions}
+						title="Subscriptions"
+					/>
 
 					{/* Scheduled Subscriptions */}
 					{expandedCustomer.scheduled_subscriptions.length > 0 && (
@@ -118,6 +115,11 @@ export function CustomerSheet({
 							/>
 						</Box>
 					)}
+
+					{/* Feature Balances */}
+					<Box marginTop={1}>
+						<BalancesSection balances={balances as Record<string, ApiBalance>} />
+					</Box>
 
 					{/* Entities */}
 					{expandedCustomer.entities && expandedCustomer.entities.length > 0 && (
@@ -176,8 +178,11 @@ export function CustomerSheet({
 				</Box>
 			)}
 
-			{/* Actions */}
-			<Box marginTop={1} flexDirection="column">
+			{/* Spacer to push actions to bottom */}
+			<Box flexGrow={1} />
+
+			{/* Actions - pinned to bottom */}
+			<Box flexDirection="column">
 				{copiedFeedback ? (
 					<Text color="green">Copied!</Text>
 				) : (
@@ -186,6 +191,10 @@ export function CustomerSheet({
 						<Text color="gray"> Copy ID</Text>
 					</Text>
 				)}
+				<Text>
+					<Text color="magenta">[o]</Text>
+					<Text color="gray"> Open in Autumn</Text>
+				</Text>
 			</Box>
 		</Box>
 	);

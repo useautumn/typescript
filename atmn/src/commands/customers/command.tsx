@@ -19,11 +19,26 @@ export async function customersCommand(
 
 	if (process.stdout.isTTY) {
 		// Interactive mode - render Ink UI
-		render(
+		const instance = render(
 			<QueryProvider>
-				<CustomersView environment={environment} />
+				<CustomersView
+					environment={environment}
+					onExit={() => {
+						// Clear the terminal output for a clean exit
+						instance.clear();
+						instance.unmount();
+						process.exit(0);
+					}}
+				/>
 			</QueryProvider>,
 		);
+
+		// Handle Ctrl+C - clear terminal before exit
+		process.on("SIGINT", () => {
+			instance.clear();
+			instance.unmount();
+			process.exit(0);
+		});
 	} else {
 		// Non-TTY mode - plain text fallback
 		console.log("atmn customers - Autumn CLI");

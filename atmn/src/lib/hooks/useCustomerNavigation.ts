@@ -1,12 +1,14 @@
 import { useReducer, useCallback } from "react";
 import type { ApiCustomer } from "../api/endpoints/customers.js";
 
-export type FocusTarget = "table" | "sheet";
+export type FocusTarget = "table" | "sheet" | "search";
 
 export interface NavigationState {
 	page: number;
 	selectedIndex: number;
 	sheetOpen: boolean;
+	searchOpen: boolean;
+	searchQuery: string;
 	focusTarget: FocusTarget;
 	selectedCustomer: ApiCustomer | null;
 	copiedFeedback: boolean;
@@ -22,12 +24,17 @@ export type NavigationAction =
 	| { type: "TOGGLE_FOCUS" }
 	| { type: "COPY_ID" }
 	| { type: "CLEAR_COPIED_FEEDBACK" }
-	| { type: "SELECT_CUSTOMER"; customer: ApiCustomer; index: number };
+	| { type: "SELECT_CUSTOMER"; customer: ApiCustomer; index: number }
+	| { type: "OPEN_SEARCH" }
+	| { type: "CLOSE_SEARCH" }
+	| { type: "SET_SEARCH_QUERY"; query: string };
 
 const initialState: NavigationState = {
 	page: 1,
 	selectedIndex: 0,
 	sheetOpen: false,
+	searchOpen: false,
+	searchQuery: "",
 	focusTarget: "table",
 	selectedCustomer: null,
 	copiedFeedback: false,
@@ -99,6 +106,30 @@ function navigationReducer(
 				selectedCustomer: action.customer,
 			};
 
+		case "OPEN_SEARCH":
+			return {
+				...state,
+				searchOpen: true,
+				focusTarget: "search",
+			};
+
+		case "CLOSE_SEARCH":
+			return {
+				...state,
+				searchOpen: false,
+				focusTarget: "table",
+			};
+
+		case "SET_SEARCH_QUERY":
+			return {
+				...state,
+				searchQuery: action.query,
+				searchOpen: false,
+				focusTarget: "table",
+				page: 1,
+				selectedIndex: 0,
+			};
+
 		default:
 			return state;
 	}
@@ -147,6 +178,22 @@ export function useCustomerNavigation() {
 		dispatch({ type: "SELECT_CUSTOMER", customer, index });
 	}, []);
 
+	const openSearch = useCallback(() => {
+		dispatch({ type: "OPEN_SEARCH" });
+	}, []);
+
+	const closeSearch = useCallback(() => {
+		dispatch({ type: "CLOSE_SEARCH" });
+	}, []);
+
+	const setSearchQuery = useCallback((query: string) => {
+		dispatch({ type: "SET_SEARCH_QUERY", query });
+	}, []);
+
+	const clearSearch = useCallback(() => {
+		dispatch({ type: "SET_SEARCH_QUERY", query: "" });
+	}, []);
+
 	return {
 		state,
 		dispatch,
@@ -160,5 +207,9 @@ export function useCustomerNavigation() {
 		copyId,
 		clearCopiedFeedback,
 		selectCustomer,
+		openSearch,
+		closeSearch,
+		setSearchQuery,
+		clearSearch,
 	};
 }

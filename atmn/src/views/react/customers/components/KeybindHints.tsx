@@ -29,14 +29,18 @@ export function KeybindHints({
 					<Text color="magenta">Esc</Text>
 					<Text color="gray"> close</Text>
 				</Text>
-				<Text>
-					<Text color="magenta">c</Text>
-					<Text color="gray"> copy ID</Text>
-				</Text>
-				<Text>
-					<Text color="magenta">q</Text>
-					<Text color="gray"> quit</Text>
-				</Text>
+			<Text>
+				<Text color="magenta">c</Text>
+				<Text color="gray"> copy ID</Text>
+			</Text>
+			<Text>
+				<Text color="magenta">o</Text>
+				<Text color="gray"> open</Text>
+			</Text>
+			<Text>
+				<Text color="magenta">q</Text>
+				<Text color="gray"> quit</Text>
+			</Text>
 			</Box>
 		);
 	}
@@ -70,6 +74,10 @@ export function KeybindHints({
 			<Text>
 				<Text color="magenta">Enter</Text>
 				<Text color="gray"> inspect</Text>
+			</Text>
+			<Text>
+				<Text color="magenta">/</Text>
+				<Text color="gray"> search</Text>
 			</Text>
 			<Text>
 				<Text color="magenta">r</Text>

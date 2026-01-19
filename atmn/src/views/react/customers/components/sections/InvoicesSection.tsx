@@ -53,13 +53,12 @@ function InvoiceRow({ invoice }: { invoice: ApiInvoice }) {
 	);
 }
 
-function formatCurrency(cents: number, currency: string): string {
-	const amount = cents / 100;
+function formatCurrency(dollars: number, currency: string): string {
 	const formatter = new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: currency.toUpperCase(),
 	});
-	return formatter.format(amount);
+	return formatter.format(dollars);
 }
 
 function getInvoiceStatusColor(status: string): string {

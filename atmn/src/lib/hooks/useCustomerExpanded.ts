@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { request } from "../api/client.js";
 import { getKey } from "../env/keys.js";
 import { AppEnv } from "../env/detect.js";
@@ -24,21 +25,48 @@ export interface UseCustomerExpandedOptions {
 	environment?: AppEnv;
 	/** Whether to enable the query */
 	enabled?: boolean;
+	/** Debounce delay in ms (default: 150ms) */
+	debounceMs?: number;
+}
+
+/**
+ * Custom hook to debounce a value
+ */
+function useDebouncedValue<T>(value: T, delay: number): T {
+	const [debouncedValue, setDebouncedValue] = useState(value);
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedValue(value);
+		}, delay);
+
+		return () => {
+			clearTimeout(timer);
+		};
+	}, [value, delay]);
+
+	return debouncedValue;
 }
 
 /**
  * TanStack Query hook for fetching a single customer with all expand params.
  * Use this to lazily load full customer details when the sheet opens.
+ * 
+ * Includes debouncing to prevent excessive API calls during rapid navigation.
  */
 export function useCustomerExpanded({
 	customerId,
 	environment = AppEnv.Sandbox,
 	enabled = true,
+	debounceMs = 150,
 }: UseCustomerExpandedOptions) {
+	// Debounce the customer ID to prevent rapid API calls while scrolling
+	const debouncedCustomerId = useDebouncedValue(customerId, debounceMs);
+
 	return useQuery({
-		queryKey: ["customer", customerId, "expanded", environment],
+		queryKey: ["customer", debouncedCustomerId, "expanded", environment],
 		queryFn: async () => {
-			if (!customerId) {
+			if (!debouncedCustomerId) {
 				throw new Error("Customer ID is required");
 			}
 
@@ -46,7 +74,7 @@ export function useCustomerExpanded({
 
 			const response = await request<ApiCustomerExpanded>({
 				method: "GET",
-				path: `/v1/customers/${encodeURIComponent(customerId)}`,
+				path: `/v1/customers/${encodeURIComponent(debouncedCustomerId)}`,
 				secretKey,
 				queryParams: {
 					expand: EXPAND_PARAMS,
@@ -55,7 +83,7 @@ export function useCustomerExpanded({
 
 			return response;
 		},
-		enabled: enabled && !!customerId,
+		enabled: enabled && !!debouncedCustomerId,
 		staleTime: 30_000,
 		// Don't refetch on window focus for detail views
 		refetchOnWindowFocus: false,
