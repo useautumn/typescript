@@ -1,7 +1,7 @@
 import { Box, Text } from "ink";
 import open from "open";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FRONTEND_URL } from "../../../../../source/constants.js";
+import { FRONTEND_URL } from "../../../../constants.js";
 import { externalRequest } from "../../../../../source/core/api.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
 

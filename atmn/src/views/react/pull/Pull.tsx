@@ -4,6 +4,7 @@ import { AppEnv } from "../../../lib/env/index.js";
 import { usePull } from "../../../lib/hooks/index.js";
 import {
 	Card,
+	CardWidthProvider,
 	FeatureRow,
 	FileRow,
 	KeyValue,
@@ -51,84 +52,86 @@ export function PullView({
 	}
 
 	return (
-		<Box flexDirection="column" marginBottom={1}>
-			{/* Header */}
-			<Card title="🍂 Pulling from Autumn" />
+		<CardWidthProvider>
+			<Box flexDirection="column" marginBottom={1}>
+				{/* Header */}
+				<Card title="🍂 Pulling from Autumn" />
 
-			{/* Organization Card */}
-			{isOrgLoading ? (
-				<Card title="📦 Organization">
-					<LoadingText text="Fetching..." />
-				</Card>
-			) : orgInfo ? (
-				<Card title="📦 Organization">
-					<KeyValue label="Name" value={orgInfo.name} />
-					<KeyValue label="Environment" value={orgInfo.environment} />
-				</Card>
-			) : null}
-
-			{/* Features Card */}
-			{!isOrgLoading && (
-				<Card
-					title={`🎯 Features${features.length > 0 ? ` (${features.length})` : ""}`}
-				>
-					{isPullLoading && features.length === 0 ? (
+				{/* Organization Card */}
+				{isOrgLoading ? (
+					<Card title="📦 Organization">
 						<LoadingText text="Fetching..." />
-					) : features.length > 0 ? (
-						<>
-							{features.slice(0, 4).map((feature) => (
-								<FeatureRow key={feature.id} feature={feature} />
-							))}
-							{features.length > 4 && (
-								<Text color="gray">... {features.length - 4} more</Text>
-							)}
-						</>
-					) : null}
-				</Card>
-			)}
+					</Card>
+				) : orgInfo ? (
+					<Card title="📦 Organization">
+						<KeyValue label="Name" value={orgInfo.name} />
+						<KeyValue label="Environment" value={orgInfo.environment} />
+					</Card>
+				) : null}
 
-			{/* Plans Card */}
-			{!isOrgLoading && (
-				<Card title={`📋 Plans${plans.length > 0 ? ` (${plans.length})` : ""}`}>
-					{isPullLoading && plans.length === 0 ? (
-						<LoadingText text="Fetching..." />
-					) : plans.length > 0 ? (
-						<>
-							{plans.slice(0, 4).map((plan) => (
-								<PlanRow key={plan.id} plan={plan} />
-							))}
-							{plans.length > 4 && (
-								<Text color="gray">... {plans.length - 4} more</Text>
-							)}
-						</>
-					) : null}
-				</Card>
-			)}
+				{/* Features Card */}
+				{!isOrgLoading && (
+					<Card
+						title={`🎯 Features${features.length > 0 ? ` (${features.length})` : ""}`}
+					>
+						{isPullLoading && features.length === 0 ? (
+							<LoadingText text="Fetching..." />
+						) : features.length > 0 ? (
+							<>
+								{features.slice(0, 4).map((feature) => (
+									<FeatureRow key={feature.id} feature={feature} />
+								))}
+								{features.length > 4 && (
+									<Text color="gray">... {features.length - 4} more</Text>
+								)}
+							</>
+						) : null}
+					</Card>
+				)}
 
-			{/* Generated Files Card */}
-			{!isOrgLoading && (
-				<Card title="📝 Generated">
-					{files.length > 0 ? (
-						files.map((file) => (
-							<FileRow
-								key={file.path}
-								name={file.name}
-								lines={file.lines}
-								done={isSuccess}
-							/>
-						))
-					) : isPullLoading ? (
-						<LoadingText text="Generating..." />
-					) : null}
-				</Card>
-			)}
+				{/* Plans Card */}
+				{!isOrgLoading && (
+					<Card title={`📋 Plans${plans.length > 0 ? ` (${plans.length})` : ""}`}>
+						{isPullLoading && plans.length === 0 ? (
+							<LoadingText text="Fetching..." />
+						) : plans.length > 0 ? (
+							<>
+								{plans.slice(0, 4).map((plan) => (
+									<PlanRow key={plan.id} plan={plan} />
+								))}
+								{plans.length > 4 && (
+									<Text color="gray">... {plans.length - 4} more</Text>
+								)}
+							</>
+						) : null}
+					</Card>
+				)}
 
-			{/* Completion Message */}
-			{isSuccess && (
-				<Box marginTop={1}>
-					<Text color="green">✨ Done in {duration}s</Text>
-				</Box>
-			)}
-		</Box>
+				{/* Generated Files Card */}
+				{!isOrgLoading && (
+					<Card title="📝 Generated">
+						{files.length > 0 ? (
+							files.map((file) => (
+								<FileRow
+									key={file.path}
+									name={file.name}
+									lines={file.lines}
+									done={isSuccess}
+								/>
+							))
+						) : isPullLoading ? (
+							<LoadingText text="Generating..." />
+						) : null}
+					</Card>
+				)}
+
+				{/* Completion Message */}
+				{isSuccess && (
+					<Box marginTop={1}>
+						<Text color="green">✨ Done in {duration}s</Text>
+					</Box>
+				)}
+			</Box>
+		</CardWidthProvider>
 	);
 }

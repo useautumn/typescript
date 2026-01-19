@@ -173,9 +173,9 @@ export function generatePlanFeatureType(
 	const rolloverFields: FieldConfig[] = [
 		{
 			name: "max",
-			type: "number",
+			type: "number | null",
 			descriptionKey: "rollover.max",
-			defaultDescription: "Maximum amount that can roll over",
+			defaultDescription: "Maximum amount that can roll over (null for unlimited)",
 		},
 		{
 			name: "expiry_duration_type",
@@ -259,14 +259,12 @@ export function generatePlanFeatureType(
 				{
 					name: "billing_units",
 					type: "number",
-					optional: true,
 					descriptionKey: "price.billing_units",
 					defaultDescription: "Number of units per billing cycle",
 				},
 				{
 					name: "billing_method",
 					type: "BillingMethod",
-					optional: true,
 					descriptionKey: "price.billing_method",
 					defaultDescription: "Billing method: 'prepaid' or 'pay_per_use'",
 				},

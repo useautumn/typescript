@@ -45,7 +45,7 @@ export function HandoffStep({
 
 		// AI-assisted path
 		setState("creating");
-		await create(hasPricing);
+		await create(hasPricing, { saveAll: true });
 		setState("complete");
 		setTimeout(() => {
 			exit();

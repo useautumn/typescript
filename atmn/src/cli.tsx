@@ -5,20 +5,18 @@ import { program } from "commander";
 import { render } from "ink";
 import open from "open";
 import React from "react";
-import Init from "../source/commands/init.js";
 import Nuke from "../source/commands/nuke.js";
-import Push from "../source/commands/push.js";
-import { DEFAULT_CONFIG, FRONTEND_URL } from "../source/constants.js";
-import { loadAutumnConfigFile, writeConfig } from "../source/core/config.js";
+import { FRONTEND_URL } from "./constants.js";
+import { isProd, setCliContext } from "./lib/env/cliContext.js";
 import { getOrgMe } from "../source/core/requests/orgRequests.js";
-import { readFromEnv } from "../source/core/utils.js";
+import { readFromEnv } from "./lib/utils.js";
 // Import existing commands from source/ (legacy - will migrate incrementally)
 import AuthCommand from "./commands/auth/command.js";
 import { pull as newPull } from "./commands/pull/pull.js"; // New pull implementation
-import { QueryProvider } from "./lib/providers/index.js";
 import { pricingPrompt } from "./prompts/pricing.js";
 // Import Ink views
 import App from "./views/App.js";
+import { QueryProvider } from "./views/react/components/providers/QueryProvider.js";
 import { InitFlow } from "./views/react/init/InitFlow.js";
 import { PullView } from "./views/react/pull/Pull.js";
 
@@ -30,8 +28,27 @@ const computedVersion =
 
 program.version(computedVersion);
 
-program.option("-p, --prod", "Push to production");
-program.option("-l, --local", "Use local autumn environment");
+// Global options - available for all commands
+// These are orthogonal: -p controls env (sandbox vs live), -l controls API server (remote vs localhost)
+// Combined as -lp: use live environment on localhost API server
+program.option("-p, --prod", "Use live/production environment (default: sandbox)");
+program.option("-l, --local", "Use localhost:8080 API server (default: api.useautumn.com)");
+program.option("--headless", "Force non-interactive mode (for CI/agents)");
+
+// Set CLI context before any command runs
+// This allows combined flags like -lp to work correctly
+program.hook("preAction", (thisCommand) => {
+	const opts = thisCommand.opts();
+	setCliContext({
+		prod: opts["prod"] ?? false,
+		local: opts["local"] ?? false,
+	});
+
+	// Override TTY detection if --headless flag is passed globally
+	if (opts["headless"]) {
+		process.stdout.isTTY = false;
+	}
+});
 
 // Demo command to test Ink rendering and TTY detection
 program
@@ -70,6 +87,24 @@ program
 	.command("nuke")
 	.description("Permanently nuke your sandbox.")
 	.action(async () => {
+		// Nuke is sandbox-only - panic if prod flag is passed
+		if (isProd()) {
+			console.error(
+				chalk.red.bold(
+					"\n  ERROR: nuke command is only available for sandbox!\n",
+				),
+			);
+			console.error(
+				chalk.red(
+					"  The nuke command permanently deletes all data and cannot be used on production.",
+				),
+			);
+			console.error(
+				chalk.red("  Remove the -p/--prod flag to nuke your sandbox.\n"),
+			);
+			process.exit(1);
+		}
+
 		if (process.stdout.isTTY) {
 			// Interactive mode - use new beautiful Ink UI
 			const { NukeView } = await import("./views/react/nuke/NukeView.js");
@@ -87,21 +122,44 @@ program
 program
 	.command("push")
 	.description("Push changes to Autumn")
-	.option("-p, --prod", "Push to production")
-	.option("-y, --yes", "Confirm all deletions")
+	.option("-y, --yes", "Confirm all prompts automatically")
 	.action(async (options) => {
-		const config = await loadAutumnConfigFile();
-		await Push({ config, yes: options.yes, prod: options.prod });
+		// Import AppEnv here to avoid circular dependencies
+		const { AppEnv } = await import("./lib/env/index.js");
+		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
+
+		if (process.stdout.isTTY) {
+			// Interactive mode - use new beautiful Ink UI
+			const { PushView } = await import("./views/react/push/Push.js");
+			render(
+				<QueryProvider>
+					<PushView
+						environment={environment}
+						yes={options.yes}
+						onComplete={() => {
+							process.exit(0);
+						}}
+					/>
+				</QueryProvider>,
+			);
+		} else {
+			// Non-TTY mode - use headless push with V2 logic
+			const { headlessPush } = await import("./commands/push/headless.js");
+			await headlessPush({
+				cwd: process.cwd(),
+				environment,
+				yes: options.yes,
+			});
+		}
 	});
 
 program
 	.command("pull")
 	.description("Pull changes from Autumn")
-	.option("-p, --prod", "Pull from live/production")
-	.action(async (options) => {
+	.action(async () => {
 		// Import AppEnv here to avoid circular dependencies
 		const { AppEnv } = await import("./lib/env/index.js");
-		const environment = options.prod ? AppEnv.Live : AppEnv.Sandbox;
+		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
 
 		if (process.stdout.isTTY) {
 			// Interactive mode - use beautiful Ink UI
@@ -146,13 +204,7 @@ program
 program
 	.command("init")
 	.description("Initialize an Autumn project.")
-	.option("--headless", "Run in headless mode (no interactive prompts)")
-	.action(async (options) => {
-		// Override TTY detection if --headless flag is passed
-		if (options.headless) {
-			process.stdout.isTTY = false;
-		}
-
+	.action(async () => {
 		if (process.stdout.isTTY) {
 			// Interactive mode - use new Ink-based init flow
 			render(
@@ -176,9 +228,23 @@ program
 program
 	.command("login")
 	.description("Authenticate with Autumn")
-	.option("-p, --prod", "Authenticate with production")
 	.action(async () => {
-		await AuthCommand();
+		if (process.stdout.isTTY) {
+			// Interactive mode - use new beautiful Ink UI
+			const { LoginView } = await import("./views/react/login/LoginView.js");
+			render(
+				<QueryProvider>
+					<LoginView
+						onComplete={() => {
+							process.exit(0);
+						}}
+					/>
+				</QueryProvider>,
+			);
+		} else {
+			// Non-TTY mode - use legacy command with URL fallback
+			await AuthCommand();
+		}
 	});
 
 program
@@ -210,6 +276,14 @@ program
 		} else {
 			console.log(pricingPrompt);
 		}
+	});
+
+program
+	.command("customers")
+	.description("Browse and inspect customers")
+	.action(async () => {
+		const { customersCommand } = await import("./commands/customers/index.js");
+		await customersCommand({ prod: isProd() });
 	});
 
 /**

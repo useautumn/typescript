@@ -1,3 +1,5 @@
+import { creditSystemDocs } from "./creditSystemDocs.js";
+
 export const usagePrompt = `## Add Autumn gating and usage tracking
 
 Autumn tracks feature usage and enforces limits. Add usage tracking to this codebase.
@@ -117,8 +119,13 @@ import type { Customer } from "autumn-js";
 //Balance is: customer.features.<feature_name>.balance
 \`\`\`
 
-For credit systems, see: https://docs.useautumn.com/examples/credits/llms.txt
+For credit systems, see the end of this message.
 
 **Note:** Your Autumn configuration is in \`autumn.config.ts\` in your project root.
 
-Docs: https://docs.useautumn.com/llms.txt`;
+Docs: https://docs.useautumn.com/llms.txt
+
+<Credit System Documentation>
+${creditSystemDocs}
+</Credit System Documentation>
+`;

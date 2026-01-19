@@ -1,5 +1,6 @@
 import { Box, Text, useInput } from "ink";
 import React, { useState } from "react";
+import { Card } from "../../components/index.js";
 
 interface BackupPromptProps {
 	onChoice: (createBackup: boolean) => void;
@@ -24,40 +25,39 @@ export function BackupPrompt({ onChoice }: BackupPromptProps) {
 			setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
 		} else if (key.return) {
 			onChoice(options[selectedIndex]?.value ?? false);
-		} else if (input.toLowerCase() === 'y') {
+		} else if (input.toLowerCase() === "y") {
 			onChoice(true);
-		} else if (input.toLowerCase() === 'n') {
+		} else if (input.toLowerCase() === "n") {
 			onChoice(false);
 		}
 	});
 
 	return (
-		<Box flexDirection="column" padding={1}>
-			<Box borderStyle="single" borderColor="magenta" padding={1}>
-				<Box flexDirection="column">
-					<Text bold color="magenta">💾 Backup Configuration</Text>
-					<Box height={1} />
-					<Text>Would you like to backup your config?</Text>
-					<Text dimColor>(Highly recommended)</Text>
-					<Box height={1} />
-					<Text dimColor>Backup location:</Text>
-					<Text dimColor>→ ./autumn.config.ts.backup</Text>
-					<Box height={1} />
+		<Box flexDirection="column" marginBottom={1}>
+			<Card title="💾 Backup Configuration">
+				<Text>Would you like to backup your config?</Text>
+				<Text dimColor>(Highly recommended)</Text>
+				<Box height={1} />
+				<Text dimColor>Backup location:</Text>
+				<Text dimColor>→ ./autumn.config.ts.backup</Text>
+				<Box height={1} />
 
-					{options.map((option, index) => (
-						<Text key={option.label}>
-							{selectedIndex === index ? (
-								<Text color="magenta">❯ {option.label}</Text>
-							) : (
-								<Text dimColor>  {option.label}</Text>
-							)}
-						</Text>
-					))}
+				{options.map((option, index) => (
+					<Text key={option.label}>
+						{selectedIndex === index ? (
+							<Text color="magenta">❯ {option.label}</Text>
+						) : (
+							<Text dimColor> {option.label}</Text>
+						)}
+					</Text>
+				))}
 
-					<Box height={1} />
-					<Text dimColor>↑↓ Navigate • Enter to select • <Text bold>(Y)</Text> Yes • <Text bold>(N)</Text> No</Text>
-				</Box>
-			</Box>
+				<Box height={1} />
+				<Text dimColor>
+					↑↓ Navigate • Enter to select • <Text bold>(Y)</Text> Yes •{" "}
+					<Text bold>(N)</Text> No
+				</Text>
+			</Card>
 		</Box>
 	);
 }

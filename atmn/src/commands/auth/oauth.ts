@@ -1,15 +1,24 @@
 import * as http from "node:http";
 import * as arctic from "arctic";
 import open from "open";
-import { BACKEND_URL } from "../../../source/constants.js";
+import { BACKEND_URL, LOCAL_BACKEND_URL } from "../../constants.js";
+import { isLocal } from "../../lib/env/cliContext.js";
 import {
 	getErrorHtml,
 	getSuccessHtml,
 } from "../../views/html/oauth-callback.js";
 import { getOAuthRedirectUri, OAUTH_PORTS } from "./constants.js";
 
-const AUTHORIZATION_ENDPOINT = `${BACKEND_URL}/api/auth/oauth2/authorize`;
-const TOKEN_ENDPOINT = `${BACKEND_URL}/api/auth/oauth2/token`;
+/**
+ * Get the current backend URL based on CLI flags
+ */
+function getBackendUrl(): string {
+	return isLocal() ? LOCAL_BACKEND_URL : BACKEND_URL;
+}
+
+const getAuthorizationEndpoint = () =>
+	`${getBackendUrl()}/api/auth/oauth2/authorize`;
+const getTokenEndpoint = () => `${getBackendUrl()}/api/auth/oauth2/token`;
 
 export interface OAuthResult {
 	tokens: {
@@ -82,29 +91,30 @@ export async function startOAuthFlow(
 		const client = new arctic.OAuth2Client(clientId, null, redirectUri);
 
 		const authUrl = client.createAuthorizationURLWithPKCE(
-			AUTHORIZATION_ENDPOINT,
+			getAuthorizationEndpoint(),
 			state,
 			arctic.CodeChallengeMethod.S256,
 			codeVerifier,
 			[
-				"organisation:read",
-				"customers:create",
-				"customers:read",
-				"customers:list",
-				"customers:update",
-				"customers:delete",
-				"features:create",
-				"features:read",
-				"features:list",
-				"features:update",
-				"features:delete",
-				"plans:create",
-				"plans:read",
-				"plans:list",
-				"plans:update",
-				"plans:delete",
-				"apiKeys:create",
-				"apiKeys:read",
+				// Dynamically construct scopes using CRUDL for each resource
+				...[
+					{
+						resource: "customers",
+						actions: ["create", "read", "list", "update", "delete"],
+					},
+					{
+						resource: "features",
+						actions: ["create", "read", "list", "update", "delete"],
+					},
+					{
+						resource: "plans",
+						actions: ["create", "read", "list", "update", "delete"],
+					},
+					{ resource: "apiKeys", actions: ["create", "read"] },
+					{ resource: "organisation", actions: ["read"] },
+				].flatMap(({ resource, actions }) =>
+					actions.map((action) => `${resource}:${action}`),
+				),
 			],
 		);
 		authUrl.searchParams.set("prompt", "consent");
@@ -138,7 +148,7 @@ export async function startOAuthFlow(
 
 				try {
 					const tokens = await client.validateAuthorizationCode(
-						TOKEN_ENDPOINT,
+						getTokenEndpoint(),
 						code,
 						codeVerifier,
 					);
@@ -164,12 +174,14 @@ export async function startOAuthFlow(
 				}
 			},
 			() => {
-			if (options?.headless) {
-				console.log(`\nVisit this URL to authenticate:\n\n  ${authUrl.toString()}\n`);
-			} else {
-				open(authUrl.toString());
-			}
-		}, // Open browser once server is listening
+				if (options?.headless) {
+					console.log(
+						`\nVisit this URL to authenticate:\n\n  ${authUrl.toString()}\n`,
+					);
+				} else {
+					open(authUrl.toString());
+				}
+			}, // Open browser once server is listening
 		);
 
 		if (result) return result;
@@ -185,7 +197,7 @@ export async function startOAuthFlow(
 export async function getApiKeysWithToken(
 	accessToken: string,
 ): Promise<{ sandboxKey: string; prodKey: string; orgId: string }> {
-	const response = await fetch(`${BACKEND_URL}/cli/api-keys`, {
+	const response = await fetch(`${getBackendUrl()}/cli/api-keys`, {
 		method: "POST",
 		headers: {
 			Authorization: `Bearer ${accessToken}`,

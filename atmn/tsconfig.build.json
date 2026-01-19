@@ -1,0 +1,11 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "dist",
+		"declaration": true,
+		"emitDeclarationOnly": true
+	},
+	"include": ["source/index.ts", "source/compose/**/*"],
+	"exclude": ["node_modules", "dist", "src", "test"]
+}

@@ -4,25 +4,29 @@ async function getVersion(): Promise<string> {
 }
 
 async function build() {
-	console.time(`Building atmn v${await getVersion()}`);
+	const version = await getVersion();
+
+	// Build everything with Bun
+	console.time(`Building atmn v${version}`);
 	await Bun.build({
-		entrypoints: ["./src/cli.tsx", "./source/cli.ts", "./source/index.ts"],
+		entrypoints: ["./src/cli.tsx", "./source/index.ts"],
 		outdir: "./dist",
 		format: "esm",
 		target: "node",
 		define: {
-			VERSION: `"${await getVersion()}"`,
+			VERSION: `"${version}"`,
 		},
-		external: ["prettier"]
+		external: ["prettier"],
 	});
-	console.timeEnd(`Building atmn v${await getVersion()}`);
+	console.timeEnd(`Building atmn v${version}`);
 
-	// Generate TypeScript declaration files
-	console.time(`Generating TypeScript declaration files`);
-	await Bun.spawn(["tsc", "--emitDeclarationOnly"], {
+	// Generate TypeScript declarations with tsc
+	console.time(`Generating type declarations`);
+	const tsc = Bun.spawn(["tsc", "--project", "tsconfig.build.json"], {
 		stdio: ["inherit", "inherit", "inherit"],
 	});
-	console.timeEnd(`Generating TypeScript declaration files`);
+	await tsc.exited;
+	console.timeEnd(`Generating type declarations`);
 }
 
 build();

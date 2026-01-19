@@ -119,10 +119,10 @@ export type PlanFeature = {
     tiers?: Array<{ to: number | "inf"; amount: number }>;
 
     /** Number of units per billing cycle */
-    billing_units?: number;
+    billing_units: number;
 
     /** Billing method: 'prepaid' or 'pay_per_use' */
-    billing_method?: BillingMethod;
+    billing_method: BillingMethod;
 
     /** Maximum purchasable quantity */
     max_purchase?: number;  }
@@ -137,8 +137,8 @@ export type PlanFeature = {
 
   /** Rollover policy for unused usage */
   rollover?: {
-    /** Maximum amount that can roll over */
-    max: number;
+    /** Maximum amount that can roll over (null for unlimited) */
+    max: number | null;
 
     /** How long rollover lasts before expiring */
     expiry_duration_type: ResetInterval;

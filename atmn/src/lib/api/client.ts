@@ -1,4 +1,12 @@
-import { BACKEND_URL } from "../../constants.js";
+import { isLocal } from "../env/cliContext.js";
+import { BACKEND_URL, LOCAL_BACKEND_URL } from "../../constants.js";
+
+/**
+ * Get the current backend URL based on CLI flags
+ */
+function getBackendUrl(): string {
+	return isLocal() ? LOCAL_BACKEND_URL : BACKEND_URL;
+}
 
 /**
  * Low-level API client for making authenticated requests
@@ -10,6 +18,8 @@ export interface RequestOptions {
 	secretKey: string;
 	body?: unknown;
 	queryParams?: Record<string, string | number | boolean>;
+	/** Additional headers to include in the request */
+	headers?: Record<string, string>;
 }
 
 export interface ApiError extends Error {
@@ -23,21 +33,22 @@ export interface ApiError extends Error {
 export async function request<T = unknown>(
 	options: RequestOptions,
 ): Promise<T> {
-	const { method, path, secretKey, body, queryParams } = options;
+	const { method, path, secretKey, body, queryParams, headers: customHeaders } = options;
 
-	// Build URL with query params
-	const url = new URL(path, BACKEND_URL);
+	// Build URL with query params (respects --local flag)
+	const url = new URL(path, getBackendUrl());
 	if (queryParams) {
 		for (const [key, value] of Object.entries(queryParams)) {
 			url.searchParams.set(key, String(value));
 		}
 	}
 
-	// Build request
+	// Build request headers
 	const headers: Record<string, string> = {
 		Authorization: `Bearer ${secretKey}`,
 		"Content-Type": "application/json",
 		"X-API-Version": "2.0.0",
+		...customHeaders,
 	};
 
 	const requestInit: RequestInit = {

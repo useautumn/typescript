@@ -1,3 +1,5 @@
+import { prepaidDocs } from "./prepaidDocs.js";
+
 export const paymentsPrompt = `## Add Autumn payment flow
 
 Autumn handles Stripe checkout and plan changes. Your task is to add the payment flow to this codebase for ALL plans in the Autumn configuration.
@@ -128,7 +130,7 @@ attach_response = await autumn.attach(
 )
 \`\`\`
 
-For prepaid pricing options, see: https://docs.useautumn.com/examples/prepaid/llms.txt
+For prepaid pricing options, see the end of this message.
 
 ### Getting Billing State
 
@@ -240,8 +242,13 @@ export const getConfirmationTexts = (result: CheckoutResult): { title: string; m
 - This handles all upgrades, downgrades, renewals, uncancellations automatically
 - Product IDs come from the Autumn configuration
 - Pass \`successUrl\` to \`checkout\` to redirect users after payment
-- For prepaid pricing examples, see: https://docs.useautumn.com/examples/prepaid
+- For prepaid pricing examples, see the end of this message.
 
 **Note:** Your Autumn configuration is in \`autumn.config.ts\` in your project root.
 
-Docs: https://docs.useautumn.com/llms.txt`;
+Docs: https://docs.useautumn.com/llms.txt
+
+<Prepaid Documentation>
+${prepaidDocs}
+</Prepaid Documentation>
+`;

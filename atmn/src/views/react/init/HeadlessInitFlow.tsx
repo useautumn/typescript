@@ -116,7 +116,7 @@ export function HeadlessInitFlow() {
 		if (step !== "guides" || hasStartedGuides.current) return;
 		hasStartedGuides.current = true;
 
-		createGuides(false, { saveAll: true });
+		createGuides(true);
 	}, [step, createGuides]);
 
 	// Step 5: Guides -> Complete

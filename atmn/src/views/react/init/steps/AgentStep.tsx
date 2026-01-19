@@ -1,14 +1,12 @@
 import { MultiSelect } from "@inkjs/ui";
-import clipboard from "clipboardy";
 import { Box, Text } from "ink";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+	useAgentSetup,
+	type AgentIdentifier,
+	type FileOption,
+} from "../../../../lib/hooks/index.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
-import fs from "node:fs/promises";
-import path from "node:path";
-
-const execAsync = promisify(exec);
 
 interface AgentStepProps {
 	step: number;
@@ -32,6 +30,8 @@ export function AgentStep({ step, totalSteps, onComplete }: AgentStepProps) {
 	const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 	const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
 	const [error, setError] = useState<string | null>(null);
+
+	const { installMcp, createAgentFiles } = useAgentSetup();
 
 	const options = [
 		{
@@ -72,7 +72,10 @@ export function AgentStep({ step, totalSteps, onComplete }: AgentStepProps) {
 		} else {
 			// Otherwise, create the other files
 			setState("creating");
-			createFiles(values);
+			const fileOptions = values.filter(
+				(v) => v !== "mcp",
+			) as FileOption[];
+			createAgentFiles.mutate(fileOptions);
 		}
 	};
 
@@ -81,122 +84,61 @@ export function AgentStep({ step, totalSteps, onComplete }: AgentStepProps) {
 		setState("installing");
 
 		// Install MCP for selected agents
-		installMCP(agents);
+		installMcp.mutate(agents as AgentIdentifier[]);
 	};
 
-	const installMCP = async (agents: string[]) => {
-		try {
-			const mcpUrl = "https://docs.useautumn.com/mcp";
-
-			// Handle each selected agent
-			for (const agent of agents) {
-				if (agent === "claude-code") {
-					// Execute command to install MCP for Claude Code
-					try {
-						await execAsync(`claude mcp add --transport http autumn ${mcpUrl}`);
-					} catch (err) {
-						// If it fails, it might already exist - check the error message
-						const errorMessage = err instanceof Error ? err.message : String(err);
-						if (!errorMessage.includes("already exists")) {
-							// If it's not an "already exists" error, throw it
-							throw err;
-						}
-						// Otherwise, silently continue (already installed is fine)
-					}
-				} else if (agent === "other") {
-					// Copy URL to clipboard
-					await clipboard.write(mcpUrl);
-				}
-			}
-
+	// Handle MCP installation completion
+	useEffect(() => {
+		if (installMcp.isSuccess && state === "installing") {
 			// Now create the other selected files
-			const nonMcpOptions = selectedOptions.filter((opt) => opt !== "mcp");
+			const nonMcpOptions = selectedOptions.filter(
+				(opt) => opt !== "mcp",
+			) as FileOption[];
 			if (nonMcpOptions.length > 0) {
 				setState("creating");
-				await createFiles(nonMcpOptions);
+				createAgentFiles.mutate(nonMcpOptions);
 			} else {
 				setState("complete");
 				setTimeout(() => {
 					onComplete();
 				}, 1000);
 			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to install MCP");
+		}
+	}, [installMcp.isSuccess, state, selectedOptions, onComplete, createAgentFiles]);
+
+	// Handle MCP installation error
+	useEffect(() => {
+		if (installMcp.isError) {
+			setError(
+				installMcp.error instanceof Error
+					? installMcp.error.message
+					: "Failed to install MCP",
+			);
 			setState("error");
 		}
-	};
+	}, [installMcp.isError, installMcp.error]);
 
-	const createFiles = async (options: string[]) => {
-		try {
-			const cwd = process.cwd();
-
-			// Lorem ipsum content for markdown files
-			const markdownContent = `
-
-# Autumn Billing Integration
-
-## Overview
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-## Usage
-
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-
-## Features
-
-- Lorem ipsum dolor sit amet
-- Consectetur adipiscing elit
-- Sed do eiusmod tempor incididunt
-
-## Resources
-
-- [Autumn Documentation](https://docs.useautumn.com)
-- [API Reference](https://docs.useautumn.com/api)
-`;
-
-			// Lorem ipsum content for .cursorrules
-			const cursorRulesContent = `
-
-# Autumn Billing Rules
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-`;
-
-			// Helper function to append or create file
-			const appendOrCreate = async (filePath: string, content: string) => {
-				try {
-					// Try to read existing file
-					await fs.access(filePath);
-					// File exists, append content
-					await fs.appendFile(filePath, content, "utf-8");
-				} catch {
-					// File doesn't exist, create it
-					await fs.writeFile(filePath, content.trimStart(), "utf-8");
-				}
-			};
-
-			// Create/append files based on selected options
-			for (const option of options) {
-				if (option === "claude-md") {
-					await appendOrCreate(path.join(cwd, "CLAUDE.md"), markdownContent);
-				} else if (option === "agents-md") {
-					await appendOrCreate(path.join(cwd, "AGENTS.md"), markdownContent);
-				} else if (option === "cursor-rules") {
-					await appendOrCreate(path.join(cwd, ".cursorrules"), cursorRulesContent);
-				}
-			}
-
+	// Handle file creation completion
+	useEffect(() => {
+		if (createAgentFiles.isSuccess && state === "creating") {
 			setState("complete");
 			setTimeout(() => {
 				onComplete();
 			}, 1000);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to create files");
+		}
+	}, [createAgentFiles.isSuccess, state, onComplete]);
+
+	// Handle file creation error
+	useEffect(() => {
+		if (createAgentFiles.isError) {
+			setError(
+				createAgentFiles.error instanceof Error
+					? createAgentFiles.error.message
+					: "Failed to create files",
+			);
 			setState("error");
 		}
-	};
+	}, [createAgentFiles.isError, createAgentFiles.error]);
 
 	const handleChange = (values: string[]) => {
 		setSelectedOptions(values);

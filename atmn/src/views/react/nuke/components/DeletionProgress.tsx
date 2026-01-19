@@ -1,6 +1,7 @@
 import { Box, Text } from "ink";
 import React from "react";
 import type { NukePhaseStats } from "../../../../commands/nuke/types.js";
+import { Card } from "../../components/index.js";
 
 interface DeletionProgressProps {
 	phases: NukePhaseStats[];
@@ -19,7 +20,6 @@ export function DeletionProgress({
 }: DeletionProgressProps) {
 	const renderPhase = (phase: NukePhaseStats, index: number) => {
 		const isActive = phase.phase === activePhase;
-		const isWaiting = !phase.completed && !isActive;
 
 		if (phase.completed) {
 			return (
@@ -34,9 +34,8 @@ export function DeletionProgress({
 		}
 
 		if (isActive) {
-			const percentage = phase.total > 0 
-				? Math.round((phase.current / phase.total) * 100)
-				: 0;
+			const percentage =
+				phase.total > 0 ? Math.round((phase.current / phase.total) * 100) : 0;
 			const filled = Math.floor(percentage / 5);
 			const progress = "━".repeat(filled) + "●" + "━".repeat(20 - filled);
 
@@ -47,8 +46,8 @@ export function DeletionProgress({
 				<Box key={phase.phase} flexDirection="column" marginBottom={1}>
 					<Text>
 						{index + 1}. {capitalize(phase.phase)}{" "}
-						<Text color="magenta">{progress}</Text> {phase.current}/{phase.total} (
-						{percentage}%)
+						<Text color="magenta">{progress}</Text> {phase.current}/
+						{phase.total} ({percentage}%)
 					</Text>
 					{phase.rate > 0 && (
 						<Box marginLeft={3}>
@@ -70,16 +69,12 @@ export function DeletionProgress({
 	};
 
 	return (
-		<Box flexDirection="column" padding={1}>
-			<Box borderStyle="single" borderColor="magenta" padding={1}>
-				<Box flexDirection="column">
-					<Text bold color="magenta">Nuke Process</Text>
-					<Box height={1} />
-					{phases.map((phase, index) => renderPhase(phase, index))}
-					<Box height={1} />
-					<Text dimColor>Elapsed: {totalElapsed.toFixed(1)}s</Text>
-				</Box>
-			</Box>
+		<Box flexDirection="column" marginBottom={1}>
+			<Card title="☢ Nuke Process">
+				{phases.map((phase, index) => renderPhase(phase, index))}
+				<Box height={1} />
+				<Text dimColor>Elapsed: {totalElapsed.toFixed(1)}s</Text>
+			</Card>
 		</Box>
 	);
 }

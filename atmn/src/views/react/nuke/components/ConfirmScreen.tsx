@@ -1,5 +1,6 @@
 import { Box, Text, useInput } from "ink";
 import React, { useState } from "react";
+import { Card } from "../../components/index.js";
 
 interface ConfirmScreenProps {
 	orgName: string;
@@ -43,41 +44,38 @@ export function ConfirmScreen({
 	});
 
 	return (
-		<Box flexDirection="column" padding={1}>
-			<Box borderStyle="single" borderColor="magenta" padding={1}>
-				<Box flexDirection="column">
-					<Text bold color="magenta">🔥 FINAL CONFIRMATION</Text>
-					<Box height={1} />
-					<Text bold color="red">
-						This is your LAST CHANCE to abort.
-					</Text>
-					<Box height={1} />
-					<Text>You are about to delete:</Text>
-					<Text>• {customers} customers</Text>
-					<Text>• {plans} plans</Text>
-					<Text>• {features} features</Text>
-					<Box height={1} />
-					<Text>
-						From organization: <Text bold>{orgName}</Text> <Text dimColor>(sandbox)</Text>
-					</Text>
-					<Box height={1} />
-					<Text>Type your organization name to confirm:</Text>
-					<Text>
-						{">"} <Text color="magenta">{input}</Text>
-						<Text color="magenta">█</Text>
-					</Text>
+		<Box flexDirection="column" marginBottom={1}>
+			<Card title="🔥 FINAL CONFIRMATION">
+				<Text bold color="red">
+					This is your LAST CHANCE to abort.
+				</Text>
+				<Box height={1} />
+				<Text>You are about to delete:</Text>
+				<Text>• {customers} customers</Text>
+				<Text>• {plans} plans</Text>
+				<Text>• {features} features</Text>
+				<Box height={1} />
+				<Text>
+					From organization: <Text bold>{orgName}</Text>{" "}
+					<Text dimColor>(sandbox)</Text>
+				</Text>
+				<Box height={1} />
+				<Text>Type your organization name to confirm:</Text>
+				<Text>
+					{">"} <Text color="magenta">{input}</Text>
+					<Text color="magenta">█</Text>
+				</Text>
 
-					{error && (
-						<>
-							<Box height={1} />
-							<Text color="red">{error}</Text>
-						</>
-					)}
+				{error && (
+					<>
+						<Box height={1} />
+						<Text color="red">{error}</Text>
+					</>
+				)}
 
-					<Box height={1} />
-					<Text dimColor>Esc to cancel</Text>
-				</Box>
-			</Box>
+				<Box height={1} />
+				<Text dimColor>Esc to cancel</Text>
+			</Card>
 		</Box>
 	);
 }

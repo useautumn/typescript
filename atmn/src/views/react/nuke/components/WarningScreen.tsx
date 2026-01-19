@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import React, { useState } from "react";
+import { Card } from "../../components/index.js";
 
 interface WarningScreenProps {
 	orgName: string;
@@ -40,37 +41,38 @@ export function WarningScreen({
 	};
 
 	return (
-		<Box flexDirection="column" padding={1}>
-			<Box borderStyle="single" borderColor="magenta" padding={1}>
-				<Box flexDirection="column">
-					<Text bold color="magenta">⚠️  DANGER: SANDBOX NUKE</Text>
-					<Box height={1} />
-					<Text>This is <Text bold color="red">IRREVERSIBLE</Text>.</Text>
-					<Box height={1} />
+		<Box flexDirection="column" marginBottom={1}>
+			<Card title="⚠  DANGER: SANDBOX NUKE">
+				<Text>
+					This is <Text bold color="red">IRREVERSIBLE</Text>.
+				</Text>
+				<Box height={1} />
+				<Text>
+					Organization: <Text bold>{orgName}</Text>{" "}
+					<Text dimColor>(sandbox)</Text>
+				</Text>
+				<Box height={1} />
+				<Text>Items to be deleted:</Text>
+				<Text>• {customers} customers</Text>
+				<Text>• {plans} plans</Text>
+				<Text>• {features} features</Text>
+				<Box height={1} />
+				<Text dimColor>This action CANNOT be undone.</Text>
+				<Box height={1} />
+				<Box flexDirection="row">
 					<Text>
-						Organization: <Text bold>{orgName}</Text> <Text dimColor>(sandbox)</Text>
+						Continue? <Text bold>(y/N)</Text>{" "}
 					</Text>
-					<Box height={1} />
-					<Text>Items to be deleted:</Text>
-					<Text>• {customers} customers</Text>
-					<Text>• {plans} plans</Text>
-					<Text>• {features} features</Text>
-					<Box height={1} />
-					<Text dimColor>This action CANNOT be undone.</Text>
-					<Box height={1} />
-					<Box flexDirection="row">
-						<Text>Continue? <Text bold>(y/N)</Text> </Text>
-						<Text color="magenta">{">"} </Text>
-						<TextInput
-							value={input}
-							onChange={setInput}
-							onSubmit={handleSubmit}
-							placeholder=""
-							showCursor={true}
-						/>
-					</Box>
+					<Text color="magenta">{">"} </Text>
+					<TextInput
+						value={input}
+						onChange={setInput}
+						onSubmit={handleSubmit}
+						placeholder=""
+						showCursor={true}
+					/>
 				</Box>
-			</Box>
+			</Card>
 		</Box>
 	);
 }

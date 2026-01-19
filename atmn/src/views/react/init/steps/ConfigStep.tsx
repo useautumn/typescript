@@ -1,10 +1,9 @@
-import fs from "node:fs";
-import path from "node:path";
 import { Box, Text } from "ink";
 import React, { useCallback, useState } from "react";
-import { templateConfigs } from "../../../../lib/constants/templates/index.js";
-import { useConfigCounts } from "../../../../lib/hooks/index.js";
-import { buildConfigFile } from "../../../../lib/transforms/sdkToCode/configFile.js";
+import {
+	useConfigCounts,
+	useWriteTemplateConfig,
+} from "../../../../lib/hooks/index.js";
 import { writeEmptyConfig } from "../../../../lib/writeEmptyConfig.js";
 import {
 	SelectMenu,
@@ -45,6 +44,9 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 		error: fetchError,
 	} = useConfigCounts();
 
+	// Mutation for writing template config
+	const writeTemplateConfig = useWriteTemplateConfig();
+
 	const plansCount = configCounts?.plansCount ?? 0;
 	const featuresCount = configCounts?.featuresCount ?? 0;
 	const hasExistingConfig = plansCount > 0 || featuresCount > 0;
@@ -77,32 +79,26 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 
 	const handleTemplateSelect = useCallback(
 		(template: string) => {
-			const config = templateConfigs[template];
-			if (!config) {
-				setError(`Unknown template: ${template}`);
-				setConfigState("error");
-				return;
-			}
-
-			try {
-				// Generate the config file content
-				const configContent = buildConfigFile(config.features, config.plans);
-
-				// Write to autumn.config.ts
-				const configPath = path.join(process.cwd(), "autumn.config.ts");
-				fs.writeFileSync(configPath, configContent, "utf-8");
-
-				setCompletionAction("template");
-				setConfigState("complete");
-				setTimeout(() => {
-					onComplete(true); // Has pricing from template
-				}, 1000);
-			} catch (err) {
-				setError(err instanceof Error ? err.message : "Failed to write config");
-				setConfigState("error");
-			}
+			writeTemplateConfig.mutate(
+				{ template },
+				{
+					onSuccess: () => {
+						setCompletionAction("template");
+						setConfigState("complete");
+						setTimeout(() => {
+							onComplete(true); // Has pricing from template
+						}, 1000);
+					},
+					onError: (err) => {
+						setError(
+							err instanceof Error ? err.message : "Failed to write config",
+						);
+						setConfigState("error");
+					},
+				},
+			);
 		},
-		[onComplete],
+		[onComplete, writeTemplateConfig],
 	);
 
 	const handleTemplateCancel = useCallback(() => {

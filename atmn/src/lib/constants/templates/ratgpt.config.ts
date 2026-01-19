@@ -80,7 +80,8 @@ export const plans: Plan[] = [
 			{ feature_id: "file_uploads" },
 			{
 				feature_id: "team_seats",
-				price: { amount: 25 },
+				interval: "month",
+				price: { amount: 25, billing_method: "pay_per_use", billing_units: 1 },
 			},
 			{ feature_id: "admin_console" },
 		],

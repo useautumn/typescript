@@ -14,3 +14,10 @@ export {
 	setDotenvValue,
 	type DotenvEntry,
 } from "./dotenv.js";
+export {
+	type CliContext,
+	getCliContext,
+	setCliContext,
+	isProd,
+	isLocal,
+} from "./cliContext.js";

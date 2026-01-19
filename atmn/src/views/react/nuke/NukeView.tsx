@@ -1,11 +1,17 @@
 import { Box, Text, useApp } from "ink";
 import React, { useEffect, useState } from "react";
-import { validateSandboxOnly, validateCustomerLimit, getMaxCustomers, NukeValidationError } from "../../../commands/nuke/validation.js";
+import {
+	validateSandboxOnly,
+	validateCustomerLimit,
+	getMaxCustomers,
+	NukeValidationError,
+} from "../../../commands/nuke/validation.js";
 import { createConfigBackup } from "../../../commands/nuke/backup.js";
 import { getKey } from "../../../lib/env/index.js";
 import { AppEnv } from "../../../lib/env/detect.js";
 import { useNukeData } from "../../../lib/hooks/useNukeData.js";
 import { useNuke } from "../../../lib/hooks/useNuke.js";
+import { Card, CardWidthProvider, LoadingText } from "../components/index.js";
 import { NukeAnimation } from "./NukeAnimation.js";
 import { BackupPrompt } from "./components/BackupPrompt.js";
 import { ConfirmScreen } from "./components/ConfirmScreen.js";
@@ -13,9 +19,8 @@ import { DeletionProgress } from "./components/DeletionProgress.js";
 import { FinalSummary } from "./components/FinalSummary.js";
 import { SuccessScreen } from "./components/SuccessScreen.js";
 import { WarningScreen } from "./components/WarningScreen.js";
-import Spinner from "ink-spinner";
 
-type NukeState = 
+type NukeState =
 	| "loading"
 	| "error"
 	| "warning"
@@ -141,32 +146,39 @@ export function NukeView() {
 	if (state === "loading") {
 		if (isLoading) {
 			return (
-				<Box flexDirection="column" padding={1}>
-					<Text>
-						<Text color="magenta">
-							<Spinner type="dots" />
-						</Text>{" "}
-						Loading organization data...
-					</Text>
-				</Box>
+				<CardWidthProvider>
+					<Box flexDirection="column" marginBottom={1}>
+						<Card title="☢ Sandbox Nuke">
+							<LoadingText text="Loading organization data..." />
+						</Card>
+					</Box>
+				</CardWidthProvider>
 			);
 		}
 
 		if (fetchError) {
 			return (
-				<Box flexDirection="column" padding={1}>
-					<Text color="red">✗ Failed to load data</Text>
-					<Text dimColor>{fetchError.message}</Text>
-				</Box>
+				<CardWidthProvider>
+					<Box flexDirection="column" marginBottom={1}>
+						<Card title="✗ Error">
+							<Text color="red">Failed to load data</Text>
+							<Text dimColor>{fetchError.message}</Text>
+						</Card>
+					</Box>
+				</CardWidthProvider>
 			);
 		}
 	}
 
 	if (state === "error") {
 		return (
-			<Box flexDirection="column" padding={1}>
-				<Text color="red">{error}</Text>
-			</Box>
+			<CardWidthProvider>
+				<Box flexDirection="column" marginBottom={1}>
+					<Card title="✗ Error">
+						<Text color="red">{error}</Text>
+					</Card>
+				</Box>
+			</CardWidthProvider>
 		);
 	}
 
@@ -174,73 +186,78 @@ export function NukeView() {
 		return null;
 	}
 
-	switch (state) {
-		case "warning":
-			return (
-				<WarningScreen
-					orgName={nukeData.orgName}
-					customers={nukeData.customersCount}
-					plans={nukeData.plansCount}
-					features={nukeData.featuresCount}
-					onConfirm={handleWarningConfirm}
-					onCancel={handleWarningCancel}
-				/>
-			);
+	// Wrap all nuke screens in CardWidthProvider for consistent widths
+	const renderContent = () => {
+		switch (state) {
+			case "warning":
+				return (
+					<WarningScreen
+						orgName={nukeData.orgName}
+						customers={nukeData.customersCount}
+						plans={nukeData.plansCount}
+						features={nukeData.featuresCount}
+						onConfirm={handleWarningConfirm}
+						onCancel={handleWarningCancel}
+					/>
+				);
 
-		case "backup":
-			return <BackupPrompt onChoice={handleBackupChoice} />;
+			case "backup":
+				return <BackupPrompt onChoice={handleBackupChoice} />;
 
-		case "confirm":
-			return (
-				<ConfirmScreen
-					orgName={nukeData.orgName}
-					customers={nukeData.customersCount}
-					plans={nukeData.plansCount}
-					features={nukeData.featuresCount}
-					onConfirm={handleFinalConfirm}
-					onCancel={handleFinalCancel}
-				/>
-			);
+			case "confirm":
+				return (
+					<ConfirmScreen
+						orgName={nukeData.orgName}
+						customers={nukeData.customersCount}
+						plans={nukeData.plansCount}
+						features={nukeData.featuresCount}
+						onConfirm={handleFinalConfirm}
+						onCancel={handleFinalCancel}
+					/>
+				);
 
-		case "deleting":
-			return (
-				<DeletionProgress
-					phases={phases}
-					activePhase={activePhase}
-					totalElapsed={totalElapsed}
-				/>
-			);
+			case "deleting":
+				return (
+					<DeletionProgress
+						phases={phases}
+						activePhase={activePhase}
+						totalElapsed={totalElapsed}
+					/>
+				);
 
-		case "success":
-			return (
-				<SuccessScreen
-					customers={nukeData.customersCount}
-					plans={nukeData.plansCount}
-					features={nukeData.featuresCount}
-					backupCreated={backupCreated}
-					onComplete={handleSuccessComplete}
-				/>
-			);
+			case "success":
+				return (
+					<SuccessScreen
+						customers={nukeData.customersCount}
+						plans={nukeData.plansCount}
+						features={nukeData.featuresCount}
+						backupCreated={backupCreated}
+						onComplete={handleSuccessComplete}
+					/>
+				);
 
-		case "explosion":
-			return (
-				<NukeAnimation 
-					onComplete={handleExplosionComplete}
-					contained={false}
-				/>
-			);
+			case "explosion":
+				return (
+					<NukeAnimation
+						onComplete={handleExplosionComplete}
+						contained={false}
+					/>
+				);
 
-		case "final":
-			return (
-				<FinalSummary
-					customers={nukeData.customersCount}
-					plans={nukeData.plansCount}
-					features={nukeData.featuresCount}
-					backupCreated={backupCreated}
-				/>
-			);
+			case "final":
+				return (
+					<FinalSummary
+						customers={nukeData.customersCount}
+						plans={nukeData.plansCount}
+						features={nukeData.featuresCount}
+						backupCreated={backupCreated}
+					/>
+				);
 
-		default:
-			return null;
-	}
+			default:
+				return null;
+		}
+	};
+
+	return <CardWidthProvider>{renderContent()}</CardWidthProvider>;
 }
