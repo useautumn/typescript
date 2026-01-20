@@ -1,7 +1,10 @@
-import type { AutumnPromise } from "@sdk/response";
-import { staticWrapper } from "@sdk/utils";
 import type { Autumn } from "../client";
-import type { CreateBalanceParams, CreateBalanceResponse } from "./balancesTypes";
+import type { AutumnPromise } from "../response";
+import { staticWrapper } from "../utils";
+import type {
+	CreateBalanceParams,
+	CreateBalanceResponse,
+} from "./balancesTypes";
 
 export const balanceMethods = (instance?: Autumn) => {
 	return {

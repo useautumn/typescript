@@ -1,6 +1,6 @@
-import { CustomerDataSchema } from "@sdk/customers/cusTypes";
-import type { Product, ProductItem } from "@sdk/products/prodTypes";
 import { z } from "zod/v4";
+import { CustomerDataSchema } from "../customers/cusTypes";
+import type { Product, ProductItem } from "../products/prodTypes";
 // Attach
 export const AttachFeatureOptionsSchema = z.object({
   feature_id: z.string(),

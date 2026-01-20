@@ -1,15 +1,11 @@
-import {
-	AutumnError,
-	type AutumnPromise,
-	type CreateCustomerParams,
-	type CustomerData,
-	type Product,
-} from "../../../sdk";
-import type { EventsListResponse } from "../../../sdk/events/eventTypes";
+import { AutumnError } from "@/utils/error";
+import type { AutumnPromise } from "@/utils/response";
+import type { CustomerData, Plan } from "@useautumn/sdk/resources/shared";
+import type { CustomerCreateParams } from "@useautumn/sdk/resources/customers";
+import type { EventListResponse, EventAggregateResponse } from "@useautumn/sdk/resources/events";
 import type { IAutumnClient } from "./ReactAutumnClient";
 import type {
 	EventAggregationParams,
-	EventAggregationResponse,
 	EventsListParams,
 } from "./types/clientAnalyticsTypes";
 
@@ -96,7 +92,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 	}
 
 	async createCustomer(
-		params: Omit<CreateCustomerParams, "id" | "data"> & {
+		params: Omit<CustomerCreateParams, "id" | "data"> & {
 			errorOnNotFound?: boolean;
 		},
 	) {
@@ -389,7 +385,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 	};
 
 	products = {
-		list: async (): AutumnPromise<{ list: Product[] }> => {
+		list: async (): AutumnPromise<{ list: Plan[] }> => {
 			try {
 				const result = await this.convex.action(
 					this.convexApi.listProducts,
@@ -411,7 +407,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 	events = {
 		list: async (
 			params: EventsListParams,
-		): AutumnPromise<EventsListResponse> => {
+		): AutumnPromise<EventListResponse> => {
 			try {
 				const result = await this.convex.action(
 					this.convexApi.listEvents,
@@ -431,7 +427,7 @@ export class ConvexAutumnClient implements IAutumnClient {
 
 		aggregate: async (
 			params: EventAggregationParams,
-		): AutumnPromise<EventAggregationResponse> => {
+		): AutumnPromise<EventAggregateResponse> => {
 			try {
 				const result = await this.convex.action(
 					this.convexApi.aggregateEvents,

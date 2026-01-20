@@ -31,12 +31,6 @@
       "@/hooks/*": [
         "./src/libraries/react/hooks/*"
       ],
-      "@sdk": [
-        "./src/sdk/index"
-      ],
-      "@sdk/*": [
-        "./src/sdk/*"
-      ],
       "@styles": [
         "./src/styles/*"
       ],

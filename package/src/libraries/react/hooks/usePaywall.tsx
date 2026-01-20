@@ -1,6 +1,6 @@
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 import { AutumnClient } from "@/client/ReactAutumnClient";
-import { CheckFeaturePreview } from "@sdk";
+import type { CheckPreview } from "@/types";
 import useSWR from "swr";
 
 export const usePaywall = ({
@@ -38,7 +38,7 @@ export const usePaywall = ({
   });
 
   return {
-    data: data?.preview as CheckFeaturePreview | undefined,
+    data: data?.preview as CheckPreview | undefined,
     error,
     isLoading,
   };

@@ -1,10 +1,30 @@
-import { type Product } from "@sdk";
+import { type Plan } from "@/types";
 
 import type React from "react";
 
-export const getPricingTableContent = (product: Product): { buttonText: React.JSX.Element } => {
-  const { scenario, free_trial, properties } = product;
-  const { is_one_off, updateable, has_trial } = properties;
+// Extended Plan type with display properties added by usePricingTable hook
+type PricingTablePlan = Plan & {
+  display?: {
+    name?: string;
+    description?: string;
+    button_text?: string;
+    recommend_text?: string;
+    everything_from?: string;
+    button_url?: string;
+  };
+  properties?: {
+    is_free?: boolean;
+    is_one_off?: boolean;
+    has_trial?: boolean;
+    interval_group?: string;
+    updateable?: boolean;
+  };
+};
+
+export const getPricingTableContent = (product: PricingTablePlan): { buttonText: React.JSX.Element } => {
+  const { customer_eligibility, free_trial, properties } = product;
+  const scenario = customer_eligibility?.scenario;
+  const { is_one_off, updateable, has_trial } = properties ?? {};
 
   if (has_trial) {
     return {

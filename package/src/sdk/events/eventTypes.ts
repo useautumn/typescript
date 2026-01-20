@@ -1,8 +1,8 @@
+import { z } from "zod/v4";
 import {
 	createPagePaginatedResponseSchema,
 	PagePaginationQuerySchema,
-} from "@sdk/general/pageTypes";
-import { z } from "zod/v4";
+} from "../general/pageTypes";
 
 export const QueryRangeEnum = z.enum([
 	"24h",

@@ -1,21 +1,20 @@
 import type {
-	AutumnError,
-	AutumnPromise,
-	BillingPortalResult,
-	CancelResult,
-	CheckResult,
-	CreateReferralCodeResult,
 	Customer,
-	CustomerExpandOption,
 	Entity,
+	AttachResponse,
+	BillingPortalResponse,
+	CancelResponse,
+	CheckResponse,
+	CheckoutResponse,
+	SetupPaymentResponse,
+	TrackResponse,
+	ReferralCreateCodeResponse,
+	ReferralRedeemCodeResponse,
+	CustomerExpandOption,
 	ExpandedCustomer,
-	RedeemReferralCodeResult,
-	SetupPaymentResult,
-	TrackResult,
-} from "@sdk";
-
-import type { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
-import type { Success } from "@sdk/response";
+} from "@/types";
+import type { AutumnPromise, Success } from "../../../sdk/response";
+import type { AutumnError } from "../../../sdk/error";
 import type React from "react";
 import useSWR, { type SWRConfiguration } from "swr";
 import { type AutumnContextParams, useAutumnContext } from "@/AutumnContext";
@@ -55,19 +54,19 @@ export interface UseCustomerResult<
 	 * Attaches a product to the current customer, enabling access and handling billing.
 	 * Activates a product and applies all product items with automatic payment handling.
 	 */
-	attach: (params: AttachParams) => AutumnPromise<AttachResult | CheckResult>;
+	attach: (params: AttachParams) => AutumnPromise<AttachResponse | CheckResponse>;
 
 	/**
 	 * Tracks usage events for metered features.
 	 * Records feature usage and updates customer balances server-side.
 	 */
-	track: (params: TrackParams) => AutumnPromise<TrackResult>;
+	track: (params: TrackParams) => AutumnPromise<TrackResponse>;
 
 	/**
 	 * Cancels a customer's subscription or product attachment.
 	 * Can cancel immediately or at the end of the billing cycle.
 	 */
-	cancel: (params: CancelParams) => AutumnPromise<CancelResult>;
+	cancel: (params: CancelParams) => AutumnPromise<CancelResponse>;
 
 	/**
 	 * Sets up a payment method for the customer.
@@ -75,7 +74,7 @@ export interface UseCustomerResult<
 	 */
 	setupPayment: (
 		params?: SetupPaymentParams,
-	) => AutumnPromise<SetupPaymentResult>;
+	) => AutumnPromise<SetupPaymentResponse>;
 
 	/**
 	 * Opens the Stripe billing portal for the customer.
@@ -83,13 +82,13 @@ export interface UseCustomerResult<
 	 */
 	openBillingPortal: (
 		params?: OpenBillingPortalParams,
-	) => AutumnPromise<BillingPortalResult>;
+	) => AutumnPromise<BillingPortalResponse>;
 
 	/**
 	 * Initiates a checkout flow for product purchase.
 	 * Handles payment collection and redirects to Stripe checkout when needed.
 	 */
-	checkout: (params: CheckoutParams) => AutumnPromise<CheckoutResult>;
+	checkout: (params: CheckoutParams) => AutumnPromise<CheckoutResponse>;
 
 	/** Refetches the customer data from the server */
 	refetch: () => Promise<ExpandedCustomer<T> | null>;
@@ -108,7 +107,7 @@ export interface UseCustomerResult<
 	 */
 	createReferralCode: (
 		params: CreateReferralCodeParams,
-	) => AutumnPromise<CreateReferralCodeResult>;
+	) => AutumnPromise<ReferralCreateCodeResponse>;
 
 	/**
 	 * Redeems a referral code for the customer.
@@ -116,13 +115,13 @@ export interface UseCustomerResult<
 	 */
 	redeemReferralCode: (
 		params: RedeemReferralCodeParams,
-	) => AutumnPromise<RedeemReferralCodeResult>;
+	) => AutumnPromise<ReferralRedeemCodeResponse>;
 
 	/**
 	 * Checks if a customer has access to a feature and shows paywalls if needed.
 	 * Client-side feature gating with optional dialog display for upgrades.
 	 */
-	check: (params: CheckParams) => Success<CheckResult>;
+	check: (params: CheckParams) => Success<CheckResponse>;
 }
 
 export interface UseCustomerParams<
@@ -133,6 +132,24 @@ export interface UseCustomerParams<
 	swrConfig?: SWRConfiguration;
 }
 
+/**
+ * Access a customer's state and use it to display information in your React app.
+ *
+ * The `useCustomer` hook provides access to customer data and related operations. You can use it from your frontend to retrieve customer information, manage loading states, and create entities.
+ *
+ * @param params.expand - Additional data to include (invoices, rewards, trials_used, entities, referrals, payment_method) (optional)
+ * @param params.errorOnNotFound - Whether to throw error if customer not found (optional)
+ * @param params.swrConfig - SWR configuration options (optional)
+ *
+ * @returns data - Customer object with subscription and feature data
+ * @returns isLoading - Whether customer data is being fetched
+ * @returns error - Any error that occurred while fetching
+ * @returns refetch - Refetch customer data
+ * @returns ...methods - All subscription methods (attach, checkout, cancel, track, setupPayment, openBillingPortal, createReferralCode, redeemReferralCode)
+ * @returns createEntity - Create entities for granular feature tracking
+ *
+ * @see {@link https://docs.useautumn.com/api-reference/hooks/useCustomer}
+ */
 export const useCustomerBase = <
 	const T extends readonly CustomerExpandOption[] = readonly [],
 >({

@@ -1,10 +1,11 @@
-import type { AttachParams, CheckoutParams } from "@sdk/general/attachTypes";
 import { addRoute, type RouterContext } from "rou3";
 import type { QueryParams } from "@/client/types/clientGenTypes";
 import type {
+	AttachParams,
 	Autumn,
 	BillingPortalParams,
 	CancelParams,
+	CheckoutParams,
 	CheckParams,
 	CustomerData,
 	SetupPaymentParams,
@@ -21,167 +22,175 @@ const sanitizeBody = (body: any) => {
 	return bodyCopy;
 };
 
-const checkoutHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		customer_data,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		customer_data?: CustomerData;
-		body: CheckoutParams;
-	}) => {
-		const result = await autumn.checkout({
-			...sanitizeBody(body),
+const checkoutHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
 			customer_id,
 			customer_data,
-		});
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			customer_data?: CustomerData;
+			body: CheckoutParams;
+		}) => {
+			const result = await autumn.checkout({
+				...sanitizeBody(body),
+				customer_id,
+				customer_data,
+			});
 
-		return result;
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			return result;
+		},
+		suppressLogs: options?.suppressLogs,
+	});
 
-const attachHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		customer_data,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		customer_data?: CustomerData;
-		body: AttachParams;
-	}) => {
-		console.log("Body: ", body);
-		console.log("Customer ID: ", customer_id);
-		return await autumn.attach({
-			...sanitizeBody(body),
+const attachHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
 			customer_id,
 			customer_data,
-		});
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			customer_data?: CustomerData;
+			body: AttachParams;
+		}) => {
+			console.log("Body: ", body);
+			console.log("Customer ID: ", customer_id);
+			return await autumn.attach({
+				...sanitizeBody(body),
+				customer_id,
+				customer_data,
+			});
+		},
+		suppressLogs: options?.suppressLogs,
+	});
 
-const setupPaymentHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		customer_data,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		customer_data?: CustomerData;
-		body: SetupPaymentParams;
-	}) => {
-		return await autumn.setupPayment({
-			...sanitizeBody(body),
+const setupPaymentHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
 			customer_id,
 			customer_data,
-		});
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			customer_data?: CustomerData;
+			body: SetupPaymentParams;
+		}) => {
+			return await autumn.setupPayment({
+				...sanitizeBody(body),
+				customer_id,
+				customer_data,
+			});
+		},
+		suppressLogs: options?.suppressLogs,
+	});
 
-const cancelHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		body: CancelParams;
-	}) => {
-		return await autumn.cancel({
-			...sanitizeBody(body),
+const cancelHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
 			customer_id,
-		});
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			body: CancelParams;
+		}) => {
+			return await autumn.cancel({
+				...sanitizeBody(body),
+				customer_id,
+			});
+		},
+		suppressLogs: options?.suppressLogs,
+	});
 
-const checkHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		customer_data,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		customer_data?: CustomerData;
-		body: CheckParams;
-	}) => {
-		const result = await autumn.check({
-			...sanitizeBody(body),
-			customer_id,
-			customer_data,
-		});
-
-		return result;
-	},
-	suppressLogs: options?.suppressLogs,
-});
-
-const trackHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		customer_data,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		customer_data?: CustomerData;
-		body: TrackParams;
-	}) => {
-		return await autumn.track({
-			...sanitizeBody(body),
+const checkHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
 			customer_id,
 			customer_data,
-		});
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			customer_data?: CustomerData;
+			body: CheckParams;
+		}) => {
+			const result = await autumn.check({
+				...sanitizeBody(body),
+				customer_id,
+				customer_data,
+			});
 
-const openBillingPortalHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		body: BillingPortalParams;
-	}) => {
-		return await autumn.customers.billingPortal(customer_id, body);
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			return result;
+		},
+		suppressLogs: options?.suppressLogs,
+	});
 
-const queryHandler = (options?: RouterOptions) => withAuth({
-	fn: async ({
-		autumn,
-		customer_id,
-		body,
-	}: {
-		autumn: Autumn;
-		customer_id: string;
-		body: QueryParams;
-	}) => {
-		return await autumn.query({
-			...sanitizeBody(body),
+const trackHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
 			customer_id,
-		});
-	},
-	suppressLogs: options?.suppressLogs,
-});
+			customer_data,
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			customer_data?: CustomerData;
+			body: TrackParams;
+		}) => {
+			return await autumn.track({
+				...sanitizeBody(body),
+				customer_id,
+				customer_data,
+			});
+		},
+		suppressLogs: options?.suppressLogs,
+	});
+
+const openBillingPortalHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
+			customer_id,
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			body: BillingPortalParams;
+		}) => {
+			return await autumn.customers.billingPortal(customer_id, body);
+		},
+		suppressLogs: options?.suppressLogs,
+	});
+
+const queryHandler = (options?: RouterOptions) =>
+	withAuth({
+		fn: async ({
+			autumn,
+			customer_id,
+			body,
+		}: {
+			autumn: Autumn;
+			customer_id: string;
+			body: QueryParams;
+		}) => {
+			return await autumn.query({
+				...sanitizeBody(body),
+				customer_id,
+			});
+		},
+		suppressLogs: options?.suppressLogs,
+	});
 
 const addGenRoutes = (router: RouterContext, options?: RouterOptions) => {
 	addRoute(router, "POST", `${BASE_PATH}/checkout`, {

@@ -1,39 +1,40 @@
 import useSWR, { SWRConfiguration } from "swr";
-import { AutumnError, Product } from "@sdk";
+import type { Plan } from "@/types";
+import { AutumnError } from "../../../sdk/error";
 import { ProductDetails } from "../client/types/clientPricingTableTypes";
 import { AutumnContextParams, useAutumnContext } from "../AutumnContext";
 import { AutumnClient } from "@/client/ReactAutumnClient";
 import { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
 
-const mergeProductDetails = (
-  products: Product[] | undefined,
+const mergePlanDetails = (
+  plans: Plan[] | undefined,
   productDetails?: ProductDetails[]
-): Product[] | null => {
-  if (!products) {
+): Plan[] | null => {
+  if (!plans) {
     return null;
   }
 
   if (!productDetails) {
-    return products.map((product) => {
-      if (product.base_variant_id) {
-        let baseProduct = products.find(
-          (p) => p.id === product.base_variant_id
+    return plans.map((plan) => {
+      if (plan.base_variant_id) {
+        let basePlan = plans.find(
+          (p) => p.id === plan.base_variant_id
         );
-        if (baseProduct) {
+        if (basePlan) {
           return {
-            ...product,
-            name: baseProduct.name,
+            ...plan,
+            name: basePlan.name,
           };
         }
       }
 
-      return product;
+      return plan;
     });
   }
 
-  let fetchedProducts = structuredClone(products);
+  let fetchedPlans = structuredClone(plans);
 
-  let mergedProducts: Product[] = [];
+  let mergedPlans: Plan[] = [];
 
   for (const overrideDetails of productDetails) {
     if (!overrideDetails.id) {
@@ -69,7 +70,7 @@ const mergeProductDetails = (
         ] as any;
       }
 
-      mergedProducts.push({
+      mergedPlans.push({
         display: {
           name: overrideDetails.name,
           description: overrideDetails.description,
@@ -78,96 +79,96 @@ const mergeProductDetails = (
           everything_from: overrideDetails.everythingFrom,
           button_url: overrideDetails.buttonUrl,
         },
-        items: overrideItems,
+        features: overrideItems,
         properties,
-      } as unknown as Product);
+      } as unknown as Plan);
       continue;
     }
 
-    let fetchedProduct = fetchedProducts.find(
+    let fetchedPlan = fetchedPlans.find(
       (p) => p.id === overrideDetails.id
     );
 
-    if (!fetchedProduct) {
+    if (!fetchedPlan) {
       continue;
     }
 
-    let displayName = fetchedProduct.name;
-    let baseVariantId = fetchedProduct.base_variant_id;
+    let displayName = fetchedPlan.name;
+    let baseVariantId = fetchedPlan.base_variant_id;
     if (baseVariantId) {
-      let baseProduct = fetchedProducts.find((p) => p.id === baseVariantId);
-      if (baseProduct) {
-        displayName = baseProduct.name;
+      let basePlan = fetchedPlans.find((p) => p.id === baseVariantId);
+      if (basePlan) {
+        displayName = basePlan.name;
       }
     }
     displayName = overrideDetails.name || displayName;
 
-    const originalIsFree = fetchedProduct.properties?.is_free;
-    let overrideProperties = fetchedProduct.properties || {};
+    const originalIsFree = (fetchedPlan as any).properties?.is_free;
+    let overrideProperties = (fetchedPlan as any).properties || {};
     let overrideItems = overrideDetails.items;
     let overridePrice = overrideDetails.price;
-    let mergedItems = [];
+    let mergedFeatures: any[] = [];
 
     if (overridePrice) {
       overrideProperties.is_free = false;
 
       if (originalIsFree || overrideItems !== undefined) {
-        mergedItems.push({
+        mergedFeatures.push({
           display: {
             primary_text: overridePrice.primaryText,
             secondary_text: overridePrice.secondaryText,
           },
         });
       } else {
-        fetchedProduct.items[0].display = {
+        fetchedPlan.features[0].display = {
           primary_text: overridePrice.primaryText,
           secondary_text: overridePrice.secondaryText,
         };
       }
     } else {
       if (overrideItems && !originalIsFree) {
-        mergedItems.push(fetchedProduct.items[0]);
+        mergedFeatures.push(fetchedPlan.features[0]);
       }
     }
 
     if (overrideItems) {
       for (const overrideItem of overrideItems) {
         if (!overrideItem.featureId) {
-          mergedItems.push({
+          mergedFeatures.push({
             display: {
               primary_text: overrideItem.primaryText,
               secondary_text: overrideItem.secondaryText,
             },
           });
         } else {
-          let fetchedItem = fetchedProduct.items.find(
-            (i) => i.feature_id === overrideItem.featureId
+          let fetchedFeature = fetchedPlan.features.find(
+            (f) => f.feature_id === overrideItem.featureId
           );
-          if (!fetchedItem) {
+          if (!fetchedFeature) {
             console.error(
-              `Feature with id ${overrideItem.featureId} not found for product ${fetchedProduct.id}`
+              `Feature with id ${overrideItem.featureId} not found for plan ${fetchedPlan.id}`
             );
             continue;
           }
-          mergedItems.push({
-            ...fetchedItem,
+          mergedFeatures.push({
+            ...fetchedFeature,
             display: {
               primary_text:
-                overrideItem.primaryText || fetchedItem.display?.primary_text,
+                overrideItem.primaryText || fetchedFeature.display?.primary_text,
               secondary_text:
                 overrideItem.secondaryText ||
-                fetchedItem.display?.secondary_text,
+                fetchedFeature.display?.secondary_text,
             },
           });
         }
       }
     } else {
-      mergedItems = fetchedProduct.items;
+      mergedFeatures = fetchedPlan.features;
     }
 
-    const mergedProduct: Product = {
-      ...fetchedProduct,
-      items: mergedItems,
+    const mergedPlan: Plan = {
+      ...fetchedPlan,
+      features: mergedFeatures,
       properties: overrideProperties,
       display: {
         name: displayName,
@@ -177,11 +178,11 @@ const mergeProductDetails = (
         everything_from: overrideDetails.everythingFrom,
         button_url: overrideDetails.buttonUrl,
       },
-    };
+    } as unknown as Plan;
 
-    mergedProducts.push(mergedProduct);
+    mergedPlans.push(mergedPlan);
   }
-  return mergedProducts;
+  return mergedPlans;
 };
 
 const defaultSWRConfig: SWRConfiguration = {
@@ -196,29 +197,30 @@ export const usePricingTableBase = ({
   params?: {
     productDetails?: ProductDetails[];
   };
-}): { products: Product[] | null; isLoading: boolean; error: AutumnError | undefined; refetch: () => void } => {
+}): { plans: Plan[] | null; isLoading: boolean; error: AutumnError | undefined; refetch: () => void } => {
   const fetcher = async () => {
     try {
+      // Note: client.products.list() returns Plan[] in V2 (the endpoint returns plans)
       const { data, error } = await client.products.list();
       if (error) throw error;
 
-      return data?.list || [];
+      return (data?.list || []) as Plan[];
     } catch (error) {
       throw new AutumnError({
-        message: "Failed to fetch pricing table products",
-        code: "failed_to_fetch_pricing_table_products",
+        message: "Failed to fetch pricing table plans",
+        code: "failed_to_fetch_pricing_table_plans",
       });
     }
   };
 
-  const { data, error, mutate } = useSWR<Product[], AutumnError>(
+  const { data, error, mutate } = useSWR<Plan[], AutumnError>(
     ["pricing-table", client.backendUrl],
     fetcher,
     { ...defaultSWRConfig }
   );
 
   return {
-    products: mergeProductDetails(data || [], params?.productDetails),
+    plans: mergePlanDetails(data || [], params?.productDetails),
     isLoading: !error && !data,
     error,
     refetch: mutate,

@@ -1,5 +1,6 @@
 packages:
   - autumn-js
+  - package
   - frameworks/*
   - nextjs
   - compose

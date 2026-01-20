@@ -4,6 +4,8 @@ import path from "path";
 /**
  * Utility functions for type generation
  */
+
+// biome-ignore lint/complexity/noStaticOnlyClass: sybau
 export class TypeGeneratorUtils {
   /**
    * Convert snake_case to camelCase

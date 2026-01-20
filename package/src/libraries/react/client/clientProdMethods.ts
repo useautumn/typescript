@@ -1,9 +1,9 @@
-import type { AutumnPromise } from "@sdk/response";
-import type { Product } from "@sdk/products/prodTypes";
+import type { AutumnPromise } from "@/utils/response";
+import type { Plan } from "@useautumn/sdk/resources/shared";
 import type { AutumnClient } from "./ReactAutumnClient";
 
 export async function listProductsMethod(this: AutumnClient): AutumnPromise<{
-	list: Product[];
+	list: Plan[];
 }> {
 	const res = await this.get(`${this.prefix}/products`);
 	return res;

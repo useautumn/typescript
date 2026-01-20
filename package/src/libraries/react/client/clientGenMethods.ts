@@ -1,13 +1,14 @@
+import type { AutumnPromise } from "@/utils/response";
 import type {
-	AutumnPromise,
-	BillingPortalResult,
-	CancelResult,
-	CheckResult,
-	QueryResult,
-	SetupPaymentResult,
-	TrackResult,
-} from "@sdk";
-import type { AttachResult, CheckoutResult } from "@sdk/general/attachTypes";
+	AttachResponse,
+	BillingPortalResponse,
+	CancelResponse,
+	CheckResponse,
+	CheckoutResponse,
+	QueryResponse,
+	SetupPaymentResponse,
+	TrackResponse,
+} from "@useautumn/sdk/resources/top-level";
 import type { AutumnClient } from "./ReactAutumnClient";
 
 import type { AttachParams, CheckoutParams } from "./types/clientAttachTypes";
@@ -23,7 +24,7 @@ import type {
 export async function checkoutMethod(
 	this: AutumnClient,
 	params: CheckoutParams,
-): AutumnPromise<CheckoutResult> {
+): AutumnPromise<CheckoutResponse> {
 	const finalParams = {
 		...params,
 		successUrl: params.successUrl ?? this.defaultReturnUrl,
@@ -35,7 +36,7 @@ export async function checkoutMethod(
 export async function attachMethod(
 	this: AutumnClient,
 	params: AttachParams,
-): AutumnPromise<AttachResult> {
+): AutumnPromise<AttachResponse> {
 	const finalParams = {
 		...params,
 		successUrl: params.successUrl ?? this.defaultReturnUrl,
@@ -46,7 +47,7 @@ export async function attachMethod(
 export async function setupPaymentMethod(
 	this: AutumnClient,
 	params: SetupPaymentParams = {},
-): AutumnPromise<SetupPaymentResult> {
+): AutumnPromise<SetupPaymentResponse> {
 	const finalParams = {
 		...params,
 		successUrl: params.successUrl ?? this.defaultReturnUrl,
@@ -58,7 +59,7 @@ export async function setupPaymentMethod(
 export async function cancelMethod(
 	this: AutumnClient,
 	params: CancelParams,
-): AutumnPromise<CancelResult> {
+): AutumnPromise<CancelResponse> {
 	const res = await this.post(`${this.prefix}/cancel`, params);
 	return res;
 }
@@ -66,7 +67,7 @@ export async function cancelMethod(
 export async function checkMethod(
 	this: AutumnClient,
 	params: CheckParams,
-): AutumnPromise<CheckResult> {
+): AutumnPromise<CheckResponse> {
 	// Remove dialog from params
 	const noDialogParams = {
 		...params,
@@ -80,7 +81,7 @@ export async function checkMethod(
 export async function trackMethod(
 	this: AutumnClient,
 	params: TrackParams,
-): AutumnPromise<TrackResult> {
+): AutumnPromise<TrackResponse> {
 	const res = await this.post(`${this.prefix}/track`, params);
 	return res;
 }
@@ -88,7 +89,7 @@ export async function trackMethod(
 export async function openBillingPortalMethod(
 	this: AutumnClient,
 	params?: OpenBillingPortalParams,
-): AutumnPromise<BillingPortalResult> {
+): AutumnPromise<BillingPortalResponse> {
 	const finalParams = {
 		...(params || {}),
 		returnUrl: params?.returnUrl ?? this.defaultReturnUrl,
@@ -100,7 +101,7 @@ export async function openBillingPortalMethod(
 export async function queryMethod(
 	this: AutumnClient,
 	params: QueryParams,
-): AutumnPromise<QueryResult> {
+): AutumnPromise<QueryResponse> {
 	const res = await this.post(`${this.prefix}/query`, params);
 	return res;
 }

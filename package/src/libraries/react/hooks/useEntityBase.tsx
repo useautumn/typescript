@@ -10,7 +10,8 @@ import {
   TrackParams,
 } from "@/client/types/clientGenTypes";
 import { AttachParams } from "@/client/types/clientAttachTypes";
-import { AutumnError, CheckResult, Entity } from "@sdk";
+import type { Entity, CheckResponse } from "@/types";
+import type { AutumnError } from "../../../sdk/error";
 
 export const useEntityBase = ({
   entityId,
@@ -25,7 +26,7 @@ export const useEntityBase = ({
   isLoading: boolean;
   error: AutumnError | undefined | null;
   refetch: () => void;
-  check: (params: CheckParams) => { data: CheckResult, error: null } | { data: null, error: AutumnError };
+  check: (params: CheckParams) => { data: CheckResponse, error: null } | { data: null, error: AutumnError };
   attach: (params: AttachParams) => void;
   cancel: (params: CancelParams) => void;
   track: (params: TrackParams) => void;

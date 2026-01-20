@@ -1,7 +1,7 @@
 // Import CSS for tsup injectStyle
 import "../../styles/global.css";
 
-export type { PricingTableProduct } from "@sdk/components/componentTypes";
+export type { Plan as PricingTableProduct } from "@useautumn/sdk/resources/shared";
 export type { ProductDetails } from "./client/types/clientPricingTableTypes";
 export { useAggregateEvents } from "./hooks/useAggregateEvents";
 

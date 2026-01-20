@@ -1,5 +1,5 @@
-import { ProductScenario } from "@sdk/general/checkTypes";
-import { ProductItem } from "../products/prodTypes";
+import type { ProductScenario } from "../general/checkTypes";
+import type { ProductItem } from "../products/prodTypes";
 
 export interface GetPricingTableParams {
   customer_id?: string;

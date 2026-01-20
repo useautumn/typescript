@@ -1,4 +1,7 @@
-import { type CheckFeaturePreview } from "@sdk";
+import { type CheckPreview } from "@/types";
+
+// CheckFeaturePreview is now CheckResponse.Preview (aliased as CheckPreview)
+type CheckFeaturePreview = CheckPreview;
 
 export const getPaywallContent = (preview?: CheckFeaturePreview) => {
   if (!preview) {

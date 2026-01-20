@@ -1,16 +1,7 @@
 import { AutumnContextParams } from "@/AutumnContext";
 import { CheckParams } from "@/client/types/clientGenTypes";
-import {
-  AutumnError,
-  CheckFeatureResult,
-  CheckFeatureResultSchema,
-  CheckProductResult,
-  CheckResult,
-  Customer,
-  CustomerFeature,
-  Entity,
-} from "@sdk";
-import { Result } from "@sdk/response";
+import type { Customer, Entity, CheckResponse, CustomerBalances } from "@/types";
+import type { Result } from "../../../../sdk/response";
 
 export interface AllowedParams {
   featureId?: string;
@@ -18,7 +9,7 @@ export interface AllowedParams {
   requiredBalance?: number;
 }
 
-const getCusFeature = ({
+const getCustomerBalance = ({
   customer,
   featureId,
   requiredBalance = 1,
@@ -27,60 +18,68 @@ const getCusFeature = ({
   featureId: string;
   requiredBalance?: number;
 }) => {
-  // 1. If there's a cusFeature and balance > requiredBalance, use it...
-  let cusFeature = customer.features[featureId];
-  if (
-    cusFeature &&
-    typeof cusFeature.balance === "number" &&
-    cusFeature.balance >= requiredBalance
-  ) {
+  // V2: Access balances instead of features
+  const balances = customer.balances;
+  if (!balances) {
     return {
-      cusFeature,
+      balance: undefined,
       requiredBalance: requiredBalance,
     };
   }
 
-  // 1. If credit system exists, use it
-  let creditSchema = Object.values(customer.features).find(
-    (f: CustomerFeature) =>
-      f.credit_schema && f.credit_schema.some((c) => c.feature_id === featureId)
-  );
-
-  // 2. If there's a credit schema, use it...
-  if (creditSchema) {
-    let schemaItem = creditSchema.credit_schema?.find(
-      (c) => c.feature_id === featureId
-    )!;
-
+  // 1. If there's a balance and current_balance >= requiredBalance, use it...
+  let balance = balances[featureId];
+  if (
+    balance &&
+    typeof balance.current_balance === "number" &&
+    balance.current_balance >= requiredBalance
+  ) {
     return {
-      cusFeature: creditSchema,
-      requiredBalance: schemaItem.credit_amount * requiredBalance,
+      balance,
+      requiredBalance: requiredBalance,
     };
   }
 
-  // 2. If no credit system exists, use the feature
+  // Check for credit system - look for features with credit_schema
+  let creditSystemBalance = Object.values(balances).find(
+    (b: CustomerBalances) =>
+      b.feature?.credit_schema && b.feature.credit_schema.some((c) => c.metered_feature_id === featureId)
+  );
+
+  // 2. If there's a credit schema, use it...
+  if (creditSystemBalance && creditSystemBalance.feature?.credit_schema) {
+    let schemaItem = creditSystemBalance.feature.credit_schema.find(
+      (c) => c.metered_feature_id === featureId
+    );
+
+    if (schemaItem) {
+      return {
+        balance: creditSystemBalance,
+        requiredBalance: schemaItem.credit_cost * requiredBalance,
+      };
+    }
+  }
+
+  // 3. If no credit system exists, use the feature balance
   return {
-    cusFeature: customer.features[featureId],
+    balance: balances[featureId],
     requiredBalance: requiredBalance,
   };
 };
 
 const getFeatureAllowed = ({
-  cusFeature,
+  balance,
   requiredBalance,
 }: {
-  cusFeature: CustomerFeature | undefined;
+  balance: CustomerBalances | undefined;
   requiredBalance: number;
 }) => {
-  if (!cusFeature) return false;
-  if (cusFeature.type == "static") return true;
-  if (cusFeature.unlimited || cusFeature.overage_allowed) return true;
-  if (cusFeature.usage_limit) {
-    let extraUsage =
-      (cusFeature.usage_limit || 0) - (cusFeature.included_usage || 0);
-    return (cusFeature.balance || 0) + extraUsage >= requiredBalance;
-  }
-  return (cusFeature.balance || 0) >= requiredBalance;
+  if (!balance) return false;
+  // V2: Check feature type from balance.feature
+  if (balance.feature?.type === "boolean") return true;
+  if (balance.unlimited || balance.overage_allowed) return true;
+  // V2: Use current_balance instead of balance
+  return (balance.current_balance || 0) >= requiredBalance;
 };
 
 const handleFeatureCheck = ({
@@ -91,9 +90,9 @@ const handleFeatureCheck = ({
   customer: Customer | Entity;
   isEntity?: boolean;
   params: AllowedParams;
-}) => {
-  // 1. Get feature to use...
-  let { cusFeature, requiredBalance } = getCusFeature({
+}): CheckResponse => {
+  // 1. Get balance to use (V2 uses balances instead of features)
+  let { balance, requiredBalance } = getCustomerBalance({
     customer,
     featureId: params.featureId!,
     ...(params.requiredBalance
@@ -102,30 +101,25 @@ const handleFeatureCheck = ({
   });
 
   let allowed = getFeatureAllowed({
-    cusFeature,
+    balance,
     requiredBalance: requiredBalance ?? 1,
   });
 
-  let result = {
+  let result: CheckResponse = {
     allowed,
-    feature_id: cusFeature?.id ?? params.featureId!,
-    customer_id: isEntity ? (customer as Entity).customer_id : customer.id,
+    customer_id: isEntity ? (customer as Entity).customer_id || "" : customer.id || "",
+    balance: balance || null,
     required_balance: requiredBalance,
-    ...cusFeature,
-  } as CheckFeatureResult;
+  };
 
   if (isEntity) {
     result.entity_id = (customer as Entity).id;
   }
 
-  try {
-    return CheckFeatureResultSchema.parse(result);
-  } catch (error) {
-    return result;
-  }
+  return result;
 };
 
-const handleProductCheck = ({
+const handlePlanCheck = ({
   customer,
   isEntity,
   params,
@@ -133,18 +127,16 @@ const handleProductCheck = ({
   customer: Customer | Entity;
   isEntity?: boolean;
   params: AllowedParams;
-}) => {
-  let product = customer.products.find((p) => p.id == params.productId);
-  let allowed = product?.status === "active" || product?.status === "trialing";
+}): CheckResponse => {
+  // V2: Use subscriptions instead of products
+  let subscription = customer.subscriptions?.find((s) => s.plan_id === params.productId);
+  let allowed = subscription?.status === "active";
 
-  let result = {
+  let result: CheckResponse = {
     allowed,
-    customer_id: isEntity ? (customer as Entity).customer_id : customer.id,
-    product_id: params.productId!,
-  } as CheckProductResult;
-  if (product) {
-    result.status = product.status;
-  }
+    customer_id: isEntity ? (customer as Entity).customer_id || "" : customer.id || "",
+    balance: null,
+  };
 
   if (isEntity) {
     result.entity_id = (customer as Entity).id;
@@ -158,7 +150,7 @@ export const openDialog = ({
   params,
   context,
 }: {
-  result: CheckResult | null;
+  result: CheckResponse | null;
   params: CheckParams;
   context: AutumnContextParams;
 }) => {
@@ -203,17 +195,16 @@ export const handleCheck = ({
   params: CheckParams;
   context?: AutumnContextParams;
 }): {
-  data: CheckResult;
+  data: CheckResponse;
   error: null;
 } => {
   if (!customer) {
     return {
       data: {
         allowed: false,
-        feature_id: "",
         customer_id: "",
-        required_balance: 0,
-      } as CheckResult,
+        balance: null,
+      } as CheckResponse,
       error: null,
     };
   }
@@ -222,16 +213,16 @@ export const handleCheck = ({
     throw new Error("allowed() requires either featureId or productId");
   }
 
-  let result;
+  let result: CheckResponse;
 
-  if (params.featureId)
+  if (params.featureId) {
     result = handleFeatureCheck({ customer, params, isEntity });
-
-  if (params.productId)
-    result = handleProductCheck({ customer, params, isEntity });
+  } else {
+    result = handlePlanCheck({ customer, params, isEntity });
+  }
 
   return {
-    data: result as CheckResult,
+    data: result,
     error: null,
   };
 };

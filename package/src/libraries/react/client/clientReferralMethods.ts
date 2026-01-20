@@ -1,9 +1,8 @@
-import { toSnakeCase } from "@utils/toSnakeCase";
+import type { AutumnPromise } from "@/utils/response";
 import type {
-  AutumnPromise,
-  CreateReferralCodeResult,
-  RedeemReferralCodeResult,
-} from "../../../sdk";
+  ReferralCreateCodeResponse,
+  ReferralRedeemCodeResponse,
+} from "@useautumn/sdk/resources/referrals";
 import type { AutumnClient } from "./ReactAutumnClient";
 import type {
   CreateReferralCodeParams,
@@ -13,7 +12,7 @@ import type {
 export async function createCode(
   this: AutumnClient,
   params: CreateReferralCodeParams
-): AutumnPromise<CreateReferralCodeResult> {
+): AutumnPromise<ReferralCreateCodeResponse> {
   const res = await this.post(`${this.prefix}/referrals/code`, params);
   return res;
 }
@@ -21,7 +20,7 @@ export async function createCode(
 export async function redeemCode(
   this: AutumnClient,
   params: RedeemReferralCodeParams
-): AutumnPromise<RedeemReferralCodeResult> {
+): AutumnPromise<ReferralRedeemCodeResponse> {
   const res = await this.post(`${this.prefix}/referrals/redeem`, params);
   return res;
 }

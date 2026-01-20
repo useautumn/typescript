@@ -1,14 +1,23 @@
-import {
-	AutumnError,
-	type AutumnErrorWithStatus,
-	type QueryResult,
-} from "@sdk";
+import { AutumnError, type AutumnErrorWithStatus } from "@/utils/error";
+import type { QueryResponse } from "@useautumn/sdk/resources/top-level";
 import useSWR from "swr";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 import type { QueryParams } from "@/client/types/clientGenTypes";
 
 /**
- * @deprecated Use useAggregateEvents or useListEvents instead
+ * Query usage analytics data from your React components.
+ *
+ * The `useAnalytics` hook provides access to usage analytics and reporting data. It's the client-side equivalent of the `/query` endpoint, allowing you to fetch and display usage data directly in your React components.
+ *
+ * @param params.featureId - Feature ID(s) to query usage data for
+ * @param params.range - Time range for analytics query. Defaults to '30d' (optional)
+ *
+ * @returns data - Array of usage data points with period timestamps and feature usage counts
+ * @returns isLoading - Whether analytics data is being fetched
+ * @returns error - Any error that occurred while fetching
+ * @returns refetch - Manually refetch analytics data
+ *
+ * @see {@link https://docs.useautumn.com/api-reference/hooks/useAnalytics}
  */
 export const useAnalytics = (params: QueryParams) => {
 	const context = useAutumnContext({
@@ -31,7 +40,7 @@ export const useAnalytics = (params: QueryParams) => {
 		return res.data;
 	};
 
-	const { data, error, mutate } = useSWR<QueryResult, AutumnError>(
+	const { data, error, mutate } = useSWR<QueryResponse, AutumnError>(
 		["analytics", params.featureId, params.range],
 		fetcher,
 		{

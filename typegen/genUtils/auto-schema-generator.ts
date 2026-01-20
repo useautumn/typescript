@@ -149,6 +149,7 @@ export function generateCleanZodSchema(
 		omitFields,
 		extendFields,
 		interfaceDescription,
+		interfaceName, // rootParent is the same for top-level interface
 	);
 
 	// Generate nested interfaces
@@ -159,10 +160,11 @@ export function generateCleanZodSchema(
 				sourceFile,
 				camelCase,
 				nested.name,
-				[],
+				nestedInterfaces.map((n) => n.name), // pass all nested types for reference
 				[],
 				{},
 				null,
+				interfaceName, // rootParent is the original interface name
 			);
 		})
 		.join("\n\n");
@@ -203,6 +205,36 @@ function findNestedInterfaces(
 ): { name: string; interface: ts.InterfaceDeclaration }[] {
 	const results: { name: string; interface: ts.InterfaceDeclaration }[] = [];
 
+	// Recursively process a namespace to find all interfaces at any depth
+	function processNamespace(
+		moduleBlock: ts.ModuleBlock,
+		namePrefix: string,
+	) {
+		moduleBlock.statements.forEach((statement) => {
+			// Find interfaces at this level
+			if (ts.isInterfaceDeclaration(statement)) {
+				const nestedName = `${namePrefix}${statement.name.text}`;
+				results.push({
+					name: nestedName,
+					interface: statement,
+				});
+			}
+			// Recursively process sub-namespaces
+			if (
+				ts.isModuleDeclaration(statement) &&
+				statement.name &&
+				ts.isIdentifier(statement.name) &&
+				statement.body &&
+				ts.isModuleBlock(statement.body)
+			) {
+				processNamespace(
+					statement.body,
+					`${namePrefix}${statement.name.text}`,
+				);
+			}
+		});
+	}
+
 	function visit(node: ts.Node) {
 		// Look for namespace declarations that match our parent interface name
 		if (
@@ -213,16 +245,8 @@ function findNestedInterfaces(
 			node.body &&
 			ts.isModuleBlock(node.body)
 		) {
-			// Find interfaces within this namespace
-			node.body.statements.forEach((statement) => {
-				if (ts.isInterfaceDeclaration(statement)) {
-					const nestedName = `${parentInterfaceName}${statement.name.text}`;
-					results.push({
-						name: nestedName,
-						interface: statement,
-					});
-				}
-			});
+			// Process this namespace and all sub-namespaces
+			processNamespace(node.body, parentInterfaceName);
 		}
 		ts.forEachChild(node, visit);
 	}
@@ -241,6 +265,7 @@ function generateSchemaCode(
 	extendFields: Record<string, { zodType: string; description?: string }> = {},
 ): string {
 	const properties: string[] = [];
+	const existingProperties = new Set<string>();
 
 	interfaceDecl.members.forEach((member) => {
 		if (ts.isPropertySignature(member)) {
@@ -284,6 +309,7 @@ function generateSchemaCode(
 					? `${finalPropertyName}: ${zodProperty}.optional()`
 					: `${finalPropertyName}: ${zodProperty}`;
 				properties.push(zodProperty);
+				existingProperties.add(finalPropertyName);
 			}
 		}
 	});
@@ -291,6 +317,12 @@ function generateSchemaCode(
 	// Add extended fields
 	Object.entries(extendFields).forEach(([fieldName, config]) => {
 		const finalFieldName = camelCase ? toCamelCase(fieldName) : fieldName;
+
+		// Skip if already exists in source interface
+		if (existingProperties.has(finalFieldName)) {
+			console.warn(`Skipping duplicate field '${finalFieldName}' from extendFields`);
+			return;
+		}
 
 		const zodProperty = config.description
 			? `${config.zodType}.describe("${escapeDescription(config.description)}")`
@@ -610,6 +642,7 @@ function escapeDescription(description: string): string {
 
 /**
  * Generate an explicit TypeScript interface with JSDoc comments
+ * @param rootParent - The root parent interface name for namespace resolution (e.g., "AttachParams")
  */
 function generateExplicitInterface(
 	interfaceDecl: ts.InterfaceDeclaration,
@@ -620,8 +653,10 @@ function generateExplicitInterface(
 	omitFields: string[] = [],
 	extendFields: Record<string, { zodType: string; description?: string }> = {},
 	interfaceDescription: string | null = null,
+	rootParent?: string,
 ): string {
 	const properties: string[] = [];
+	const existingProperties = new Set<string>(); // Track property names to avoid duplicates
 	const finalInterfaceName = camelCase
 		? toCamelCase(interfaceName)
 		: interfaceName;
@@ -646,7 +681,7 @@ function generateExplicitInterface(
 				const tsType = convertZodToTypeScript(
 					typeNode,
 					sourceFile,
-					interfaceName,
+					rootParent || interfaceName,
 					availableNestedTypes,
 				);
 
@@ -661,13 +696,19 @@ function generateExplicitInterface(
 
 				propertyString += `  ${finalPropertyName}${isOptional ? "?" : ""}: ${tsType};`;
 				properties.push(propertyString);
+				existingProperties.add(finalPropertyName); // Track this property
 			}
 		}
 	});
 
-	// Add extended fields
+	// Add extended fields (skip duplicates)
 	Object.entries(extendFields).forEach(([fieldName, config]) => {
 		const finalFieldName = camelCase ? toCamelCase(fieldName) : fieldName;
+
+		// Skip if already exists in source interface
+		if (existingProperties.has(finalFieldName)) {
+			return;
+		}
 
 		let propertyString = "";
 		if (config.description) {
@@ -693,27 +734,17 @@ function generateExplicitInterface(
 
 /**
  * Convert a TypeScript type node to TypeScript type string for interface generation
+ * @param rootParent - The root parent interface name (e.g., "AttachParams") for namespace resolution
  */
 function convertZodToTypeScript(
 	typeNode: ts.TypeNode,
 	sourceFile: ts.SourceFile,
-	parentInterface?: string,
+	rootParent?: string,
 	availableNestedTypes?: string[],
 ): string {
 	const typeText = typeNode.getText(sourceFile).trim();
 
-	// Handle nested interface references (e.g., AttachParams.Option)
-	if (parentInterface && typeText.includes(`${parentInterface}.`)) {
-		const nestedTypeName = typeText.replace(
-			`${parentInterface}.`,
-			`${parentInterface}`,
-		);
-		if (availableNestedTypes?.includes(nestedTypeName)) {
-			return nestedTypeName;
-		}
-	}
-
-	// Handle external type references (CustomerData, EntityData, etc.)
+	// Handle external type references (CustomerData, EntityData, etc.) - check first
 	if (typeText === "CustomerData" || typeText === "Shared.CustomerData") {
 		return "CustomerData";
 	}
@@ -721,13 +752,18 @@ function convertZodToTypeScript(
 		return "EntityData";
 	}
 
-	// Handle arrays
+	// Handle Record types - check before array/union handling
+	if (typeText.startsWith("Record<")) {
+		return typeText; // Keep Record<K, V> as is
+	}
+
+	// Handle arrays BEFORE nested reference check (Array<X> contains < which we don't want to treat as namespace)
 	if (typeText.startsWith("Array<") && typeText.endsWith(">")) {
 		const innerType = typeText.slice(6, -1);
 		const innerTsType = convertZodToTypeScript(
 			{ getText: () => innerType } as ts.TypeNode,
 			sourceFile,
-			parentInterface,
+			rootParent,
 			availableNestedTypes,
 		);
 		// Wrap union types in parentheses before appending []
@@ -742,7 +778,7 @@ function convertZodToTypeScript(
 		const innerTsType = convertZodToTypeScript(
 			{ getText: () => innerType } as unknown as ts.TypeNode,
 			sourceFile,
-			parentInterface,
+			rootParent,
 			availableNestedTypes,
 		);
 		// Wrap union types in parentheses before appending []
@@ -752,21 +788,49 @@ function convertZodToTypeScript(
 		return `${innerTsType}[]`;
 	}
 
-	// Handle Record types
-	if (typeText.startsWith("Record<")) {
-		return typeText; // Keep Record<K, V> as is
+	// Handle union types by splitting on ' | ' and processing each part
+	if (typeText.includes(" | ")) {
+		const types = typeText.split(" | ").map((t) => t.trim());
+		const convertedTypes = types.map((type) => {
+			// Create a mock TypeNode for recursive call
+			const mockNode = { getText: () => type } as ts.TypeNode;
+			return convertZodToTypeScript(
+				mockNode,
+				sourceFile,
+				rootParent,
+				availableNestedTypes,
+			);
+		});
+		return convertedTypes.join(" | ");
 	}
 
-	// Handle nullable types
-	if (typeText.includes(" | null")) {
-		const baseType = typeText.replace(" | null", "").trim();
-		const baseTsType = convertZodToTypeScript(
-			{ getText: () => baseType } as ts.TypeNode,
-			sourceFile,
-			parentInterface,
-			availableNestedTypes,
+	// Handle nested namespace references like ParentInterface.NestedType -> ParentInterfaceNestedType
+	// Only process if there's a dot AND we have available types to resolve against
+	if (typeText.includes(".") && availableNestedTypes && availableNestedTypes.length > 0) {
+		// Convert ParentInterface.NestedType.SubType to ParentInterfaceNestedTypeSubType
+		// e.g., AttachParams.Item -> AttachParamsItem
+		// e.g., Item.Config -> AttachParamsItemConfig
+		// e.g., Config.Rollover -> AttachParamsItemConfigRollover
+		const cleanedType = typeText.replace(/\./g, "");
+		
+		// Search for a matching available type that ends with the cleaned type
+		// This handles deeply nested types like Config.Rollover -> AttachParamsItemConfigRollover
+		const matchingType = availableNestedTypes.find(
+			(t) => t.endsWith(cleanedType)
 		);
-		return `${baseTsType} | null`;
+		if (matchingType) {
+			return matchingType;
+		}
+		
+		// Fallback: if it starts with root parent, just remove dots
+		if (rootParent && typeText.startsWith(`${rootParent}.`)) {
+			return cleanedType;
+		}
+		
+		// Fallback: prefix with root parent
+		if (rootParent) {
+			return `${rootParent}${cleanedType}`;
+		}
 	}
 
 	// Return the type as is for basic types and others

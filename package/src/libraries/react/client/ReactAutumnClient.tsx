@@ -1,13 +1,10 @@
 import { logAuthError } from "@/errorUtils/logAuthError";
-import {
-	AutumnError,
-	type AutumnPromise,
-	type CreateCustomerParams,
-	type CustomerData,
-	type Product,
-	toContainerResult,
-} from "../../../sdk";
-import type { EventsListResponse } from "../../../sdk/events/eventTypes";
+import { AutumnError } from "@/utils/error";
+import { toContainerResult } from "@/utils/response";
+import type { AutumnPromise } from "@/utils/response";
+import type { CustomerData, Plan } from "@useautumn/sdk/resources/shared";
+import type { CustomerCreateParams } from "@useautumn/sdk/resources/customers";
+import type { EventListResponse } from "@useautumn/sdk/resources/events";
 import { logFetchError } from "../errorUtils/logFetchError";
 import {
 	eventAggregateMethod,
@@ -33,9 +30,9 @@ import { listProductsMethod } from "./clientProdMethods";
 import { createCode, redeemCode } from "./clientReferralMethods";
 import type {
 	EventAggregationParams,
-	EventAggregationResponse,
 	EventsListParams,
 } from "./types/clientAnalyticsTypes";
+import type { EventAggregateResponse } from "@useautumn/sdk/resources/events";
 
 export interface ErrorResponse {
 	message: string;
@@ -69,7 +66,7 @@ export interface IAutumnClient {
 
 	// Core methods
 	createCustomer(
-		params: Omit<CreateCustomerParams, "id" | "data"> & {
+		params: Omit<CustomerCreateParams, "id" | "data"> & {
 			errorOnNotFound?: boolean;
 		},
 	): Promise<any>;
@@ -112,14 +109,14 @@ export interface IAutumnClient {
 	};
 
 	products: {
-		list(): AutumnPromise<{ list: Product[] }>;
+		list(): AutumnPromise<{ list: Plan[] }>;
 	};
 
 	events: {
-		list(params: EventsListParams): AutumnPromise<EventsListResponse>;
+		list(params: EventsListParams): AutumnPromise<EventListResponse>;
 		aggregate(
 			params: EventAggregationParams,
-		): AutumnPromise<EventAggregationResponse>;
+		): AutumnPromise<EventAggregateResponse>;
 	};
 }
 
@@ -350,7 +347,7 @@ export class AutumnClient implements IAutumnClient {
 	}
 
 	async createCustomer(
-		params: Omit<CreateCustomerParams, "id" | "data"> & {
+		params: Omit<CustomerCreateParams, "id" | "data"> & {
 			errorOnNotFound?: boolean;
 		},
 	) {

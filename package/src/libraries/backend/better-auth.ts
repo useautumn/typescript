@@ -1,4 +1,3 @@
-import { CustomerExpandEnum } from "@sdk";
 import type {
 	AuthContext,
 	BetterAuthPlugin,
@@ -35,6 +34,7 @@ import {
 	RedeemReferralCodeParamsSchema,
 } from "@/client/types/clientReferralTypes";
 import { Autumn } from "../../sdk/client";
+import { CustomerExpandEnum } from "../../sdk/customers/cusEnums";
 import { createRouterWithOptions } from "./routes/backendRouter";
 import {
 	getIdentityContext,
@@ -91,7 +91,7 @@ const handleReq = async ({
 		const req = ctx.request as Request;
 		const url = new URL(req.url);
 		searchParams = Object.fromEntries(url.searchParams);
-	} catch (_) {}
+	} catch (_) { }
 
 	const rest = ctx.path.split("/autumn/")[1];
 	const pathname = `/api/autumn/${betterAuthPathMap[rest] || rest}`;

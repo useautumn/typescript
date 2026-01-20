@@ -1,8 +1,5 @@
-import {
-	AutumnError,
-	type AutumnErrorWithStatus,
-	type EventsListResponse,
-} from "@sdk";
+import { AutumnError, type AutumnErrorWithStatus } from "../../../sdk/error";
+import type { EventListResponse } from "@/types";
 import { useCallback, useState } from "react";
 import useSWR, { type SWRConfiguration } from "swr";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
@@ -49,7 +46,7 @@ export const useListEvents = (
 	};
 
 	const { data, error, mutate, isLoading } = useSWR<
-		EventsListResponse,
+		EventListResponse,
 		AutumnError
 	>(
 		["eventList", params.featureId, startDate, endDate, offset, limit],

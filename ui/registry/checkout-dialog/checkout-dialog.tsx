@@ -1,8 +1,12 @@
 "use client";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-// import type { CheckoutParams, CheckoutResult, ProductItem } from "autumn-js";
-import { Autumn } from "autumn-js";
+import type { CheckoutParams } from "autumn-js";
+import type { CheckoutResponse } from "@/types";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
+
+// CheckoutResult is now CheckoutResponse, ProductItem extracted from CheckoutResponse.Product
+type CheckoutResult = CheckoutResponse;
+type ProductItem = NonNullable<CheckoutResponse["product"]>["items"][number];
 import type React from "react";
 import { useEffect, useState } from "react";
 import {
@@ -30,8 +34,8 @@ import { getCheckoutContent } from "@/registry/checkout-dialog/lib/checkout-cont
 export interface CheckoutDialogProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
-	checkoutResult: Autumn.CheckoutResponse;
-	checkoutParams?: Autumn.CheckoutParams;
+	checkoutResult: CheckoutResult;
+	checkoutParams?: CheckoutParams;
 }
 
 const formatCurrency = ({
@@ -50,7 +54,7 @@ const formatCurrency = ({
 export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.Element {
 	const { attach } = useCustomer();
 	const [checkoutResult, setCheckoutResult] = useState<
-		Autumn.CheckoutResponse | undefined
+		CheckoutResult | undefined
 	>(params?.checkoutResult);
 
 	useEffect(() => {
@@ -92,7 +96,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.E
 						onClick={async () => {
 							setLoading(true);
 
-							const options = checkoutResult.options?.map((option: Autumn.CheckoutResponse.Option) => {
+							const options = (checkoutResult.options ?? []).map((option) => {
 								return {
 									featureId: option.feature_id,
 									quantity: option.quantity,
@@ -100,8 +104,10 @@ export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.E
 							});
 
 							await attach({
-								productId: checkoutResult.product?.id,
-								...(params.checkoutParams || {}),
+								productId: checkoutResult.product!.id,
+								// Type cast needed: CheckoutParams from @sdk uses snake_case,
+								// but local AttachParams uses camelCase. The client handles conversion.
+								...(params.checkoutParams as unknown as Record<string, unknown> ?? {}),
 								options,
 							});
 							setOpen(false);
@@ -130,8 +136,8 @@ function PriceInformation({
 	checkoutResult,
 	setCheckoutResult,
 }: {
-	checkoutResult: Autumn.CheckoutResponse;
-	setCheckoutResult: (checkoutResult: Autumn.CheckoutResponse) => void;
+	checkoutResult: CheckoutResult;
+	setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) {
 	return (
 		<div className="px-6 mb-4 flex flex-col gap-4">
@@ -150,7 +156,7 @@ function PriceInformation({
 	);
 }
 
-function DueAmounts({ checkoutResult }: { checkoutResult: Autumn.CheckoutResponse }) {
+function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 	const { next_cycle, product } = checkoutResult;
 	const nextCycleAtStr = next_cycle
 		? new Date(next_cycle.starts_at).toLocaleDateString()
@@ -172,19 +178,19 @@ function DueAmounts({ checkoutResult }: { checkoutResult: Autumn.CheckoutRespons
 				<p className="font-medium text-md">
 					{formatCurrency({
 						amount: checkoutResult?.total ?? 0,
-						currency: checkoutResult?.currency ?? "usd",
+						currency: checkoutResult?.currency ?? "USD",
 					})}
 				</p>
 			</div>
-			{showNextCycle && (
+			{showNextCycle && next_cycle && (
 				<div className="flex justify-between text-muted-foreground">
 					<div>
 						<p className="text-md">Due next cycle ({nextCycleAtStr})</p>
 					</div>
 					<p className="text-md">
 						{formatCurrency({
-							amount: next_cycle.total ?? 0,
-							currency: checkoutResult?.currency ?? "usd",
+							amount: next_cycle.total,
+							currency: checkoutResult?.currency ?? "USD",
 						})}
 						{hasUsagePrice && <span> + usage prices</span>}
 					</p>
@@ -198,8 +204,8 @@ function ProductItems({
 	checkoutResult,
 	setCheckoutResult,
 }: {
-	checkoutResult: Autumn.CheckoutResponse;
-	setCheckoutResult: (checkoutResult: Autumn.CheckoutResponse) => void;
+	checkoutResult: CheckoutResult;
+	setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) {
 	const isUpdateQuantity =
 		checkoutResult?.product?.scenario === "active" &&
@@ -211,7 +217,7 @@ function ProductItems({
 		<div className="flex flex-col gap-2">
 			<p className="text-sm font-medium">Price</p>
 			{checkoutResult?.product?.items
-				.filter((item: Autumn.ProductItem) => item.type !== "feature")
+				.filter((item) => item.type !== "feature")
 				.map((item, index) => {
 					if (item.usage_model == "prepaid") {
 						return (
@@ -247,7 +253,7 @@ function ProductItems({
 	);
 }
 
-function CheckoutLines({ checkoutResult }: { checkoutResult: Autumn.CheckoutResponse }) {
+function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 	return (
 		<Accordion type="single" collapsible>
 			<AccordionItem value="total" className="border-b-0">
@@ -264,7 +270,7 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: Autumn.CheckoutResp
 				</CustomAccordionTrigger>
 				<AccordionContent className="mt-2 mb-0 pb-2 flex flex-col gap-2">
 					{checkoutResult?.lines
-						.filter((line: Autumn.CheckoutResponse.Line) => line.amount !== 0)
+						.filter((line) => line.amount !== 0)
 						.map((line, index) => {
 							return (
 								<div key={index} className="flex justify-between">
@@ -272,7 +278,7 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: Autumn.CheckoutResp
 									<p className="text-muted-foreground">
 										{new Intl.NumberFormat("en-US", {
 											style: "currency",
-											currency: checkoutResult?.currency ?? "usd",
+											currency: checkoutResult?.currency ?? "USD",
 										}).format(line.amount)}
 									</p>
 								</div>
@@ -310,14 +316,12 @@ const PrepaidItem = ({
 	checkoutResult,
 	setCheckoutResult,
 }: {
-	item: Autumn.ProductItem;
-	checkoutResult: Autumn.CheckoutResponse;
-	setCheckoutResult: (checkoutResult: Autumn.CheckoutResponse) => void;
+	item: ProductItem;
+	checkoutResult: CheckoutResult;
+	setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) => {
-	let { quantity = 0, billing_units: billingUnits = 1 } = item;
-	quantity = quantity ?? 0;
-	billingUnits = billingUnits ?? 1;
-
+	const quantity = item.quantity ?? 0;
+	const billingUnits = item.billing_units ?? 1;
 	const [quantityInput, setQuantityInput] = useState<string>(
 		(quantity / billingUnits).toString(),
 	);
@@ -343,12 +347,16 @@ const PrepaidItem = ({
 				quantity: Number(quantityInput) * billingUnits,
 			});
 
-			const data = await checkout({
-				productId: checkoutResult.product?.id,
+			const { data, error } = await checkout({
+				productId: checkoutResult.product!.id,
 				options: newOptions,
 				dialog: CheckoutDialog,
 			});
 
+			if (error) {
+				console.error(error);
+				return;
+			}
 			setCheckoutResult(data!);
 		} catch (error) {
 			console.error(error);
@@ -399,7 +407,7 @@ const PrepaidItem = ({
 									onChange={(e) => setQuantityInput(e.target.value)}
 								/>
 								<p className="text-muted-foreground">
-									{billingUnits > 1 && `x ${billingUnits} `}
+									{(billingUnits ?? 1) > 1 && `x ${billingUnits} `}
 									{item.feature?.name}
 								</p>
 							</div>

@@ -1,26 +1,52 @@
-import { Loader2 } from "lucide-react";
-import React, { createContext, useContext, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import type { PricingCardData, PricingCardOverride } from "autumn-js/react";
-import { CheckoutDialog, useCustomer, usePricingTable } from "autumn-js/react";
+import React from "react";
+
+import { useCustomer, usePricingTable, ProductDetails } from "autumn-js/react";
+import { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import CheckoutDialog from "@/registry/checkout-dialog/checkout-dialog";
 import { getPricingTableContent } from "@/registry/pricing-table/lib/pricing-table-content";
+import type { CheckoutParams } from "@/client/types/clientAttachTypes";
+import type { Plan, PlanFeature } from "@/types";
+import { Loader2 } from "lucide-react";
+
+// Extended Plan type with display properties added by usePricingTable hook
+type PricingTablePlan = Plan & {
+  display?: {
+    name?: string;
+    description?: string;
+    button_text?: string;
+    recommend_text?: string;
+    everything_from?: string;
+    button_url?: string;
+  };
+  properties?: {
+    is_free?: boolean;
+    is_one_off?: boolean;
+    has_trial?: boolean;
+    interval_group?: string;
+    updateable?: boolean;
+  };
+};
 
 export default function PricingTable({
-	overrides,
+  productDetails,
+  checkoutParams,
 }: {
   productDetails?: ProductDetails[];
+  checkoutParams?: CheckoutParams;
 }) : React.JSX.Element {
   const { customer, checkout } = useCustomer({ errorOnNotFound: false });
 
   const [isAnnual, setIsAnnual] = useState(false);
-  const { products, isLoading, error } = usePricingTable({ productDetails });
+  const { plans, isLoading, error } = usePricingTable({ productDetails });
+  const products = plans as PricingTablePlan[] | null;
 
   if (isLoading) {
     return (
       <div className="w-full h-full flex justify-center items-center min-h-[300px]">
-        <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
+        <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
       </div>
     );
   }
@@ -37,7 +63,7 @@ export default function PricingTable({
 
   const multiInterval = intervals.length > 1;
 
-  const intervalFilter = (product: Product) => {
+  const intervalFilter = (product: PricingTablePlan) => {
     if (!product.properties?.interval_group) {
       return true;
     }
@@ -68,16 +94,17 @@ export default function PricingTable({
               productId={product.id}
               buttonProps={{
                 disabled:
-                  (product.scenario === "active" &&
-                    !product.properties.updateable) ||
-                  product.scenario === "scheduled",
+                  (product.customer_eligibility?.scenario === "active" &&
+                    !product.properties?.updateable) ||
+                  product.customer_eligibility?.scenario === "scheduled",
 
                 onClick: async () => {
                   if (product.id && customer) {
                     await checkout({
+                      ...checkoutParams,
                       productId: product.id,
                       dialog: CheckoutDialog,
-                    });
+                    } satisfies CheckoutParams);
                   } else if (product.display?.button_url) {
                     window.open(product.display?.button_url, "_blank");
                   }
@@ -92,36 +119,38 @@ export default function PricingTable({
 }
 
 const PricingTableContext = createContext<{
-	isAnnualToggle: boolean;
-	setIsAnnualToggle: (isAnnual: boolean) => void;
-	showFeatures: boolean;
+  isAnnualToggle: boolean;
+  setIsAnnualToggle: (isAnnual: boolean) => void;
+  products: PricingTablePlan[];
+  showFeatures: boolean;
 }>({
-	isAnnualToggle: false,
-	setIsAnnualToggle: () => {},
-	showFeatures: true,
+  isAnnualToggle: false,
+  setIsAnnualToggle: () => {},
+  products: [],
+  showFeatures: true,
 });
 
 export const usePricingTableContext = (componentName: string) => {
-	const context = useContext(PricingTableContext);
+  const context = useContext(PricingTableContext);
 
-	if (context === undefined) {
-		throw new Error(`${componentName} must be used within <PricingTable />`);
-	}
+  if (context === undefined) {
+    throw new Error(`${componentName} must be used within <PricingTable />`);
+  }
 
-	return context;
+  return context;
 };
 
 export const PricingTableContainer = ({
-	children,
-	data,
-	showFeatures = true,
-	className,
-	isAnnualToggle,
-	setIsAnnualToggle,
-	multiInterval,
+  children,
+  products,
+  showFeatures = true,
+  className,
+  isAnnualToggle,
+  setIsAnnualToggle,
+  multiInterval,
 }: {
   children?: React.ReactNode;
-  products?: Product[];
+  products?: PricingTablePlan[];
   showFeatures?: boolean;
   className?: string;
   isAnnualToggle: boolean;
@@ -173,11 +202,11 @@ export const PricingTableContainer = ({
 };
 
 interface PricingCardProps {
-	data: PricingCardData;
-	showFeatures?: boolean;
-	className?: string;
-	onButtonClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-	buttonProps?: React.ComponentProps<"button">;
+  productId: string;
+  showFeatures?: boolean;
+  className?: string;
+  onButtonClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  buttonProps?: React.ComponentProps<"button">;
 }
 
 export const PricingCard = ({
@@ -202,11 +231,11 @@ export const PricingCard = ({
     ? {
         primary_text: "Free",
       }
-    : product.items[0].display;
+    : product.features[0]?.display;
 
   const featureItems = product.properties?.is_free
-    ? product.items
-    : product.items.slice(1);
+    ? product.features
+    : product.features.slice(1);
 
   return (
     <div
@@ -279,11 +308,11 @@ export const PricingCard = ({
 
 // Pricing Feature List
 export const PricingFeatureList = ({
-	features,
-	everythingFrom,
-	className,
+  items,
+  everythingFrom,
+  className,
 }: {
-  items: ProductItem[];
+  items: PlanFeature[];
   everythingFrom?: string;
   className?: string;
 }): React.JSX.Element => {
@@ -303,25 +332,25 @@ export const PricingFeatureList = ({
             {/* {showIcon && (
               <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
             )} */}
-						<div className="flex flex-col">
-							<span>{feature.display?.primary_text}</span>
-							{feature.display?.secondary_text && (
-								<span className="text-sm text-muted-foreground">
-									{feature.display?.secondary_text}
-								</span>
-							)}
-						</div>
-					</div>
-				))}
-			</div>
-		</div>
-	);
+            <div className="flex flex-col">
+              <span>{item.display?.primary_text}</span>
+              {item.display?.secondary_text && (
+                <span className="text-sm text-muted-foreground">
+                  {item.display?.secondary_text}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 // Pricing Card Button
 export interface PricingCardButtonProps extends React.ComponentProps<"button"> {
-	recommended?: boolean;
-	buttonUrl?: string;
+  recommended?: boolean;
+  buttonUrl?: string;
 }
 
 export const PricingCardButton = React.forwardRef<
@@ -374,8 +403,8 @@ PricingCardButton.displayName = "PricingCardButton";
 
 // Annual Switch
 export const AnnualSwitch = ({
-	isAnnualToggle,
-	setIsAnnualToggle,
+  isAnnualToggle,
+  setIsAnnualToggle,
 }: {
   isAnnualToggle: boolean;
   setIsAnnualToggle: (isAnnual: boolean) => void;

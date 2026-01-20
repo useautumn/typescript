@@ -1,9 +1,8 @@
-import { AuthResult } from "./utils/AuthFunction";
-import { createRouterWithOptions } from "./routes/backendRouter";
-
-import { secretKeyCheck } from "./utils/secretKeyCheck";
-import { Autumn } from "@sdk";
 import { findRoute } from "rou3";
+import { Autumn } from "../../sdk";
+import { createRouterWithOptions } from "./routes/backendRouter";
+import type { AuthResult } from "./utils/AuthFunction";
+import { secretKeyCheck } from "./utils/secretKeyCheck";
 
 export function autumnHandler(options: {
   httpAction: any;
@@ -34,7 +33,7 @@ export function autumnHandler(options: {
       });
     }
 
-    let { found, error: resError } = secretKeyCheck(options.secretKey);
+    const { found, error: resError } = secretKeyCheck(options.secretKey);
 
     if (!found && !options.secretKey) {
       return Response.json(resError, { status: resError!.statusCode });
@@ -62,7 +61,7 @@ export function autumnHandler(options: {
     if (method === "POST" || method === "PUT" || method === "PATCH") {
       try {
         body = await request.json();
-      } catch (error) {}
+      } catch (error) { }
     }
 
     const result = await handler({
@@ -86,7 +85,6 @@ export function autumnHandler(options: {
   });
 }
 
-
 export function convexHandler(options: {
   identity: Awaited<AuthResult>;
   url?: string;
@@ -97,12 +95,15 @@ export function convexHandler(options: {
 
   // CORS headers, can be customized or made configurable if needed
   const corsHeaders = {
-    "Access-Control-Allow-Origin": options.corsOrigin ?? process.env.CLIENT_ORIGIN ?? "http://localhost:3000",
+    "Access-Control-Allow-Origin":
+      options.corsOrigin ??
+      process.env.CLIENT_ORIGIN ??
+      "http://localhost:3000",
     "Access-Control-Allow-Methods": "POST, GET, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "*",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Max-Age": "86400",
-    "Vary": "Origin",
+    Vary: "Origin",
   };
 
   return async (ctx: any, request: Request) => {
@@ -115,7 +116,7 @@ export function convexHandler(options: {
       });
     }
 
-    let { found, error: resError } = secretKeyCheck(options.secretKey);
+    const { found, error: resError } = secretKeyCheck(options.secretKey);
 
     if (!found && !options.secretKey) {
       return new Response(JSON.stringify(resError), {
@@ -155,7 +156,7 @@ export function convexHandler(options: {
     if (method === "POST" || method === "PUT" || method === "PATCH") {
       try {
         body = await request.json();
-      } catch (error) {}
+      } catch (error) { }
     }
 
     try {

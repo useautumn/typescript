@@ -1,8 +1,8 @@
-import { Result } from "@sdk/response";
-import { AutumnError, ErrorResponse } from "../../sdk";
+import type { Result } from "@/utils/response";
+import type { AutumnError, ErrorResponse } from "../../sdk";
 
 export const toServerResponse = <T>(
-  result: Result<T, AutumnError>
+  result: Result<T, AutumnError>,
 ): Result<T, ErrorResponse> => {
   if (result.error) {
     return {

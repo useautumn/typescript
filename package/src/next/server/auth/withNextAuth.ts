@@ -1,4 +1,4 @@
-import { CustomerData } from "@sdk";
+import { CustomerData } from "@useautumn/sdk/resources";
 import { decryptData } from "../../../utils/encryptUtils";
 import { handleAuthProvider } from "./handleAuthProvider";
 import { getAuthPlugin } from "./authPlugin";

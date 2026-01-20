@@ -8,9 +8,28 @@ import { Button } from "@/components/ui/button";
 import CheckoutDialog from "../checkout-dialog/checkout-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
 import type { CheckoutParams } from "@/client/types/clientAttachTypes";
-import type { Product, ProductItem } from "@sdk";
-import { loadingStyles, spinnerStyles } from "@/utils/inject-styles";
+import type { Plan, PlanFeature } from "@/types";
+import { loadingStyles } from "@/utils/inject-styles";
 import { Loader2 } from "lucide-react";
+
+// Extended Plan type with display properties added by usePricingTable hook
+type PricingTablePlan = Plan & {
+  display?: {
+    name?: string;
+    description?: string;
+    button_text?: string;
+    recommend_text?: string;
+    everything_from?: string;
+    button_url?: string;
+  };
+  properties?: {
+    is_free?: boolean;
+    is_one_off?: boolean;
+    has_trial?: boolean;
+    interval_group?: string;
+    updateable?: boolean;
+  };
+};
 
 export default function PricingTable({
   productDetails,
@@ -22,12 +41,13 @@ export default function PricingTable({
   const { customer, checkout } = useCustomer({ errorOnNotFound: false });
 
   const [isAnnual, setIsAnnual] = useState(false);
-  const { products, isLoading, error } = usePricingTable({ productDetails });
+  const { plans, isLoading, error } = usePricingTable({ productDetails });
+  const products = plans as PricingTablePlan[] | null;
 
   if (isLoading) {
     return (
       <div style={loadingStyles}>
-        <Loader2 style={spinnerStyles} />
+        <Loader2 className="au-w-6 au-h-6 au-text-muted-foreground au-animate-spin" />
       </div>
     );
   }
@@ -44,7 +64,7 @@ export default function PricingTable({
 
   const multiInterval = intervals.length > 1;
 
-  const intervalFilter = (product: Product) => {
+  const intervalFilter = (product: PricingTablePlan) => {
     if (!product.properties?.interval_group) {
       return true;
     }
@@ -75,9 +95,9 @@ export default function PricingTable({
               productId={product.id}
               buttonProps={{
                 disabled:
-                  (product.scenario === "active" &&
-                    !product.properties.updateable) ||
-                  product.scenario === "scheduled",
+                  (product.customer_eligibility?.scenario === "active" &&
+                    !product.properties?.updateable) ||
+                  product.customer_eligibility?.scenario === "scheduled",
 
                 onClick: async () => {
                   if (product.id && customer) {
@@ -102,7 +122,7 @@ export default function PricingTable({
 const PricingTableContext = createContext<{
   isAnnualToggle: boolean;
   setIsAnnualToggle: (isAnnual: boolean) => void;
-  products: Product[];
+  products: PricingTablePlan[];
   showFeatures: boolean;
 }>({
   isAnnualToggle: false,
@@ -131,7 +151,7 @@ export const PricingTableContainer = ({
   multiInterval,
 }: {
   children?: React.ReactNode;
-  products?: Product[];
+  products?: PricingTablePlan[];
   showFeatures?: boolean;
   className?: string;
   isAnnualToggle: boolean;
@@ -212,11 +232,11 @@ export const PricingCard = ({
     ? {
         primary_text: "Free",
       }
-    : product.items[0].display;
+    : product.features[0]?.display;
 
   const featureItems = product.properties?.is_free
-    ? product.items
-    : product.items.slice(1);
+    ? product.features
+    : product.features.slice(1);
 
   return (
     <div
@@ -293,7 +313,7 @@ export const PricingFeatureList = ({
   everythingFrom,
   className,
 }: {
-  items: ProductItem[];
+  items: PlanFeature[];
   everythingFrom?: string;
   className?: string;
 }): React.JSX.Element => {

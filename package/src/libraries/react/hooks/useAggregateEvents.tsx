@@ -1,10 +1,8 @@
-import { AutumnError, type AutumnErrorWithStatus } from "@sdk";
+import { AutumnError, type AutumnErrorWithStatus } from "../../../sdk/error";
+import type { EventAggregateResponse } from "@/types";
 import useSWR, { type SWRConfiguration } from "swr";
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
-import type {
-	EventAggregationParams,
-	EventAggregationResponse,
-} from "@/client/types/clientAnalyticsTypes";
+import type { EventAggregationParams } from "@/client/types/clientAnalyticsTypes";
 
 export const useAggregateEvents = (
 	params: EventAggregationParams & { swrConfig?: SWRConfiguration },
@@ -37,7 +35,7 @@ export const useAggregateEvents = (
 		? new Date(params.customRange.end).toISOString().slice(0, 13)
 		: undefined;
 
-	const { data, error, mutate } = useSWR<EventAggregationResponse, AutumnError>(
+	const { data, error, mutate } = useSWR<EventAggregateResponse, AutumnError>(
 		[
 			"eventAggregate",
 			params.featureId,

@@ -1,6 +1,6 @@
-import type { AutumnPromise } from "@sdk/response";
-import { staticWrapper } from "@sdk/utils";
 import type { Autumn } from "../client";
+import type { AutumnPromise } from "../response";
+import { staticWrapper } from "../utils";
 import type {
 	EventsListParams,
 	EventsListResponse,

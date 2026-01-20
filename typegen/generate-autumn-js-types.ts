@@ -29,12 +29,12 @@ async function main() {
 	try {
 		// Define paths relative to this script
 		const tsSDKPath = path.resolve(__dirname, "../ts-sdk");
-		const autumnJSPath = path.resolve(__dirname, "../autumn-js");
+		const autumnJSPath = path.resolve(__dirname, "../package");
 
 		// Validate all required paths exist
 		TypeGeneratorUtils.validatePaths([
 			{ name: "@ts-sdk", path: tsSDKPath },
-			{ name: "autumn-js", path: autumnJSPath },
+			{ name: "package", path: autumnJSPath },
 		]);
 
 		// Generate parameter types

@@ -1,7 +1,7 @@
-import type { ProductItem } from "@sdk/products/prodTypes";
 import { z } from "zod/v4";
 import type { AppEnv } from "../general/genEnums";
 import { ProductItemInterval } from "../products/prodEnums";
+import type { ProductItem } from "../products/prodTypes";
 import {
   CustomerExpandEnum,
   type CustomerExpandOption,

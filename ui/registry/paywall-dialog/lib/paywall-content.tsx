@@ -1,6 +1,9 @@
-import { Autumn } from "autumn-js";
+import { type CheckPreview } from "@/types";
 
-export const getPaywallContent = (preview?: Autumn.CheckResponse.Preview) => {
+// CheckFeaturePreview is now CheckResponse.Preview (aliased as CheckPreview)
+type CheckFeaturePreview = CheckPreview;
+
+export const getPaywallContent = (preview?: CheckFeaturePreview) => {
   if (!preview) {
     return {
       title: "Feature Unavailable",

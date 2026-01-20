@@ -1,5 +1,6 @@
-import { toSnakeCase } from "@utils/toSnakeCase";
-import type { AutumnPromise, DeleteEntityResult, Entity } from "../../../sdk";
+import type { AutumnPromise } from "@/utils/response";
+import type { Entity } from "@useautumn/sdk/resources/shared";
+import type { EntityDeleteResponse } from "@useautumn/sdk/resources/entities";
 import { getEntityExpandStr } from "../../../utils/entityUtils";
 import type { AutumnClient } from "./ReactAutumnClient";
 import type {
@@ -29,7 +30,7 @@ export async function getEntityMethod(
 export async function deleteEntityMethod(
   this: AutumnClient,
   entityId: string
-): AutumnPromise<DeleteEntityResult> {
+): AutumnPromise<EntityDeleteResponse> {
   const res = await this.delete(`${this.prefix}/entities/${entityId}`);
   return res;
 }

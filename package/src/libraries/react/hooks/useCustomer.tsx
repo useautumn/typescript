@@ -1,4 +1,4 @@
-import type { CustomerExpandOption } from "@sdk";
+import type { CustomerExpandOption } from "@/types";
 import { AutumnContext } from "../AutumnContext";
 import {
   useCustomerBase,

@@ -1,7 +1,7 @@
-import { AutumnPromise } from "@sdk/response";
-import { Autumn } from "../client";
+import type { Autumn } from "../client";
+import type { AutumnPromise } from "../response";
 import { staticWrapper } from "../utils";
-import {
+import type {
   CreateReferralCodeParams,
   CreateReferralCodeResult,
   RedeemReferralCodeParams,

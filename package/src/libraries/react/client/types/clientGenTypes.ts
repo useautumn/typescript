@@ -1,5 +1,15 @@
-import { QueryRangeEnum } from "@sdk";
 import { z } from "zod/v4";
+
+// Query range options for event queries
+export const QueryRangeEnum = z.enum([
+	"24h",
+	"7d",
+	"30d",
+	"90d",
+	"last_cycle",
+	"1bc",
+	"3bc",
+]);
 
 export const CancelParamsSchema = z.object({
 	productId: z.string(),

@@ -1,22 +1,21 @@
-import { Autumn } from "autumn-js";
+import { type CheckoutResponse } from "@/types";
 
 import type React from "react";
 
+// CheckoutResult is now CheckoutResponse
+type CheckoutResult = CheckoutResponse;
+
 export const getCheckoutContent = (checkoutResult: CheckoutResult): { title: React.JSX.Element; message: React.JSX.Element } => {
   const { product, current_product, next_cycle } = checkoutResult;
-  const { is_one_off, is_free, has_trial, updateable } = product?.properties || {
-    is_one_off: false,
-    is_free: false,
-    has_trial: false,
-    updateable: false,
-  };
+  // product can be null/undefined in CheckoutResponse, but is expected to exist when this function is called
+  const { is_one_off, is_free, has_trial, updateable } = product?.properties ?? {};
   const scenario = product?.scenario;
 
   const nextCycleAtStr = next_cycle
     ? new Date(next_cycle.starts_at).toLocaleDateString()
     : undefined;
 
-  const productName = product?.name || "";
+  const productName = product?.name;
 
   if (is_one_off) {
     return {
@@ -62,7 +61,7 @@ export const getCheckoutContent = (checkoutResult: CheckoutResult): { title: Rea
         title: <p>{productName} product already scheduled</p>,
         message: (
           <p>
-            You are currently on product {current_product?.name || ""} and are
+            You are currently on product {current_product?.name} and are
             scheduled to start {productName} on {nextCycleAtStr}.
           </p>
         ),
@@ -123,7 +122,7 @@ export const getCheckoutContent = (checkoutResult: CheckoutResult): { title: Rea
         message: (
           <p>
             By clicking confirm, your current subscription to{" "}
-            {current_product?.name || ""} will be cancelled and a new subscription to{" "}
+            {current_product?.name} will be cancelled and a new subscription to{" "}
             {productName} will begin on {nextCycleAtStr}.
           </p>
         ),
@@ -134,7 +133,7 @@ export const getCheckoutContent = (checkoutResult: CheckoutResult): { title: Rea
         title: <p>Cancel</p>,
         message: (
           <p>
-            By clicking confirm, your subscription to {current_product?.name || ""}{" "}
+            By clicking confirm, your subscription to {current_product?.name}{" "}
             will end on {nextCycleAtStr}.
           </p>
         ),

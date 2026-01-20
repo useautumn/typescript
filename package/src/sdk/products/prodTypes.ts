@@ -1,4 +1,4 @@
-import type { ProductScenario } from "@sdk/general/checkTypes";
+import type { ProductScenario } from "../general/checkTypes";
 import type { AppEnv } from "../general/genEnums";
 import type {
   FreeTrialDuration,

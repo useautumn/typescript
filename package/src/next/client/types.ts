@@ -1,5 +1,5 @@
-import { Customer, CustomerData } from "@sdk";
-import { Entity } from "@sdk/customers/entities/entTypes";
+import type { Customer, CustomerData } from "@useautumn/sdk/resources";
+import type { Entity } from "../../sdk";
 
 export interface ProductDetails {
   id: string;

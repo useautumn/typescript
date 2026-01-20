@@ -1,10 +1,11 @@
-import {
-  BillingPortalResult,
-  CancelResult,
-  CheckResult,
-  SetupPaymentResult,
-  TrackResult,
-} from "@sdk";
+import type {
+  BillingPortalResponse,
+  CancelResponse,
+  CheckResponse,
+  SetupPaymentResponse,
+  TrackResponse,
+  AttachResponse,
+} from "@/types";
 import { AutumnContextParams } from "@/AutumnContext";
 import {
   CancelParams,
@@ -13,9 +14,8 @@ import {
   SetupPaymentParams,
   TrackParams,
 } from "@/client/types/clientGenTypes";
-import { AutumnPromise } from "@sdk";
+import type { AutumnPromise } from "../../../../sdk/response";
 import { usePricingTableBase } from "../usePricingTableBase";
-import { AttachResult } from "@sdk/general/attachTypes";
 import { AttachParams, CheckoutParams } from "@/client/types/clientAttachTypes";
 import { AutumnClient } from "@/client/ReactAutumnClient";
 import { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
@@ -103,7 +103,7 @@ export const useAutumnBase = ({
 
   const attachWithDialog = async (
     params: AttachParams
-  ): AutumnPromise<AttachResult | CheckResult> => {
+  ): AutumnPromise<AttachResponse | CheckResponse> => {
     let { ...rest } = params;
 
     const { productId, entityId, entityData } = params;
@@ -142,7 +142,7 @@ export const useAutumnBase = ({
     return await attachWithoutDialog(params);
   };
 
-  const cancel = async (params: CancelParams): AutumnPromise<CancelResult> => {
+  const cancel = async (params: CancelParams): AutumnPromise<CancelResponse> => {
     const res = await client.cancel(params);
 
     if (res.error) {
@@ -179,7 +179,7 @@ export const useAutumnBase = ({
   //   return res;
   // };
 
-  const track = async (params: TrackParams): AutumnPromise<TrackResult> => {
+  const track = async (params: TrackParams): AutumnPromise<TrackResponse> => {
     const res = await client.track(params);
 
     if (res.error) {
@@ -191,7 +191,7 @@ export const useAutumnBase = ({
 
   const openBillingPortal = async (
     params?: OpenBillingPortalParams
-  ): AutumnPromise<BillingPortalResult> => {
+  ): AutumnPromise<BillingPortalResponse> => {
     let defaultParams = {
       openInNewTab: false,
     };
@@ -224,7 +224,7 @@ export const useAutumnBase = ({
 
   const setupPayment = async (
     params?: SetupPaymentParams
-  ): AutumnPromise<SetupPaymentResult> => {
+  ): AutumnPromise<SetupPaymentResponse> => {
     let defaultParams = {
       openInNewTab: false,
     };

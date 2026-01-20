@@ -5,7 +5,6 @@ import alias from "esbuild-plugin-path-alias";
 // Path aliases that match tsconfig.json
 const pathAliases = {
   "@": path.resolve("./src/libraries/react"),
-  "@sdk": path.resolve("./src/sdk"),
   "@styles": path.resolve("./src/styles"),
 };
 
@@ -17,7 +16,7 @@ const reactConfigs: Options[] = [
     dts: true,
     clean: false, // Don't clean on subsequent builds
     outDir: "./dist/libraries/backend",
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     bundle: true,
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
@@ -32,7 +31,7 @@ const reactConfigs: Options[] = [
     dts: false,
     clean: false,
     outDir: "./dist/libraries/react",
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     bundle: true,
     banner: {
       // js: '"use client";\nrequire("../../styles/global.css");',
@@ -52,7 +51,7 @@ const reactConfigs: Options[] = [
     dts: false, // Only generate types once
     clean: false,
     outDir: "./dist/libraries/react",
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     bundle: true,
     banner: {
       // js: '"use client";\nimport "../../styles/global.css";',
@@ -75,7 +74,7 @@ const reactConfigs: Options[] = [
     dts: false,
     clean: false,
     outDir: "./dist/libraries/react",
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     bundle: true,
     banner: {
       js: '"use client";\n',
@@ -114,7 +113,7 @@ export default defineConfig([
     clean: true,
     bundle: true,
     outDir: "./dist/utils", // Fixed wildcard path to specific directory
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
       options.plugins.push(alias(pathAliases));
@@ -128,7 +127,7 @@ export default defineConfig([
     dts: false,
     clean: false, // Don't clean on subsequent builds
     outDir: "./dist/next",
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     bundle: false,
     esbuildOptions(options) {
       options.plugins = options.plugins || [];
@@ -144,7 +143,7 @@ export default defineConfig([
     dts: false,
     clean: true,
     outDir: "./dist/next/client",
-    external: ["react", "react/jsx-runtime", "react-dom"],
+    external: ["react", "react/jsx-runtime", "react-dom", "@useautumn/sdk"],
     bundle: false,
     banner: {
       js: '"use client";\n',
@@ -180,6 +179,7 @@ export default defineConfig([
       "@clerk/backend",
       "better-auth",
       "@supabase/ssr",
+      "@useautumn/sdk",
     ],
     bundle: false,
     banner: {

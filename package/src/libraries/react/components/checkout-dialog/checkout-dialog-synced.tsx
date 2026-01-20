@@ -1,7 +1,12 @@
 "use client";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import type { CheckoutParams, CheckoutResult, ProductItem } from "@sdk";
+import type { CheckoutParams } from "@useautumn/sdk/resources";
+import type { CheckoutResponse } from "@/types";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
+
+// CheckoutResult is now CheckoutResponse, ProductItem extracted from CheckoutResponse.Product
+type CheckoutResult = CheckoutResponse;
+type ProductItem = NonNullable<CheckoutResponse["product"]>["items"][number];
 import type React from "react";
 import { useEffect, useState } from "react";
 import {
@@ -67,7 +72,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.E
 	const { open, setOpen } = params;
 	const { title, message } = getCheckoutContent(checkoutResult);
 
-	const isFree = checkoutResult?.product.properties?.is_free;
+	const isFree = checkoutResult?.product?.properties?.is_free;
 	const isPaid = isFree === false;
 
 	return (
@@ -91,7 +96,7 @@ export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.E
 						onClick={async () => {
 							setLoading(true);
 
-							const options = checkoutResult.options.map((option) => {
+							const options = (checkoutResult.options ?? []).map((option) => {
 								return {
 									featureId: option.feature_id,
 									quantity: option.quantity,
@@ -99,8 +104,10 @@ export default function CheckoutDialog(params: CheckoutDialogProps): React.JSX.E
 							});
 
 							await attach({
-								productId: checkoutResult.product.id,
-								...(params.checkoutParams || {}),
+								productId: checkoutResult.product!.id,
+								// Type cast needed: CheckoutParams from @sdk uses snake_case,
+								// but local AttachParams uses camelCase. The client handles conversion.
+								...(params.checkoutParams as unknown as Record<string, unknown> ?? {}),
 								options,
 							});
 							setOpen(false);
@@ -155,7 +162,7 @@ function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 		? new Date(next_cycle.starts_at).toLocaleDateString()
 		: undefined;
 
-	const hasUsagePrice = product.items.some(
+	const hasUsagePrice = product?.items.some(
 		(item) => item.usage_model === "pay_per_use",
 	);
 
@@ -170,12 +177,12 @@ function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 
 				<p className="au-font-medium au-text-md">
 					{formatCurrency({
-						amount: checkoutResult?.total,
-						currency: checkoutResult?.currency,
+						amount: checkoutResult?.total ?? 0,
+						currency: checkoutResult?.currency ?? "USD",
 					})}
 				</p>
 			</div>
-			{showNextCycle && (
+			{showNextCycle && next_cycle && (
 				<div className="au-flex au-justify-between au-text-muted-foreground">
 					<div>
 						<p className="au-text-md">Due next cycle ({nextCycleAtStr})</p>
@@ -183,7 +190,7 @@ function DueAmounts({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 					<p className="au-text-md">
 						{formatCurrency({
 							amount: next_cycle.total,
-							currency: checkoutResult?.currency,
+							currency: checkoutResult?.currency ?? "USD",
 						})}
 						{hasUsagePrice && <span> + usage prices</span>}
 					</p>
@@ -201,15 +208,15 @@ function ProductItems({
 	setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) {
 	const isUpdateQuantity =
-		checkoutResult?.product.scenario === "active" &&
-		checkoutResult.product.properties.updateable;
+		checkoutResult?.product?.scenario === "active" &&
+		checkoutResult.product?.properties?.updateable;
 
-	const isOneOff = checkoutResult?.product.properties.is_one_off;
+	const isOneOff = checkoutResult?.product?.properties?.is_one_off;
 
 	return (
 		<div className="au-flex au-flex-col au-gap-2">
 			<p className="au-text-sm au-font-medium">Price</p>
-			{checkoutResult?.product.items
+			{checkoutResult?.product?.items
 				.filter((item) => item.type !== "feature")
 				.map((item, index) => {
 					if (item.usage_model == "prepaid") {
@@ -271,7 +278,7 @@ function CheckoutLines({ checkoutResult }: { checkoutResult: CheckoutResult }) {
 									<p className="au-text-muted-foreground">
 										{new Intl.NumberFormat("en-US", {
 											style: "currency",
-											currency: checkoutResult?.currency,
+											currency: checkoutResult?.currency ?? "USD",
 										}).format(line.amount)}
 									</p>
 								</div>
@@ -313,19 +320,20 @@ const PrepaidItem = ({
 	checkoutResult: CheckoutResult;
 	setCheckoutResult: (checkoutResult: CheckoutResult) => void;
 }) => {
-	const { quantity = 0, billing_units: billingUnits = 1 } = item;
+	const quantity = item.quantity ?? 0;
+	const billingUnits = item.billing_units ?? 1;
 	const [quantityInput, setQuantityInput] = useState<string>(
 		(quantity / billingUnits).toString(),
 	);
 	const { checkout } = useCustomer();
 	const [loading, setLoading] = useState(false);
 	const [open, setOpen] = useState(false);
-	const scenario = checkoutResult.product.scenario;
+	const scenario = checkoutResult.product?.scenario;
 
 	const handleSave = async () => {
 		setLoading(true);
 		try {
-			const newOptions = checkoutResult.options
+			const newOptions = (checkoutResult.options ?? [])
 				.filter((option) => option.feature_id !== item.feature_id)
 				.map((option) => {
 					return {
@@ -340,7 +348,7 @@ const PrepaidItem = ({
 			});
 
 			const { data, error } = await checkout({
-				productId: checkoutResult.product.id,
+				productId: checkoutResult.product!.id,
 				options: newOptions,
 				dialog: CheckoutDialog,
 			});
@@ -399,7 +407,7 @@ const PrepaidItem = ({
 									onChange={(e) => setQuantityInput(e.target.value)}
 								/>
 								<p className="au-text-muted-foreground">
-									{billingUnits > 1 && `x ${billingUnits} `}
+									{(billingUnits ?? 1) > 1 && `x ${billingUnits} `}
 									{item.feature?.name}
 								</p>
 							</div>
