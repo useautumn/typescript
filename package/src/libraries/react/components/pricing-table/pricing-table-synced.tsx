@@ -8,28 +8,10 @@ import { Button } from "@/components/ui/button";
 import CheckoutDialog from "../checkout-dialog/checkout-dialog-synced";
 import { getPricingTableContent } from "./lib/pricing-table-content";
 import type { CheckoutParams } from "@/client/types/clientAttachTypes";
-import type { Plan, PlanFeature } from "@/types";
+import type { PlanFeature } from "@/types";
+import type { PricingTablePlan } from "../../hooks/usePricingTableBase";
 import { loadingStyles } from "@/utils/inject-styles";
 import { Loader2 } from "lucide-react";
-
-// Extended Plan type with display properties added by usePricingTable hook
-type PricingTablePlan = Plan & {
-  display?: {
-    name?: string;
-    description?: string;
-    button_text?: string;
-    recommend_text?: string;
-    everything_from?: string;
-    button_url?: string;
-  };
-  properties?: {
-    is_free?: boolean;
-    is_one_off?: boolean;
-    has_trial?: boolean;
-    interval_group?: string;
-    updateable?: boolean;
-  };
-};
 
 export default function PricingTable({
   productDetails,
@@ -41,8 +23,7 @@ export default function PricingTable({
   const { customer, checkout } = useCustomer({ errorOnNotFound: false });
 
   const [isAnnual, setIsAnnual] = useState(false);
-  const { plans, isLoading, error } = usePricingTable({ productDetails });
-  const products = plans as PricingTablePlan[] | null;
+  const { plans: products, isLoading, error } = usePricingTable({ productDetails });
 
   if (isLoading) {
     return (

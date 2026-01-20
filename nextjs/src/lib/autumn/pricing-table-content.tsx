@@ -1,8 +1,9 @@
-import { type Product } from "autumn-js";
+import { type PricingTablePlan } from "autumn-js/react";
 
-export const getPricingTableContent = (product: Product) => {
-  const { scenario, properties } = product;
-  const { is_one_off, updateable, has_trial } = properties;
+export const getPricingTableContent = (product: PricingTablePlan) => {
+  const { customer_eligibility, properties } = product;
+  const scenario = customer_eligibility?.scenario;
+  const { is_one_off, updateable, has_trial } = properties ?? {};
 
   if (has_trial) {
     return {

@@ -6,7 +6,11 @@ export const { GET, POST } = autumnHandler({
 	suppressLogs: true,
 	identify: async () => {
 		return {
-			customerId: process.env.AUTUMN_CUSTOMER_ID,
+			customerId: process.env.AUTUMN_CUSTOMER_ID ?? "cus_123",
+			customerData: {
+				name: "John Doe",
+				email: "john.doe@example.com",
+			},
 		};
 	},
 });

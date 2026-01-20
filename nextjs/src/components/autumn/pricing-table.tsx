@@ -1,7 +1,6 @@
-import type { Product, ProductItem } from "autumn-js";
-
 import {
 	type ProductDetails,
+	type PricingTablePlan,
 	useCustomer,
 	usePricingTable,
 } from "autumn-js/react";
@@ -13,6 +12,14 @@ import { Switch } from "@/components/ui/switch";
 import { getPricingTableContent } from "@/lib/autumn/pricing-table-content";
 import { cn } from "@/lib/utils";
 
+// Item type for display (normalized from V1 items or V2 features)
+type PlanItem = {
+	display?: {
+		primary_text?: string;
+		secondary_text?: string;
+	};
+};
+
 export default function PricingTable({
 	productDetails,
 }: {
@@ -20,7 +27,7 @@ export default function PricingTable({
 }) {
 	const { checkout } = useCustomer();
 	const [isAnnual, setIsAnnual] = useState(false);
-	const { products, isLoading, error } = usePricingTable({ productDetails });
+	const { plans: products, isLoading, error } = usePricingTable({ productDetails });
 
 	if (isLoading) {
 		return (
@@ -42,7 +49,7 @@ export default function PricingTable({
 
 	const multiInterval = intervals.length > 1;
 
-	const intervalFilter = (product: Product) => {
+	const intervalFilter = (product: PricingTablePlan) => {
 		if (!product.properties?.interval_group) {
 			return true;
 		}
@@ -73,9 +80,9 @@ export default function PricingTable({
 							productId={product.id}
 							buttonProps={{
 								disabled:
-									(product.scenario === "active" &&
-										!product.properties.updateable) ||
-									product.scenario === "scheduled",
+									(product.customer_eligibility?.scenario === "active" &&
+										!product.properties?.updateable) ||
+									product.customer_eligibility?.scenario === "scheduled",
 
 								onClick: async () => {
 									if (product.id) {
@@ -100,7 +107,7 @@ export default function PricingTable({
 const PricingTableContext = createContext<{
 	isAnnualToggle: boolean;
 	setIsAnnualToggle: (isAnnual: boolean) => void;
-	products: Product[];
+	products: PricingTablePlan[];
 	showFeatures: boolean;
 }>({
 	isAnnualToggle: false,
@@ -129,7 +136,7 @@ export const PricingTableContainer = ({
 	multiInterval,
 }: {
 	children?: React.ReactNode;
-	products?: Product[];
+	products?: PricingTablePlan[];
 	showFeatures?: boolean;
 	className?: string;
 	isAnnualToggle: boolean;
@@ -207,11 +214,11 @@ export const PricingCard = ({
 		? {
 				primary_text: "Free",
 			}
-		: product.items[0].display;
+		: product.features[0]?.display;
 
 	const featureItems = product.properties?.is_free
-		? product.items
-		: product.items.slice(1);
+		? product.features
+		: product.features.slice(1);
 
 	return (
 		<div
@@ -285,7 +292,7 @@ export const PricingFeatureList = ({
 	everythingFrom,
 	className,
 }: {
-	items: ProductItem[];
+	items: PlanItem[];
 	showIcon?: boolean;
 	everythingFrom?: string;
 	className?: string;

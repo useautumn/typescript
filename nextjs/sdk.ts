@@ -13,12 +13,7 @@ const main = async () => {
 	});
 
 	if (customer) {
-		console.log(customer.entities)
-		console.log(customer.invoices)
-		console.log(customer.referrals)
-		console.log(customer.rewards)
-		console.log(customer.trials_used)
-		console.log(customer.payment_method)
+		console.log(customer.subscriptions)
 	}
 };
 

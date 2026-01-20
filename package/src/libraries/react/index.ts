@@ -3,6 +3,7 @@ import "../../styles/global.css";
 
 export type { Plan as PricingTableProduct } from "@useautumn/sdk/resources/shared";
 export type { ProductDetails } from "./client/types/clientPricingTableTypes";
+export type { PricingTablePlan, PlanProperties } from "./hooks/usePricingTableBase";
 export { useAggregateEvents } from "./hooks/useAggregateEvents";
 
 /** @deprecated Use useAggregateEvents or useListEvents instead */

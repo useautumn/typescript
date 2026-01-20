@@ -5,10 +5,11 @@ export async function register() {
     // Only run on server
     const storage = new Map<string, string>();
     
-    (globalThis as any).localStorage = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as unknown as { localStorage: Storage }).localStorage = {
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, String(value)),
-      removeItem: (key: string) => storage.delete(key),
+      removeItem: (key: string) => { storage.delete(key); },
       clear: () => storage.clear(),
       key: (index: number) => Array.from(storage.keys())[index] ?? null,
       get length() {
