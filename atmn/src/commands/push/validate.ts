@@ -35,22 +35,22 @@ function validatePlanFeature(
 			});
 		}
 
-		// If price has amount or tiers, interval must be defined at the planFeature level
-		if ((feature.price.amount !== undefined || feature.price.tiers) && !feature.interval) {
+		// If price has amount or tiers, reset.interval must be defined
+		if ((feature.price.amount !== undefined || feature.price.tiers) && !feature.reset?.interval) {
 			errors.push({
 				path: basePath,
-				message: `"interval" is required at the planFeature level when pricing is defined (e.g., interval: "month").`,
+				message: `"reset.interval" is required when pricing is defined (e.g., reset: { interval: "month" }).`,
 			});
 		}
 	}
 
-	// If interval is defined, it should be a valid value
-	if (feature.interval) {
+	// If reset.interval is defined, it should be a valid value
+	if (feature.reset?.interval) {
 		const validIntervals = ["one_off", "minute", "hour", "day", "week", "month", "quarter", "year"];
-		if (!validIntervals.includes(feature.interval)) {
+		if (!validIntervals.includes(feature.reset.interval)) {
 			errors.push({
-				path: `${basePath} → interval`,
-				message: `Invalid interval "${feature.interval}". Must be one of: ${validIntervals.join(", ")}.`,
+				path: `${basePath} → reset.interval`,
+				message: `Invalid interval "${feature.reset.interval}". Must be one of: ${validIntervals.join(", ")}.`,
 			});
 		}
 	}

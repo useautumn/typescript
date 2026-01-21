@@ -133,18 +133,25 @@ program
 		} else {
 			// Non-TTY mode - use headless push with V2 logic
 			const { headlessPush } = await import("./commands/push/headless.js");
-			await headlessPush({
-				cwd: process.cwd(),
-				environment,
-				yes: options.yes,
-			});
+			const { formatError } = await import("./lib/api/client.js");
+			try {
+				await headlessPush({
+					cwd: process.cwd(),
+					environment,
+					yes: options.yes,
+				});
+			} catch (error) {
+				console.error(chalk.red(`\nError: ${formatError(error)}`));
+				process.exit(1);
+			}
 		}
 	});
 
 program
 	.command("pull")
 	.description("Pull changes from Autumn")
-	.action(async () => {
+	.option("-f, --force", "Force overwrite config (skip in-place update)")
+	.action(async (options) => {
 		// Import AppEnv here to avoid circular dependencies
 		const { AppEnv } = await import("./lib/env/index.js");
 		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
@@ -155,6 +162,7 @@ program
 				<QueryProvider>
 					<PullView
 						environment={environment}
+						forceOverwrite={options.force}
 						onComplete={() => {
 							process.exit(0);
 						}}
@@ -170,6 +178,7 @@ program
 					generateSdkTypes: true,
 					cwd: process.cwd(),
 					environment,
+					forceOverwrite: options.force,
 				});
 
 				console.log(
@@ -177,13 +186,22 @@ program
 						`✓ Pulled ${result.features.length} features, ${result.plans.length} plans from ${environment}`,
 					),
 				);
+				
+				// Show in-place update details
+				if (result.inPlace && result.updateResult) {
+					const { featuresUpdated, featuresAdded, featuresDeleted, plansUpdated, plansAdded, plansDeleted } = result.updateResult;
+					console.log(chalk.cyan(`  In-place update: ${featuresUpdated} features updated, ${featuresAdded} added, ${featuresDeleted} deleted`));
+					console.log(chalk.cyan(`                   ${plansUpdated} plans updated, ${plansAdded} added, ${plansDeleted} deleted`));
+				}
+				
 				if (result.sdkTypesPath) {
 					console.log(
 						chalk.green(`✓ Generated SDK types at: ${result.sdkTypesPath}`),
 					);
 				}
 			} catch (error) {
-				console.error(chalk.red("Error pulling from Autumn:"), error);
+				const { formatError } = await import("./lib/api/client.js");
+				console.error(chalk.red(`\nError pulling from Autumn: ${formatError(error)}`));
 				process.exit(1);
 			}
 		}

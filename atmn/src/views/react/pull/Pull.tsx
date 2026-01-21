@@ -16,6 +16,8 @@ interface PullViewProps {
 	onComplete?: () => void;
 	/** Environment to pull from */
 	environment?: AppEnv;
+	/** Force overwrite config (skip in-place update) */
+	forceOverwrite?: boolean;
 }
 
 /**
@@ -25,6 +27,7 @@ interface PullViewProps {
 export function PullView({
 	onComplete,
 	environment = AppEnv.Sandbox,
+	forceOverwrite = false,
 }: PullViewProps) {
 	const [startTime] = useState(Date.now());
 	const {
@@ -36,7 +39,9 @@ export function PullView({
 		isPullLoading,
 		isSuccess,
 		error,
-	} = usePull({ environment, onComplete });
+		inPlace,
+		updateResult,
+	} = usePull({ environment, onComplete, forceOverwrite });
 
 	const duration = ((Date.now() - startTime) / 1000).toFixed(1);
 
@@ -127,8 +132,18 @@ export function PullView({
 
 				{/* Completion Message */}
 				{isSuccess && (
-					<Box marginTop={1}>
+					<Box marginTop={1} flexDirection="column">
 						<Text color="green">✨ Done in {duration}s</Text>
+						{inPlace && updateResult && (
+							<Box marginTop={0} flexDirection="column">
+								<Text color="cyan">
+									  In-place: {updateResult.featuresUpdated} features updated, {updateResult.featuresAdded} added, {updateResult.featuresDeleted} deleted
+								</Text>
+								<Text color="cyan">
+									            {updateResult.plansUpdated} plans updated, {updateResult.plansAdded} added, {updateResult.plansDeleted} deleted
+								</Text>
+							</Box>
+						)}
 					</Box>
 				)}
 			</Box>

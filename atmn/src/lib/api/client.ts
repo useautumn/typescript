@@ -25,6 +25,41 @@ export interface RequestOptions {
 export interface ApiError extends Error {
 	status?: number;
 	response?: unknown;
+	url?: string;
+	method?: string;
+}
+
+/**
+ * Format an error for display, including full context for debugging
+ */
+export function formatError(err: unknown): string {
+	if (!(err instanceof Error)) {
+		return String(err);
+	}
+	
+	const apiError = err as ApiError;
+	const lines: string[] = [];
+	
+	// Start with the basic error message
+	lines.push(err.message);
+	
+	// Add request context if available
+	if (apiError.method && apiError.url) {
+		lines.push(`  Request: ${apiError.method} ${apiError.url}`);
+	}
+	
+	// Add status if available
+	if (apiError.status) {
+		lines.push(`  Status: ${apiError.status}`);
+	}
+	
+	// Add response details if available
+	if (apiError.response) {
+		const resp = apiError.response as Record<string, unknown>;
+		lines.push(`  Response: ${JSON.stringify(resp, null, 2).split('\n').join('\n  ')}`);
+	}
+	
+	return lines.join("\n");
 }
 
 /**
@@ -62,6 +97,10 @@ export async function request<T = unknown>(
 
 	// Make request
 	try {
+		// Debug: log the request URL (can be removed later)
+		if (process.env.ATMN_DEBUG) {
+			console.log(`[DEBUG] ${method} ${url.toString()}`);
+		}
 		const response = await fetch(url.toString(), requestInit);
 
 		// Parse response
@@ -80,6 +119,8 @@ export async function request<T = unknown>(
 			) as ApiError;
 			error.status = response.status;
 			error.response = data;
+			error.method = method;
+			error.url = url.toString();
 			throw error;
 		}
 

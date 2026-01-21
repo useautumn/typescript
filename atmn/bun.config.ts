@@ -16,7 +16,7 @@ async function build() {
 		define: {
 			VERSION: `"${version}"`,
 		},
-		external: ["prettier"],
+		external: ["prettier", "jiti"],
 	});
 	console.timeEnd(`Building atmn v${version}`);
 

@@ -1,5 +1,6 @@
 import { request } from "../client.js";
 import type { ApiPlan } from "../types/index.js";
+import type { ApiPlanParams } from "../../transforms/sdkToApi/index.js";
 
 /**
  * Fetch plans from API
@@ -142,6 +143,7 @@ export async function getPlanDeletionInfo(options: {
 
 /**
  * Check if a plan has customers (for versioning check)
+ * Sends the plan data to compare against the current version
  */
 export interface PlanHasCustomersInfo {
 	will_version: boolean;
@@ -151,12 +153,14 @@ export interface PlanHasCustomersInfo {
 export async function getPlanHasCustomers(options: {
 	secretKey: string;
 	planId: string;
+	plan: ApiPlanParams;
 }): Promise<PlanHasCustomersInfo> {
-	const { secretKey, planId } = options;
+	const { secretKey, planId, plan } = options;
 
 	return await request<PlanHasCustomersInfo>({
-		method: "GET",
-		path: `/v1/products/${planId}/has_customers`,
+		method: "POST",
+		path: `/v1/products/${planId}/has_customers_v3`,
 		secretKey,
+		body: plan,
 	});
 }

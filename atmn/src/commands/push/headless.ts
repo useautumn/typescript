@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import createJiti from "jiti";
 import type { Feature, Plan } from "../../../source/compose/models/index.js";
 import { AppEnv } from "../../lib/env/index.js";
+import { formatError } from "../../lib/api/client.js";
 import {
 	analyzePush,
 	archiveFeature,
@@ -456,16 +457,20 @@ export async function headlessPush(
 	console.log(chalk.dim(`Analyzing changes against ${envLabel}...`));
 	const analysis = await analyzePush(config.features, config.plans);
 
-	// Check if there are any changes
+	// Check if there are any changes that require action
+	// Note: plansToUpdate and featuresToUpdate contain ALL items that exist both locally and remotely
+	// We always push these (to ensure sync), but only show "has changes" for things that need 
+	// user attention (creates, deletes, versioning, archives)
 	const hasVersioningPlans = analysis.plansToUpdate.some((p) => p.willVersion);
 	const hasChanges =
 		analysis.featuresToCreate.length > 0 ||
+		analysis.featuresToUpdate.length > 0 ||
 		analysis.featuresToDelete.length > 0 ||
 		analysis.plansToCreate.length > 0 ||
+		analysis.plansToUpdate.length > 0 ||
 		analysis.plansToDelete.length > 0 ||
 		analysis.archivedFeatures.length > 0 ||
-		analysis.archivedPlans.length > 0 ||
-		hasVersioningPlans;
+		analysis.archivedPlans.length > 0;
 
 	if (!hasChanges) {
 		console.log(chalk.green("\nAlready in sync - no changes to push."));

@@ -7,8 +7,16 @@ import { buildPlanFeatureCode } from "./planFeature.js";
 
 /**
  * Generate TypeScript code for a plan definition
+ * 
+ * @param plan The plan to generate code for
+ * @param features List of features
+ * @param featureVarMap Optional map of feature ID -> variable name for preserving local names
  */
-export function buildPlanCode(plan: Plan, features: Feature[]): string {
+export function buildPlanCode(
+	plan: Plan, 
+	features: Feature[],
+	featureVarMap?: Map<string, string>,
+): string {
 	const varName = planIdToVarName(plan.id);
 	const lines: string[] = [];
 
@@ -49,7 +57,7 @@ export function buildPlanCode(plan: Plan, features: Feature[]): string {
 	if (plan.features && plan.features.length > 0) {
 		lines.push(`\tfeatures: [`);
 		for (const planFeature of plan.features) {
-			const featureCode = buildPlanFeatureCode(planFeature, features);
+			const featureCode = buildPlanFeatureCode(planFeature, features, featureVarMap);
 			lines.push(featureCode);
 		}
 		lines.push(`\t],`);

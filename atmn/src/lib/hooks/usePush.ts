@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import createJiti from "jiti";
 import { useCallback, useEffect, useState } from "react";
 import type { Feature, Plan } from "../../../source/compose/models/index.js";
+import { formatError } from "../api/client.js";
 import {
 	analyzePush,
 	archiveFeature as archiveFeatureApi,
@@ -201,7 +202,7 @@ export function usePush(options?: UsePushOptions) {
 			setPhase("loading_org");
 		},
 		onError: (err) => {
-			setError(err instanceof Error ? err.message : "Failed to load config");
+			setError(formatError(err));
 			setPhase("error");
 		},
 	});
@@ -217,22 +218,16 @@ export function usePush(options?: UsePushOptions) {
 			setAnalysis(analysisResult);
 
 			// Check if there are any meaningful changes to push
-			// Note: featuresToUpdate/plansToUpdate always contain items when features/plans exist
-			// They're no-ops if nothing actually changed, so we only count them if:
-			// - There are creates/deletes (actual changes)
-			// - There are archived items to handle
-			// - Any plan will create a new version (actual change)
-			const hasVersioningPlans = analysisResult.plansToUpdate.some(
-				(p) => p.willVersion,
-			);
+			// Check if there are any changes to push
 			const hasChanges =
 				analysisResult.featuresToCreate.length > 0 ||
+				analysisResult.featuresToUpdate.length > 0 ||
 				analysisResult.featuresToDelete.length > 0 ||
 				analysisResult.plansToCreate.length > 0 ||
+				analysisResult.plansToUpdate.length > 0 ||
 				analysisResult.plansToDelete.length > 0 ||
 				analysisResult.archivedFeatures.length > 0 ||
-				analysisResult.archivedPlans.length > 0 ||
-				hasVersioningPlans;
+				analysisResult.archivedPlans.length > 0;
 
 			if (!hasChanges) {
 				// No changes to push - show "already in sync" state
@@ -307,7 +302,7 @@ export function usePush(options?: UsePushOptions) {
 			}
 		},
 		onError: (err) => {
-			setError(err instanceof Error ? err.message : "Failed to analyze push");
+			setError(formatError(err));
 			setPhase("error");
 		},
 	});
@@ -385,7 +380,7 @@ export function usePush(options?: UsePushOptions) {
 			setPhase("pushing_plans");
 		},
 		onError: (err) => {
-			setError(err instanceof Error ? err.message : "Failed to push features");
+			setError(formatError(err));
 			setPhase("error");
 		},
 	});
@@ -479,7 +474,7 @@ export function usePush(options?: UsePushOptions) {
 			setPhase("deleting");
 		},
 		onError: (err) => {
-			setError(err instanceof Error ? err.message : "Failed to push plans");
+			setError(formatError(err));
 			setPhase("error");
 		},
 	});
@@ -588,9 +583,7 @@ export function usePush(options?: UsePushOptions) {
 			}
 		},
 		onError: (err) => {
-			setError(
-				err instanceof Error ? err.message : "Failed to process deletions",
-			);
+			setError(formatError(err));
 			setPhase("error");
 		},
 	});
@@ -682,10 +675,7 @@ export function usePush(options?: UsePushOptions) {
 	// Combine errors
 	const combinedError =
 		error || orgQuery.error
-			? error ||
-				(orgQuery.error instanceof Error
-					? orgQuery.error.message
-					: String(orgQuery.error))
+			? error || formatError(orgQuery.error)
 			: null;
 
 	return {

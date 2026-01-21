@@ -1,5 +1,6 @@
 import type { Feature, Plan } from "../../../source/compose/models/index.js";
 import type { AppEnv } from "../../lib/env/index.js";
+import type { UpdateResult } from "../../lib/transforms/inPlaceUpdate/index.js";
 
 /**
  * Options for pull command
@@ -11,6 +12,8 @@ export interface PullOptions {
 	cwd?: string;
 	/** Environment to pull from (defaults to AppEnv.Sandbox) */
 	environment?: AppEnv;
+	/** Force overwrite config file instead of in-place update */
+	forceOverwrite?: boolean;
 }
 
 /**
@@ -25,6 +28,10 @@ export interface PullResult {
 	configPath: string;
 	/** Path to generated SDK types file (if generateSdkTypes was true) */
 	sdkTypesPath?: string;
+	/** Whether in-place update was used */
+	inPlace?: boolean;
+	/** Details if in-place update was used */
+	updateResult?: UpdateResult;
 }
 
 /**

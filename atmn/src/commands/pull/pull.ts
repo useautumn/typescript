@@ -11,7 +11,7 @@ import type { PullOptions, PullResult } from "./types.js";
  * Flow:
  * 1. Get key for specified environment (defaults to sandbox)
  * 2. Fetch & transform from specified environment
- * 3. Write autumn.config.ts
+ * 3. Write autumn.config.ts (in-place if exists, unless forceOverwrite)
  * 4. If generateSdkTypes:
  *    a. Try get live key (optional)
  *    b. If live key exists, fetch & transform from live
@@ -22,7 +22,8 @@ export async function pull(options: PullOptions = {}): Promise<PullResult> {
 	const { 
 		generateSdkTypes: shouldGenerateSdkTypes = false, 
 		cwd = process.cwd(),
-		environment = AppEnv.Sandbox 
+		environment = AppEnv.Sandbox,
+		forceOverwrite = false,
 	} = options;
 
 	// 1. Get key for specified environment
@@ -31,17 +32,20 @@ export async function pull(options: PullOptions = {}): Promise<PullResult> {
 	// 2. Fetch & transform from specified environment
 	const primaryData = await pullFromEnvironment(primaryKey);
 
-	// 3. Write autumn.config.ts (using primary environment data)
-	const configPath = await writeConfig(
+	// 3. Write autumn.config.ts (in-place update if exists, unless forceOverwrite)
+	const writeResult = await writeConfig(
 		primaryData.features,
 		primaryData.plans,
 		cwd,
+		{ forceOverwrite },
 	);
 
 	const result: PullResult = {
 		features: primaryData.features,
 		plans: primaryData.plans,
-		configPath,
+		configPath: writeResult.configPath,
+		inPlace: writeResult.inPlace,
+		updateResult: writeResult.updateResult,
 	};
 
 	// 4. Generate SDK types if requested

@@ -17,6 +17,7 @@ import {
 	getPlanDeletionInfo,
 	getPlanHasCustomers,
 } from "../../lib/api/endpoints/index.js";
+import { transformPlanToApi } from "../../lib/transforms/sdkToApi/index.js";
 import { getKey } from "../../lib/env/index.js";
 import { AppEnv } from "../../lib/env/index.js";
 import { isProd } from "../../lib/env/cliContext.js";
@@ -149,7 +150,9 @@ async function checkPlanForVersioning(
 		};
 	}
 
-	const response = await getPlanHasCustomers({ secretKey, planId: plan.id });
+	// Transform SDK plan to API format for comparison
+	const apiPlan = transformPlanToApi(plan);
+	const response = await getPlanHasCustomers({ secretKey, planId: plan.id, plan: apiPlan });
 
 	return {
 		plan,
@@ -282,40 +285,13 @@ function transformPlanForApi(plan: Plan): Record<string, unknown> {
 				delete transformedFeature.included;
 			}
 
-			// Transform flattened reset fields to nested reset object
+			// Pass through reset object as-is (already nested in SDK format)
+			// Just strip out reset_when_enabled if present (we ignore it)
 			const featureAny = feature as Record<string, unknown>;
-			if (
-				"interval" in featureAny ||
-				"interval_count" in featureAny ||
-				"carry_over_usage" in featureAny
-			) {
-				const reset: Record<string, unknown> = {};
-
-				if ("interval" in featureAny && featureAny.interval !== undefined) {
-					reset.interval = featureAny.interval;
-					delete transformedFeature.interval;
-				}
-
-				if (
-					"interval_count" in featureAny &&
-					featureAny.interval_count !== undefined
-				) {
-					reset.interval_count = featureAny.interval_count;
-					delete transformedFeature.interval_count;
-				}
-
-				// SDK: carry_over_usage (true = keep existing) -> API: reset_when_enabled (true = reset on enable)
-				if (
-					"carry_over_usage" in featureAny &&
-					featureAny.carry_over_usage !== undefined
-				) {
-					reset.reset_when_enabled = !featureAny.carry_over_usage;
-					delete transformedFeature.carry_over_usage;
-				}
-
-				if (Object.keys(reset).length > 0) {
-					transformedFeature.reset = reset;
-				}
+			if ("reset" in featureAny && featureAny.reset && typeof featureAny.reset === "object") {
+				const reset = { ...(featureAny.reset as Record<string, unknown>) };
+				delete reset.reset_when_enabled; // Ignore this field
+				transformedFeature.reset = reset;
 			}
 
 			// Transform nested price object: 'billing_method' -> 'usage_model'

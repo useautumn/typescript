@@ -1,6 +1,6 @@
 import type { PlanFeature } from "../../../../source/compose/models/planModels.js";
 import type { ApiPlanFeature } from "../../api/types/index.js";
-import { invertResetWhenEnabled, mapUsageModel } from "./helpers.js";
+import { mapUsageModel } from "./helpers.js";
 import { createTransformer } from "./Transformer.js";
 
 /**
@@ -12,24 +12,30 @@ export const planFeatureTransformer = createTransformer<
 >({
 	copy: ["feature_id", "unlimited", "proration"],
 
-	// Rename: granted_balance → included
-	rename: {
-		granted_balance: "included",
-	},
-
-	// Flatten: reset.* → top-level fields
-	flatten: {
-		"reset.interval": "interval",
-		"reset.interval_count": "interval_count",
-	},
-
 	// Computed fields
 	compute: {
-		// Invert: reset.reset_when_enabled → carry_over_usage
-		carry_over_usage: (api) =>
-			api.reset?.reset_when_enabled !== undefined
-				? invertResetWhenEnabled(api.reset.reset_when_enabled)
-				: undefined,
+		// Only include 'included' (granted_balance) if not unlimited
+		included: (api) => 
+			api.unlimited ? undefined : api.granted_balance,
+
+		// Keep reset nested, but strip out reset_when_enabled (we ignore it)
+		// If reset is null but price has an interval, derive reset from price.interval
+		reset: (api) => {
+			if (api.reset) {
+				return {
+					interval: api.reset.interval,
+					interval_count: api.reset.interval_count,
+				};
+			}
+			// If no explicit reset but price exists with interval, derive reset from it
+			if (api.price?.interval) {
+				return {
+					interval: api.price.interval,
+					interval_count: api.price.interval_count,
+				};
+			}
+			return undefined;
+		},
 
 		// Transform price object
 		price: (api) =>

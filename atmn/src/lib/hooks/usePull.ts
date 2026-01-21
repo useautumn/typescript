@@ -5,6 +5,8 @@ import type { Feature, Plan } from "../../../source/compose/models/index.js";
 import { AppEnv } from "../env/index.js";
 import { pull } from "../../commands/pull/pull.js";
 import { useOrganization } from "./useOrganization.js";
+import type { UpdateResult } from "../transforms/inPlaceUpdate/index.js";
+import { formatError } from "../api/client.js";
 
 export interface GeneratedFile {
 	name: string;
@@ -16,12 +18,15 @@ interface PullParams {
 	cwd: string;
 	generateSdkTypes?: boolean;
 	environment?: AppEnv;
+	forceOverwrite?: boolean;
 }
 
 interface PullData {
 	features: Feature[];
 	plans: Plan[];
 	files: GeneratedFile[];
+	inPlace?: boolean;
+	updateResult?: UpdateResult;
 }
 
 function countLines(filePath: string): number {
@@ -37,10 +42,12 @@ export function usePull(options?: {
 	cwd?: string; 
 	environment?: AppEnv;
 	onComplete?: () => void;
+	forceOverwrite?: boolean;
 }) {
 	const effectiveCwd = options?.cwd ?? process.cwd();
 	const environment = options?.environment ?? AppEnv.Sandbox;
 	const onComplete = options?.onComplete;
+	const forceOverwrite = options?.forceOverwrite ?? false;
 
 	// Get org info using TanStack Query (this IS a query)
 	const orgQuery = useOrganization(effectiveCwd);
@@ -52,6 +59,7 @@ export function usePull(options?: {
 				generateSdkTypes: params.generateSdkTypes ?? true,
 				cwd: params.cwd,
 				environment: params.environment ?? AppEnv.Sandbox,
+				forceOverwrite: params.forceOverwrite,
 			});
 
 			const files: GeneratedFile[] = [];
@@ -76,6 +84,8 @@ export function usePull(options?: {
 				features: result.features,
 				plans: result.plans,
 				files,
+				inPlace: result.inPlace,
+				updateResult: result.updateResult,
 			};
 		},
 		onSuccess: () => {
@@ -96,9 +106,10 @@ export function usePull(options?: {
 				cwd: effectiveCwd,
 				generateSdkTypes: true,
 				environment,
+				forceOverwrite,
 			});
 		}
-	}, [orgQuery.isSuccess, pullMutation, effectiveCwd, environment]);
+	}, [orgQuery.isSuccess, pullMutation, effectiveCwd, environment, forceOverwrite]);
 
 	const error = orgQuery.error || pullMutation.error;
 
@@ -110,6 +121,8 @@ export function usePull(options?: {
 		isOrgLoading: orgQuery.isLoading,
 		isPullLoading: pullMutation.isPending,
 		isSuccess: pullMutation.isSuccess,
-		error: error ? (error instanceof Error ? error.message : String(error)) : null,
+		error: error ? formatError(error) : null,
+		inPlace: pullMutation.data?.inPlace,
+		updateResult: pullMutation.data?.updateResult,
 	};
 }

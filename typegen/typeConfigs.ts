@@ -731,13 +731,14 @@ export function getAtmnTypeConfigs(
  * planFeature({
  *   feature_id: seats.id,
  *   included: 5,
+ *   reset: { interval: 'month' },
  *   price: {
  *     tiers: [
  *       { to: 10, amount: 10 },
  *       { to: 'inf', amount: 8 }
  *     ],
- *     interval: 'month',
- *     billing_method: 'pay_per_use'
+ *     billing_method: 'pay_per_use',
+ *     billing_units: 1
  *   }
  * })
  */`,

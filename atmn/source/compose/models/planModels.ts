@@ -89,7 +89,7 @@ export type OnDecrease = "prorate" | "refund_immediately" | "no_action";
 type PlanFeatureBase = z.infer<typeof PlanFeatureSchema>;
 
 /**
- * Plan feature configuration with flattened reset fields. Use interval/interval_count at top level.
+ * Plan feature configuration with nested reset object.
  */
 export type PlanFeature = {
   /** Reference to the feature being configured */
@@ -101,14 +101,13 @@ export type PlanFeature = {
   /** Whether usage is unlimited */
   unlimited?: boolean;
 
-  /** How often usage resets (e.g., 'month', 'day') */
-  interval?: ResetInterval;
+  /** Reset configuration for usage limits */
+  reset?: {
+    /** How often usage resets (e.g., 'month', 'day') */
+    interval: ResetInterval;
 
-  /** Number of intervals between resets (default: 1) */
-  interval_count?: number;
-
-  /** Whether to carry over existing usage when feature is enabled (default: true) */
-  carry_over_usage?: boolean;
+    /** Number of intervals between resets (default: 1) */
+    interval_count?: number;  }
 
   /** Pricing configuration for usage-based billing */
   price?: {

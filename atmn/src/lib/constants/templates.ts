@@ -11,119 +11,115 @@ export interface PlanData {
 }
 
 export const templateData: Record<string, PlanData[]> = {
-	Blacktriangle: [
-		{
-			name: "Hobby",
-			features: [
-				"100 GB bandwidth",
-				"Serverless functions",
-				"Edge network",
-				"Community support",
-			],
-			price: "$0/month",
-		},
-		{
-			name: "Pro",
-			badge: "most popular",
-			features: [
-				"1 TB bandwidth",
-				"Advanced analytics",
-				"Team collaboration",
-				"Preview deployments",
-				"Priority support",
-				"Custom domains",
-				"DDoS protection",
-			],
-			price: "$20/month",
-		},
-		{
-			name: "Enterprise",
-			features: [
-				"Unlimited bandwidth",
-				"SLA guarantee",
-				"Dedicated support",
-				"SSO & SAML",
-				"Custom contracts",
-			],
-			price: "Custom",
-		},
-	],
-	RatGPT: [
+	Railway: [
 		{
 			name: "Free",
 			features: [
-				"50 messages/day",
-				"Basic AI model",
-				"Web access",
-				"Standard speed",
+				"500 credits one-time",
+				"Memory: 0.039cr/GB-hr",
+				"CPU: 0.078cr/vCPU-hr",
+				"Egress: 5cr/GB",
 			],
-			price: "$0/month",
+			price: "$0",
 		},
 		{
-			name: "Plus",
+			name: "Hobby",
 			badge: "most popular",
 			features: [
-				"Unlimited messages",
-				"Advanced AI models",
-				"Priority access",
-				"Plugins & tools",
-				"Image generation",
-				"Voice mode",
-				"File uploads",
+				"500 credits/month",
+				"Pay-per-use overage",
+				"Memory: 0.039cr/GB-hr",
+				"CPU: 0.078cr/vCPU-hr",
+				"Egress: 5cr/GB",
+				"Storage: 1.5cr/GB-mo",
+			],
+			price: "$5/month",
+		},
+		{
+			name: "Pro",
+			features: [
+				"2000 credits/month",
+				"Pay-per-use overage",
+				"All resource types",
+				"Team features",
+				"Priority support",
 			],
 			price: "$20/month",
 		},
+	],
+	Linear: [
 		{
-			name: "Team",
+			name: "Free",
 			features: [
-				"All Plus features",
-				"Admin console",
-				"Team workspace",
-				"Usage analytics",
+				"2 teams",
+				"250 issues limit",
+				"Basic integrations",
+				"Community support",
+			],
+			price: "$0",
+		},
+		{
+			name: "Basic",
+			badge: "most popular",
+			features: [
+				"5 teams",
+				"Unlimited issues",
+				"All integrations",
+				"Cycles & roadmaps",
+				"Email support",
+				"Guest access",
+			],
+			price: "$12/user/mo",
+		},
+		{
+			name: "Business",
+			features: [
+				"Unlimited teams",
+				"Unlimited issues",
+				"SAML SSO",
+				"Audit logs",
 				"Priority support",
 			],
-			price: "$25/user/mo",
+			price: "$18/user/mo",
 		},
 	],
-	Aksiom: [
+	"T3 Chat": [
 		{
-			name: "Starter",
+			name: "Free",
 			features: [
-				"1 GB ingest/mo",
-				"7 day retention",
-				"Basic dashboards",
-				"Email alerts",
+				"100 messages",
+				"/month",
+				"Basic models",
+				"Web access",
 			],
-			price: "$0/month",
+			price: "$0",
 		},
 		{
 			name: "Pro",
 			badge: "most popular",
 			features: [
-				"50 GB ingest/mo",
-				"30 day retention",
-				"Advanced queries",
-				"Team access",
-				"Slack alerts",
-				"API access",
-				"Custom dashboards",
+				"1500 messages/month",
+				"100 premium/month",
+				"All models",
+				"Priority access",
+				"Faster responses",
+				"File uploads",
 			],
-			price: "$25/month",
+			price: "$8/month",
 		},
 		{
-			name: "Enterprise",
+			name: "Credits",
 			features: [
-				"Unlimited ingest",
-				"90 day retention",
-				"SSO & RBAC",
-				"Dedicated support",
-				"SLA guarantee",
+				"100 premium",
+				"messages",
+				"One-time purchase",
+				"Never expires",
 			],
-			price: "Custom",
+			price: "$8 add-on",
 		},
 	],
 };
 
-export const templates = ["Blacktriangle", "RatGPT", "Aksiom"] as const;
+export const templates = ["Railway", "Linear", "T3 Chat"] as const;
 
 export type TemplateName = (typeof templates)[number];

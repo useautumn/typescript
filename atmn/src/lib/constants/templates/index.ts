@@ -3,9 +3,9 @@
  */
 
 import type { Feature, Plan } from "../../../../source/compose/models/index.js";
-import * as blacktriangle from "./blacktriangle.config.js";
-import * as ratgpt from "./ratgpt.config.js";
-import * as aksiom from "./aksiom.config.js";
+import * as railway from "./railway.config.js";
+import * as linear from "./linear.config.js";
+import * as t3chat from "./t3chat.config.js";
 
 export interface TemplateConfig {
 	features: Feature[];
@@ -13,16 +13,16 @@ export interface TemplateConfig {
 }
 
 export const templateConfigs: Record<string, TemplateConfig> = {
-	Blacktriangle: {
-		features: blacktriangle.features,
-		plans: blacktriangle.plans,
+	Railway: {
+		features: railway.features,
+		plans: railway.plans,
 	},
-	RatGPT: {
-		features: ratgpt.features,
-		plans: ratgpt.plans,
+	Linear: {
+		features: linear.features,
+		plans: linear.plans,
 	},
-	Aksiom: {
-		features: aksiom.features,
-		plans: aksiom.plans,
+	"T3 Chat": {
+		features: t3chat.features,
+		plans: t3chat.plans,
 	},
 };

@@ -138,9 +138,8 @@ export function generateDiscriminatedUnion({
 /**
  * Generate simplified PlanFeature type (no discriminated union needed)
  * 
- * SDK structure (flattened):
- * - interval, interval_count at top level (from reset.interval, reset.interval_count)
- * - carry_over_usage at top level (inverted from reset.reset_when_enabled)
+ * SDK structure uses nested reset object matching API structure:
+ * - reset: { interval, interval_count }
  * - price has NO interval/interval_count fields
  */
 export function generatePlanFeatureType(
@@ -154,6 +153,22 @@ export function generatePlanFeatureType(
 		OnIncrease: '"prorate" | "charge_immediately"',
 		OnDecrease: '"prorate" | "refund_immediately" | "no_action"',
 	};
+
+	const resetFields: FieldConfig[] = [
+		{
+			name: "interval",
+			type: "ResetInterval",
+			descriptionKey: "reset.interval",
+			defaultDescription: "How often usage resets (e.g., 'month', 'day')",
+		},
+		{
+			name: "interval_count",
+			type: "number",
+			optional: true,
+			descriptionKey: "reset.interval_count",
+			defaultDescription: "Number of intervals between resets (default: 1)",
+		},
+	];
 
 	const prorationFields: FieldConfig[] = [
 		{
@@ -213,27 +228,13 @@ export function generatePlanFeatureType(
 			descriptionKey: "unlimited",
 			defaultDescription: "Whether usage is unlimited",
 		},
-		// Flattened reset fields
+		// Nested reset object
 		{
-			name: "interval",
-			type: "ResetInterval",
+			name: "reset",
+			type: "object",
 			optional: true,
-			descriptionKey: "interval",
-			defaultDescription: "How often usage resets (e.g., 'month', 'day')",
-		},
-		{
-			name: "interval_count",
-			type: "number",
-			optional: true,
-			descriptionKey: "interval_count",
-			defaultDescription: "Number of intervals between resets (default: 1)",
-		},
-		{
-			name: "carry_over_usage",
-			type: "boolean",
-			optional: true,
-			descriptionKey: "carry_over_usage",
-			defaultDescription: "Whether to carry over existing usage when feature is enabled (default: true)",
+			defaultDescription: "Reset configuration for usage limits",
+			nestedFields: resetFields,
 		},
 		// Price object (no interval/interval_count)
 		{
@@ -311,7 +312,7 @@ export function generatePlanFeatureType(
 		typeName: "PlanFeature",
 		fields: planFeatureFields,
 		metaDescriptions,
-		comment: "Plan feature configuration with flattened reset fields. Use interval/interval_count at top level.",
+		comment: "Plan feature configuration with nested reset object.",
 	});
 
 	return result;

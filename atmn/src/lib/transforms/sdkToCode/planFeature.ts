@@ -6,14 +6,19 @@ import { idToVarName, formatValue } from "./helpers.js";
 
 /**
  * Generate TypeScript code for a plan feature configuration
+ * 
+ * @param planFeature The plan feature to generate code for
+ * @param features List of features (used for future variable name lookup)
+ * @param featureVarMap Optional map of feature ID -> variable name for preserving local names
  */
 export function buildPlanFeatureCode(
 	planFeature: PlanFeature,
 	features: Feature[],
+	featureVarMap?: Map<string, string>,
 ): string {
-	// Find the feature to get its variable name
-	const feature = features.find((f) => f.id === planFeature.feature_id);
-	const featureVarName = feature ? idToVarName(feature.id) : null;
+	// Use the variable map if provided, otherwise use string literal
+	// This ensures generated code always works, even if variable names differ
+	const featureVarName = featureVarMap?.get(planFeature.feature_id);
 	const featureIdCode = featureVarName
 		? `${featureVarName}.id`
 		: `'${planFeature.feature_id}'`;
@@ -32,15 +37,16 @@ export function buildPlanFeatureCode(
 		lines.push(`\t\t\tunlimited: ${planFeature.unlimited},`);
 	}
 
-	// Add reset fields (flattened)
-	if (planFeature.interval) {
-		lines.push(`\t\t\tinterval: '${planFeature.interval}',`);
-	}
-	if (planFeature.interval_count !== undefined) {
-		lines.push(`\t\t\tinterval_count: ${planFeature.interval_count},`);
-	}
-	if (planFeature.carry_over_usage !== undefined) {
-		lines.push(`\t\t\tcarry_over_usage: ${planFeature.carry_over_usage},`);
+	// Add reset object (nested)
+	if (planFeature.reset) {
+		lines.push(`\t\t\treset: {`);
+		if (planFeature.reset.interval) {
+			lines.push(`\t\t\t\tinterval: '${planFeature.reset.interval}',`);
+		}
+		if (planFeature.reset.interval_count !== undefined) {
+			lines.push(`\t\t\t\tinterval_count: ${planFeature.reset.interval_count},`);
+		}
+		lines.push(`\t\t\t},`);
 	}
 
 	// Add price
