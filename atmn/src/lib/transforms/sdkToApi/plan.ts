@@ -82,11 +82,15 @@ function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 		const price = feature.price as Record<string, unknown>;
 		const interval = (price.interval as string) ?? feature.reset?.interval ?? "month";
 		
+		// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
+		const usageModel = feature.price.billing_method === "usage_based" 
+			? "pay_per_use" 
+			: (feature.price.billing_method ?? "prepaid");
+		
 		result.price = {
 			interval,
 			billing_units: feature.price.billing_units ?? 1,
-			// SDK uses billing_method, API uses usage_model
-			usage_model: feature.price.billing_method ?? "prepaid",
+			usage_model: usageModel,
 			...(feature.price.amount !== undefined && { amount: feature.price.amount }),
 			...(feature.price.tiers && { tiers: feature.price.tiers }),
 			...(price.interval_count !== undefined && {

@@ -89,7 +89,7 @@ export const pro = plan({
 			price: {
 				amount: 10,
 				interval: 'month',
-				billing_method: 'pay_per_use',
+				billing_method: 'usage_based',
 				billing_units: 1,
 			},
 		}),

@@ -81,7 +81,7 @@ export const PlanSchema = z.object({
 // Type aliases for literal unions
 export type ResetInterval = "one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year";
 export type BillingInterval = "month" | "quarter" | "semi_annual" | "year";
-export type BillingMethod = "prepaid" | "pay_per_use";
+export type BillingMethod = "prepaid" | "usage_based";
 export type OnIncrease = "prorate" | "charge_immediately";
 export type OnDecrease = "prorate" | "refund_immediately" | "no_action";
 
@@ -120,7 +120,7 @@ export type PlanFeature = {
     /** Number of units per billing cycle */
     billing_units: number;
 
-    /** Billing method: 'prepaid' or 'pay_per_use' */
+    /** Billing method: 'prepaid' or 'usage_based' */
     billing_method: BillingMethod;
 
     /** Maximum purchasable quantity */

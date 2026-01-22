@@ -70,7 +70,7 @@ export const plans: Plan[] = [
 			{
 				feature_id: "seats",
 				reset: { interval: "month" },
-				price: { amount: 12, billing_method: "pay_per_use", billing_units: 1 },
+				price: { amount: 12, billing_method: "usage_based", billing_units: 1 },
 			},
 			{ feature_id: "teams", included: 5 },
 			{ feature_id: "issues", unlimited: true },
@@ -88,7 +88,7 @@ export const plans: Plan[] = [
 			{
 				feature_id: "seats",
 				reset: { interval: "month" },
-				price: { amount: 18, billing_method: "pay_per_use", billing_units: 1 },
+				price: { amount: 18, billing_method: "usage_based", billing_units: 1 },
 			},
 			{ feature_id: "teams", unlimited: true },
 			{ feature_id: "issues", unlimited: true },

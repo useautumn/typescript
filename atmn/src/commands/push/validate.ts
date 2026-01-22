@@ -31,7 +31,7 @@ function validatePlanFeature(
 		if (!feature.price.billing_method) {
 			errors.push({
 				path: `${basePath} → price`,
-				message: `"billing_method" is required when "price" is defined. Must be "prepaid" or "pay_per_use".`,
+				message: `"billing_method" is required when "price" is defined. Must be "prepaid" or "usage_based".`,
 			});
 		}
 
@@ -44,14 +44,22 @@ function validatePlanFeature(
 		}
 	}
 
-	// If reset.interval is defined, it should be a valid value
-	if (feature.reset?.interval) {
-		const validIntervals = ["one_off", "minute", "hour", "day", "week", "month", "quarter", "year"];
-		if (!validIntervals.includes(feature.reset.interval)) {
+	// If reset is specified, interval MUST be explicitly defined (not null/undefined)
+	if (feature.reset !== undefined) {
+		if (feature.reset.interval === undefined || feature.reset.interval === null) {
 			errors.push({
-				path: `${basePath} → reset.interval`,
-				message: `Invalid interval "${feature.reset.interval}". Must be one of: ${validIntervals.join(", ")}.`,
+				path: `${basePath} → reset`,
+				message: `"interval" is required when "reset" is specified. Must be one of: one_off, minute, hour, day, week, month, quarter, year.`,
 			});
+		} else {
+			// Validate interval is a valid value
+			const validIntervals = ["one_off", "minute", "hour", "day", "week", "month", "quarter", "year"];
+			if (!validIntervals.includes(feature.reset.interval)) {
+				errors.push({
+					path: `${basePath} → reset.interval`,
+					message: `Invalid interval "${feature.reset.interval}". Must be one of: ${validIntervals.join(", ")}.`,
+				});
+			}
 		}
 	}
 
@@ -95,6 +103,15 @@ function validatePlan(plan: Plan): ValidationError[] {
 				message: `"interval" is required when "price" is defined (e.g., interval: "month").`,
 			});
 		}
+	}
+
+	// If auto_enable is true and free_trial.card_required is true, that's invalid
+	// Customers shouldn't be auto-enrolled in a trial that requires card input
+	if (plan.auto_enable === true && plan.free_trial?.card_required === true) {
+		errors.push({
+			path: `plan "${planId}"`,
+			message: `"auto_enable" cannot be true when "free_trial.card_required" is true. Customers cannot be auto-enrolled in a trial that requires card input.`,
+		});
 	}
 
 	// Validate each plan feature

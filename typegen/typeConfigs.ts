@@ -737,7 +737,7 @@ export function getAtmnTypeConfigs(
  *       { to: 10, amount: 10 },
  *       { to: 'inf', amount: 8 }
  *     ],
- *     billing_method: 'pay_per_use',
+ *     billing_method: 'usage_based',
  *     billing_units: 1
  *   }
  * })

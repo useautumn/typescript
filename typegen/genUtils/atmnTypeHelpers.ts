@@ -149,7 +149,7 @@ export function generatePlanFeatureType(
 		ResetInterval:
 			'"one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"',
 		BillingInterval: '"month" | "quarter" | "semi_annual" | "year"',
-		BillingMethod: '"prepaid" | "pay_per_use"',
+		BillingMethod: '"prepaid" | "usage_based"',
 		OnIncrease: '"prorate" | "charge_immediately"',
 		OnDecrease: '"prorate" | "refund_immediately" | "no_action"',
 	};
@@ -263,12 +263,12 @@ export function generatePlanFeatureType(
 					descriptionKey: "price.billing_units",
 					defaultDescription: "Number of units per billing cycle",
 				},
-				{
-					name: "billing_method",
-					type: "BillingMethod",
-					descriptionKey: "price.billing_method",
-					defaultDescription: "Billing method: 'prepaid' or 'pay_per_use'",
-				},
+			{
+				name: "billing_method",
+				type: "BillingMethod",
+				descriptionKey: "price.billing_method",
+				defaultDescription: "Billing method: 'prepaid' or 'usage_based'",
+			},
 				{
 					name: "max_purchase",
 					type: "number",

@@ -23,15 +23,16 @@ export function mapFeatureType(
 
 /**
  * Map API usage_model to SDK billing_method
+ * API uses 'pay_per_use', SDK uses 'usage_based'
  */
 export function mapUsageModel(
 	usageModel: string,
-): "prepaid" | "pay_per_use" | undefined {
+): "prepaid" | "usage_based" | undefined {
 	if (usageModel === "prepaid") {
 		return "prepaid";
 	}
 	if (usageModel === "pay_per_use") {
-		return "pay_per_use";
+		return "usage_based";
 	}
 	return undefined;
 }
