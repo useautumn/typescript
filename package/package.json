@@ -1,7 +1,7 @@
 {
 	"name": "autumn-js",
 	"description": "Autumn JS Library",
-	"version": "0.1.69",
+	"version": "0.1.70",
 	"repository": "github:useautumn/autumn-js",
 	"homepage": "https://docs.useautumn.com",
 	"main": "./dist/sdk/index.js",
