@@ -1,6 +1,7 @@
 import { Box, Text } from "ink";
 import React, { useState } from "react";
 
+import { ASCII_TITLE } from "../../../constants.js";
 import { AuthStep } from "./steps/AuthStep.js";
 import { ConfigStep } from "./steps/ConfigStep.js";
 import { HandoffStep } from "./steps/HandoffStep.js";
@@ -35,6 +36,11 @@ export function InitFlow() {
 
 	return (
 		<Box flexDirection="column" paddingLeft={1} paddingRight={1}>
+			{/* ASCII Title */}
+			<Box marginTop={1} marginBottom={1}>
+				<Text>{ASCII_TITLE}</Text>
+			</Box>
+
 			{/* Welcome message */}
 			<Box marginBottom={1}>
 				<Text>

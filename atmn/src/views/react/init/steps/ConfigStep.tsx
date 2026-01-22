@@ -13,7 +13,7 @@ import {
 } from "../../components/index.js";
 import { InlineNukeFlow } from "../../nuke/InlineNukeFlow.js";
 import { PullView } from "../../pull/Pull.js";
-import { TemplateSelector } from "../../template/TemplateSelector.js";
+import { TemplateSelector2 } from "../../template2/TemplateSelector2.js";
 
 type ConfigState =
 	| "choosing"
@@ -259,9 +259,9 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 				</Box>
 			)}
 			{configState === "template" && (
-				<TemplateSelector
-					onSelect={(template) => {
-						handleTemplateSelect(template);
+				<TemplateSelector2
+					onSelect={(templateName) => {
+						handleTemplateSelect(templateName);
 					}}
 					onCancel={handleTemplateCancel}
 				/>
