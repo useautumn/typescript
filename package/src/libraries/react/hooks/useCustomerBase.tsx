@@ -162,9 +162,9 @@ export const useCustomerBase = <
 	const queryKey = ["customer", baseUrl, params?.expand];
 
 	const fetchCustomer = async () => {
-		const { data, error } = await client!.createCustomer({
+		const { data, error } = await client!.createCustomer<T>({
 			errorOnNotFound: params?.errorOnNotFound,
-			expand: params?.expand as CustomerExpandOption[] | undefined,
+			expand: params?.expand,
 		});
 
 		if (error) {

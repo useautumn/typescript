@@ -1,14 +1,16 @@
 import { AutumnClient, OmitCustomerType } from "./ReactAutumnClient";
-import { CreateCustomerParams, Customer } from "../../../sdk";
-import { AutumnPromise } from "../../../sdk/response";
+import type { CreateCustomerParams, ExpandedCustomer, CustomerExpandOption } from "../../../sdk";
+import type { AutumnPromise } from "../../../sdk/response";
 
-export const createCustomerMethod = async ({
+export const createCustomerMethod = async <
+  const T extends readonly CustomerExpandOption[] = readonly [],
+>({
   client,
   params,
 }: {
   client: AutumnClient;
-  params: Omit<CreateCustomerParams, OmitCustomerType>;
-}): AutumnPromise<Customer> => {
+  params: Omit<CreateCustomerParams<T>, OmitCustomerType>;
+}): AutumnPromise<ExpandedCustomer<T>> => {
   let result = await client.post(`${client.prefix}/customers`, params);
   return result;
 };

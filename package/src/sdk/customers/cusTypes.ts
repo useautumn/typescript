@@ -148,8 +148,10 @@ export const CustomerDataSchema = z.object({
 
 export type CustomerData = z.infer<typeof CustomerDataSchema>;
 
-export interface GetCustomerParams {
-  expand?: CustomerExpandOption[];
+export interface GetCustomerParams<
+  T extends readonly CustomerExpandOption[] = readonly [],
+> {
+  expand?: T;
 }
 
 export const CreateCustomerParamsSchema = z.object({
@@ -162,16 +164,17 @@ export const CreateCustomerParamsSchema = z.object({
   stripe_id: z.string().nullish(),
 });
 
-export type CreateCustomerParams = z.infer<typeof CreateCustomerParamsSchema>;
+export type CreateCustomerParamsBase = z.infer<typeof CreateCustomerParamsSchema>;
 
-// export interface CreateCustomerParams {
-//   id?: string | null;
-//   email?: string | null;
-//   name?: string | null;
-//   fingerprint?: string | null;
-//   metadata?: Record<string, any>;
-//   expand?: CustomerExpandOption[];
-// }
+/**
+ * Generic version of CreateCustomerParams that preserves the expand array type
+ * for proper ExpandedCustomer inference.
+ */
+export interface CreateCustomerParams<
+  T extends readonly CustomerExpandOption[] = readonly [],
+> extends Omit<CreateCustomerParamsBase, "expand"> {
+  expand?: T;
+}
 
 export interface UpdateCustomerParams {
   id?: string | null;

@@ -1,4 +1,4 @@
-import {
+import type {
   CustomerData,
   CreateCustomerParams,
   AutumnPromise,
@@ -8,6 +8,8 @@ import {
   Entity,
   DeleteEntityResult,
   RedeemReferralCodeParams,
+  CustomerExpandOption,
+  ExpandedCustomer,
 } from "@sdk";
 import { AutumnClient } from "../../libraries/react/client/ReactAutumnClient";
 
@@ -70,18 +72,20 @@ export class NextAutumnClient extends AutumnClient {
   }
 
   // Override createCustomer to use Next.js server actions instead of HTTP requests
-  async createCustomer(
-    params: Omit<CreateCustomerParams, "id" | "data"> & {
+  async createCustomer<
+    const T extends readonly CustomerExpandOption[] = readonly [],
+  >(
+    params: Omit<CreateCustomerParams<T>, "id" | "data"> & {
       errorOnNotFound?: boolean;
     }
-  ) {
+  ): AutumnPromise<ExpandedCustomer<T>> {
     const res = await createCusAction({
       encryptedCustomerId: this.encryptedCustomerId,
       customerData: this.customerData,
       ...params,
     });
 
-    return res;
+    return res as AutumnPromise<ExpandedCustomer<T>>;
   }
 
   // Pricing table

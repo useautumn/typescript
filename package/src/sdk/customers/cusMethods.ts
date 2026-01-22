@@ -1,5 +1,5 @@
 import { Autumn } from "../client";
-import {
+import type {
   Customer,
   CreateCustomerParams,
   UpdateCustomerParams,
@@ -10,7 +10,9 @@ import {
   UpdateBalancesResult,
   DeleteCustomerParams,
   ListCustomersParams,
+  ExpandedCustomer,
 } from "./cusTypes";
+import type { CustomerExpandOption } from "./cusEnums";
 import { staticWrapper, buildPathWithQuery } from "../utils";
 import { AutumnPromise } from "../response";
 import { AutumnError } from "../error";
@@ -18,10 +20,19 @@ import { AutumnError } from "../error";
 export const customerMethods = (instance?: Autumn) => {
   return {
     list: (params?: ListCustomersParams) => staticWrapper(listCustomers, instance, { params }),
-    get: (id: string, params?: GetCustomerParams) =>
-      staticWrapper(getCustomer, instance, { id, params }),
-    create: (params?: CreateCustomerParams) =>
-      staticWrapper(createCustomer, instance, { params }),
+    get: <const T extends readonly CustomerExpandOption[] = readonly []>(
+      id: string,
+      params?: GetCustomerParams<T>,
+    ) =>
+      staticWrapper(getCustomer<T>, instance, { id, params }) as AutumnPromise<
+        ExpandedCustomer<T>
+      >,
+    create: <const T extends readonly CustomerExpandOption[] = readonly []>(
+      params?: CreateCustomerParams<T>,
+    ) =>
+      staticWrapper(createCustomer<T>, instance, { params }) as AutumnPromise<
+        ExpandedCustomer<T>
+      >,
     update: (id: string, params: UpdateCustomerParams) =>
       staticWrapper(updateCustomer, instance, { id, params }),
 
@@ -59,15 +70,17 @@ export const listCustomers = async ({
   return instance.get(path);
 };
 
-export const getCustomer = async ({
+export const getCustomer = async <
+  const T extends readonly CustomerExpandOption[] = readonly [],
+>({
   instance,
   id,
   params,
 }: {
   instance: Autumn;
   id: string;
-  params?: GetCustomerParams;
-}): AutumnPromise<Customer> => {
+  params?: GetCustomerParams<T>;
+}): AutumnPromise<ExpandedCustomer<T>> => {
   if (!id) {
     return {
       data: null,
@@ -78,17 +91,19 @@ export const getCustomer = async ({
     };
   }
 
-  return instance.get(`/customers/${id}?${getExpandStr(params?.expand)}`);
+  return instance.get(`/customers/${id}?${getExpandStr(params?.expand as string[] | undefined)}`);
 };
 
-export const createCustomer = async ({
+export const createCustomer = async <
+  const T extends readonly CustomerExpandOption[] = readonly [],
+>({
   instance,
   params,
 }: {
   instance: Autumn;
-  params?: CreateCustomerParams;
-}): AutumnPromise<Customer> => {
-  return instance.post(`/customers?${getExpandStr(params?.expand)}`, params);
+  params?: CreateCustomerParams<T>;
+}): AutumnPromise<ExpandedCustomer<T>> => {
+  return instance.post(`/customers?${getExpandStr(params?.expand as string[] | undefined)}`, params);
 };
 
 export const updateCustomer = async ({

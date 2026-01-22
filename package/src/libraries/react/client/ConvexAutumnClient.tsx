@@ -3,6 +3,8 @@ import {
 	type AutumnPromise,
 	type CreateCustomerParams,
 	type CustomerData,
+	type CustomerExpandOption,
+	type ExpandedCustomer,
 	type Product,
 } from "../../../sdk";
 import type { EventsListResponse } from "../../../sdk/events/eventTypes";
@@ -95,11 +97,13 @@ export class ConvexAutumnClient implements IAutumnClient {
 		this.suppressLogs = suppressLogs ?? false;
 	}
 
-	async createCustomer(
-		params: Omit<CreateCustomerParams, "id" | "data"> & {
+	async createCustomer<
+		const T extends readonly CustomerExpandOption[] = readonly [],
+	>(
+		params: Omit<CreateCustomerParams<T>, "id" | "data"> & {
 			errorOnNotFound?: boolean;
 		},
-	) {
+	): AutumnPromise<ExpandedCustomer<T>> {
 		try {
 			const result = await this.convex.action(
 				this.convexApi.createCustomer,

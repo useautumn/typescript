@@ -4,6 +4,8 @@ import {
 	type AutumnPromise,
 	type CreateCustomerParams,
 	type CustomerData,
+	type CustomerExpandOption,
+	type ExpandedCustomer,
 	type Product,
 	toContainerResult,
 } from "../../../sdk";
@@ -68,11 +70,13 @@ export interface IAutumnClient {
 	readonly customerData?: CustomerData;
 
 	// Core methods
-	createCustomer(
-		params: Omit<CreateCustomerParams, "id" | "data"> & {
+	createCustomer<
+		const T extends readonly CustomerExpandOption[] = readonly [],
+	>(
+		params: Omit<CreateCustomerParams<T>, "id" | "data"> & {
 			errorOnNotFound?: boolean;
 		},
-	): Promise<any>;
+	): AutumnPromise<ExpandedCustomer<T>>;
 
 	// HTTP methods (stubbed for Convex)
 	detectCors(): Promise<{
@@ -349,12 +353,14 @@ export class AutumnClient implements IAutumnClient {
 		});
 	}
 
-	async createCustomer(
-		params: Omit<CreateCustomerParams, "id" | "data"> & {
+	async createCustomer<
+		const T extends readonly CustomerExpandOption[] = readonly [],
+	>(
+		params: Omit<CreateCustomerParams<T>, "id" | "data"> & {
 			errorOnNotFound?: boolean;
 		},
-	) {
-		return await createCustomerMethod({
+	): AutumnPromise<ExpandedCustomer<T>> {
+		return await createCustomerMethod<T>({
 			client: this,
 			params,
 		});
