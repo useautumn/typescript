@@ -6,6 +6,7 @@ export async function nukeCustomers(
 		id: string;
 		text: string;
 	}[],
+	deleteInStripe: boolean = false,
 ) {
 	const s = initSpinner('Deleting customers');
 	const total = customers.length;
@@ -32,7 +33,7 @@ export async function nukeCustomers(
 		await Promise.all(
 			batch.map(async customer => {
 				try {
-					await deleteCustomer(customer.id);
+					await deleteCustomer(customer.id, deleteInStripe);
 				} finally {
 					completed++;
 					updateSpinner();
@@ -44,10 +45,13 @@ export async function nukeCustomers(
 	s.success('Customers deleted successfully!');
 }
 
-async function deleteCustomer(id: string) {
+async function deleteCustomer(id: string, deleteInStripe: boolean) {
+	const path = deleteInStripe
+		? `/customers/${id}?delete_in_stripe=true`
+		: `/customers/${id}`;
 	await externalRequest({
 		method: 'DELETE',
-		path: `/customers/${id}`,
+		path,
 	});
 }
 
