@@ -1,16 +1,16 @@
-import type {Spinner} from 'yocto-spinner';
-import type {Feature, Product} from '../compose/index.js';
-import {externalRequest} from './api.js';
-import {getAllProducts, getFeatures} from './pull.js';
+import type { Spinner } from "yocto-spinner";
+import type { Feature, Product } from "../compose/index.js";
+import { externalRequest } from "./api.js";
+import { getAllProducts, getFeatures } from "./pull.js";
 
 export async function checkForDeletables(
 	currentFeatures: Feature[],
 	currentProducts: Product[],
 ) {
-	const features = await getFeatures({includeArchived: true}); // Get from AUTUMN
+	const features = await getFeatures({ includeArchived: true }); // Get from AUTUMN
 
 	const featureIds = features.map((feature: Feature) => feature.id);
-	const currentFeatureIds = currentFeatures.map(feature => feature.id);
+	const currentFeatureIds = currentFeatures.map((feature) => feature.id);
 	const featuresToDelete = featureIds.filter(
 		(featureId: string) =>
 			!currentFeatureIds.includes(featureId) &&
@@ -19,13 +19,19 @@ export async function checkForDeletables(
 			),
 	);
 
-	const products = await getAllProducts();
+	const products = await getAllProducts({ archived: true });
 	const productIds = products.map((product: Product) => product.id);
+
 	const currentProductIds = currentProducts.map(
 		(product: Product) => product.id,
 	);
+
 	const productsToDelete = productIds.filter(
-		(productId: string) => !currentProductIds.includes(productId),
+		(productId: string) =>
+			!currentProductIds.includes(productId) &&
+			!products.some(
+				(product: Product) => product.id === productId && product.archived,
+			),
 	);
 
 	return {
@@ -41,8 +47,8 @@ const isDuplicate = (error: any) => {
 	return (
 		error.response &&
 		error.response.data &&
-		(error.response.data.code === 'duplicate_feature_id' ||
-			error.response.data.code === 'product_already_exists')
+		(error.response.data.code === "duplicate_feature_id" ||
+			error.response.data.code === "product_already_exists")
 	);
 };
 
@@ -50,7 +56,7 @@ export async function upsertFeature(feature: Feature, s: Spinner) {
 	// const s = initSpinner(`Pushing feature [${feature.id}]`);
 	try {
 		const response = await externalRequest({
-			method: 'POST',
+			method: "POST",
 			path: `/features`,
 			data: feature,
 			throwOnError: true,
@@ -60,7 +66,7 @@ export async function upsertFeature(feature: Feature, s: Spinner) {
 	} catch (error: any) {
 		if (isDuplicate(error)) {
 			const response = await externalRequest({
-				method: 'POST',
+				method: "POST",
 				path: `/features/${feature.id}`,
 				data: feature,
 			});
@@ -69,7 +75,7 @@ export async function upsertFeature(feature: Feature, s: Spinner) {
 
 		console.error(
 			`\nFailed to push feature ${feature.id}: ${
-				error.response?.data?.message || 'Unknown error'
+				error.response?.data?.message || "Unknown error"
 			}`,
 		);
 		process.exit(1);
@@ -88,7 +94,7 @@ export async function checkProductForConfirmation({
 	curProducts: Product[];
 	product: Product;
 }) {
-	const curProduct = curProducts.find(p => p.id === product.id);
+	const curProduct = curProducts.find((p) => p.id === product.id);
 	if (!curProduct) {
 		// return { needsConfirmation: false, shouldUpdate: true };
 		return {
@@ -98,7 +104,7 @@ export async function checkProductForConfirmation({
 	}
 
 	const res1 = await externalRequest({
-		method: 'GET',
+		method: "POST",
 		path: `/products/${product.id}/has_customers`,
 		data: product,
 	});
@@ -136,21 +142,21 @@ export async function upsertProduct({
 		spinner.text = `Skipping update to product ${product.id}`;
 		return {
 			id: product.id,
-			action: 'skipped',
+			action: "skipped",
 		};
 	}
 
-	const curProduct = curProducts.find(p => p.id === product.id);
+	const curProduct = curProducts.find((p) => p.id === product.id);
 	if (!curProduct) {
 		await externalRequest({
-			method: 'POST',
+			method: "POST",
 			path: `/products`,
 			data: product,
 		});
 		spinner.text = `Created product [${product.id}]`;
 		return {
 			id: product.id,
-			action: 'create',
+			action: "create",
 		};
 	} else {
 		// Prepare the update payload
@@ -172,7 +178,7 @@ export async function upsertProduct({
 		}
 
 		await externalRequest({
-			method: 'POST',
+			method: "POST",
 			path: `/products/${product.id}`,
 			data: updatePayload,
 		});
@@ -180,7 +186,7 @@ export async function upsertProduct({
 		spinner.text = `Updated product [${product.id}]`;
 		return {
 			id: product.id,
-			action: 'updated',
+			action: "updated",
 		};
 	}
 	// try {
