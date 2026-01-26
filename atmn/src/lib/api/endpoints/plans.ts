@@ -159,7 +159,7 @@ export async function getPlanHasCustomers(options: {
 
 	return await request<PlanHasCustomersInfo>({
 		method: "POST",
-		path: `/v1/products/${planId}/has_customers_v3`,
+		path: `/v1/products/${planId}/has_customers`,
 		secretKey,
 		body: plan,
 	});
