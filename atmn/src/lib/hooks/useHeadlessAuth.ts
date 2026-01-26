@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getOrgMe } from "../../../source/core/requests/orgRequests.js";
+import { fetchOrganizationMe } from "../api/endpoints/index.js";
 import { readFromEnv } from "../utils.js";
 import { CLI_CLIENT_ID } from "../../commands/auth/constants.js";
 import {
@@ -55,7 +55,7 @@ export function useHeadlessAuth(
 			await storeEnvKeys({ prodKey, sandboxKey }, { forceOverwrite: true });
 
 			// Fetch org info with new key
-			const info = await getOrgMe();
+			const info = await fetchOrganizationMe({ secretKey: sandboxKey });
 			setOrgInfo(info);
 			setAuthState("authenticated");
 
@@ -84,7 +84,7 @@ export function useHeadlessAuth(
 				}
 
 				// Verify the key works by fetching org info
-				const info = await getOrgMe();
+				const info = await fetchOrganizationMe({ secretKey: apiKey });
 				setOrgInfo(info);
 				setAuthState("authenticated");
 

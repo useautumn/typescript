@@ -50,7 +50,13 @@ Customer can use 10,000 credits per month, then pays $0.01 per credit after that
 \`\`\`
 Customer pays $10 once to receive 10,000 credits.
 
-### 5. Per-Unit Pricing Structure
+### 5. Tiered Pricing
+\`\`\`typescript
+{ feature_id: "api_calls", included_usage: 1000, tiers: [{ to: 5000, amount: 0.02 }, { to: "inf", amount: 0.01 }], usage_model: "pay_per_use", interval: "month" }
+\`\`\`
+Customer gets 1,000 API calls free, then pays $0.02/call up to 5,000, then $0.01/call after that.
+
+### 6. Per-Unit Pricing Structure
 For any "per-X" pricing (like "$Y per seat", "$Y per project", "$Y per website"), use this pattern:
 \`\`\`typescript
 // Base subscription fee
@@ -68,6 +74,10 @@ This creates: $10/month base price that includes 1 unit, then $10 per additional
 
 ### Naming Conventions
 - Product and Feature IDs should be lowercase with underscores (e.g., \`pro_plan\`, \`chat_messages\`)
+
+### Features vs Plan Features
+- Features define WHAT can be tracked (e.g., "credits"). Plan features define HOW a feature is granted in a plan (recurring, one-time, free, paid).
+- Never create duplicate features for the same underlying resource. For example, "monthly tokens" and "one-time tokens" should be the SAME feature ("tokens"), referenced by different plan items with different intervals.
 
 ### Default Plans
 - **Never** set \`is_default: true\` for plans with prices. Default plans must be free.
@@ -133,5 +143,7 @@ Once you've designed your pricing:
 3. Test in sandbox mode before going live
 
 For more help: https://discord.gg/atmn (we're very responsive)
+
+For questions about specific functionality or advanced use cases, check out the documentation: https://docs.useautumn.com
 
 Docs: https://docs.useautumn.com/llms.txt`;

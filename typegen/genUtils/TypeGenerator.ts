@@ -274,8 +274,8 @@ ${imports}
   private getEnumValuesMap(): Record<string, string[]> {
     return {
       BillingInterval: ['month', 'quarter', 'semi_annual', 'year'],
-      ResetInterval: ['one_off', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
-      RolloverExpiryDurationType: ['one_off', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
+      ResetInterval: ['one_off', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
+      RolloverExpiryDurationType: ['month', 'forever'],
       UsageModel: ['prepaid', 'pay_per_use'], // Legacy - maps to BillingMethod in SDK
       BillingMethod: ['prepaid', 'pay_per_use'],
       OnIncrease: ['prorate', 'charge_immediately'],

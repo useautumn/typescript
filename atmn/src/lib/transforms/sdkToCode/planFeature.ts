@@ -76,6 +76,17 @@ export function buildPlanFeatureCode(
 			lines.push(`\t\t\t\tmax_purchase: ${planFeature.price.max_purchase},`);
 		}
 
+		// Handle price.interval and price.interval_count (from PriceWithInterval type)
+		const priceWithInterval = planFeature.price as { interval?: string; interval_count?: number };
+
+		if (priceWithInterval.interval) {
+			lines.push(`\t\t\t\tinterval: '${priceWithInterval.interval}',`);
+		}
+
+		if (priceWithInterval.interval_count !== undefined) {
+			lines.push(`\t\t\t\tinterval_count: ${priceWithInterval.interval_count},`);
+		}
+
 		lines.push(`\t\t\t},`);
 	}
 

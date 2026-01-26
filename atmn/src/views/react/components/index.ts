@@ -15,3 +15,8 @@ export {
 	type StatusRowStatus,
 } from "./StatusRow.js";
 export { StepHeader } from "./StepHeader.js";
+export {
+	AuthRecoveryBoundary,
+	useAuthRecoveryContext,
+	isAuthError,
+} from "./AuthRecoveryBoundary.js";

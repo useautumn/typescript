@@ -136,163 +136,25 @@ export function generateDiscriminatedUnion({
 }
 
 /**
- * Generate simplified PlanFeature type (no discriminated union needed)
+ * Generate PlanFeature discriminated union type
  * 
- * SDK structure uses nested reset object matching API structure:
- * - reset: { interval, interval_count }
- * - price has NO interval/interval_count fields
+ * SDK structure uses mutually exclusive reset patterns:
+ * - PlanFeatureWithReset: Top-level reset (for free allocations or non-priced features)
+ * - PlanFeatureWithPriceReset: Nested price.reset (for usage-based pricing)
+ * - PlanFeatureNoReset: No reset at all (for continuous-use features like seats)
  */
 export function generatePlanFeatureType(
-	metaDescriptions: Record<string, string>,
+	_metaDescriptions: Record<string, string>,
 ): string {
 	const typeAliases = {
 		ResetInterval:
-			'"one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year"',
+			'"one_off" | "hour" | "day" | "week" | "month" | "quarter" | "year"',
+		RolloverExpiryDurationType: '"month" | "forever"',
 		BillingInterval: '"month" | "quarter" | "semi_annual" | "year"',
 		BillingMethod: '"prepaid" | "usage_based"',
 		OnIncrease: '"prorate" | "charge_immediately"',
 		OnDecrease: '"prorate" | "refund_immediately" | "no_action"',
 	};
-
-	const resetFields: FieldConfig[] = [
-		{
-			name: "interval",
-			type: "ResetInterval",
-			descriptionKey: "reset.interval",
-			defaultDescription: "How often usage resets (e.g., 'month', 'day')",
-		},
-		{
-			name: "interval_count",
-			type: "number",
-			optional: true,
-			descriptionKey: "reset.interval_count",
-			defaultDescription: "Number of intervals between resets (default: 1)",
-		},
-	];
-
-	const prorationFields: FieldConfig[] = [
-		{
-			name: "on_increase",
-			type: "OnIncrease",
-			descriptionKey: "proration.on_increase",
-			defaultDescription: "Behavior when quantity increases",
-		},
-		{
-			name: "on_decrease",
-			type: "OnDecrease",
-			descriptionKey: "proration.on_decrease",
-			defaultDescription: "Behavior when quantity decreases",
-		},
-	];
-
-	const rolloverFields: FieldConfig[] = [
-		{
-			name: "max",
-			type: "number | null",
-			descriptionKey: "rollover.max",
-			defaultDescription: "Maximum amount that can roll over (null for unlimited)",
-		},
-		{
-			name: "expiry_duration_type",
-			type: "ResetInterval",
-			descriptionKey: "rollover.expiry_duration_type",
-			defaultDescription: "How long rollover lasts before expiring",
-		},
-		{
-			name: "expiry_duration_length",
-			type: "number",
-			optional: true,
-			descriptionKey: "rollover.expiry_duration_length",
-			defaultDescription: "Duration length for rollover expiry",
-		},
-	];
-
-	const planFeatureFields: FieldConfig[] = [
-		{
-			name: "feature_id",
-			type: "string",
-			descriptionKey: "feature_id",
-			defaultDescription: "Reference to the feature being configured",
-		},
-		{
-			name: "included",
-			type: "number",
-			optional: true,
-			descriptionKey: "included",
-			defaultDescription: "Amount of usage included in this plan",
-		},
-		{
-			name: "unlimited",
-			type: "boolean",
-			optional: true,
-			descriptionKey: "unlimited",
-			defaultDescription: "Whether usage is unlimited",
-		},
-		// Nested reset object
-		{
-			name: "reset",
-			type: "object",
-			optional: true,
-			defaultDescription: "Reset configuration for usage limits",
-			nestedFields: resetFields,
-		},
-		// Price object (no interval/interval_count)
-		{
-			name: "price",
-			type: "object",
-			optional: true,
-			defaultDescription: "Pricing configuration for usage-based billing",
-			nestedFields: [
-				{
-					name: "amount",
-					type: "number",
-					optional: true,
-					descriptionKey: "price.amount",
-					defaultDescription: "Flat price per unit in cents",
-				},
-				{
-					name: "tiers",
-					type: 'Array<{ to: number | "inf"; amount: number }>',
-					optional: true,
-					descriptionKey: "price.tiers",
-					defaultDescription: "Tiered pricing structure based on usage ranges",
-				},
-				{
-					name: "billing_units",
-					type: "number",
-					descriptionKey: "price.billing_units",
-					defaultDescription: "Number of units per billing cycle",
-				},
-			{
-				name: "billing_method",
-				type: "BillingMethod",
-				descriptionKey: "price.billing_method",
-				defaultDescription: "Billing method: 'prepaid' or 'usage_based'",
-			},
-				{
-					name: "max_purchase",
-					type: "number",
-					optional: true,
-					descriptionKey: "price.max_purchase",
-					defaultDescription: "Maximum purchasable quantity",
-				},
-			],
-		},
-		{
-			name: "proration",
-			type: "object",
-			optional: true,
-			defaultDescription: "Proration rules for quantity changes",
-			nestedFields: prorationFields,
-		},
-		{
-			name: "rollover",
-			type: "object",
-			optional: true,
-			defaultDescription: "Rollover policy for unused usage",
-			nestedFields: rolloverFields,
-		},
-	];
 
 	let result = "";
 
@@ -307,13 +169,123 @@ export function generatePlanFeatureType(
 	result += "// Base type for PlanFeature\n";
 	result += "type PlanFeatureBase = z.infer<typeof PlanFeatureSchema>;\n\n";
 
-	// Generate the single PlanFeature type
-	result += generateTypeWithJSDoc({
-		typeName: "PlanFeature",
-		fields: planFeatureFields,
-		metaDescriptions,
-		comment: "Plan feature configuration with nested reset object.",
-	});
+	// Generate the discriminated union manually for precise control
+	result += `// Reset configuration object (for top-level reset)
+type ResetConfig = {
+  /** How often usage resets (e.g., 'month', 'day') */
+  interval: ResetInterval;
+  /** Number of intervals between resets (default: 1) */
+  interval_count?: number;
+};
+
+// Proration configuration
+type ProrationConfig = {
+  /** Behavior when quantity increases */
+  on_increase: OnIncrease;
+  /** Behavior when quantity decreases */
+  on_decrease: OnDecrease;
+};
+
+// Rollover configuration
+type RolloverConfig = {
+  /** Maximum amount that can roll over (null for unlimited) */
+  max: number | null;
+  /** How long rollover lasts before expiring */
+  expiry_duration_type: RolloverExpiryDurationType;
+  /** Duration length for rollover expiry */
+  expiry_duration_length?: number;
+};
+
+// Base fields shared by all PlanFeature variants
+type PlanFeatureBaseFields = {
+  /** Reference to the feature being configured */
+  feature_id: string;
+  /** Amount of usage included in this plan */
+  included?: number;
+  /** Whether usage is unlimited */
+  unlimited?: boolean;
+  /** Proration rules for quantity changes */
+  proration?: ProrationConfig;
+  /** Rollover policy for unused usage */
+  rollover?: RolloverConfig;
+};
+
+// Price object without interval (used with top-level reset)
+type PriceWithoutInterval = {
+  /** Flat price per unit */
+  amount?: number;
+  /** Tiered pricing structure based on usage ranges */
+  tiers?: Array<{ to: number | "inf"; amount: number }>;
+  /** Number of units per billing cycle */
+  billing_units?: number;
+  /** Billing method: 'prepaid' or 'usage_based' */
+  billing_method: BillingMethod;
+  /** Maximum purchasable quantity */
+  max_purchase?: number;
+  /** Cannot have price.interval when using top-level reset */
+  interval?: never;
+  interval_count?: never;
+};
+
+// Price object with interval (billing cycle configuration)
+type PriceWithInterval = {
+  /** Flat price per unit */
+  amount?: number;
+  /** Tiered pricing structure based on usage ranges */
+  tiers?: Array<{ to: number | "inf"; amount: number }>;
+  /** Number of units per billing cycle */
+  billing_units?: number;
+  /** Billing method: 'prepaid' or 'usage_based' */
+  billing_method: BillingMethod;
+  /** Maximum purchasable quantity */
+  max_purchase?: number;
+  /** Billing interval (e.g., 'month', 'day') */
+  interval: ResetInterval;
+  /** Number of intervals between billing cycles (default: 1) */
+  interval_count?: number;
+};
+
+/**
+ * Plan feature with top-level reset configuration.
+ * Use this for free allocations or features that reset but aren't priced per-use.
+ */
+export type PlanFeatureWithReset = PlanFeatureBaseFields & {
+  /** Reset configuration for usage limits */
+  reset: ResetConfig;
+  /** Optional pricing (cannot have price.interval when using top-level reset) */
+  price?: PriceWithoutInterval;
+};
+
+/**
+ * Plan feature with pricing that includes interval configuration.
+ * Use this for usage-based pricing where interval determines billing cycle.
+ */
+export type PlanFeatureWithPriceInterval = PlanFeatureBaseFields & {
+  /** Cannot have top-level reset when using price.interval */
+  reset?: never;
+  /** Pricing configuration with billing interval */
+  price: PriceWithInterval;
+};
+
+/**
+ * Plan feature without any reset configuration.
+ * Use this for continuous-use features (like seats) that don't reset.
+ */
+export type PlanFeatureNoReset = PlanFeatureBaseFields & {
+  /** No reset for continuous-use features */
+  reset?: never;
+  /** Optional pricing without interval */
+  price?: PriceWithoutInterval;
+};
+
+/**
+ * Plan feature configuration with mutually exclusive reset patterns:
+ * - PlanFeatureWithReset: Top-level reset (for free allocations)
+ * - PlanFeatureWithPriceInterval: price.interval (for usage-based pricing billing cycle)
+ * - PlanFeatureNoReset: No reset (for continuous-use features like seats)
+ */
+export type PlanFeature = PlanFeatureWithReset | PlanFeatureWithPriceInterval | PlanFeatureNoReset;
+`;
 
 	return result;
 }

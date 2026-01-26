@@ -4,7 +4,11 @@ import { mapUsageModel } from "./helpers.js";
 import { createTransformer } from "./Transformer.js";
 
 /**
- * Declarative plan feature transformer - replaces 77 lines with ~30 lines of config
+ * Declarative plan feature transformer
+ * 
+ * Handles mutually exclusive reset patterns:
+ * - API reset.interval -> SDK top-level reset (when no price, or price without interval)
+ * - API price.interval -> SDK price.interval (when price exists)
  */
 export const planFeatureTransformer = createTransformer<
 	ApiPlanFeature,
@@ -18,36 +22,43 @@ export const planFeatureTransformer = createTransformer<
 		included: (api) => 
 			api.unlimited ? undefined : api.granted_balance,
 
-		// Keep reset nested, but strip out reset_when_enabled (we ignore it)
-		// If reset is null but price has an interval, derive reset from price.interval
+		// Top-level reset: only from api.reset when there's no price with interval
+		// If price exists with interval, the interval belongs in price.interval, not top-level
 		reset: (api) => {
+			// If price exists with interval, the reset belongs in price.interval, not top-level
+			if (api.price?.interval) {
+				return undefined;
+			}
+			// Only use top-level reset from api.reset
 			if (api.reset) {
 				return {
 					interval: api.reset.interval,
 					interval_count: api.reset.interval_count,
 				};
 			}
-			// If no explicit reset but price exists with interval, derive reset from it
-			if (api.price?.interval) {
-				return {
-					interval: api.price.interval,
-					interval_count: api.price.interval_count,
-				};
-			}
 			return undefined;
 		},
 
-		// Transform price object
-		price: (api) =>
-			api.price
-				? {
-					...api.price,
-					max_purchase: api.price.max_purchase ?? undefined,
-					billing_method: api.price.usage_model
-						? mapUsageModel(api.price.usage_model)
-						: undefined,
-				}
-				: undefined,
+		// Transform price object with interval directly on price
+		price: (api) => {
+			if (!api.price) return undefined;
+			
+			const billingMethod = api.price.usage_model
+				? mapUsageModel(api.price.usage_model)
+				: undefined;
+			
+			// Build price object with interval directly on it
+			return {
+				amount: api.price.amount,
+				tiers: api.price.tiers,
+				billing_units: api.price.billing_units,
+				max_purchase: api.price.max_purchase ?? undefined,
+				billing_method: billingMethod,
+				// Map API price.interval directly to SDK price.interval
+				interval: api.price.interval,
+				interval_count: api.price.interval_count,
+			};
+		},
 
 		// Transform rollover object
 		rollover: (api) =>

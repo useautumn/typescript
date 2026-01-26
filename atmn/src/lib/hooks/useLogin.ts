@@ -6,7 +6,7 @@ import {
 	getApiKeysWithToken,
 } from "../../commands/auth/oauth.js";
 import { CLI_CLIENT_ID } from "../../commands/auth/constants.js";
-import { getOrgMe } from "../../../source/core/requests/orgRequests.js";
+import { fetchOrganizationMe } from "../api/endpoints/index.js";
 import { storeEnvKeys } from "./useEnvironmentStore.js";
 
 export type LoginPhase =
@@ -116,8 +116,8 @@ export function useLogin(options?: UseLoginOptions): UseLoginReturn {
 				{ prodKey: data.prodKey, sandboxKey: data.sandboxKey },
 				{ forceOverwrite: true },
 			);
-			// Fetch org info
-			const org = await getOrgMe();
+			// Fetch org info using the new sandbox key
+			const org = await fetchOrganizationMe({ secretKey: data.sandboxKey });
 			return org;
 		},
 		onSuccess: (org) => {

@@ -6,11 +6,11 @@ import { render } from "ink";
 import open from "open";
 import React from "react";
 import Nuke from "../source/commands/nuke.js";
-import { getOrgMe } from "../source/core/requests/orgRequests.js";
 // Import existing commands from source/ (legacy - will migrate incrementally)
 import AuthCommand from "./commands/auth/command.js";
 import { pull as newPull } from "./commands/pull/pull.js"; // New pull implementation
 import { FRONTEND_URL } from "./constants.js";
+import { fetchOrganizationMe } from "./lib/api/endpoints/index.js";
 import { isProd, setCliContext } from "./lib/env/cliContext.js";
 import { readFromEnv } from "./lib/utils.js";
 // Import Ink views
@@ -60,10 +60,14 @@ program
 	.description("Check the environment and organization info")
 	.action(async () => {
 		// Ensure API key is present
-		readFromEnv();
+		const secretKey = readFromEnv();
+		if (!secretKey) {
+			console.error(chalk.red("No API key found. Run `atmn login` to authenticate."));
+			process.exit(1);
+		}
 
 		// Fetch organization info from API
-		const orgInfo = await getOrgMe();
+		const orgInfo = await fetchOrganizationMe({ secretKey });
 
 		const envDisplay = orgInfo.env === "sandbox" ? "Sandbox" : "Production";
 		console.log(chalk.green(`Organization: ${orgInfo.name}`));

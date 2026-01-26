@@ -14,52 +14,141 @@ export interface ValidationResult {
 }
 
 /**
+ * Get the price.interval from a PlanFeature (handling the discriminated union)
+ */
+function getPriceInterval(feature: PlanFeature): { interval: string; interval_count?: number } | undefined {
+	if (!feature.price) return undefined;
+	const price = feature.price as { interval?: string; interval_count?: number };
+	if (price.interval) {
+		return { interval: price.interval, interval_count: price.interval_count };
+	}
+	return undefined;
+}
+
+/**
+ * Check if a feature is consumable (single_use style) based on its type
+ */
+function isConsumableFeature(feature: Feature): boolean {
+	if (feature.type === "boolean") return false;
+	if (feature.type === "credit_system") return true;
+	if (feature.type === "metered") {
+		return (feature as { consumable?: boolean }).consumable === true;
+	}
+	return false;
+}
+
+/**
+ * Check if a feature is continuous-use (like seats) based on its type
+ */
+function isContinuousUseFeature(feature: Feature): boolean {
+	if (feature.type === "metered") {
+		return (feature as { consumable?: boolean }).consumable === false;
+	}
+	return false;
+}
+
+/**
  * Validate a plan feature has all required fields.
  */
 function validatePlanFeature(
-	feature: PlanFeature,
+	planFeature: PlanFeature,
 	planId: string,
 	featureIndex: number,
+	features: Feature[],
 ): ValidationError[] {
 	const errors: ValidationError[] = [];
-	const featureId = feature.feature_id || `(no feature_id)`;
+	const featureId = planFeature.feature_id || `(no feature_id)`;
 	const basePath = `plan "${planId}" → features[${featureIndex}] (${featureId})`;
 
-	// If price is defined, validate required price fields
-	if (feature.price) {
+	// Look up the actual feature definition
+	const featureDefinition = features.find(f => f.id === planFeature.feature_id);
+
+	// Get reset configuration from either top-level or price.interval
+	const topLevelReset = planFeature.reset;
+	const priceInterval = getPriceInterval(planFeature);
+	const hasTopLevelReset = topLevelReset !== undefined;
+	const hasPriceInterval = priceInterval !== undefined;
+	const hasAnyReset = hasTopLevelReset || hasPriceInterval;
+
+	// ========== MUTUAL EXCLUSIVITY ==========
+	// Cannot have both top-level reset AND price.interval
+	if (hasTopLevelReset && hasPriceInterval) {
+		errors.push({
+			path: basePath,
+			message: `Cannot have both "reset" and "price.interval". Use "reset" for free allocations, or "price.interval" for usage-based pricing.`,
+		});
+	}
+
+	// ========== FEATURE TYPE VALIDATIONS ==========
+	if (featureDefinition) {
+		// Boolean features cannot have reset
+		if (featureDefinition.type === "boolean" && hasAnyReset) {
+			errors.push({
+				path: basePath,
+				message: `Boolean features cannot have a reset interval. Remove the "reset" configuration.`,
+			});
+		}
+
+		// Consumable features require reset when they have usage limits (but not if unlimited)
+		if (isConsumableFeature(featureDefinition)) {
+			const hasFiniteUsageLimits = planFeature.included !== undefined && planFeature.unlimited !== true;
+			const hasPricing = planFeature.price !== undefined;
+
+			// If the feature has finite usage limits or pricing, it needs a reset interval
+			// Unlimited features don't need a reset interval
+			if ((hasFiniteUsageLimits || hasPricing) && !hasAnyReset) {
+				errors.push({
+					path: basePath,
+					message: `Consumable features require a reset interval. Add "reset: { interval: 'month' }" or "price: { interval: 'month', ... }".`,
+				});
+			}
+		}
+	}
+
+	// ========== PRICE VALIDATION ==========
+	if (planFeature.price) {
 		// billing_method is required when price is defined
-		if (!feature.price.billing_method) {
+		if (!planFeature.price.billing_method) {
 			errors.push({
 				path: `${basePath} → price`,
 				message: `"billing_method" is required when "price" is defined. Must be "prepaid" or "usage_based".`,
 			});
 		}
 
-		// If price has amount or tiers, reset.interval must be defined
-		if ((feature.price.amount !== undefined || feature.price.tiers) && !feature.reset?.interval) {
+		// If price has amount or tiers, must have either top-level reset OR price.interval
+		if ((planFeature.price.amount !== undefined || planFeature.price.tiers) && !hasAnyReset) {
 			errors.push({
 				path: basePath,
-				message: `"reset.interval" is required when pricing is defined (e.g., reset: { interval: "month" }).`,
+				message: `Pricing requires a reset interval. Add "price: { interval: 'month', ... }".`,
 			});
 		}
 	}
 
-	// If reset is specified, interval MUST be explicitly defined (not null/undefined)
-	if (feature.reset !== undefined) {
-		if (feature.reset.interval === undefined || feature.reset.interval === null) {
+	// ========== RESET INTERVAL VALIDATION ==========
+	const validIntervals = ["one_off", "hour", "day", "week", "month", "quarter", "semi_annual", "year"];
+
+	// Validate top-level reset interval
+	if (hasTopLevelReset) {
+		if (topLevelReset.interval === undefined || topLevelReset.interval === null) {
 			errors.push({
 				path: `${basePath} → reset`,
-				message: `"interval" is required when "reset" is specified. Must be one of: one_off, minute, hour, day, week, month, quarter, year.`,
+				message: `"interval" is required when "reset" is specified. Must be one of: ${validIntervals.join(", ")}.`,
 			});
-		} else {
-			// Validate interval is a valid value
-			const validIntervals = ["one_off", "minute", "hour", "day", "week", "month", "quarter", "year"];
-			if (!validIntervals.includes(feature.reset.interval)) {
-				errors.push({
-					path: `${basePath} → reset.interval`,
-					message: `Invalid interval "${feature.reset.interval}". Must be one of: ${validIntervals.join(", ")}.`,
-				});
-			}
+		} else if (!validIntervals.includes(topLevelReset.interval)) {
+			errors.push({
+				path: `${basePath} → reset.interval`,
+				message: `Invalid interval "${topLevelReset.interval}". Must be one of: ${validIntervals.join(", ")}.`,
+			});
+		}
+	}
+
+	// Validate price.interval
+	if (hasPriceInterval) {
+		if (!validIntervals.includes(priceInterval.interval)) {
+			errors.push({
+				path: `${basePath} → price.interval`,
+				message: `Invalid interval "${priceInterval.interval}". Must be one of: ${validIntervals.join(", ")}.`,
+			});
 		}
 	}
 
@@ -69,7 +158,7 @@ function validatePlanFeature(
 /**
  * Validate a plan has all required fields.
  */
-function validatePlan(plan: Plan): ValidationError[] {
+function validatePlan(plan: Plan, features: Feature[]): ValidationError[] {
 	const errors: ValidationError[] = [];
 	const planId = plan.id || "(no id)";
 
@@ -117,16 +206,16 @@ function validatePlan(plan: Plan): ValidationError[] {
 	// Validate each plan feature
 	if (plan.features && Array.isArray(plan.features)) {
 		for (let i = 0; i < plan.features.length; i++) {
-			const feature = plan.features[i];
-			if (feature) {
+			const planFeature = plan.features[i];
+			if (planFeature) {
 				// feature_id is required
-				if (!feature.feature_id) {
+				if (!planFeature.feature_id) {
 					errors.push({
 						path: `plan "${planId}" → features[${i}]`,
 						message: `"feature_id" is required.`,
 					});
 				}
-				errors.push(...validatePlanFeature(feature, planId, i));
+				errors.push(...validatePlanFeature(planFeature, planId, i, features));
 			}
 		}
 	}
@@ -206,9 +295,9 @@ export function validateConfig(
 		errors.push(...validateFeature(feature));
 	}
 
-	// Validate plans
+	// Validate plans (passing features for feature type lookups)
 	for (const plan of plans) {
-		errors.push(...validatePlan(plan));
+		errors.push(...validatePlan(plan, features));
 	}
 
 	return {

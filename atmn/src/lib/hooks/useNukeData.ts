@@ -8,7 +8,7 @@ import { AppEnv } from "../env/detect.js";
 import { fetchCustomers } from "../api/endpoints/customers.js";
 import { fetchPlans } from "../api/endpoints/plans.js";
 import { fetchFeatures } from "../api/endpoints/features.js";
-import { getOrgMe } from "../../../source/core/requests/orgRequests.js";
+import { fetchOrganizationMe } from "../api/endpoints/index.js";
 
 export interface NukeData {
 	orgName: string;
@@ -29,7 +29,7 @@ export function useNukeData() {
 
 			// Fetch all data in parallel
 			const [org, customers, plans, features] = await Promise.all([
-				getOrgMe(),
+				fetchOrganizationMe({ secretKey }),
 				fetchCustomers({ secretKey }),
 				fetchPlans({ secretKey, includeArchived: true }),
 				fetchFeatures({ secretKey }),

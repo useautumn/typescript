@@ -54,14 +54,12 @@ export const plans: Plan[] = [
 		id: "premium-credits",
 		name: "Premium Credits",
 		add_on: true,
+		price: { amount: 8, interval: "one_off" },
 		features: [
 			{
 				feature_id: "premium_messages",
-				price: {
-					amount: 8,
-					billing_method: "prepaid",
-					billing_units: 100,
-				},
+				included: 100,
+				reset: { interval: "one_off" },
 			},
 		],
 	},

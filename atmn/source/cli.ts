@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import {program} from 'commander';
 import open from 'open';
 import AuthCommand from '../src/commands/auth/command.js';
+import {fetchOrganizationMe} from '../src/lib/api/endpoints/index.js';
 import {testTemplateCommand} from '../src/commands/test-template.js';
 import Init from './commands/init.js';
 import Nuke from './commands/nuke.js';
@@ -10,7 +11,6 @@ import Pull from './commands/pull.js';
 import Push from './commands/push.js';
 import {DEFAULT_CONFIG, FRONTEND_URL} from './constants.js';
 import {loadAutumnConfigFile, writeConfig} from './core/config.js';
-import {getOrgMe} from './core/requests/orgRequests.js';
 import {readFromEnv} from './core/utils.js';
 
 declare const VERSION: string;
@@ -29,10 +29,14 @@ program
 	.description('Check the environment and organization info')
 	.action(async () => {
 		// Ensure API key is present
-		readFromEnv();
+		const secretKey = readFromEnv();
+		if (!secretKey) {
+			console.error(chalk.red("No API key found. Run `atmn login` to authenticate."));
+			process.exit(1);
+		}
 		
 		// Fetch organization info from API
-		const orgInfo = await getOrgMe();
+		const orgInfo = await fetchOrganizationMe({ secretKey });
 		
 		const envDisplay = orgInfo.env === 'sandbox' ? 'Sandbox' : 'Production';
 		console.log(chalk.green(`Organization: ${orgInfo.name}`));

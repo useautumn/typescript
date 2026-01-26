@@ -304,7 +304,10 @@ function transformPlanForApi(plan: Plan): Record<string, unknown> {
 				const transformedPrice = { ...price };
 
 				if ("billing_method" in price) {
-					transformedPrice.usage_model = price.billing_method;
+					// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
+					transformedPrice.usage_model = price.billing_method === "usage_based" 
+						? "pay_per_use" 
+						: price.billing_method;
 					delete transformedPrice.billing_method;
 				}
 

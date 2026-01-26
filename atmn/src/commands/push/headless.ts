@@ -6,6 +6,7 @@ import createJiti from "jiti";
 import type { Feature, Plan } from "../../../source/compose/models/index.js";
 import { AppEnv } from "../../lib/env/index.js";
 import { formatError } from "../../lib/api/client.js";
+import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
 import {
 	analyzePush,
 	archiveFeature,
@@ -425,8 +426,22 @@ async function executeCleanPush(
  * exits with a helpful message instructing the user to either:
  * - Run in an interactive terminal
  * - Use the --yes flag to auto-confirm with defaults
+ * 
+ * Automatically handles 401 errors by running OAuth flow and retrying.
  */
 export async function headlessPush(
+	options: HeadlessPushOptions = {},
+): Promise<HeadlessPushResult> {
+	// Wrap the entire push operation with auth recovery
+	return withAuthRecovery(async () => {
+		return await _headlessPushImpl(options);
+	});
+}
+
+/**
+ * Internal implementation of headless push
+ */
+async function _headlessPushImpl(
 	options: HeadlessPushOptions = {},
 ): Promise<HeadlessPushResult> {
 	const cwd = options.cwd ?? process.cwd();

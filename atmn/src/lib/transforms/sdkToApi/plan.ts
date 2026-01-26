@@ -52,6 +52,10 @@ export interface ApiPlanFeatureParams {
 
 /**
  * Transform SDK PlanFeature to API format
+ * 
+ * Handles mutually exclusive reset patterns:
+ * - SDK top-level reset -> API reset.interval
+ * - SDK price.interval -> API price.interval
  */
 function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 	const result: ApiPlanFeatureParams = {
@@ -67,6 +71,7 @@ function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 		result.unlimited = feature.unlimited;
 	}
 
+	// Top-level reset (for features without price.interval)
 	if (feature.reset) {
 		result.reset = {
 			interval: feature.reset.interval,
@@ -77,24 +82,25 @@ function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 	}
 
 	if (feature.price) {
-		// Get interval from price if available, otherwise from reset, or default to "month"
-		// Note: SDK price may have interval from the spread in apiToSdk transform
-		const price = feature.price as Record<string, unknown>;
-		const interval = (price.interval as string) ?? feature.reset?.interval ?? "month";
-		
+		// Get interval from price.interval if available, otherwise from top-level reset
+		const priceInterval = (feature.price as { interval?: string; interval_count?: number }).interval;
+		const priceIntervalCount = (feature.price as { interval_count?: number }).interval_count;
+		const interval = priceInterval ?? feature.reset?.interval;
+		const intervalCount = priceIntervalCount ?? feature.reset?.interval_count;
+
 		// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
-		const usageModel = feature.price.billing_method === "usage_based" 
-			? "pay_per_use" 
+		const usageModel = feature.price.billing_method === "usage_based"
+			? "pay_per_use"
 			: (feature.price.billing_method ?? "prepaid");
-		
+
 		result.price = {
 			interval,
 			billing_units: feature.price.billing_units ?? 1,
 			usage_model: usageModel,
 			...(feature.price.amount !== undefined && { amount: feature.price.amount }),
 			...(feature.price.tiers && { tiers: feature.price.tiers }),
-			...(price.interval_count !== undefined && {
-				interval_count: price.interval_count as number,
+			...(intervalCount !== undefined && {
+				interval_count: intervalCount,
 			}),
 			...(feature.price.max_purchase !== undefined && {
 				max_purchase: feature.price.max_purchase,
@@ -163,10 +169,10 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 	if (plan.free_trial !== undefined) {
 		result.free_trial = plan.free_trial
 			? {
-					duration_type: plan.free_trial.duration_type,
-					duration_length: plan.free_trial.duration_length,
-					card_required: plan.free_trial.card_required,
-				}
+				duration_type: plan.free_trial.duration_type,
+				duration_length: plan.free_trial.duration_length,
+				card_required: plan.free_trial.card_required,
+			}
 			: null;
 	}
 

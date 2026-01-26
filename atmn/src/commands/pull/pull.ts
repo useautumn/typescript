@@ -1,4 +1,5 @@
 import { AppEnv, getKey, hasKey } from "../../lib/env/index.js";
+import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
 import { pullFromEnvironment } from "./pullFromEnvironment.js";
 import { mergeEnvironments } from "./mergeEnvironments.js";
 import { writeConfig } from "./writeConfig.js";
@@ -17,8 +18,20 @@ import type { PullOptions, PullResult } from "./types.js";
  *    b. If live key exists, fetch & transform from live
  *    c. Merge sandbox + live (dedupe by ID)
  *    d. Generate @useautumn-sdk.d.ts
+ * 
+ * Automatically handles 401 errors by running OAuth flow and retrying.
  */
 export async function pull(options: PullOptions = {}): Promise<PullResult> {
+	// Wrap the entire pull operation with auth recovery
+	return withAuthRecovery(async () => {
+		return await _pullImpl(options);
+	});
+}
+
+/**
+ * Internal implementation of pull
+ */
+async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 	const { 
 		generateSdkTypes: shouldGenerateSdkTypes = false, 
 		cwd = process.cwd(),
