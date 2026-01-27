@@ -17,5 +17,5 @@ const handleCreateBalance = async ({
 	instance: Autumn;
 	params: CreateBalanceParams;
 }): AutumnPromise<CreateBalanceResponse> => {
-	return instance.post("/balances", params);
+	return instance.post("/balances/create", params);
 };
