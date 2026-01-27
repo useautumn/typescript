@@ -5,7 +5,7 @@ import { useCustomer } from "autumn-js/react";
 
 const main = async () => {
 	const autumn = new Autumn({
-		secretKey: process.env.AUTUMN_SEbCRET_KEY,
+		secretKey: process.env.AUTUMN_SECRET_KEY,
 		url: "http://localhost:8080/v1",
 	});
 
