@@ -5,21 +5,16 @@ import { useCustomer } from "autumn-js/react";
 
 const main = async () => {
 	const autumn = new Autumn({
-		secretKey: process.env.AUTUMN_SECRET_KEY,
+		secretKey: process.env.AUTUMN_SEbCRET_KEY,
+		url: "http://localhost:8080/v1",
 	});
 
-	const { customer } = useCustomer({
-		expand: ["entities", "invoices", "rewards", "trials_used", "payment_method"],
+	const customer = await autumn.customers.create({
+		id: "1234",
+		name: "John Doe",
+		email: "john.doe@example.com",
 	});
-
-	if (customer) {
-		console.log(customer.entities)
-		console.log(customer.invoices)
-		console.log(customer.referrals)
-		console.log(customer.rewards)
-		console.log(customer.trials_used)
-		console.log(customer.payment_method)
-	}
+	console.log(customer);
 };
 
 main();
