@@ -1,6 +1,6 @@
 {
 	"name": "atmn",
-	"version": "1.0.0-beta.10",
+	"version": "1.0.0-beta.11",
 	"license": "MIT",
 	"bin": {
 		"atmn": "dist/src/cli.js"
