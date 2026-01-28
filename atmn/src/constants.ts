@@ -1,6 +1,6 @@
 // Production URLs (default)
-export const FRONTEND_URL = "https://dev.useautumn.com";
-export const BACKEND_URL = "https://api-dev.useautumn.com";
+export const FRONTEND_URL = "https://app.useautumn.com";
+export const BACKEND_URL = "https://api.useautumn.com";
 
 // Local URLs (used when --local/-l flag is passed)
 export const LOCAL_FRONTEND_URL = "http://localhost:3000";

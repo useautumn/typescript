@@ -1,6 +1,6 @@
-import React from "react";
 import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
+import React from "react";
 import { useLogin } from "../../../lib/hooks/useLogin.js";
 import { Card, CardWidthProvider, LoadingText } from "../components/index.js";
 
@@ -51,7 +51,10 @@ export function LoginView({ onComplete }: LoginViewProps) {
 						<Text>You already have API keys configured.</Text>
 						<Text color="gray">Would you like to re-authenticate?</Text>
 						<Box marginTop={1}>
-							<SelectInput items={reauthOptions} onSelect={handleReauthSelect} />
+							<SelectInput
+								items={reauthOptions}
+								onSelect={handleReauthSelect}
+							/>
 						</Box>
 					</Card>
 				)}
@@ -72,10 +75,6 @@ export function LoginView({ onComplete }: LoginViewProps) {
 								Complete sign-in in your browser, then select an org.
 							</Text>
 						</Box>
-						<Box marginTop={1}>
-							<Text color="gray">If browser doesn't open, visit:</Text>
-						</Box>
-						<Text color="cyan">{AUTH_URL}</Text>
 					</Card>
 				)}
 
@@ -134,7 +133,9 @@ export function LoginView({ onComplete }: LoginViewProps) {
 				{/* Error */}
 				{login.phase === "error" && (
 					<Card title="✗ Authentication Failed">
-						<Text color="red">{login.error || "An unknown error occurred."}</Text>
+						<Text color="red">
+							{login.error || "An unknown error occurred."}
+						</Text>
 						<Box marginTop={1}>
 							<Text color="gray">Please try again with `atmn login`.</Text>
 						</Box>

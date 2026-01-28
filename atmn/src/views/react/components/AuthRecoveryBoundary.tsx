@@ -1,6 +1,17 @@
-import React, { createContext, useContext, useCallback, useState, useEffect } from "react";
 import { Box, Text } from "ink";
-import { useAuthRecovery, isAuthError, type AuthRecoveryPhase } from "../../../lib/hooks/useAuthRecovery.js";
+// biome-ignore lint/style/useImportType: needed for ink
+import React, {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
+import {
+	type AuthRecoveryPhase,
+	isAuthError,
+	useAuthRecovery,
+} from "../../../lib/hooks/useAuthRecovery.js";
 import { Card } from "./Card.js";
 import { LoadingText } from "./LoadingText.js";
 import { CardWidthProvider } from "./providers/CardWidthContext.js";
@@ -19,7 +30,9 @@ interface AuthRecoveryContextValue {
 	phase: AuthRecoveryPhase;
 }
 
-const AuthRecoveryContext = createContext<AuthRecoveryContextValue | null>(null);
+const AuthRecoveryContext = createContext<AuthRecoveryContextValue | null>(
+	null,
+);
 
 /**
  * Hook to access auth recovery context
@@ -27,7 +40,9 @@ const AuthRecoveryContext = createContext<AuthRecoveryContextValue | null>(null)
 export function useAuthRecoveryContext(): AuthRecoveryContextValue {
 	const context = useContext(AuthRecoveryContext);
 	if (!context) {
-		throw new Error("useAuthRecoveryContext must be used within AuthRecoveryBoundary");
+		throw new Error(
+			"useAuthRecoveryContext must be used within AuthRecoveryBoundary",
+		);
 	}
 	return context;
 }
@@ -40,16 +55,19 @@ interface AuthRecoveryBoundaryProps {
 
 /**
  * Boundary component that catches 401 errors and shows auth recovery UI
- * 
+ *
  * Wrap your command views with this to automatically handle expired/invalid auth:
- * 
+ *
  * ```tsx
  * <AuthRecoveryBoundary onRetry={() => refetch()}>
  *   <PushView />
  * </AuthRecoveryBoundary>
  * ```
  */
-export function AuthRecoveryBoundary({ children, onRetry }: AuthRecoveryBoundaryProps) {
+export function AuthRecoveryBoundary({
+	children,
+	onRetry,
+}: AuthRecoveryBoundaryProps) {
 	const [shouldShowRecovery, setShouldShowRecovery] = useState(false);
 
 	const authRecovery = useAuthRecovery({
@@ -65,14 +83,17 @@ export function AuthRecoveryBoundary({ children, onRetry }: AuthRecoveryBoundary
 		},
 	});
 
-	const handleError = useCallback((error: unknown): boolean => {
-		if (isAuthError(error)) {
-			setShouldShowRecovery(true);
-			authRecovery.startRecovery();
-			return true;
-		}
-		return false;
-	}, [authRecovery]);
+	const handleError = useCallback(
+		(error: unknown): boolean => {
+			if (isAuthError(error)) {
+				setShouldShowRecovery(true);
+				authRecovery.startRecovery();
+				return true;
+			}
+			return false;
+		},
+		[authRecovery],
+	);
 
 	// Start recovery when shouldShowRecovery becomes true
 	useEffect(() => {
@@ -92,9 +113,9 @@ export function AuthRecoveryBoundary({ children, onRetry }: AuthRecoveryBoundary
 	if (shouldShowRecovery) {
 		return (
 			<AuthRecoveryContext.Provider value={contextValue}>
-				<AuthRecoveryView 
-					phase={authRecovery.phase} 
-					error={authRecovery.error} 
+				<AuthRecoveryView
+					phase={authRecovery.phase}
+					error={authRecovery.error}
 				/>
 			</AuthRecoveryContext.Provider>
 		);
@@ -126,26 +147,19 @@ function AuthRecoveryView({ phase, error }: AuthRecoveryViewProps) {
 				</Card>
 
 				{/* Browser phases */}
-				{(phase === "detected" || phase === "opening_browser" || phase === "waiting_auth") && (
+				{(phase === "detected" ||
+					phase === "opening_browser" ||
+					phase === "waiting_auth") && (
 					<Card title="🌐 Browser">
 						<LoadingText
 							text={
 								phase === "detected"
 									? "Preparing authentication..."
 									: phase === "opening_browser"
-									? "Opening browser..."
-									: "Waiting for authentication..."
+										? "Opening browser..."
+										: "Waiting for authentication..."
 							}
 						/>
-						<Box marginTop={1}>
-							<Text color="gray">
-								Complete sign-in in your browser, then select an org.
-							</Text>
-						</Box>
-						<Box marginTop={1}>
-							<Text color="gray">If browser doesn't open, visit:</Text>
-						</Box>
-						<Text color="cyan">{AUTH_URL}</Text>
 					</Card>
 				)}
 

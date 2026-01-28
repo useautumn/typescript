@@ -1,8 +1,8 @@
-import chalk from "chalk";
 import { confirm } from "@inquirer/prompts";
-import { storeToEnv, readFromEnv, initSpinner } from "../../lib/utils.js";
-import { startOAuthFlow, getApiKeysWithToken } from "./oauth.js";
+import chalk from "chalk";
+import { initSpinner, readFromEnv, storeToEnv } from "../../lib/utils.js";
 import { CLI_CLIENT_ID } from "./constants.js";
+import { getApiKeysWithToken, startOAuthFlow } from "./oauth.js";
 
 const inputTheme = {
 	style: {
@@ -24,15 +24,7 @@ export default async function AuthCommand() {
 
 	console.log(chalk.cyan("\nOpening browser for authentication..."));
 	console.log(
-		chalk.gray(
-			"Please sign in and select the organization you want to use.\n",
-		),
-	);
-	console.log(
-		chalk.gray("If your browser doesn't open, visit:"),
-	);
-	console.log(
-		chalk.cyan("https://app.useautumn.com/cli-auth\n"),
+		chalk.gray("Please sign in and select the organization you want to use.\n"),
 	);
 
 	const spinner = initSpinner("Waiting for authorization...");
