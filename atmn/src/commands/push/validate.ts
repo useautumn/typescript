@@ -125,7 +125,7 @@ function validatePlanFeature(
 	}
 
 	// ========== RESET INTERVAL VALIDATION ==========
-	const validIntervals = ["one_off", "hour", "day", "week", "month", "quarter", "semi_annual", "year"];
+	const validIntervals = ["one_off", "week", "month", "quarter", "semi_annual", "year"];
 
 	// Validate top-level reset interval
 	if (hasTopLevelReset) {
