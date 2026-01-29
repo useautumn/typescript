@@ -1,4 +1,5 @@
-import {defineConfig, Options} from 'tsup';
+import { defineConfig } from 'tsup';
+import packageJson from './package.json';
 
 export default defineConfig([
 	{
@@ -11,5 +12,8 @@ export default defineConfig([
 		outDir: './dist',
 		treeshake: true,
 		target: 'es2020',
+		define: {
+			VERSION: JSON.stringify(packageJson.version),
+		}
 	},
 ]);
