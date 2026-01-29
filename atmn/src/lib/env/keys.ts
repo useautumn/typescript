@@ -48,7 +48,7 @@ export function getKey(env: AppEnv, cwd?: string): string {
 
 	if (!key) {
 		throw new Error(
-			`No ${env} API key found. Run 'atmn auth' to authenticate.`,
+			`No ${env} API key found. Run 'atmn login' to authenticate.`,
 		);
 	}
 
