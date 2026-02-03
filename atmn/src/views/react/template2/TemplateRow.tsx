@@ -15,11 +15,13 @@ export interface TemplateRowProps {
 /**
  * Calculate the width needed for a credit schema card
  */
-export function calculateCreditSchemaWidth(costs: TemplateCreditCost[]): number {
+export function calculateCreditSchemaWidth(
+	costs: TemplateCreditCost[],
+): number {
 	const titleWidth = "Credit Costs".length;
 	// Each row: action + gap(2) + credits
 	const maxRowWidth = Math.max(
-		...costs.map((c) => c.action.length + 2 + c.credits.length)
+		...costs.map((c) => c.action.length + 2 + c.credits.length),
 	);
 	// Add padding (2 on each side) + border (2)
 	return Math.max(titleWidth, maxRowWidth) + 6;
@@ -158,7 +160,7 @@ export function TemplateRow({
 					{/* Credit schema card - only show if template has credit system */}
 					{hasCreditSystem && (
 						<CreditSchemaCard
-							costs={template.creditSystem!.costs}
+							costs={template.creditSystem?.costs}
 							height={tiersHeight}
 							width={creditSchemaWidth}
 						/>

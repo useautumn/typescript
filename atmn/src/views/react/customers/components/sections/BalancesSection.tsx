@@ -1,6 +1,5 @@
-import { Box, Text } from "ink";
 import { ProgressBar } from "@inkjs/ui";
-import React from "react";
+import { Box, Text } from "ink";
 import type { ApiBalance } from "../../types.js";
 
 export interface BalancesSectionProps {
@@ -22,10 +21,10 @@ export function BalancesSection({ balances }: BalancesSectionProps) {
 
 	// Separate boolean and metered features
 	const booleanBalances = balanceList.filter(
-		(b) => b.feature?.type === "boolean"
+		(b) => b.feature?.type === "boolean",
 	);
 	const meteredBalances = balanceList.filter(
-		(b) => b.feature?.type !== "boolean"
+		(b) => b.feature?.type !== "boolean",
 	);
 
 	return (
@@ -44,7 +43,10 @@ export function BalancesSection({ balances }: BalancesSectionProps) {
 
 			{/* Metered Features */}
 			{meteredBalances.length > 0 && (
-				<Box flexDirection="column" marginTop={booleanBalances.length > 0 ? 1 : 0}>
+				<Box
+					flexDirection="column"
+					marginTop={booleanBalances.length > 0 ? 1 : 0}
+				>
 					<Text bold color="gray">
 						Usage
 					</Text>
@@ -115,20 +117,20 @@ function MeteredFeatureRow({ balance }: { balance: ApiBalance }) {
 		<Box flexDirection="column">
 			<Box>
 				<Text>{displayName}: </Text>
-				<Text color={isOverage ? "red" : remaining < total * 0.2 ? "yellow" : "white"}>
+				<Text
+					color={
+						isOverage ? "red" : remaining < total * 0.2 ? "yellow" : "white"
+					}
+				>
 					{remaining.toLocaleString()} / {total.toLocaleString()}
 				</Text>
-				{isOverage && (
-					<Text color="red"> (overage)</Text>
-				)}
+				{isOverage && <Text color="red"> (overage)</Text>}
 			</Box>
 			<Box width={30}>
 				<ProgressBar value={percentage} />
 			</Box>
 			{balance.reset?.resets_at && (
-				<Text dimColor>
-					Resets: {formatResetDate(balance.reset.resets_at)}
-				</Text>
+				<Text dimColor>Resets: {formatResetDate(balance.reset.resets_at)}</Text>
 			)}
 		</Box>
 	);
@@ -140,6 +142,19 @@ function MeteredFeatureRow({ balance }: { balance: ApiBalance }) {
 function formatResetDate(timestamp: number): string {
 	const ms = timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
 	const date = new Date(ms);
-	const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	const months = [
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec",
+	];
 	return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }

@@ -1,6 +1,11 @@
-import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from "@tanstack/react-query";
+import {
+	MutationCache,
+	QueryCache,
+	QueryClient,
+	QueryClientProvider,
+} from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import React, { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { isAuthError } from "../../../../lib/hooks/useAuthRecovery.js";
 import { AuthRecoveryBoundary } from "../AuthRecoveryBoundary.js";
 
@@ -10,7 +15,7 @@ interface QueryProviderProps {
 
 /**
  * QueryProvider with global 401 error handling
- * 
+ *
  * When a 401 error is detected from any query or mutation:
  * 1. The error is caught by the global handler
  * 2. Auth recovery UI is shown (OAuth flow)
@@ -56,15 +61,12 @@ export function QueryProvider({ children }: QueryProviderProps) {
 			<QueryClientProvider client={queryClient}>
 				<AuthRecoveryBoundary onRetry={handleRetry}>
 					{/* Show recovery UI, children are hidden */}
-					<></>
 				</AuthRecoveryBoundary>
 			</QueryClientProvider>
 		);
 	}
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			{children}
-		</QueryClientProvider>
+		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 	);
 }

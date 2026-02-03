@@ -26,7 +26,7 @@ export async function storeEnvKeys(
 	const forceOverwrite = options?.forceOverwrite ?? true;
 
 	const envPath = path.join(cwd, ".env");
-	const envLocalPath = path.join(cwd, ".env.local");
+	const _envLocalPath = path.join(cwd, ".env.local");
 
 	const keysWritten: string[] = [];
 	let created = false;
@@ -68,7 +68,7 @@ export async function storeEnvKeys(
 			.map(([key, value]) => `${key}=${value}`)
 			.join("\n");
 
-		fs.writeFileSync(envPath, envContent + "\n");
+		fs.writeFileSync(envPath, `${envContent}\n`);
 		keysWritten.push(...Object.keys(keyMap));
 	}
 

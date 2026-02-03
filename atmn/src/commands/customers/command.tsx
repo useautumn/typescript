@@ -1,8 +1,7 @@
 import { render } from "ink";
-import React from "react";
+import { AppEnv } from "../../lib/env/detect.js";
 import { QueryProvider } from "../../views/react/components/providers/QueryProvider.js";
 import { CustomersView } from "../../views/react/customers/CustomersView.js";
-import { AppEnv } from "../../lib/env/detect.js";
 
 export interface CustomersCommandOptions {
 	prod?: boolean;

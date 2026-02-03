@@ -1,6 +1,5 @@
-import React from "react";
 import { Text } from "ink";
-import type { Plan } from "../../../../../source/compose/models/index.js";
+import type { Plan } from "../../../../compose/models/index.js";
 
 interface PlanRowProps {
 	plan: Plan;

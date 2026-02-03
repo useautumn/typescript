@@ -1,9 +1,9 @@
-import clipboard from "clipboardy";
 import { exec } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { useMutation } from "@tanstack/react-query";
+import clipboard from "clipboardy";
 
 const execAsync = promisify(exec);
 
@@ -92,7 +92,10 @@ async function installMcpForAgents(
 /**
  * Helper function to append to existing file or create new file
  */
-async function appendOrCreate(filePath: string, content: string): Promise<void> {
+async function appendOrCreate(
+	filePath: string,
+	content: string,
+): Promise<void> {
 	try {
 		// Try to read existing file
 		await fs.access(filePath);
@@ -116,10 +119,16 @@ async function createAgentFilesForOptions(
 
 	for (const option of options) {
 		if (option === "claude-md") {
-			await appendOrCreate(path.join(effectiveCwd, "CLAUDE.md"), markdownContent);
+			await appendOrCreate(
+				path.join(effectiveCwd, "CLAUDE.md"),
+				markdownContent,
+			);
 			createdFiles.push("CLAUDE.md");
 		} else if (option === "agents-md") {
-			await appendOrCreate(path.join(effectiveCwd, "AGENTS.md"), markdownContent);
+			await appendOrCreate(
+				path.join(effectiveCwd, "AGENTS.md"),
+				markdownContent,
+			);
 			createdFiles.push("AGENTS.md");
 		} else if (option === "cursor-rules") {
 			await appendOrCreate(

@@ -1,5 +1,5 @@
-import { isLocal } from "../env/cliContext.js";
 import { BACKEND_URL, LOCAL_BACKEND_URL } from "../../constants.js";
+import { isLocal } from "../env/cliContext.js";
 
 /**
  * Get the current backend URL based on CLI flags
@@ -36,29 +36,31 @@ export function formatError(err: unknown): string {
 	if (!(err instanceof Error)) {
 		return String(err);
 	}
-	
+
 	const apiError = err as ApiError;
 	const lines: string[] = [];
-	
+
 	// Start with the basic error message
 	lines.push(err.message);
-	
+
 	// Add request context if available
 	if (apiError.method && apiError.url) {
 		lines.push(`  Request: ${apiError.method} ${apiError.url}`);
 	}
-	
+
 	// Add status if available
 	if (apiError.status) {
 		lines.push(`  Status: ${apiError.status}`);
 	}
-	
+
 	// Add response details if available
 	if (apiError.response) {
 		const resp = apiError.response as Record<string, unknown>;
-		lines.push(`  Response: ${JSON.stringify(resp, null, 2).split('\n').join('\n  ')}`);
+		lines.push(
+			`  Response: ${JSON.stringify(resp, null, 2).split("\n").join("\n  ")}`,
+		);
 	}
-	
+
 	return lines.join("\n");
 }
 
@@ -68,7 +70,14 @@ export function formatError(err: unknown): string {
 export async function request<T = unknown>(
 	options: RequestOptions,
 ): Promise<T> {
-	const { method, path, secretKey, body, queryParams, headers: customHeaders } = options;
+	const {
+		method,
+		path,
+		secretKey,
+		body,
+		queryParams,
+		headers: customHeaders,
+	} = options;
 
 	// Build URL with query params (respects --local flag)
 	const url = new URL(path, getBackendUrl());

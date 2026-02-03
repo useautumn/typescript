@@ -4,29 +4,29 @@ import { pathToFileURL } from "node:url";
 import { useMutation } from "@tanstack/react-query";
 import createJiti from "jiti";
 import { useCallback, useEffect, useState } from "react";
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
-import { formatError } from "../api/client.js";
 import {
 	analyzePush,
 	archiveFeature as archiveFeatureApi,
 	archivePlan as archivePlanApi,
-	deleteFeature as deleteFeatureApi,
-	deletePlan as deletePlanApi,
-	fetchRemoteData,
-	type PushAnalysis,
-	type PushResult,
-	pushFeature,
-	pushPlan,
-	unarchiveFeature as unarchiveFeatureApi,
-	unarchivePlan as unarchivePlanApi,
 	createFeatureArchivedPrompt,
 	createFeatureDeletePrompt,
 	createPlanArchivedPrompt,
 	createPlanDeletePrompt,
 	createPlanVersioningPrompt,
 	createProdConfirmationPrompt,
+	deleteFeature as deleteFeatureApi,
+	deletePlan as deletePlanApi,
+	fetchRemoteData,
+	type PushAnalysis,
 	type PushPrompt,
+	type PushResult,
+	pushFeature,
+	pushPlan,
+	unarchiveFeature as unarchiveFeatureApi,
+	unarchivePlan as unarchivePlanApi,
 } from "../../commands/push/index.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
+import { formatError } from "../api/client.js";
 import { AppEnv } from "../env/index.js";
 import { type OrganizationInfo, useOrganization } from "./useOrganization.js";
 
@@ -183,7 +183,7 @@ export function usePush(options?: UsePushOptions) {
 	const loadConfigMutation = useMutation({
 		mutationFn: async () => {
 			const config = await loadLocalConfig(effectiveCwd);
-			
+
 			// Validate config for missing required fields
 			const { validateConfig, formatValidationErrors } = await import(
 				"../../commands/push/validate.js"
@@ -191,10 +191,10 @@ export function usePush(options?: UsePushOptions) {
 			const validation = validateConfig(config.features, config.plans);
 			if (!validation.valid) {
 				throw new Error(
-					`Config validation failed:\n\n${formatValidationErrors(validation.errors)}`
+					`Config validation failed:\n\n${formatValidationErrors(validation.errors)}`,
 				);
 			}
-			
+
 			return config;
 		},
 		onSuccess: (config) => {
@@ -674,9 +674,7 @@ export function usePush(options?: UsePushOptions) {
 
 	// Combine errors
 	const combinedError =
-		error || orgQuery.error
-			? error || formatError(orgQuery.error)
-			: null;
+		error || orgQuery.error ? error || formatError(orgQuery.error) : null;
 
 	return {
 		orgInfo: orgQuery.data as OrganizationInfo | null,

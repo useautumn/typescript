@@ -1,4 +1,4 @@
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
 import type { EnvironmentData } from "./types.js";
 
 /**

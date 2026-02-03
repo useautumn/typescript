@@ -11,11 +11,11 @@ import type { DeletionProgress } from "./types.js";
 export async function deleteCustomersBatch(
 	customers: { id: string }[],
 	deleteCustomerFn: (id: string) => Promise<void>,
-	onProgress?: (progress: DeletionProgress) => void
+	onProgress?: (progress: DeletionProgress) => void,
 ): Promise<void> {
 	const concurrency = Math.max(
 		1,
-		Math.min(customers.length, DELETE_CONCURRENCY)
+		Math.min(customers.length, DELETE_CONCURRENCY),
 	);
 
 	let completed = 0;
@@ -40,7 +40,7 @@ export async function deleteCustomersBatch(
 						rate,
 					});
 				}
-			})
+			}),
 		);
 	}
 }
@@ -51,7 +51,7 @@ export async function deleteCustomersBatch(
 export async function deletePlansSequential(
 	plans: { id: string }[],
 	deletePlanFn: (id: string, allVersions: boolean) => Promise<void>,
-	onProgress?: (progress: DeletionProgress) => void
+	onProgress?: (progress: DeletionProgress) => void,
 ): Promise<void> {
 	const startTime = Date.now();
 
@@ -79,11 +79,11 @@ export async function deletePlansSequential(
 export async function deleteFeaturesSequential(
 	features: { id: string; type: string }[],
 	deleteFeatureFn: (id: string) => Promise<void>,
-	onProgress?: (progress: DeletionProgress) => void
+	onProgress?: (progress: DeletionProgress) => void,
 ): Promise<void> {
 	// Sort: credit_system features first (they are dependencies)
 	const sorted = [...features].sort((a) =>
-		a.type === "credit_system" ? -1 : 1
+		a.type === "credit_system" ? -1 : 1,
 	);
 
 	const startTime = Date.now();

@@ -1,7 +1,7 @@
+import fs from "node:fs";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import dotenv from "dotenv";
-import fs from "fs";
 import yoctoSpinner from "yocto-spinner";
 import { isLocal, isProd } from "./env/cliContext.js";
 
@@ -116,9 +116,9 @@ export async function storeToEnv(prodKey: string, sandboxKey: string) {
 }
 
 function getEnvVar(parsed: { [key: string]: string }, prodFlag: boolean) {
-	if (prodFlag) return parsed["AUTUMN_PROD_SECRET_KEY"];
+	if (prodFlag) return parsed.AUTUMN_PROD_SECRET_KEY;
 
-	return parsed["AUTUMN_SECRET_KEY"];
+	return parsed.AUTUMN_SECRET_KEY;
 }
 
 export function readFromEnv(options?: { bypass?: boolean }) {
@@ -128,12 +128,12 @@ export function readFromEnv(options?: { bypass?: boolean }) {
 
 	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
 	if (prodFlag && process.env["AUTUMN_PROD_SECRET_KEY"]) {
-		return process.env["AUTUMN_PROD_SECRET_KEY"];
+		return process.env.AUTUMN_PROD_SECRET_KEY;
 	}
 
 	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
 	if (!prodFlag && process.env["AUTUMN_SECRET_KEY"]) {
-		return process.env["AUTUMN_SECRET_KEY"];
+		return process.env.AUTUMN_SECRET_KEY;
 	}
 
 	let secretKey: string | undefined;

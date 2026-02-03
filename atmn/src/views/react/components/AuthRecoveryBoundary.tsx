@@ -17,7 +17,7 @@ import { LoadingText } from "./LoadingText.js";
 import { CardWidthProvider } from "./providers/CardWidthContext.js";
 
 // Auth URL for fallback display
-const AUTH_URL = "https://app.useautumn.com/cli-auth";
+const _AUTH_URL = "https://app.useautumn.com/cli-auth";
 
 interface AuthRecoveryContextValue {
 	/** Check if an error is a 401 that should trigger recovery */

@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
@@ -70,13 +70,16 @@ export function writeDotenvFile(
 		})
 		.join("\n");
 
-	writeFileSync(filePath, lines + "\n", "utf-8");
+	writeFileSync(filePath, `${lines}\n`, "utf-8");
 }
 
 /**
  * Get value from .env file (checks .env.local first, then .env)
  */
-export function getDotenvValue(key: string, cwd = process.cwd()): string | undefined {
+export function getDotenvValue(
+	key: string,
+	cwd = process.cwd(),
+): string | undefined {
 	const localPath = resolve(cwd, ".env.local");
 	const localEntries = readDotenvFile(localPath);
 	if (localEntries.has(key)) {

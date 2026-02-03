@@ -1,4 +1,4 @@
-import type { Feature, Plan, PlanFeature } from "../../../source/compose/models/index.js";
+import type { Feature, Plan, PlanFeature } from "../../compose/models/index.js";
 
 /**
  * Validation errors with user-friendly messages.
@@ -16,7 +16,9 @@ export interface ValidationResult {
 /**
  * Get the price.interval from a PlanFeature (handling the discriminated union)
  */
-function getPriceInterval(feature: PlanFeature): { interval: string; interval_count?: number } | undefined {
+function getPriceInterval(
+	feature: PlanFeature,
+): { interval: string; interval_count?: number } | undefined {
 	if (!feature.price) return undefined;
 	const price = feature.price as { interval?: string; interval_count?: number };
 	if (price.interval) {
@@ -40,7 +42,7 @@ function isConsumableFeature(feature: Feature): boolean {
 /**
  * Check if a feature is continuous-use (like seats) based on its type
  */
-function isContinuousUseFeature(feature: Feature): boolean {
+function _isContinuousUseFeature(feature: Feature): boolean {
 	if (feature.type === "metered") {
 		return (feature as { consumable?: boolean }).consumable === false;
 	}
@@ -61,7 +63,9 @@ function validatePlanFeature(
 	const basePath = `plan "${planId}" → features[${featureIndex}] (${featureId})`;
 
 	// Look up the actual feature definition
-	const featureDefinition = features.find(f => f.id === planFeature.feature_id);
+	const featureDefinition = features.find(
+		(f) => f.id === planFeature.feature_id,
+	);
 
 	// Get reset configuration from either top-level or price.interval
 	const topLevelReset = planFeature.reset;
@@ -91,7 +95,8 @@ function validatePlanFeature(
 
 		// Consumable features require reset when they have usage limits (but not if unlimited)
 		if (isConsumableFeature(featureDefinition)) {
-			const hasFiniteUsageLimits = planFeature.included !== undefined && planFeature.unlimited !== true;
+			const hasFiniteUsageLimits =
+				planFeature.included !== undefined && planFeature.unlimited !== true;
 			const hasPricing = planFeature.price !== undefined;
 
 			// If the feature has finite usage limits or pricing, it needs a reset interval
@@ -116,7 +121,10 @@ function validatePlanFeature(
 		}
 
 		// If price has amount or tiers, must have either top-level reset OR price.interval
-		if ((planFeature.price.amount !== undefined || planFeature.price.tiers) && !hasAnyReset) {
+		if (
+			(planFeature.price.amount !== undefined || planFeature.price.tiers) &&
+			!hasAnyReset
+		) {
 			errors.push({
 				path: basePath,
 				message: `Pricing requires a reset interval. Add "price: { interval: 'month', ... }".`,
@@ -125,11 +133,23 @@ function validatePlanFeature(
 	}
 
 	// ========== RESET INTERVAL VALIDATION ==========
-	const validIntervals = ["one_off", "hour", "day", "week", "month", "quarter", "semi_annual", "year"];
+	const validIntervals = [
+		"one_off",
+		"hour",
+		"day",
+		"week",
+		"month",
+		"quarter",
+		"semi_annual",
+		"year",
+	];
 
 	// Validate top-level reset interval
 	if (hasTopLevelReset) {
-		if (topLevelReset.interval === undefined || topLevelReset.interval === null) {
+		if (
+			topLevelReset.interval === undefined ||
+			topLevelReset.interval === null
+		) {
 			errors.push({
 				path: `${basePath} → reset`,
 				message: `"interval" is required when "reset" is specified. Must be one of: ${validIntervals.join(", ")}.`,
@@ -280,7 +300,7 @@ function validateFeature(feature: Feature): ValidationError[] {
 
 /**
  * Validate local config before pushing.
- * 
+ *
  * This catches missing required fields and provides helpful error messages
  * before the API returns confusing Zod validation errors.
  */

@@ -4,10 +4,8 @@ import chalk from "chalk";
 import { program } from "commander";
 import { render } from "ink";
 import open from "open";
-import React from "react";
-import Nuke from "../source/commands/nuke.js";
-// Import existing commands from source/ (legacy - will migrate incrementally)
 import AuthCommand from "./commands/auth/command.js";
+import Nuke from "./commands/nuke/legacyNuke.js";
 import { pull as newPull } from "./commands/pull/pull.js"; // New pull implementation
 import { FRONTEND_URL } from "./constants.js";
 import { fetchOrganizationMe } from "./lib/api/endpoints/index.js";
@@ -62,7 +60,9 @@ program
 		// Ensure API key is present
 		const secretKey = readFromEnv();
 		if (!secretKey) {
-			console.error(chalk.red("No API key found. Run `atmn login` to authenticate."));
+			console.error(
+				chalk.red("No API key found. Run `atmn login` to authenticate."),
+			);
 			process.exit(1);
 		}
 
@@ -190,14 +190,29 @@ program
 						`✓ Pulled ${result.features.length} features, ${result.plans.length} plans from ${environment}`,
 					),
 				);
-				
+
 				// Show in-place update details
 				if (result.inPlace && result.updateResult) {
-					const { featuresUpdated, featuresAdded, featuresDeleted, plansUpdated, plansAdded, plansDeleted } = result.updateResult;
-					console.log(chalk.cyan(`  In-place update: ${featuresUpdated} features updated, ${featuresAdded} added, ${featuresDeleted} deleted`));
-					console.log(chalk.cyan(`                   ${plansUpdated} plans updated, ${plansAdded} added, ${plansDeleted} deleted`));
+					const {
+						featuresUpdated,
+						featuresAdded,
+						featuresDeleted,
+						plansUpdated,
+						plansAdded,
+						plansDeleted,
+					} = result.updateResult;
+					console.log(
+						chalk.cyan(
+							`  In-place update: ${featuresUpdated} features updated, ${featuresAdded} added, ${featuresDeleted} deleted`,
+						),
+					);
+					console.log(
+						chalk.cyan(
+							`                   ${plansUpdated} plans updated, ${plansAdded} added, ${plansDeleted} deleted`,
+						),
+					);
 				}
-				
+
 				if (result.sdkTypesPath) {
 					console.log(
 						chalk.green(`✓ Generated SDK types at: ${result.sdkTypesPath}`),
@@ -205,7 +220,9 @@ program
 				}
 			} catch (error) {
 				const { formatError } = await import("./lib/api/client.js");
-				console.error(chalk.red(`\nError pulling from Autumn: ${formatError(error)}`));
+				console.error(
+					chalk.red(`\nError pulling from Autumn: ${formatError(error)}`),
+				);
 				process.exit(1);
 			}
 		}

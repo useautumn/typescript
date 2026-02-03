@@ -1,11 +1,10 @@
 import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
-import React from "react";
 import { useLogin } from "../../../lib/hooks/useLogin.js";
 import { Card, CardWidthProvider, LoadingText } from "../components/index.js";
 
 // Auth URL for fallback display
-const AUTH_URL = "https://app.useautumn.com/cli-auth";
+const _AUTH_URL = "https://app.useautumn.com/cli-auth";
 
 interface LoginViewProps {
 	onComplete?: () => void;
@@ -16,7 +15,7 @@ interface LoginViewProps {
  */
 export function LoginView({ onComplete }: LoginViewProps) {
 	const login = useLogin({ onComplete });
-	const duration = ((Date.now() - login.startTime) / 1000).toFixed(1);
+	const _duration = ((Date.now() - login.startTime) / 1000).toFixed(1);
 
 	// Re-auth confirmation options
 	const reauthOptions = [

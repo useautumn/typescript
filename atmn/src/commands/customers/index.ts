@@ -1,2 +1,5 @@
-export { customersCommand, type CustomersCommandOptions } from "./command.js";
-export { customersCommand as default } from "./command.js";
+export {
+	type CustomersCommandOptions,
+	customersCommand,
+	customersCommand as default,
+} from "./command.js";

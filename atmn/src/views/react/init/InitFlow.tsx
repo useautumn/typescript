@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { ASCII_TITLE } from "../../../constants.js";
 import { AuthStep } from "./steps/AuthStep.js";
@@ -17,7 +17,7 @@ interface OrgInfo {
 
 export function InitFlow() {
 	const [currentStep, setCurrentStep] = useState<Step>("auth");
-	const [orgInfo, setOrgInfo] = useState<OrgInfo | null>(null);
+	const [_orgInfo, setOrgInfo] = useState<OrgInfo | null>(null);
 	const [hasPricing, setHasPricing] = useState<boolean>(false);
 
 	const handleAuthComplete = (info: OrgInfo) => {

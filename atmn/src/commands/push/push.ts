@@ -1,26 +1,25 @@
 // @ts-nocheck - Using ts-nocheck due to complex Record<string, unknown> index signature issues
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
 import {
+	archiveFeature as archiveFeatureApi,
+	archivePlan as archivePlanApi,
+	createPlan,
+	deleteFeature as deleteFeatureApi,
+	deletePlan as deletePlanApi,
 	fetchFeatures,
 	fetchPlans,
-	upsertFeature,
-	updateFeature,
-	deleteFeature as deleteFeatureApi,
-	archiveFeature as archiveFeatureApi,
-	unarchiveFeature as unarchiveFeatureApi,
 	getFeatureDeletionInfo,
-	createPlan,
-	updatePlan,
-	deletePlan as deletePlanApi,
-	archivePlan as archivePlanApi,
-	unarchivePlan as unarchivePlanApi,
 	getPlanDeletionInfo,
 	getPlanHasCustomers,
+	unarchiveFeature as unarchiveFeatureApi,
+	unarchivePlan as unarchivePlanApi,
+	updateFeature,
+	updatePlan,
+	upsertFeature,
 } from "../../lib/api/endpoints/index.js";
-import { transformPlanToApi } from "../../lib/transforms/sdkToApi/index.js";
-import { getKey } from "../../lib/env/index.js";
-import { AppEnv } from "../../lib/env/index.js";
 import { isProd } from "../../lib/env/cliContext.js";
+import { AppEnv, getKey } from "../../lib/env/index.js";
+import { transformPlanToApi } from "../../lib/transforms/sdkToApi/index.js";
 import type {
 	FeatureDeleteInfo,
 	PlanDeleteInfo,
@@ -152,7 +151,11 @@ async function checkPlanForVersioning(
 
 	// Transform SDK plan to API format for comparison
 	const apiPlan = transformPlanToApi(plan);
-	const response = await getPlanHasCustomers({ secretKey, planId: plan.id, plan: apiPlan });
+	const response = await getPlanHasCustomers({
+		secretKey,
+		planId: plan.id,
+		plan: apiPlan,
+	});
 
 	return {
 		plan,
@@ -201,10 +204,16 @@ export async function analyzePush(
 
 	// Sort features to delete: credit systems first to prevent dependency issues
 	const featuresToDelete = featuresToDeleteUnsorted.sort((a, b) => {
-		if (a.featureType === "credit_system" && b.featureType !== "credit_system") {
+		if (
+			a.featureType === "credit_system" &&
+			b.featureType !== "credit_system"
+		) {
 			return -1;
 		}
-		if (a.featureType !== "credit_system" && b.featureType === "credit_system") {
+		if (
+			a.featureType !== "credit_system" &&
+			b.featureType === "credit_system"
+		) {
 			return 1;
 		}
 		return 0;
@@ -288,7 +297,11 @@ function transformPlanForApi(plan: Plan): Record<string, unknown> {
 			// Pass through reset object as-is (already nested in SDK format)
 			// Just strip out reset_when_enabled if present (we ignore it)
 			const featureAny = feature as Record<string, unknown>;
-			if ("reset" in featureAny && featureAny.reset && typeof featureAny.reset === "object") {
+			if (
+				"reset" in featureAny &&
+				featureAny.reset &&
+				typeof featureAny.reset === "object"
+			) {
 				const reset = { ...(featureAny.reset as Record<string, unknown>) };
 				delete reset.reset_when_enabled; // Ignore this field
 				transformedFeature.reset = reset;
@@ -305,9 +318,10 @@ function transformPlanForApi(plan: Plan): Record<string, unknown> {
 
 				if ("billing_method" in price) {
 					// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
-					transformedPrice.usage_model = price.billing_method === "usage_based" 
-						? "pay_per_use" 
-						: price.billing_method;
+					transformedPrice.usage_model =
+						price.billing_method === "usage_based"
+							? "pay_per_use"
+							: price.billing_method;
 					delete transformedPrice.billing_method;
 				}
 

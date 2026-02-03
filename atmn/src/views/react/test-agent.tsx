@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { render } from "ink";
-import React from "react";
 import { AgentStep } from "./init/steps/AgentStep.js";
 
 // Test the AgentStep component standalone

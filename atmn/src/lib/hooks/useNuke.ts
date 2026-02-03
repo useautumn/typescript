@@ -13,15 +13,15 @@ import type {
 	DeletionProgress,
 	NukePhaseStats,
 } from "../../commands/nuke/types.js";
-import { getKey } from "../env/index.js";
-import { AppEnv } from "../env/detect.js";
 import {
+	type ApiCustomer,
 	deleteCustomer,
 	fetchCustomers,
-	type ApiCustomer,
 } from "../api/endpoints/customers.js";
-import { deletePlan, fetchPlans } from "../api/endpoints/plans.js";
 import { deleteFeature, fetchFeatures } from "../api/endpoints/features.js";
+import { deletePlan, fetchPlans } from "../api/endpoints/plans.js";
+import { AppEnv } from "../env/detect.js";
+import { getKey } from "../env/index.js";
 
 export interface UseNukeOptions {
 	onComplete?: () => void;
@@ -74,19 +74,21 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 							current: progress.current,
 							total: progress.total,
 							rate: progress.rate || 0,
-					  }
-					: p
-			)
+						}
+					: p,
+			),
 		);
 		updateElapsed();
 	};
 
 	const completePhase = (
 		phase: "customers" | "plans" | "features",
-		duration: number
+		duration: number,
 	) => {
 		setPhases((prev) =>
-			prev.map((p) => (p.phase === phase ? { ...p, completed: true, duration } : p))
+			prev.map((p) =>
+				p.phase === phase ? { ...p, completed: true, duration } : p,
+			),
 		);
 		updateElapsed();
 	};
@@ -103,8 +105,8 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 			const customers = await fetchCustomers({ secretKey });
 			setPhases((prev) =>
 				prev.map((p) =>
-					p.phase === "customers" ? { ...p, total: customers.length } : p
-				)
+					p.phase === "customers" ? { ...p, total: customers.length } : p,
+				),
 			);
 
 			await deleteCustomersBatch(
@@ -112,7 +114,7 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 				async (id: string) => {
 					await deleteCustomer({ secretKey, customerId: id });
 				},
-				updatePhase
+				updatePhase,
 			);
 
 			completePhase("customers", (Date.now() - customersPhaseStart) / 1000);
@@ -123,7 +125,9 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 
 			const plans = await fetchPlans({ secretKey, includeArchived: true });
 			setPhases((prev) =>
-				prev.map((p) => (p.phase === "plans" ? { ...p, total: plans.length } : p))
+				prev.map((p) =>
+					p.phase === "plans" ? { ...p, total: plans.length } : p,
+				),
 			);
 
 			await deletePlansSequential(
@@ -131,14 +135,14 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 				async (id: string, allVersions: boolean) => {
 					await deletePlan({ secretKey, planId: id, allVersions });
 				},
-				updatePhase
+				updatePhase,
 			);
 
 			completePhase("plans", (Date.now() - plansPhaseStart) / 1000);
 
 			// Wait a bit for DB to propagate plan deletions
 			// This prevents race conditions where features are still referenced
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 
 			// Phase 3: Features
 			const featuresPhaseStart = Date.now();
@@ -147,8 +151,8 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 			const features = await fetchFeatures({ secretKey });
 			setPhases((prev) =>
 				prev.map((p) =>
-					p.phase === "features" ? { ...p, total: features.length } : p
-				)
+					p.phase === "features" ? { ...p, total: features.length } : p,
+				),
 			);
 
 			await deleteFeaturesSequential(
@@ -156,7 +160,7 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 				async (id: string) => {
 					await deleteFeature({ secretKey, featureId: id });
 				},
-				updatePhase
+				updatePhase,
 			);
 
 			completePhase("features", (Date.now() - featuresPhaseStart) / 1000);

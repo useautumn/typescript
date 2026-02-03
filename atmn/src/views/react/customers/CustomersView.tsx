@@ -1,6 +1,6 @@
 import { Box, Text, useApp, useInput } from "ink";
 import open from "open";
-import React, { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AppEnv } from "../../../lib/env/detect.js";
 import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import { useCustomerExpanded } from "../../../lib/hooks/useCustomerExpanded.js";
@@ -131,7 +131,9 @@ export function CustomersView({
 					// Open in Autumn dashboard
 					if (input === "o" && state.selectedCustomer) {
 						const env = state.selectedCustomer.env === "live" ? "" : "/sandbox";
-						open(`${AUTUMN_DASHBOARD_URL}${env}/customers/${state.selectedCustomer.id}`);
+						open(
+							`${AUTUMN_DASHBOARD_URL}${env}/customers/${state.selectedCustomer.id}`,
+						);
 						return;
 					}
 
@@ -338,8 +340,11 @@ export function CustomersView({
 							}}
 							onOpenInBrowser={() => {
 								if (state.selectedCustomer) {
-									const env = state.selectedCustomer.env === "live" ? "" : "/sandbox";
-									open(`${AUTUMN_DASHBOARD_URL}${env}/customers/${state.selectedCustomer.id}`);
+									const env =
+										state.selectedCustomer.env === "live" ? "" : "/sandbox";
+									open(
+										`${AUTUMN_DASHBOARD_URL}${env}/customers/${state.selectedCustomer.id}`,
+									);
 								}
 							}}
 							expandedCustomer={expandedCustomer}

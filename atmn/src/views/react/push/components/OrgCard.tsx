@@ -1,4 +1,3 @@
-import React from "react";
 import type { OrganizationInfo } from "../../../../lib/hooks/useOrganization.js";
 import { Card, KeyValue, LoadingText } from "../../components/index.js";
 

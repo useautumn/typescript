@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { KeybindHintsProps } from "../types.js";
 
 /**
@@ -29,18 +28,18 @@ export function KeybindHints({
 					<Text color="magenta">Esc</Text>
 					<Text color="gray"> close</Text>
 				</Text>
-			<Text>
-				<Text color="magenta">c</Text>
-				<Text color="gray"> copy ID</Text>
-			</Text>
-			<Text>
-				<Text color="magenta">o</Text>
-				<Text color="gray"> open</Text>
-			</Text>
-			<Text>
-				<Text color="magenta">q</Text>
-				<Text color="gray"> quit</Text>
-			</Text>
+				<Text>
+					<Text color="magenta">c</Text>
+					<Text color="gray"> copy ID</Text>
+				</Text>
+				<Text>
+					<Text color="magenta">o</Text>
+					<Text color="gray"> open</Text>
+				</Text>
+				<Text>
+					<Text color="magenta">q</Text>
+					<Text color="gray"> quit</Text>
+				</Text>
 			</Box>
 		);
 	}

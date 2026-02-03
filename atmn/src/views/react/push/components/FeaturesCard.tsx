@@ -1,8 +1,7 @@
-import React from "react";
 import { Text } from "ink";
-import type { Feature } from "../../../../../source/compose/models/index.js";
-import type { FeatureStatus } from "../../../../lib/hooks/usePush.js";
 import type { FeatureDeleteInfo } from "../../../../commands/push/types.js";
+import type { Feature } from "../../../../compose/models/index.js";
+import type { FeatureStatus } from "../../../../lib/hooks/usePush.js";
 import { Card, StatusRow } from "../../components/index.js";
 
 interface FeaturesCardProps {

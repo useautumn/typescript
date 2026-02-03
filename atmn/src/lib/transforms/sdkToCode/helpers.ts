@@ -20,12 +20,12 @@ function sanitizeId(id: string): string {
  */
 export function idToVarName(id: string, prefix = "item_"): string {
 	const sanitized = sanitizeId(id);
-	
+
 	// JavaScript identifiers can't start with a number
 	if (/^[0-9]/.test(sanitized)) {
 		return prefix + sanitized;
 	}
-	
+
 	return sanitized;
 }
 

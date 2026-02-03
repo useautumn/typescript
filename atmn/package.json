@@ -3,17 +3,17 @@
 	"version": "1.0.0-beta.13",
 	"license": "MIT",
 	"bin": {
-		"atmn": "dist/src/cli.js"
+		"atmn": "dist/cli.js"
 	},
-	"main": "dist/source/index.js",
-	"types": "dist/source/index.d.ts",
+	"main": "dist/compose/index.js",
+	"types": "dist/src/compose/index.d.ts",
 	"type": "module",
 	"engines": {
 		"node": ">=16"
 	},
 	"scripts": {
 		"build": "bun run bun.config.ts",
-		"dev": "nodemon -e ts,tsx --watch src --watch source --ignore dist --exec \"bun run bun.config.ts\"",
+		"dev": "nodemon -e ts,tsx --watch src --ignore dist --exec \"bun run bun.config.ts\"",
 		"dev:bun": "bun run dev.ts",
 		"test": "bun test",
 		"test:watch": "bun test --watch",

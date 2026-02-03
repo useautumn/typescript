@@ -1,6 +1,5 @@
 import { Box, Text } from "ink";
-import React from "react";
-import type { CustomerRowProps, ColumnWidths } from "../types.js";
+import type { ColumnWidths, CustomerRowProps } from "../types.js";
 import { formatDate, truncate } from "../types.js";
 
 /**
@@ -22,17 +21,23 @@ export function CustomerRow({
 			<Text color={markerColor}>{marker}</Text>
 			<Box width={colId}>
 				<Text bold={isSelected} dimColor={!isSelected}>
-					{shouldTruncate ? truncate(customer.id, colId - 1) : (customer.id || "-")}
+					{shouldTruncate
+						? truncate(customer.id, colId - 1)
+						: customer.id || "-"}
 				</Text>
 			</Box>
 			<Box width={colName} marginLeft={1}>
 				<Text bold={isSelected} dimColor={!isSelected}>
-					{shouldTruncate ? truncate(customer.name, colName - 1) : (customer.name || "-")}
+					{shouldTruncate
+						? truncate(customer.name, colName - 1)
+						: customer.name || "-"}
 				</Text>
 			</Box>
 			<Box width={colEmail} marginLeft={1}>
 				<Text bold={isSelected} dimColor={!isSelected}>
-					{shouldTruncate ? truncate(customer.email, colEmail - 1) : (customer.email || "-")}
+					{shouldTruncate
+						? truncate(customer.email, colEmail - 1)
+						: customer.email || "-"}
 				</Text>
 			</Box>
 			<Box width={colCreated} marginLeft={1}>
@@ -51,7 +56,9 @@ export interface CustomerTableHeaderProps {
 /**
  * Table header row
  */
-export function CustomerTableHeader({ columnWidths }: CustomerTableHeaderProps) {
+export function CustomerTableHeader({
+	columnWidths,
+}: CustomerTableHeaderProps) {
 	const { colId, colName, colEmail, colCreated } = columnWidths;
 
 	return (

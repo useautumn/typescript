@@ -1,8 +1,8 @@
 import { Box, Text, useInput } from "ink";
-import React, { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { templates } from "./data.js";
-import { TemplateRow, calculateCreditSchemaWidth } from "./TemplateRow.js";
 import { calculatePlanWidth } from "./PlanCard.js";
+import { calculateCreditSchemaWidth, TemplateRow } from "./TemplateRow.js";
 
 export interface TemplateSelector2Props {
 	/** Called with the template name (e.g. "OpenAI", "T3 Chat") */
@@ -51,15 +51,11 @@ export function TemplateSelector2({
 		};
 	}, []);
 
-	useInput((input, key) => {
+	useInput((_input, key) => {
 		if (key.upArrow) {
-			setSelectedIndex((prev) =>
-				prev > 0 ? prev - 1 : templates.length - 1
-			);
+			setSelectedIndex((prev) => (prev > 0 ? prev - 1 : templates.length - 1));
 		} else if (key.downArrow) {
-			setSelectedIndex((prev) =>
-				prev < templates.length - 1 ? prev + 1 : 0
-			);
+			setSelectedIndex((prev) => (prev < templates.length - 1 ? prev + 1 : 0));
 		} else if (key.return) {
 			const selected = templates[selectedIndex];
 			if (selected) {

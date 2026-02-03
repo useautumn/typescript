@@ -1,5 +1,5 @@
 import { Box, Text, useApp } from "ink";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pull } from "../../../commands/pull/pull.js";
 import { AppEnv } from "../../../lib/env/index.js";
 import {

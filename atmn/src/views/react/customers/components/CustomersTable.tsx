@@ -1,7 +1,7 @@
 import { Box } from "ink";
 import { ScrollList, type ScrollListRef } from "ink-scroll-list";
-import React, { useRef, useEffect } from "react";
-import type { CustomersTableProps, ColumnWidths } from "../types.js";
+import { useEffect, useRef } from "react";
+import type { ColumnWidths, CustomersTableProps } from "../types.js";
 import { CustomerRow, CustomerTableHeader } from "./CustomerRow.js";
 
 export interface CustomersTableComponentProps extends CustomersTableProps {

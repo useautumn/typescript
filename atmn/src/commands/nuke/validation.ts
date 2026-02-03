@@ -27,7 +27,7 @@ export function validateSandboxOnly(key: string): void {
 				"To nuke your sandbox:\n" +
 				"1. Use your sandbox key (AUTUMN_SECRET_KEY)\n" +
 				"2. Make sure it starts with 'ask_test_'\n\n" +
-				"Aborting for your safety."
+				"Aborting for your safety.",
 		);
 	}
 }
@@ -37,7 +37,7 @@ export function validateSandboxOnly(key: string): void {
  */
 export function validateCustomerLimit(
 	customerCount: number,
-	maxCustomers: number = 50
+	maxCustomers: number = 50,
 ): void {
 	if (customerCount > maxCustomers) {
 		throw new NukeValidationError(
@@ -52,7 +52,7 @@ export function validateCustomerLimit(
 				`1. Delete some customers via dashboard\n` +
 				`2. Increase limit: ATMN_NUKE_MAX_CUSTOMERS=${customerCount}\n` +
 				`3. Contact support for bulk deletion\n\n` +
-				`Aborting.`
+				`Aborting.`,
 		);
 	}
 }
@@ -61,10 +61,10 @@ export function validateCustomerLimit(
  * Get max customers from environment or use default
  */
 export function getMaxCustomers(): number {
-	const envValue = process.env['ATMN_NUKE_MAX_CUSTOMERS'];
+	const envValue = process.env.ATMN_NUKE_MAX_CUSTOMERS;
 	if (envValue) {
 		const parsed = parseInt(envValue, 10);
-		if (!isNaN(parsed) && parsed > 0) {
+		if (!Number.isNaN(parsed) && parsed > 0) {
 			return parsed;
 		}
 	}

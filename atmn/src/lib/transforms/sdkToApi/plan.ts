@@ -1,4 +1,4 @@
-import type { Plan, PlanFeature } from "../../../../source/compose/models/index.js";
+import type { Plan, PlanFeature } from "../../../compose/models/index.js";
 
 /**
  * API plan format expected by the server's CreatePlanParams schema
@@ -24,7 +24,7 @@ export interface ApiPlanParams {
 
 export interface ApiPlanFeatureParams {
 	feature_id: string;
-	granted_balance?: number;  // API uses granted_balance, SDK uses included
+	granted_balance?: number; // API uses granted_balance, SDK uses included
 	unlimited?: boolean;
 	reset?: {
 		interval: string;
@@ -52,7 +52,7 @@ export interface ApiPlanFeatureParams {
 
 /**
  * Transform SDK PlanFeature to API format
- * 
+ *
  * Handles mutually exclusive reset patterns:
  * - SDK top-level reset -> API reset.interval
  * - SDK price.interval -> API price.interval
@@ -83,21 +83,27 @@ function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 
 	if (feature.price) {
 		// Get interval from price.interval if available, otherwise from top-level reset
-		const priceInterval = (feature.price as { interval?: string; interval_count?: number }).interval;
-		const priceIntervalCount = (feature.price as { interval_count?: number }).interval_count;
+		const priceInterval = (
+			feature.price as { interval?: string; interval_count?: number }
+		).interval;
+		const priceIntervalCount = (feature.price as { interval_count?: number })
+			.interval_count;
 		const interval = priceInterval ?? feature.reset?.interval;
 		const intervalCount = priceIntervalCount ?? feature.reset?.interval_count;
 
 		// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
-		const usageModel = feature.price.billing_method === "usage_based"
-			? "pay_per_use"
-			: (feature.price.billing_method ?? "prepaid");
+		const usageModel =
+			feature.price.billing_method === "usage_based"
+				? "pay_per_use"
+				: (feature.price.billing_method ?? "prepaid");
 
 		result.price = {
 			interval,
 			billing_units: feature.price.billing_units ?? 1,
 			usage_model: usageModel,
-			...(feature.price.amount !== undefined && { amount: feature.price.amount }),
+			...(feature.price.amount !== undefined && {
+				amount: feature.price.amount,
+			}),
 			...(feature.price.tiers && { tiers: feature.price.tiers }),
 			...(intervalCount !== undefined && {
 				interval_count: intervalCount,
@@ -169,10 +175,10 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 	if (plan.free_trial !== undefined) {
 		result.free_trial = plan.free_trial
 			? {
-				duration_type: plan.free_trial.duration_type,
-				duration_length: plan.free_trial.duration_length,
-				card_required: plan.free_trial.card_required,
-			}
+					duration_type: plan.free_trial.duration_type,
+					duration_length: plan.free_trial.duration_length,
+					card_required: plan.free_trial.card_required,
+				}
 			: null;
 	}
 

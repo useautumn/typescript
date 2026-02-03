@@ -3,7 +3,7 @@
  * Free (100 std msgs) / Pro ($8/mo) / Premium Credits (add-on)
  */
 
-import type { Feature, Plan } from "../../../../source/compose/models/index.js";
+import type { Feature, Plan } from "../../../compose/models/index.js";
 
 export const features: Feature[] = [
 	{

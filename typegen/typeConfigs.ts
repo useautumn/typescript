@@ -550,11 +550,11 @@ export function getAtmnTypeConfigs(
 	const apiFeatureFile = path.join(serverPath, "api/features/apiFeatureV1.ts");
 
 	// Target directories in atmn
-	const modelsDir = path.join(atmnPath, "source/compose/models");
-	const buildersDir = path.join(atmnPath, "source/compose/builders");
+	const modelsDir = path.join(atmnPath, "src/compose/models");
+	const buildersDir = path.join(atmnPath, "src/compose/builders");
 
 	return {
-		outputDir: "source/compose/models",
+		outputDir: "src/compose/models",
 		configs: [
 			// ==================
 			// PLAN

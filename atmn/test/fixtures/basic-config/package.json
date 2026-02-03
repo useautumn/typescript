@@ -1,8 +1,8 @@
 {
-  "name": "atmn-test-basic-config",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "atmn": "workspace:*"
-  }
+	"name": "atmn-test-basic-config",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"atmn": "workspace:*"
+	}
 }

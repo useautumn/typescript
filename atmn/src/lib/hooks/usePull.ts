@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
-import { AppEnv } from "../env/index.js";
 import { pull } from "../../commands/pull/pull.js";
-import { useOrganization } from "./useOrganization.js";
-import type { UpdateResult } from "../transforms/inPlaceUpdate/index.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
 import { formatError } from "../api/client.js";
+import { AppEnv } from "../env/index.js";
+import type { UpdateResult } from "../transforms/inPlaceUpdate/index.js";
+import { useOrganization } from "./useOrganization.js";
 
 export interface GeneratedFile {
 	name: string;
@@ -38,8 +38,8 @@ function countLines(filePath: string): number {
 	}
 }
 
-export function usePull(options?: { 
-	cwd?: string; 
+export function usePull(options?: {
+	cwd?: string;
 	environment?: AppEnv;
 	onComplete?: () => void;
 	forceOverwrite?: boolean;
@@ -101,7 +101,11 @@ export function usePull(options?: {
 
 	// Auto-trigger pull when org info is ready
 	useEffect(() => {
-		if (orgQuery.isSuccess && !pullMutation.isPending && !pullMutation.isSuccess) {
+		if (
+			orgQuery.isSuccess &&
+			!pullMutation.isPending &&
+			!pullMutation.isSuccess
+		) {
 			pullMutation.mutate({
 				cwd: effectiveCwd,
 				generateSdkTypes: true,
@@ -109,7 +113,13 @@ export function usePull(options?: {
 				forceOverwrite,
 			});
 		}
-	}, [orgQuery.isSuccess, pullMutation, effectiveCwd, environment, forceOverwrite]);
+	}, [
+		orgQuery.isSuccess,
+		pullMutation,
+		effectiveCwd,
+		environment,
+		forceOverwrite,
+	]);
 
 	const error = orgQuery.error || pullMutation.error;
 

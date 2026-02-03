@@ -8,7 +8,7 @@
  */
 export function mapFeatureType(
 	apiType: string,
-	consumable: boolean,
+	_consumable: boolean,
 ): "boolean" | "metered" | "credit_system" {
 	if (apiType === "boolean") {
 		return "boolean";

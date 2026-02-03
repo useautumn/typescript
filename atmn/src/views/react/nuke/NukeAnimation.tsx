@@ -1,6 +1,9 @@
 import { Box, Text, useApp, useStdout } from "ink";
-import React, { useEffect, useState } from "react";
-import { getExplodeFrame, getExplosionColor } from "../../../lib/animation/explosion.js";
+import { useEffect, useState } from "react";
+import {
+	getExplodeFrame,
+	getExplosionColor,
+} from "../../../lib/animation/explosion.js";
 
 interface NukeAnimationProps {
 	/** Callback when animation completes */
@@ -35,7 +38,7 @@ export function NukeAnimation({
 	// Get terminal dimensions
 	const termWidth = stdout?.columns || 80;
 	const termHeight = stdout?.rows || 24;
-	
+
 	// Use contained dimensions if specified
 	// When contained, subtract 4 from width for left/right borders and padding
 	// Subtract 2 from height for top/bottom borders to prevent overflow
@@ -68,12 +71,21 @@ export function NukeAnimation({
 		}, frameDuration);
 
 		return () => clearTimeout(timer);
-	}, [frame, maxFrames, frameDuration, width, height, onComplete, exit, contained]);
+	}, [
+		frame,
+		maxFrames,
+		frameDuration,
+		width,
+		height,
+		onComplete,
+		exit,
+		contained,
+	]);
 
 	if (contained) {
 		return (
-			<Box 
-				flexDirection="column" 
+			<Box
+				flexDirection="column"
 				borderStyle="single"
 				borderColor="magenta"
 				paddingX={1}

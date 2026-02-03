@@ -1,15 +1,14 @@
-import { Box, Text } from "ink";
 import { Spinner } from "@inkjs/ui";
-import React from "react";
-import type { CustomerSheetProps, ApiBalance } from "../types.js";
+import { Box, Text } from "ink";
+import type { ApiBalance, CustomerSheetProps } from "../types.js";
 import { formatDate } from "../types.js";
 import {
 	BalancesSection,
 	EntitiesSection,
-	SubscriptionsSection,
 	InvoicesSection,
-	RewardsSection,
 	ReferralsSection,
+	RewardsSection,
+	SubscriptionsSection,
 } from "./sections/index.js";
 
 /**
@@ -32,7 +31,11 @@ export function CustomerSheet({
 	const displayCustomer = expandedCustomer ?? customer;
 
 	// Title: Name > ID > Email
-	const title = displayCustomer.name || displayCustomer.id || displayCustomer.email || "Unknown";
+	const title =
+		displayCustomer.name ||
+		displayCustomer.id ||
+		displayCustomer.email ||
+		"Unknown";
 
 	// Get balances (converted to proper type if expanded)
 	const balances = expandedCustomer?.balances ?? {};
@@ -118,36 +121,42 @@ export function CustomerSheet({
 
 					{/* Feature Balances */}
 					<Box marginTop={1}>
-						<BalancesSection balances={balances as Record<string, ApiBalance>} />
+						<BalancesSection
+							balances={balances as Record<string, ApiBalance>}
+						/>
 					</Box>
 
 					{/* Entities */}
-					{expandedCustomer.entities && expandedCustomer.entities.length > 0 && (
-						<Box marginTop={1}>
-							<EntitiesSection entities={expandedCustomer.entities} />
-						</Box>
-					)}
+					{expandedCustomer.entities &&
+						expandedCustomer.entities.length > 0 && (
+							<Box marginTop={1}>
+								<EntitiesSection entities={expandedCustomer.entities} />
+							</Box>
+						)}
 
 					{/* Invoices */}
-					{expandedCustomer.invoices && expandedCustomer.invoices.length > 0 && (
-						<Box marginTop={1}>
-							<InvoicesSection invoices={expandedCustomer.invoices} />
-						</Box>
-					)}
+					{expandedCustomer.invoices &&
+						expandedCustomer.invoices.length > 0 && (
+							<Box marginTop={1}>
+								<InvoicesSection invoices={expandedCustomer.invoices} />
+							</Box>
+						)}
 
 					{/* Rewards */}
-					{expandedCustomer.rewards && expandedCustomer.rewards.discounts.length > 0 && (
-						<Box marginTop={1}>
-							<RewardsSection rewards={expandedCustomer.rewards} />
-						</Box>
-					)}
+					{expandedCustomer.rewards &&
+						expandedCustomer.rewards.discounts.length > 0 && (
+							<Box marginTop={1}>
+								<RewardsSection rewards={expandedCustomer.rewards} />
+							</Box>
+						)}
 
 					{/* Referrals */}
-					{expandedCustomer.referrals && expandedCustomer.referrals.length > 0 && (
-						<Box marginTop={1}>
-							<ReferralsSection referrals={expandedCustomer.referrals} />
-						</Box>
-					)}
+					{expandedCustomer.referrals &&
+						expandedCustomer.referrals.length > 0 && (
+							<Box marginTop={1}>
+								<ReferralsSection referrals={expandedCustomer.referrals} />
+							</Box>
+						)}
 				</Box>
 			)}
 
@@ -158,7 +167,12 @@ export function CustomerSheet({
 						Subscriptions
 					</Text>
 					{(customer.subscriptions as unknown[]).length > 0 ? (
-						(customer.subscriptions as Array<{ plan_id?: string; status?: string }>)
+						(
+							customer.subscriptions as Array<{
+								plan_id?: string;
+								status?: string;
+							}>
+						)
 							.slice(0, 5)
 							.map((sub, i) => (
 								<Text key={sub.plan_id ?? i}>

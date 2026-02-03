@@ -1,6 +1,6 @@
 import type { ApiCustomer } from "../../../lib/api/endpoints/customers.js";
-import type { FocusTarget } from "../../../lib/hooks/useCustomerNavigation.js";
 import type { AppEnv } from "../../../lib/env/detect.js";
+import type { FocusTarget } from "../../../lib/hooks/useCustomerNavigation.js";
 
 // ========================================
 // Expanded Customer Types
@@ -139,7 +139,11 @@ export interface ApiReferral {
 export interface ApiDiscount {
 	id: string;
 	name: string;
-	type: "percentage_discount" | "fixed_discount" | "free_product" | "invoice_credits";
+	type:
+		| "percentage_discount"
+		| "fixed_discount"
+		| "free_product"
+		| "invoice_credits";
 	discount_value: number;
 	duration_type: "one_off" | "months" | "forever";
 	duration_value?: number | null;
@@ -158,7 +162,11 @@ export interface ApiRewards {
 /**
  * Full expanded customer with all optional expand fields
  */
-export interface ApiCustomerExpanded extends Omit<ApiCustomer, "subscriptions" | "scheduled_subscriptions" | "balances"> {
+export interface ApiCustomerExpanded
+	extends Omit<
+		ApiCustomer,
+		"subscriptions" | "scheduled_subscriptions" | "balances"
+	> {
 	subscriptions: ApiSubscription[];
 	scheduled_subscriptions: ApiSubscription[];
 	balances: Record<string, ApiBalance>;
@@ -364,7 +372,7 @@ const SHEET_WIDTH = 45;
 /**
  * Calculate column widths based on ACTUAL customer data.
  * Shows full content by default, only truncates if total row width exceeds available space.
- * 
+ *
  * @param customers - Array of customers to measure
  * @param terminalColumns - process.stdout.columns
  * @param sheetOpen - whether the detail sheet is open
@@ -376,7 +384,8 @@ export function calculateColumnWidths(
 ): ColumnWidths {
 	// Calculate available width for table content
 	const sheetReserved = sheetOpen ? SHEET_WIDTH : 0;
-	const availableWidth = terminalColumns - TABLE_OVERHEAD - sheetReserved - ROW_OVERHEAD;
+	const availableWidth =
+		terminalColumns - TABLE_OVERHEAD - sheetReserved - ROW_OVERHEAD;
 
 	// Find maximum actual content widths from data
 	let maxIdLen = 2; // minimum "ID" header
@@ -386,7 +395,8 @@ export function calculateColumnWidths(
 	for (const customer of customers) {
 		if (customer.id) maxIdLen = Math.max(maxIdLen, customer.id.length);
 		if (customer.name) maxNameLen = Math.max(maxNameLen, customer.name.length);
-		if (customer.email) maxEmailLen = Math.max(maxEmailLen, customer.email.length);
+		if (customer.email)
+			maxEmailLen = Math.max(maxEmailLen, customer.email.length);
 	}
 
 	// Total width needed to show all content

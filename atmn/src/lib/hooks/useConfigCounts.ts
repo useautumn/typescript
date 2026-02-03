@@ -1,8 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-	fetchFeatures,
-	fetchPlans,
-} from "../api/endpoints/index.js";
+import { fetchFeatures, fetchPlans } from "../api/endpoints/index.js";
 import { AppEnv, getKey } from "../env/index.js";
 
 interface ConfigCounts {

@@ -1,5 +1,5 @@
 import { Box, Text, useInput } from "ink";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card } from "../../components/index.js";
 
 interface ConfirmScreenProps {

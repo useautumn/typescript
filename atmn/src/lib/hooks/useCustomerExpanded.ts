@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { request } from "../api/client.js";
-import { getKey } from "../env/keys.js";
-import { AppEnv } from "../env/detect.js";
+import { useEffect, useState } from "react";
 import type { ApiCustomerExpanded } from "../../views/react/customers/types.js";
+import { request } from "../api/client.js";
+import { AppEnv } from "../env/detect.js";
+import { getKey } from "../env/keys.js";
 
 /**
  * All expand params for full customer data (comma-separated for query string)
@@ -51,7 +51,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 /**
  * TanStack Query hook for fetching a single customer with all expand params.
  * Use this to lazily load full customer details when the sheet opens.
- * 
+ *
  * Includes debouncing to prevent excessive API calls during rapid navigation.
  */
 export function useCustomerExpanded({

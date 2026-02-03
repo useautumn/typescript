@@ -3,12 +3,12 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { getKey } from "../env/index.js";
-import { AppEnv } from "../env/detect.js";
 import { fetchCustomers } from "../api/endpoints/customers.js";
-import { fetchPlans } from "../api/endpoints/plans.js";
 import { fetchFeatures } from "../api/endpoints/features.js";
 import { fetchOrganizationMe } from "../api/endpoints/index.js";
+import { fetchPlans } from "../api/endpoints/plans.js";
+import { AppEnv } from "../env/detect.js";
+import { getKey } from "../env/index.js";
 
 export interface NukeData {
 	orgName: string;

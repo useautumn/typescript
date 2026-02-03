@@ -1,6 +1,5 @@
-import React from "react";
 import { Text } from "ink";
-import type { Feature } from "../../../../../source/compose/models/index.js";
+import type { Feature } from "../../../../compose/models/index.js";
 
 interface FeatureRowProps {
 	feature: Feature;

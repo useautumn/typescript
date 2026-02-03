@@ -1,10 +1,10 @@
 import { MultiSelect } from "@inkjs/ui";
 import { Box, Text } from "ink";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-	useAgentSetup,
 	type AgentIdentifier,
 	type FileOption,
+	useAgentSetup,
 } from "../../../../lib/hooks/index.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
 
@@ -72,9 +72,7 @@ export function AgentStep({ step, totalSteps, onComplete }: AgentStepProps) {
 		} else {
 			// Otherwise, create the other files
 			setState("creating");
-			const fileOptions = values.filter(
-				(v) => v !== "mcp",
-			) as FileOption[];
+			const fileOptions = values.filter((v) => v !== "mcp") as FileOption[];
 			createAgentFiles.mutate(fileOptions);
 		}
 	};
@@ -104,7 +102,13 @@ export function AgentStep({ step, totalSteps, onComplete }: AgentStepProps) {
 				}, 1000);
 			}
 		}
-	}, [installMcp.isSuccess, state, selectedOptions, onComplete, createAgentFiles]);
+	}, [
+		installMcp.isSuccess,
+		state,
+		selectedOptions,
+		onComplete,
+		createAgentFiles,
+	]);
 
 	// Handle MCP installation error
 	useEffect(() => {

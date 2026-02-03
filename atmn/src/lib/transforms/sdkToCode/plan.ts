@@ -1,19 +1,16 @@
-import type {
-	Feature,
-	Plan,
-} from "../../../../source/compose/models/index.js";
-import { planIdToVarName, formatValue } from "./helpers.js";
+import type { Feature, Plan } from "../../../compose/models/index.js";
+import { formatValue, planIdToVarName } from "./helpers.js";
 import { buildPlanFeatureCode } from "./planFeature.js";
 
 /**
  * Generate TypeScript code for a plan definition
- * 
+ *
  * @param plan The plan to generate code for
  * @param features List of features
  * @param featureVarMap Optional map of feature ID -> variable name for preserving local names
  */
 export function buildPlanCode(
-	plan: Plan, 
+	plan: Plan,
 	features: Feature[],
 	featureVarMap?: Map<string, string>,
 ): string {
@@ -57,7 +54,11 @@ export function buildPlanCode(
 	if (plan.features && plan.features.length > 0) {
 		lines.push(`\tfeatures: [`);
 		for (const planFeature of plan.features) {
-			const featureCode = buildPlanFeatureCode(planFeature, features, featureVarMap);
+			const featureCode = buildPlanFeatureCode(
+				planFeature,
+				features,
+				featureVarMap,
+			);
 			lines.push(featureCode);
 		}
 		lines.push(`\t],`);

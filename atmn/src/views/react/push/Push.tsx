@@ -1,15 +1,14 @@
-import React from "react";
 import { Box, Text } from "ink";
 import { AppEnv } from "../../../lib/env/index.js";
 import { usePush } from "../../../lib/hooks/usePush.js";
 import { Card, CardWidthProvider, LoadingText } from "../components/index.js";
 import {
-	OverviewCard,
 	CompletionMessage,
 	ErrorCard,
 	FeaturesCard,
 	NoChangesCard,
 	OrgCard,
+	OverviewCard,
 	PlansCard,
 	PushPromptCard,
 } from "./components/index.js";

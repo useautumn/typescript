@@ -1,8 +1,7 @@
 import { Box } from "ink";
-import React from "react";
 import {
-	useHeadlessAuth,
 	type OrgInfo,
+	useHeadlessAuth,
 } from "../../../../lib/hooks/useHeadlessAuth.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
 
@@ -35,10 +34,7 @@ export function AuthStep({ step, totalSteps, onComplete }: AuthStepProps) {
 				/>
 			)}
 			{authState === "error" && (
-				<StatusLine
-					status="error"
-					message={error || "Authentication failed"}
-				/>
+				<StatusLine status="error" message={error || "Authentication failed"} />
 			)}
 		</Box>
 	);

@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, useRef } from "react";
-import { readFromEnv } from "../utils.js";
-import {
-	startOAuthFlow,
-	getApiKeysWithToken,
-} from "../../commands/auth/oauth.js";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CLI_CLIENT_ID } from "../../commands/auth/constants.js";
+import {
+	getApiKeysWithToken,
+	startOAuthFlow,
+} from "../../commands/auth/oauth.js";
 import { fetchOrganizationMe } from "../api/endpoints/index.js";
+import { readFromEnv } from "../utils.js";
 import { storeEnvKeys } from "./useEnvironmentStore.js";
 
 export type LoginPhase =
@@ -46,7 +46,7 @@ export function useLogin(options?: UseLoginOptions): UseLoginReturn {
 	const [phase, setPhase] = useState<LoginPhase>("checking");
 	const [error, setError] = useState<string | null>(null);
 	const [orgInfo, setOrgInfo] = useState<OrgInfo | null>(null);
-	const [authUrl, setAuthUrl] = useState<string | null>(null);
+	const [authUrl, _setAuthUrl] = useState<string | null>(null);
 	const [isAlreadyAuthenticated, setIsAlreadyAuthenticated] = useState(false);
 
 	// Track if mutations have been started
@@ -99,7 +99,9 @@ export function useLogin(options?: UseLoginOptions): UseLoginReturn {
 			saveMutation.mutate(data);
 		},
 		onError: (err) => {
-			setError(err instanceof Error ? err.message : "Failed to create API keys");
+			setError(
+				err instanceof Error ? err.message : "Failed to create API keys",
+			);
 			setPhase("error");
 		},
 	});

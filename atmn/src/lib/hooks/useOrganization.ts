@@ -14,7 +14,7 @@ export function useOrganization(cwd?: string) {
 		queryFn: async (): Promise<OrganizationInfo> => {
 			const sandboxKey = getKey(AppEnv.Sandbox, cwd);
 			const orgData = await fetchOrganizationMe({ secretKey: sandboxKey });
-			
+
 			return {
 				name: orgData.name,
 				slug: orgData.slug,

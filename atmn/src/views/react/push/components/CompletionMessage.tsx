@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import { AppEnv } from "../../../../lib/env/index.js";
 
 // Frontend URL constant

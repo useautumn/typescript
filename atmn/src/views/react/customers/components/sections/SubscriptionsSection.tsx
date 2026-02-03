@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { ApiSubscription } from "../../types.js";
 import { formatDate } from "../../types.js";
 
@@ -33,7 +32,10 @@ export function SubscriptionsSection({
 			</Text>
 			<Box flexDirection="column" paddingLeft={1}>
 				{subscriptions.map((sub) => (
-					<SubscriptionRow key={`${sub.plan_id}-${sub.started_at}`} subscription={sub} />
+					<SubscriptionRow
+						key={`${sub.plan_id}-${sub.started_at}`}
+						subscription={sub}
+					/>
 				))}
 			</Box>
 		</Box>
@@ -42,19 +44,18 @@ export function SubscriptionsSection({
 
 function SubscriptionRow({ subscription }: { subscription: ApiSubscription }) {
 	const planName = subscription.plan?.name ?? subscription.plan_id;
-	const statusColor = getStatusColor(subscription.status, subscription.past_due);
+	const statusColor = getStatusColor(
+		subscription.status,
+		subscription.past_due,
+	);
 
 	return (
 		<Box flexDirection="column">
 			<Box>
 				<Text color={statusColor}>{getStatusIcon(subscription.status)} </Text>
 				<Text bold>{planName}</Text>
-				{subscription.add_on && (
-					<Text dimColor> (add-on)</Text>
-				)}
-				{subscription.default && (
-					<Text color="cyan"> (default)</Text>
-				)}
+				{subscription.add_on && <Text dimColor> (add-on)</Text>}
+				{subscription.default && <Text color="cyan"> (default)</Text>}
 			</Box>
 			<Box paddingLeft={2} flexDirection="column">
 				<Text dimColor>
@@ -72,9 +73,7 @@ function SubscriptionRow({ subscription }: { subscription: ApiSubscription }) {
 					</Text>
 				)}
 				{subscription.expires_at && (
-					<Text dimColor>
-						Expires: {formatDate(subscription.expires_at)}
-					</Text>
+					<Text dimColor>Expires: {formatDate(subscription.expires_at)}</Text>
 				)}
 				{subscription.canceled_at && (
 					<Text color="yellow" dimColor>

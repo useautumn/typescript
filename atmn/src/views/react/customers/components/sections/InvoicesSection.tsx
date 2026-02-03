@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { ApiInvoice } from "../../types.js";
 import { formatDate } from "../../types.js";
 

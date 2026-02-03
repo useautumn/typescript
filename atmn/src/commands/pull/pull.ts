@@ -1,10 +1,10 @@
-import { AppEnv, getKey, hasKey } from "../../lib/env/index.js";
 import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
-import { pullFromEnvironment } from "./pullFromEnvironment.js";
+import { AppEnv, getKey, hasKey } from "../../lib/env/index.js";
 import { mergeEnvironments } from "./mergeEnvironments.js";
-import { writeConfig } from "./writeConfig.js";
+import { pullFromEnvironment } from "./pullFromEnvironment.js";
 import { generateSdkTypes } from "./sdkTypes.js";
 import type { PullOptions, PullResult } from "./types.js";
+import { writeConfig } from "./writeConfig.js";
 
 /**
  * Pull command - fetch config from Autumn API and generate local files
@@ -18,7 +18,7 @@ import type { PullOptions, PullResult } from "./types.js";
  *    b. If live key exists, fetch & transform from live
  *    c. Merge sandbox + live (dedupe by ID)
  *    d. Generate @useautumn-sdk.d.ts
- * 
+ *
  * Automatically handles 401 errors by running OAuth flow and retrying.
  */
 export async function pull(options: PullOptions = {}): Promise<PullResult> {
@@ -32,8 +32,8 @@ export async function pull(options: PullOptions = {}): Promise<PullResult> {
  * Internal implementation of pull
  */
 async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
-	const { 
-		generateSdkTypes: shouldGenerateSdkTypes = false, 
+	const {
+		generateSdkTypes: shouldGenerateSdkTypes = false,
 		cwd = process.cwd(),
 		environment = AppEnv.Sandbox,
 		forceOverwrite = false,
@@ -74,10 +74,7 @@ async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 				// Merge sandbox and live
 				mergedData = mergeEnvironments(primaryData, liveData);
 			} catch (error) {
-				console.warn(
-					"Failed to fetch live data, using sandbox only:",
-					error,
-				);
+				console.warn("Failed to fetch live data, using sandbox only:", error);
 			}
 		}
 		// If pulling from live, try to merge with sandbox for SDK types
@@ -89,10 +86,7 @@ async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 				// Merge live and sandbox
 				mergedData = mergeEnvironments(sandboxData, primaryData);
 			} catch (error) {
-				console.warn(
-					"Failed to fetch sandbox data, using live only:",
-					error,
-				);
+				console.warn("Failed to fetch sandbox data, using live only:", error);
 			}
 		}
 

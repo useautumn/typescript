@@ -1,9 +1,12 @@
-import { writeFileSync, existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import prettier from "prettier";
+import type { Feature, Plan } from "../../compose/models/index.js";
 import { buildConfigFile } from "../../lib/transforms/index.js";
-import { updateConfigInPlace, type UpdateResult } from "../../lib/transforms/inPlaceUpdate/index.js";
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
+import {
+	type UpdateResult,
+	updateConfigInPlace,
+} from "../../lib/transforms/inPlaceUpdate/index.js";
 
 export interface WriteConfigOptions {
 	/** Force overwrite even if config exists (default: false, will use in-place update) */
@@ -20,10 +23,10 @@ export interface WriteConfigResult {
 
 /**
  * Write autumn.config.ts file
- * 
+ *
  * By default, if the config file already exists, it will be updated in-place
  * to preserve comments, order, and custom formatting.
- * 
+ *
  * Use forceOverwrite: true to completely regenerate the file.
  */
 export async function writeConfig(

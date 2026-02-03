@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 
 interface StepHeaderProps {
 	step: number;

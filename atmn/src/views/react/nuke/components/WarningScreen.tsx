@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card } from "../../components/index.js";
 
 interface WarningScreenProps {
@@ -44,7 +44,11 @@ export function WarningScreen({
 		<Box flexDirection="column" marginBottom={1}>
 			<Card title="⚠  DANGER: SANDBOX NUKE">
 				<Text>
-					This is <Text bold color="red">IRREVERSIBLE</Text>.
+					This is{" "}
+					<Text bold color="red">
+						IRREVERSIBLE
+					</Text>
+					.
 				</Text>
 				<Box height={1} />
 				<Text>

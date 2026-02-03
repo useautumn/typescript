@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { NukePhaseStats } from "../../../../commands/nuke/types.js";
 import { Card } from "../../components/index.js";
 
@@ -37,7 +36,7 @@ export function DeletionProgress({
 			const percentage =
 				phase.total > 0 ? Math.round((phase.current / phase.total) * 100) : 0;
 			const filled = Math.floor(percentage / 5);
-			const progress = "━".repeat(filled) + "●" + "━".repeat(20 - filled);
+			const progress = `${"━".repeat(filled)}●${"━".repeat(20 - filled)}`;
 
 			// Simple sparkline based on rate
 			const sparkline = generateSparkline(phase.rate);

@@ -1,10 +1,10 @@
-import React, {
+import {
 	createContext,
-	useContext,
-	useState,
-	useCallback,
-	useMemo,
 	type ReactNode,
+	useCallback,
+	useContext,
+	useMemo,
+	useState,
 } from "react";
 
 const DEFAULT_MIN_WIDTH = 65;

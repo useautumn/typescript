@@ -1,6 +1,5 @@
 import { Box, Text } from "ink";
-import React from "react";
-import type { ApiRewards, ApiDiscount } from "../../types.js";
+import type { ApiDiscount, ApiRewards } from "../../types.js";
 
 export interface RewardsSectionProps {
 	rewards: ApiRewards | null | undefined;

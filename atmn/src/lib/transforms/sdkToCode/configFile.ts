@@ -1,9 +1,6 @@
-import type {
-	Feature,
-	Plan,
-} from "../../../../source/compose/models/index.js";
-import { buildImports } from "./imports.js";
+import type { Feature, Plan } from "../../../compose/models/index.js";
 import { buildFeatureCode } from "./feature.js";
+import { buildImports } from "./imports.js";
 import { buildPlanCode } from "./plan.js";
 
 /**

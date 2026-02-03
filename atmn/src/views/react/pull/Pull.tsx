@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import React, { useState } from "react";
+import { useState } from "react";
 import { AppEnv } from "../../../lib/env/index.js";
 import { usePull } from "../../../lib/hooks/index.js";
 import {
@@ -96,7 +96,9 @@ export function PullView({
 
 				{/* Plans Card */}
 				{!isOrgLoading && (
-					<Card title={`📋 Plans${plans.length > 0 ? ` (${plans.length})` : ""}`}>
+					<Card
+						title={`📋 Plans${plans.length > 0 ? ` (${plans.length})` : ""}`}
+					>
 						{isPullLoading && plans.length === 0 ? (
 							<LoadingText text="Fetching..." />
 						) : plans.length > 0 ? (
@@ -137,10 +139,14 @@ export function PullView({
 						{inPlace && updateResult && (
 							<Box marginTop={0} flexDirection="column">
 								<Text color="cyan">
-									  In-place: {updateResult.featuresUpdated} features updated, {updateResult.featuresAdded} added, {updateResult.featuresDeleted} deleted
+									In-place: {updateResult.featuresUpdated} features updated,{" "}
+									{updateResult.featuresAdded} added,{" "}
+									{updateResult.featuresDeleted} deleted
 								</Text>
 								<Text color="cyan">
-									            {updateResult.plansUpdated} plans updated, {updateResult.plansAdded} added, {updateResult.plansDeleted} deleted
+									{updateResult.plansUpdated} plans updated,{" "}
+									{updateResult.plansAdded} added, {updateResult.plansDeleted}{" "}
+									deleted
 								</Text>
 							</Box>
 						)}

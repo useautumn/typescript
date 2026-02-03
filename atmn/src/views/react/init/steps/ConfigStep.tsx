@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import {
 	useConfigCounts,
 	useWriteTemplateConfig,
@@ -176,11 +176,7 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 	if (isLoading) {
 		return (
 			<Box flexDirection="column" marginBottom={1}>
-				<StepHeader
-					step={step}
-					totalSteps={totalSteps}
-					title="Configuration"
-				/>
+				<StepHeader step={step} totalSteps={totalSteps} title="Configuration" />
 				<StatusLine status="loading" message="Checking your sandbox..." />
 			</Box>
 		);
@@ -190,11 +186,7 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 	if (fetchError) {
 		return (
 			<Box flexDirection="column" marginBottom={1}>
-				<StepHeader
-					step={step}
-					totalSteps={totalSteps}
-					title="Configuration"
-				/>
+				<StepHeader step={step} totalSteps={totalSteps} title="Configuration" />
 				<StatusLine
 					status="error"
 					message={

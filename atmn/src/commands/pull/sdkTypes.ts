@@ -1,8 +1,11 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import prettier from "prettier";
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
-import { featureIdToVarName, planIdToVarName } from "../../lib/transforms/index.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
+import {
+	featureIdToVarName,
+	planIdToVarName,
+} from "../../lib/transforms/index.js";
 
 /**
  * Generate SDK types file (@useautumn-sdk.d.ts)

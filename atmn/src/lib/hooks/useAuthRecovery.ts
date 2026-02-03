@@ -1,12 +1,11 @@
-import { useCallback, useState, useRef } from "react";
-import { readFromEnv } from "../utils.js";
-import {
-	startOAuthFlow,
-	getApiKeysWithToken,
-} from "../../commands/auth/oauth.js";
+import { useCallback, useRef, useState } from "react";
 import { CLI_CLIENT_ID } from "../../commands/auth/constants.js";
-import { storeEnvKeys } from "./useEnvironmentStore.js";
+import {
+	getApiKeysWithToken,
+	startOAuthFlow,
+} from "../../commands/auth/oauth.js";
 import type { ApiError } from "../api/client.js";
+import { storeEnvKeys } from "./useEnvironmentStore.js";
 
 export type AuthRecoveryPhase =
 	| "idle"
@@ -51,20 +50,22 @@ export function isAuthError(error: unknown): boolean {
 
 /**
  * Hook to handle 401 authentication errors by running OAuth flow
- * 
+ *
  * Usage:
  * ```tsx
  * const authRecovery = useAuthRecovery({ onRecovered: refetch });
- * 
+ *
  * // In error handler:
  * if (authRecovery.isAuthError(error)) {
  *   await authRecovery.startRecovery();
  * }
  * ```
  */
-export function useAuthRecovery(options?: UseAuthRecoveryOptions): UseAuthRecoveryReturn {
+export function useAuthRecovery(
+	options?: UseAuthRecoveryOptions,
+): UseAuthRecoveryReturn {
 	const { onRecovered, onFailed } = options ?? {};
-	
+
 	const [phase, setPhase] = useState<AuthRecoveryPhase>("idle");
 	const [error, setError] = useState<string | null>(null);
 	const recoveryInProgress = useRef(false);
@@ -90,14 +91,13 @@ export function useAuthRecovery(options?: UseAuthRecoveryOptions): UseAuthRecove
 
 			// Create API keys
 			setPhase("creating_keys");
-			const { sandboxKey, prodKey } = await getApiKeysWithToken(tokens.access_token);
+			const { sandboxKey, prodKey } = await getApiKeysWithToken(
+				tokens.access_token,
+			);
 
 			// Save keys
 			setPhase("saving_keys");
-			await storeEnvKeys(
-				{ prodKey, sandboxKey },
-				{ forceOverwrite: true },
-			);
+			await storeEnvKeys({ prodKey, sandboxKey }, { forceOverwrite: true });
 
 			setPhase("complete");
 			recoveryInProgress.current = false;
@@ -108,7 +108,8 @@ export function useAuthRecovery(options?: UseAuthRecoveryOptions): UseAuthRecove
 				setTimeout(onRecovered, 500);
 			}
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : "Authentication failed";
+			const errorMessage =
+				err instanceof Error ? err.message : "Authentication failed";
 			setError(errorMessage);
 			setPhase("error");
 			recoveryInProgress.current = false;

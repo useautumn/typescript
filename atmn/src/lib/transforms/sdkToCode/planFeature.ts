@@ -1,19 +1,16 @@
-import type {
-	Feature,
-	PlanFeature,
-} from "../../../../source/compose/models/index.js";
-import { idToVarName, formatValue } from "./helpers.js";
+import type { Feature, PlanFeature } from "../../../compose/models/index.js";
+import { formatValue } from "./helpers.js";
 
 /**
  * Generate TypeScript code for a plan feature configuration
- * 
+ *
  * @param planFeature The plan feature to generate code for
  * @param features List of features (used for future variable name lookup)
  * @param featureVarMap Optional map of feature ID -> variable name for preserving local names
  */
 export function buildPlanFeatureCode(
 	planFeature: PlanFeature,
-	features: Feature[],
+	_features: Feature[],
 	featureVarMap?: Map<string, string>,
 ): string {
 	// Use the variable map if provided, otherwise use string literal
@@ -44,7 +41,9 @@ export function buildPlanFeatureCode(
 			lines.push(`\t\t\t\tinterval: '${planFeature.reset.interval}',`);
 		}
 		if (planFeature.reset.interval_count !== undefined) {
-			lines.push(`\t\t\t\tinterval_count: ${planFeature.reset.interval_count},`);
+			lines.push(
+				`\t\t\t\tinterval_count: ${planFeature.reset.interval_count},`,
+			);
 		}
 		lines.push(`\t\t\t},`);
 	}
@@ -77,14 +76,19 @@ export function buildPlanFeatureCode(
 		}
 
 		// Handle price.interval and price.interval_count (from PriceWithInterval type)
-		const priceWithInterval = planFeature.price as { interval?: string; interval_count?: number };
+		const priceWithInterval = planFeature.price as {
+			interval?: string;
+			interval_count?: number;
+		};
 
 		if (priceWithInterval.interval) {
 			lines.push(`\t\t\t\tinterval: '${priceWithInterval.interval}',`);
 		}
 
 		if (priceWithInterval.interval_count !== undefined) {
-			lines.push(`\t\t\t\tinterval_count: ${priceWithInterval.interval_count},`);
+			lines.push(
+				`\t\t\t\tinterval_count: ${priceWithInterval.interval_count},`,
+			);
 		}
 
 		lines.push(`\t\t\t},`);

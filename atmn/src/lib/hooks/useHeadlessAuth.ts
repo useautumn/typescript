@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchOrganizationMe } from "../api/endpoints/index.js";
-import { readFromEnv } from "../utils.js";
 import { CLI_CLIENT_ID } from "../../commands/auth/constants.js";
 import {
 	getApiKeysWithToken,
 	startOAuthFlow,
 } from "../../commands/auth/oauth.js";
+import { fetchOrganizationMe } from "../api/endpoints/index.js";
+import { readFromEnv } from "../utils.js";
 import { storeEnvKeys } from "./useEnvironmentStore.js";
 
 export interface OrgInfo {

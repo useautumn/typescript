@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { ApiEntity } from "../../types.js";
 
 export interface EntitiesSectionProps {
@@ -45,9 +44,7 @@ function EntityRow({ entity }: { entity: ApiEntity }) {
 		<Box>
 			<Text color="gray">- </Text>
 			<Text>{displayName}</Text>
-			{entity.feature_id && (
-				<Text dimColor> ({entity.feature_id})</Text>
-			)}
+			{entity.feature_id && <Text dimColor> ({entity.feature_id})</Text>}
 		</Box>
 	);
 }

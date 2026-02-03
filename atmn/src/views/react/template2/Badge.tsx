@@ -1,7 +1,12 @@
 import { Box, Text } from "ink";
-import React from "react";
 
-export type BadgeColor = "cyan" | "yellow" | "green" | "blue" | "gray" | "magenta";
+export type BadgeColor =
+	| "cyan"
+	| "yellow"
+	| "green"
+	| "blue"
+	| "gray"
+	| "magenta";
 
 export interface BadgeProps {
 	label: string;

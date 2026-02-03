@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import React, { useState } from "react";
+import { useState } from "react";
 
 export interface SearchInputProps {
 	/** Current search value */
@@ -21,7 +21,7 @@ export function SearchInput({
 }: SearchInputProps) {
 	const [value, setValue] = useState(initialValue);
 
-	useInput((input, key) => {
+	useInput((_input, key) => {
 		if (key.escape) {
 			onCancel();
 			return;
@@ -33,19 +33,14 @@ export function SearchInput({
 	});
 
 	return (
-		<Box
-			borderStyle="round"
-			borderColor="magenta"
-			paddingX={1}
-			width="100%"
-		>
+		<Box borderStyle="round" borderColor="magenta" paddingX={1} width="100%">
 			<Text color="magenta">Search: </Text>
 			<TextInput
 				value={value}
 				onChange={setValue}
 				placeholder="id, name, or email..."
 			/>
-			<Text color="gray">  (Enter to search, Esc to cancel)</Text>
+			<Text color="gray"> (Enter to search, Esc to cancel)</Text>
 		</Box>
 	);
 }

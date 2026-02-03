@@ -1,3 +1,8 @@
+export {
+	AuthRecoveryBoundary,
+	isAuthError,
+	useAuthRecoveryContext,
+} from "./AuthRecoveryBoundary.js";
 export { Card } from "./Card.js";
 export { KeyValue } from "./KeyValue.js";
 export { LoadingText } from "./LoadingText.js";
@@ -15,8 +20,3 @@ export {
 	type StatusRowStatus,
 } from "./StatusRow.js";
 export { StepHeader } from "./StepHeader.js";
-export {
-	AuthRecoveryBoundary,
-	useAuthRecoveryContext,
-	isAuthError,
-} from "./AuthRecoveryBoundary.js";

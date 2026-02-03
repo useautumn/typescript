@@ -1,12 +1,20 @@
-import chalk from "chalk";
 import fs from "node:fs";
 import path, { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import chalk from "chalk";
 import createJiti from "jiti";
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
-import { AppEnv } from "../../lib/env/index.js";
-import { formatError } from "../../lib/api/client.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
 import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
+import { AppEnv } from "../../lib/env/index.js";
+import {
+	createFeatureArchivedPrompt,
+	createFeatureDeletePrompt,
+	createPlanArchivedPrompt,
+	createPlanDeletePrompt,
+	createPlanVersioningPrompt,
+	createProdConfirmationPrompt,
+	type PushPrompt,
+} from "./prompts.js";
 import {
 	analyzePush,
 	archiveFeature,
@@ -20,16 +28,7 @@ import {
 	unarchivePlan,
 } from "./push.js";
 import type { PushAnalysis } from "./types.js";
-import {
-	createFeatureArchivedPrompt,
-	createFeatureDeletePrompt,
-	createPlanArchivedPrompt,
-	createPlanDeletePrompt,
-	createPlanVersioningPrompt,
-	createProdConfirmationPrompt,
-	type PushPrompt,
-} from "./prompts.js";
-import { validateConfig, formatValidationErrors } from "./validate.js";
+import { formatValidationErrors, validateConfig } from "./validate.js";
 
 interface LocalConfig {
 	features: Feature[];
@@ -187,7 +186,9 @@ function formatIssuesSummary(prompts: PushPrompt[]): string {
 				issues.push(`  - Plan "${prompt.entityId}" will be deleted`);
 				break;
 			case "plan_archived":
-				issues.push(`  - Plan "${prompt.entityId}" is archived and needs to be un-archived`);
+				issues.push(
+					`  - Plan "${prompt.entityId}" is archived and needs to be un-archived`,
+				);
 				break;
 			case "feature_delete_credit_system":
 				issues.push(
@@ -426,7 +427,7 @@ async function executeCleanPush(
  * exits with a helpful message instructing the user to either:
  * - Run in an interactive terminal
  * - Use the --yes flag to auto-confirm with defaults
- * 
+ *
  * Automatically handles 401 errors by running OAuth flow and retrying.
  */
 export async function headlessPush(
@@ -474,9 +475,9 @@ async function _headlessPushImpl(
 
 	// Check if there are any changes that require action
 	// Note: plansToUpdate and featuresToUpdate contain ALL items that exist both locally and remotely
-	// We always push these (to ensure sync), but only show "has changes" for things that need 
+	// We always push these (to ensure sync), but only show "has changes" for things that need
 	// user attention (creates, deletes, versioning, archives)
-	const hasVersioningPlans = analysis.plansToUpdate.some((p) => p.willVersion);
+	const _hasVersioningPlans = analysis.plansToUpdate.some((p) => p.willVersion);
 	const hasChanges =
 		analysis.featuresToCreate.length > 0 ||
 		analysis.featuresToUpdate.length > 0 ||
@@ -507,7 +508,9 @@ async function _headlessPushImpl(
 
 	// If there are prompts and --yes is not set, exit with helpful message
 	if (prompts.length > 0 && !yes) {
-		console.log(chalk.yellow("\nPush requires confirmation for the following:"));
+		console.log(
+			chalk.yellow("\nPush requires confirmation for the following:"),
+		);
 		console.log(formatIssuesSummary(prompts));
 		console.log("");
 		console.log(chalk.cyan("To proceed, either:"));

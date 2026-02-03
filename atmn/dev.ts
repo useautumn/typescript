@@ -1,16 +1,16 @@
 // Development watcher - rebuilds on file changes
+
 import { watch } from "node:fs";
-import { spawn } from "node:child_process";
 
 let building = false;
 
 async function rebuild() {
 	if (building) return;
 	building = true;
-	
+
 	console.log("\n🔄 Rebuilding...");
 	const start = Date.now();
-	
+
 	try {
 		await Bun.$`bun run bun.config.ts`;
 		const duration = Date.now() - start;
@@ -26,14 +26,14 @@ async function rebuild() {
 await rebuild();
 
 // Watch src and source directories
-const watcher1 = watch("./src", { recursive: true }, (event, filename) => {
+const watcher1 = watch("./src", { recursive: true }, (_event, filename) => {
 	if (filename?.match(/\.(ts|tsx)$/)) {
 		console.log(`📝 Changed: src/${filename}`);
 		rebuild();
 	}
 });
 
-const watcher2 = watch("./source", { recursive: true }, (event, filename) => {
+const watcher2 = watch("./source", { recursive: true }, (_event, filename) => {
 	if (filename?.match(/\.(ts|tsx)$/)) {
 		console.log(`📝 Changed: source/${filename}`);
 		rebuild();

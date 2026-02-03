@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from "react";
+import { useCallback, useReducer } from "react";
 import type { ApiCustomer } from "../api/endpoints/customers.js";
 
 export type FocusTarget = "table" | "sheet" | "search";

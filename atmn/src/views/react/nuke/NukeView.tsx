@@ -1,24 +1,24 @@
 import { Box, Text, useApp } from "ink";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { createConfigBackup } from "../../../commands/nuke/backup.js";
 import {
-	validateSandboxOnly,
-	validateCustomerLimit,
 	getMaxCustomers,
 	NukeValidationError,
+	validateCustomerLimit,
+	validateSandboxOnly,
 } from "../../../commands/nuke/validation.js";
-import { createConfigBackup } from "../../../commands/nuke/backup.js";
-import { getKey } from "../../../lib/env/index.js";
 import { AppEnv } from "../../../lib/env/detect.js";
-import { useNukeData } from "../../../lib/hooks/useNukeData.js";
+import { getKey } from "../../../lib/env/index.js";
 import { useNuke } from "../../../lib/hooks/useNuke.js";
+import { useNukeData } from "../../../lib/hooks/useNukeData.js";
 import { Card, CardWidthProvider, LoadingText } from "../components/index.js";
-import { NukeAnimation } from "./NukeAnimation.js";
 import { BackupPrompt } from "./components/BackupPrompt.js";
 import { ConfirmScreen } from "./components/ConfirmScreen.js";
 import { DeletionProgress } from "./components/DeletionProgress.js";
 import { FinalSummary } from "./components/FinalSummary.js";
 import { SuccessScreen } from "./components/SuccessScreen.js";
 import { WarningScreen } from "./components/WarningScreen.js";
+import { NukeAnimation } from "./NukeAnimation.js";
 
 type NukeState =
 	| "loading"

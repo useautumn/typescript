@@ -4,7 +4,7 @@
  * 1 credit = $0.01
  */
 
-import type { Feature, Plan } from "../../../../source/compose/models/index.js";
+import type { Feature, Plan } from "../../../compose/models/index.js";
 
 export const features: Feature[] = [
 	{
@@ -49,7 +49,9 @@ export const plans: Plan[] = [
 		id: "free",
 		name: "Free",
 		auto_enable: true,
-		features: [{ feature_id: "credits", included: 500, reset: { interval: "one_off" } }],
+		features: [
+			{ feature_id: "credits", included: 500, reset: { interval: "one_off" } },
+		],
 	},
 	{
 		id: "hobby",

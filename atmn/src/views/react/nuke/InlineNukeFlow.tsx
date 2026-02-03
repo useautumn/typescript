@@ -1,19 +1,24 @@
 import { Box, Text } from "ink";
-import React, { useEffect, useState } from "react";
 import Spinner from "ink-spinner";
-import { validateSandboxOnly, validateCustomerLimit, getMaxCustomers, NukeValidationError } from "../../../commands/nuke/validation.js";
+import { useEffect, useState } from "react";
 import { createConfigBackup } from "../../../commands/nuke/backup.js";
-import { getKey } from "../../../lib/env/index.js";
+import {
+	getMaxCustomers,
+	NukeValidationError,
+	validateCustomerLimit,
+	validateSandboxOnly,
+} from "../../../commands/nuke/validation.js";
 import { AppEnv } from "../../../lib/env/detect.js";
-import { useNukeData } from "../../../lib/hooks/useNukeData.js";
+import { getKey } from "../../../lib/env/index.js";
 import { useNuke } from "../../../lib/hooks/useNuke.js";
-import { NukeAnimation } from "./NukeAnimation.js";
+import { useNukeData } from "../../../lib/hooks/useNukeData.js";
 import { BackupPrompt } from "./components/BackupPrompt.js";
 import { ConfirmScreen } from "./components/ConfirmScreen.js";
 import { DeletionProgress } from "./components/DeletionProgress.js";
 import { WarningScreen } from "./components/WarningScreen.js";
+import { NukeAnimation } from "./NukeAnimation.js";
 
-type NukeState = 
+type NukeState =
 	| "loading"
 	| "error"
 	| "warning"
@@ -202,7 +207,7 @@ export function InlineNukeFlow({ onComplete, onCancel }: InlineNukeFlowProps) {
 		case "explosion":
 			return (
 				<Box flexDirection="column">
-					<NukeAnimation 
+					<NukeAnimation
 						onComplete={handleExplosionComplete}
 						contained={true}
 						containedHeight={10}

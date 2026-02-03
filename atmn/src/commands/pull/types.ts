@@ -1,4 +1,4 @@
-import type { Feature, Plan } from "../../../source/compose/models/index.js";
+import type { Feature, Plan } from "../../compose/models/index.js";
 import type { AppEnv } from "../../lib/env/index.js";
 import type { UpdateResult } from "../../lib/transforms/inPlaceUpdate/index.js";
 

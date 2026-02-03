@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import { AppEnv } from "../../../../lib/env/detect.js";
 import type { EmptyStateProps } from "../types.js";
 
@@ -29,7 +28,8 @@ export function EmptyState({ environment, searchQuery }: EmptyStateProps) {
 				</Box>
 				<Box marginTop={1}>
 					<Text dimColor>
-						Try a different search term or press <Text color="magenta">x</Text> to clear the search.
+						Try a different search term or press <Text color="magenta">x</Text>{" "}
+						to clear the search.
 					</Text>
 				</Box>
 			</Box>

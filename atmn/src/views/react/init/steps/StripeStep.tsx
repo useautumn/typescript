@@ -1,8 +1,9 @@
 import { Box, Text } from "ink";
 import open from "open";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FRONTEND_URL } from "../../../../constants.js";
-import { externalRequest } from "../../../../../source/core/api.js";
+import { fetchOrganization } from "../../../../lib/api/endpoints/organization.js";
+import { readFromEnv } from "../../../../lib/utils.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
 
 type StripeState =
@@ -39,11 +40,12 @@ export function StripeStep({ step, totalSteps, onComplete }: StripeStepProps) {
 			attempts++;
 
 			try {
-				const orgDetails = (await externalRequest({
-					method: "GET",
-					path: "/organization",
-					throwOnError: true,
-				})) as { stripe_connection?: string };
+				const secretKey = readFromEnv({ bypass: true });
+				if (!secretKey) {
+					return; // Continue polling, key may not be ready yet
+				}
+
+				const orgDetails = await fetchOrganization({ secretKey });
 
 				if (
 					orgDetails.stripe_connection &&
@@ -75,12 +77,15 @@ export function StripeStep({ step, totalSteps, onComplete }: StripeStepProps) {
 		setStripeState("checking");
 
 		try {
+			const secretKey = readFromEnv({ bypass: true });
+			if (!secretKey) {
+				setStripeError("No API key found. Please run 'atmn login' first.");
+				setStripeState("error");
+				return;
+			}
+
 			// Fetch org details to check Stripe connection
-			const orgDetails = (await externalRequest({
-				method: "GET",
-				path: "/organization",
-				throwOnError: true,
-			})) as { stripe_connection?: string };
+			const orgDetails = await fetchOrganization({ secretKey });
 
 			if (
 				orgDetails.stripe_connection &&
@@ -122,7 +127,11 @@ export function StripeStep({ step, totalSteps, onComplete }: StripeStepProps) {
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
-			<StepHeader step={step} totalSteps={totalSteps} title="Stripe Connection" />
+			<StepHeader
+				step={step}
+				totalSteps={totalSteps}
+				title="Stripe Connection"
+			/>
 			{stripeState === "checking" && (
 				<StatusLine status="loading" message="Checking Stripe connection..." />
 			)}

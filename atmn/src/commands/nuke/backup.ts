@@ -38,7 +38,7 @@ export function createConfigBackup(cwd: string = process.cwd()): BackupResult {
 				.slice(0, 19);
 			const timestampedBackupPath = path.join(
 				cwd,
-				`autumn.config.ts.backup.${timestamp}`
+				`autumn.config.ts.backup.${timestamp}`,
 			);
 
 			fs.copyFileSync(configPath, timestampedBackupPath);

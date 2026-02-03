@@ -113,7 +113,7 @@ export interface ApiOrganization {
 			const { metaDescriptions: planMeta } = extractZodSchema(planSourceFile, "CreatePlanParamsSchema");
 
 			// Generate manual type unions with JSDoc
-			const planModelsFile = path.join(atmnPath, "source/compose/models/planModels.ts");
+			const planModelsFile = path.join(atmnPath, "src/compose/models/planModels.ts");
 			const planFeatureUnion = generatePlanFeatureType(planFeatureMeta);
 			const planType = generatePlanTypeWithJSDoc(planMeta);
 
@@ -129,7 +129,7 @@ export interface ApiOrganization {
 		// Add Feature discriminated union
 		const featureConfig = typeConfig.configs.find(c => c.targetName === "Feature");
 		if (featureConfig) {
-			const featureModelsFile = path.join(atmnPath, "source/compose/models/featureModels.ts");
+			const featureModelsFile = path.join(atmnPath, "src/compose/models/featureModels.ts");
 			const featureUnion = generateFeatureDiscriminatedUnion();
 
 			const fs = await import("fs");
@@ -162,7 +162,7 @@ export interface ApiOrganization {
 		const totalTime = Date.now() - startTime;
 		console.log(`\n✅ All type generation completed in ${totalTime}ms!`);
 		console.log(
-			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - source/compose/models/planModels.ts\n   - source/compose/models/featureModels.ts\n   - source/compose/builders/builderFunctions.ts`,
+			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - src/compose/models/planModels.ts\n   - src/compose/models/featureModels.ts\n   - src/compose/builders/builderFunctions.ts`,
 		);
 	} catch (error) {
 		console.error("💥 atmn type generation failed:", error);

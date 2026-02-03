@@ -1,8 +1,7 @@
-import React from "react";
 import { Text } from "ink";
-import type { Plan } from "../../../../../source/compose/models/index.js";
-import type { PlanStatus } from "../../../../lib/hooks/usePush.js";
 import type { PlanDeleteInfo } from "../../../../commands/push/types.js";
+import type { Plan } from "../../../../compose/models/index.js";
+import type { PlanStatus } from "../../../../lib/hooks/usePush.js";
 import { Card, StatusRow } from "../../components/index.js";
 
 interface PlansCardProps {

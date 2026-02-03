@@ -1,6 +1,6 @@
 import { Select } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useCreateGuides } from "../../../../lib/hooks/useCreateGuides.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
 
@@ -87,11 +87,11 @@ export function HandoffStep({
 							<Text color="cyan">https://docs.useautumn.com</Text>
 						</Text>
 						<Text>
-							💬 Discord:{" "}
-							<Text color="cyan">https://discord.gg/atmn</Text>
+							💬 Discord: <Text color="cyan">https://discord.gg/atmn</Text>
 						</Text>
 						<Text dimColor>
-							Run <Text color="magenta">atmn push</Text> when you're ready to sync your config
+							Run <Text color="magenta">atmn push</Text> when you're ready to
+							sync your config
 						</Text>
 					</Box>
 				</Box>
@@ -104,7 +104,10 @@ export function HandoffStep({
 			return (
 				<Box flexDirection="column" marginBottom={1}>
 					<StepHeader step={step} totalSteps={totalSteps} title="Next Steps" />
-					<StatusLine status="error" message={error ?? "Failed to create guides"} />
+					<StatusLine
+						status="error"
+						message={error ?? "Failed to create guides"}
+					/>
 				</Box>
 			);
 		}
@@ -114,13 +117,14 @@ export function HandoffStep({
 				<StepHeader step={step} totalSteps={totalSteps} title="Next Steps" />
 				<Box flexDirection="column">
 					<StatusLine status="success" message="You're all set!" />
-					
+
 					{/* File tree */}
 					<Box marginTop={1} flexDirection="column">
 						<Text color="cyan">{guidesDir}/</Text>
 						{filesCreated.map((file, index) => (
 							<Text key={file} color="cyan">
-								{index === filesCreated.length - 1 ? "└── " : "├── "}{file}
+								{index === filesCreated.length - 1 ? "└── " : "├── "}
+								{file}
 							</Text>
 						))}
 					</Box>
@@ -130,15 +134,14 @@ export function HandoffStep({
 						<Text>
 							Open these in order with your AI agent (Claude, Cursor, etc.)
 						</Text>
-						<Text>
-							Each guide walks through one part of the integration.
-						</Text>
+						<Text>Each guide walks through one part of the integration.</Text>
 					</Box>
 
 					{/* Help links */}
 					<Box marginTop={1} flexDirection="column" gap={0}>
 						<Text dimColor>
-							📚 Documentation: <Text color="cyan">https://docs.useautumn.com</Text>
+							📚 Documentation:{" "}
+							<Text color="cyan">https://docs.useautumn.com</Text>
 						</Text>
 						<Text dimColor>
 							💬 Discord: <Text color="cyan">https://discord.gg/atmn</Text>

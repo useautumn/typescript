@@ -1,9 +1,9 @@
-import type { Feature } from "../../../../source/compose/models/featureModels.js";
+import type { Feature } from "../../../compose/models/featureModels.js";
 import { featureIdToVarName, formatValue } from "./helpers.js";
 
 /**
  * Generate TypeScript code for a feature definition
- * 
+ *
  * Rules:
  * - Boolean features: No consumable field
  * - Metered features: MUST output consumable: true or false explicitly

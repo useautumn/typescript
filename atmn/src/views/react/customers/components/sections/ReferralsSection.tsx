@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { ApiReferral } from "../../types.js";
 import { formatDate } from "../../types.js";
 
@@ -53,9 +52,7 @@ function ReferralRow({ referral }: { referral: ApiReferral }) {
 			</Text>
 			<Text>{customerDisplay}</Text>
 			<Text dimColor> - {formatDate(referral.created_at)}</Text>
-			{!referral.reward_applied && (
-				<Text color="yellow"> (pending)</Text>
-			)}
+			{!referral.reward_applied && <Text color="yellow"> (pending)</Text>}
 		</Box>
 	);
 }

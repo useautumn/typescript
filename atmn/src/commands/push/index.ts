@@ -1,3 +1,14 @@
+export { headlessPush } from "./headless.js";
+export {
+	createFeatureArchivedPrompt,
+	createFeatureDeletePrompt,
+	createPlanArchivedPrompt,
+	createPlanDeletePrompt,
+	createPlanVersioningPrompt,
+	createProdConfirmationPrompt,
+	type PromptType,
+	type PushPrompt,
+} from "./prompts.js";
 export {
 	analyzePush,
 	archiveFeature,
@@ -10,7 +21,6 @@ export {
 	unarchiveFeature,
 	unarchivePlan,
 } from "./push.js";
-
 export type {
 	FeatureDeleteInfo,
 	PlanDeleteInfo,
@@ -21,21 +31,8 @@ export type {
 } from "./types.js";
 
 export {
-	createFeatureArchivedPrompt,
-	createFeatureDeletePrompt,
-	createPlanArchivedPrompt,
-	createPlanDeletePrompt,
-	createPlanVersioningPrompt,
-	createProdConfirmationPrompt,
-	type PushPrompt,
-	type PromptType,
-} from "./prompts.js";
-
-export { headlessPush } from "./headless.js";
-
-export {
-	validateConfig,
 	formatValidationErrors,
 	type ValidationError,
 	type ValidationResult,
+	validateConfig,
 } from "./validate.js";

@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Card } from "../../components/index.js";
 
 interface SuccessScreenProps {

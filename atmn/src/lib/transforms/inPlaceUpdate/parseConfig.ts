@@ -1,6 +1,6 @@
 /**
  * Parse existing autumn.config.ts to extract entity information
- * 
+ *
  * Uses simple line-based parsing instead of AST to avoid position corruption issues
  */
 
@@ -62,17 +62,17 @@ function extractVarName(line: string): string | null {
  */
 function determineEntityType(lines: string[]): "feature" | "plan" | null {
 	const joined = lines.join("\n");
-	
+
 	// Check for feature indicators: type: 'boolean'|'metered'|'credit_system'
 	if (/type:\s*['"](?:boolean|metered|credit_system)['"]/.test(joined)) {
 		return "feature";
 	}
-	
+
 	// Check for plan indicators: features: [ array
 	if (/features:\s*\[/.test(joined)) {
 		return "plan";
 	}
-	
+
 	return null;
 }
 
@@ -82,22 +82,22 @@ function determineEntityType(lines: string[]): "feature" | "plan" | null {
 export function parseExistingConfig(configPath: string): ParsedConfig {
 	const source = readFileSync(configPath, "utf-8");
 	const lines = source.split("\n");
-	
+
 	const blocks: ParsedBlock[] = [];
 	const entities: ParsedEntity[] = [];
-	
+
 	let i = 0;
-	
+
 	while (i < lines.length) {
 		const line = lines[i];
 		const trimmed = line.trim();
-		
+
 		// Skip empty lines - they'll be regenerated as needed
 		if (trimmed === "") {
 			i++;
 			continue;
 		}
-		
+
 		// Import statement
 		if (trimmed.startsWith("import ")) {
 			const startLine = i;
@@ -115,7 +115,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 			i++;
 			continue;
 		}
-		
+
 		// Single-line comment
 		if (trimmed.startsWith("//")) {
 			blocks.push({
@@ -127,7 +127,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 			i++;
 			continue;
 		}
-		
+
 		// Multi-line comment
 		if (trimmed.startsWith("/*")) {
 			const startLine = i;
@@ -144,20 +144,20 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 			i++;
 			continue;
 		}
-		
+
 		// Export statement (feature or plan)
 		if (trimmed.startsWith("export const")) {
 			const startLine = i;
 			const varName = extractVarName(line);
-			
+
 			// Find the end of the export block
 			// Track brace/paren depth to handle nested structures
 			let depth = 0;
 			let foundStart = false;
-			
+
 			while (i < lines.length) {
 				const currentLine = lines[i];
-				
+
 				for (const char of currentLine) {
 					if (char === "(" || char === "{" || char === "[") {
 						depth++;
@@ -166,20 +166,20 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 						depth--;
 					}
 				}
-				
+
 				// End when we close all braces and see semicolon
 				if (foundStart && depth === 0 && currentLine.includes(";")) {
 					break;
 				}
 				i++;
 			}
-			
+
 			const endLine = i;
 			const blockLines = lines.slice(startLine, endLine + 1);
-			
+
 			const id = extractId(blockLines);
 			const entityType = determineEntityType(blockLines);
-			
+
 			if (id && entityType && varName) {
 				const entity: ParsedEntity = {
 					id,
@@ -189,7 +189,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 					endLine,
 					lines: blockLines,
 				};
-				
+
 				blocks.push({
 					type: "export",
 					startLine,
@@ -197,7 +197,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 					lines: blockLines,
 					entity,
 				});
-				
+
 				entities.push(entity);
 			} else {
 				// Unknown export, preserve as-is
@@ -208,11 +208,11 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 					lines: blockLines,
 				});
 			}
-			
+
 			i++;
 			continue;
 		}
-		
+
 		// Anything else - preserve as-is
 		blocks.push({
 			type: "other",
@@ -222,7 +222,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 		});
 		i++;
 	}
-	
+
 	return {
 		blocks,
 		entities,

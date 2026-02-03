@@ -41,7 +41,7 @@ export interface FetchCustomersResponse {
  * Fetch all customers using V1 endpoint (GET with query params)
  */
 export async function fetchCustomers(
-	options: FetchCustomersOptions
+	options: FetchCustomersOptions,
 ): Promise<ApiCustomer[]> {
 	const { secretKey, limit = 100, offset = 0 } = options;
 

@@ -1,6 +1,5 @@
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
-import React from "react";
 import { AppEnv } from "../../../../lib/env/detect.js";
 import type { LoadingStateProps } from "../types.js";
 

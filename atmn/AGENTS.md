@@ -2,64 +2,90 @@
 
 ## Directory Structure
 
-The CLI has two source directories:
-
-- **`source/`** - Legacy code (commands, core logic, compose builders)
-- **`src/`** - New code following improved architecture
-
-New features should be added to `src/`. Existing features in `source/` will be migrated incrementally.
+All code is in the `src/` directory. The legacy `source/` directory has been fully migrated.
 
 ```
 atmn/
-├── source/                    # Legacy code
-│   ├── cli.ts                 # Main entry point
+├── src/
+│   ├── cli.tsx                # Main CLI entry point
 │   ├── constants.ts           # BACKEND_URL, FRONTEND_URL, DEFAULT_CONFIG
-│   ├── index.ts               # Package exports
-│   ├── commands/              # CLI commands (pull, push, nuke, init)
-│   ├── core/                  # Business logic, API requests, utilities
-│   └── compose/               # DSL builders for plans/features
-│
-├── src/                       # New architecture
-│   ├── commands/              # Command modules (each command in its own folder)
-│   │   └── auth/              # Auth command
-│   │       ├── command.ts     # Main command export
-│   │       ├── oauth.ts       # OAuth flow logic
-│   │       └── constants.ts   # Command-specific constants
+│   │
+│   ├── compose/               # DSL builders for plans/features (public API)
+│   │   ├── index.ts           # Package exports (Plan, Feature, plan(), feature(), etc.)
+│   │   ├── models/            # Type definitions (Plan, Feature, PlanFeature)
+│   │   └── builders/          # Builder functions (plan(), feature(), planFeature())
+│   │
+│   ├── commands/              # CLI commands (each in its own folder)
+│   │   ├── auth/              # Auth/login command
+│   │   ├── pull/              # Pull command
+│   │   ├── push/              # Push command
+│   │   └── nuke/              # Nuke command
+│   │
+│   ├── lib/                   # Shared libraries
+│   │   ├── api/               # API client and endpoints
+│   │   │   ├── client.ts      # HTTP client
+│   │   │   ├── endpoints/     # API endpoint functions
+│   │   │   └── types/         # API response types
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── transforms/        # Data transformation (apiToSdk, sdkToApi, sdkToCode)
+│   │   ├── env/               # Environment context (--local, --prod flags)
+│   │   ├── constants/         # Shared constants, template data
+│   │   └── utils.ts           # Shared utilities
+│   │
 │   └── views/                 # UI templates
-│       └── html/              # HTML templates for browser callbacks
-│           └── oauth-callback.ts
+│       ├── html/              # HTML templates (OAuth callbacks)
+│       └── react/             # React/Ink components
+│           ├── components/    # Shared UI components
+│           ├── init/          # Init flow
+│           ├── pull/          # Pull UI
+│           ├── push/          # Push UI
+│           └── nuke/          # Nuke UI
 │
 ├── test/                      # Tests
 └── dist/                      # Build output
 ```
+
+## Package Exports
+
+The `atmn` package exports the compose DSL for use in `autumn.config.ts`:
+
+```ts
+// Users import from 'atmn'
+import { plan, feature, planFeature, type Plan, type Feature } from 'atmn';
+```
+
+These exports come from `src/compose/index.ts`.
 
 ## Architecture Conventions
 
 ### Commands (`src/commands/<name>/`)
 
 Each command should have its own folder with:
-- `command.ts` - The main command function (default export)
-- `constants.ts` - Command-specific constants
-- Additional files for supporting logic (e.g., `oauth.ts` for auth)
+- Main command file(s) with the command logic
+- Supporting files for complex operations (e.g., `oauth.ts` for auth)
+- Types and constants specific to that command
 
 ### Views (`src/views/`)
 
 UI templates organized by type:
 - `html/` - HTML templates (for browser callbacks, etc.)
-- `react/` - React/Ink components (future)
+- `react/` - React/Ink components organized by feature
 
-### Shared Utilities
+### Shared Libraries (`src/lib/`)
 
-Currently in `source/core/utils.ts`. These will be migrated to `src/utils/` as needed:
-- `env.ts` - Environment variable helpers (`readFromEnv`, `storeToEnv`)
-- `spinner.ts` - CLI spinner (`initSpinner`)
-- `string.ts` - String utilities
+- `api/` - API client, endpoint functions, and response types
+- `hooks/` - Custom React hooks (useOrganization, usePush, usePull, etc.)
+- `transforms/` - Data transformation functions between API/SDK/Code formats
+- `env/` - CLI context (--local, --prod flag handling)
+- `constants/` - Shared constants and template data
+- `utils.ts` - Shared utility functions
 
 ## Import Conventions
 
 - Use `.js` extensions in imports (required for ESM)
-- Import shared constants from `source/constants.js` (until migrated)
-- Import utilities from `source/core/utils.js` (until migrated)
+- Import compose types from `../../compose/models/index.js`
+- Import API functions from `../../lib/api/endpoints/index.js`
+- Import utilities from `../../lib/utils.js`
 
 ## OAuth Flow
 
@@ -114,12 +140,12 @@ react/
 ## Build
 
 ```bash
-npm run build    # Build with tsup
-npm run dev      # Watch mode
-npm run test     # Run tests
+pnpm build    # Build with Bun
+pnpm dev      # Watch mode
+pnpm test     # Run tests
 ```
 
-Entry points are in `source/` but tsup follows imports to include `src/` files.
+Entry point is `src/cli.tsx` for the CLI and `src/compose/index.ts` for the package exports.
 
 ## Code Separation Rules
 
@@ -163,7 +189,7 @@ src/
 
 ### Example: Good vs Bad
 
-**❌ Bad - Logic in .tsx:**
+**Bad - Logic in .tsx:**
 ```tsx
 // Component.tsx
 export function MyComponent() {
@@ -181,7 +207,7 @@ export function MyComponent() {
 }
 ```
 
-**✅ Good - Logic in hook, .tsx only renders:**
+**Good - Logic in hook, .tsx only renders:**
 ```tsx
 // hooks/useMyData.ts
 export function useMyData() {

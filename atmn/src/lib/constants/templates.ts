@@ -86,12 +86,7 @@ export const templateData: Record<string, PlanData[]> = {
 	"T3 Chat": [
 		{
 			name: "Free",
-			features: [
-				"100 messages",
-				"/month",
-				"Basic models",
-				"Web access",
-			],
+			features: ["100 messages", "/month", "Basic models", "Web access"],
 			price: "$0",
 		},
 		{

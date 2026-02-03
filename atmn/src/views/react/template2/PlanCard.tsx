@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import React from "react";
 import type { TemplateTier } from "./data.js";
 
 export interface PlanCardProps {

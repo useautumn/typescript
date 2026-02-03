@@ -6,6 +6,6 @@
 		"declaration": true,
 		"emitDeclarationOnly": true
 	},
-	"include": ["source/index.ts", "source/compose/**/*"],
-	"exclude": ["node_modules", "dist", "src", "test"]
+	"include": ["src/compose/index.ts", "src/compose/**/*"],
+	"exclude": ["node_modules", "dist", "test"]
 }

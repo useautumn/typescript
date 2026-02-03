@@ -1,5 +1,4 @@
 import { Text } from "ink";
-import React from "react";
 import type { PushAnalysis } from "../../../../commands/push/types.js";
 import { Card, LoadingText } from "../../components/index.js";
 
