@@ -210,37 +210,37 @@ type PlanFeatureBaseFields = {
   rollover?: RolloverConfig;
 };
 
-// Price object without interval (used with top-level reset)
+// Price when reset IS defined - interval is forbidden
 type PriceWithoutInterval = {
-  /** Flat price per unit */
-  amount?: number;
+  /** Price amount */
+  amount: number;
+  /** Billing method: 'prepaid' or 'usage_based' */
+  billing_method: BillingMethod;
   /** Tiered pricing structure based on usage ranges */
   tiers?: Array<{ to: number | "inf"; amount: number }>;
   /** Number of units per billing cycle */
   billing_units?: number;
-  /** Billing method: 'prepaid' or 'usage_based' */
-  billing_method: BillingMethod;
   /** Maximum purchasable quantity */
   max_purchase?: number;
-  /** Cannot have price.interval when using top-level reset */
+  /** Cannot have interval when using top-level reset */
   interval?: never;
   interval_count?: never;
 };
 
-// Price object with interval (billing cycle configuration)
+// Price when reset is NOT defined - interval is required
 type PriceWithInterval = {
-  /** Flat price per unit */
-  amount?: number;
+  /** Price amount */
+  amount: number;
+  /** Billing method: 'prepaid' or 'usage_based' */
+  billing_method: BillingMethod;
+  /** Billing interval - required when no top-level reset */
+  interval: BillingInterval;
   /** Tiered pricing structure based on usage ranges */
   tiers?: Array<{ to: number | "inf"; amount: number }>;
   /** Number of units per billing cycle */
   billing_units?: number;
-  /** Billing method: 'prepaid' or 'usage_based' */
-  billing_method: BillingMethod;
   /** Maximum purchasable quantity */
   max_purchase?: number;
-  /** Billing interval (e.g., 'month', 'day') */
-  interval: ResetInterval;
   /** Number of intervals between billing cycles (default: 1) */
   interval_count?: number;
 };
@@ -274,8 +274,8 @@ export type PlanFeatureWithPriceInterval = PlanFeatureBaseFields & {
 export type PlanFeatureNoReset = PlanFeatureBaseFields & {
   /** No reset for continuous-use features */
   reset?: never;
-  /** Optional pricing without interval */
-  price?: PriceWithoutInterval;
+  /** Pricing with required interval (since no top-level reset) */
+  price?: PriceWithInterval;
 };
 
 /**
@@ -360,12 +360,12 @@ export function generatePlanTypeWithJSDoc(
 					descriptionKey: "price.amount",
 					defaultDescription: "Price in your currency (e.g., 50 for $50.00)",
 				},
-			{
-				name: "interval",
-				type: "BillingInterval | ResetInterval",
-				descriptionKey: "price.interval",
-				defaultDescription: "Billing frequency",
-			},
+		{
+			name: "interval",
+			type: "BillingInterval",
+			descriptionKey: "price.interval",
+			defaultDescription: "Billing frequency",
+		},
 			],
 		},
 		{
