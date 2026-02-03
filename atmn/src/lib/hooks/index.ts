@@ -25,6 +25,13 @@ export {
 	useCustomers,
 } from "./useCustomers.js";
 export {
+	type UseLocalPaginationOptions,
+	type UseLocalPaginationReturn,
+	type UsePlansOptions,
+	useLocalPagination,
+	usePlans,
+} from "./usePlans.js";
+export {
 	type HeadlessAuthState,
 	type OrgInfo,
 	type UseHeadlessAuthOptions,

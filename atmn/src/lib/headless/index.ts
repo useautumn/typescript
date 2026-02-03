@@ -10,3 +10,8 @@ export {
 	CustomersController,
 	createCustomersController,
 } from "./CustomersController.js";
+
+export {
+	PlansController,
+	createPlansController,
+} from "./PlansController.js";

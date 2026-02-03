@@ -320,6 +320,35 @@ program
 		});
 	});
 
+program
+	.command("products")
+	.alias("plans")
+	.description("Browse and inspect products/plans")
+	.option("--headless", "Run in headless mode (output for AI/agents)")
+	.option("--page <n>", "Page number (headless)", "1")
+	.option("--search <query>", "Search query (headless)")
+	.option("--id <id>", "Get product by ID (headless)")
+	.option("--limit <n>", "Items per page (headless)", "50")
+	.option(
+		"--format <format>",
+		"Output format: text, json, csv (headless)",
+		"text",
+	)
+	.option("--include-archived", "Include archived products")
+	.action(async (options) => {
+		const { productsCommand } = await import("./commands/products/index.js");
+		await productsCommand({
+			prod: isProd(),
+			headless: options.headless,
+			page: Number.parseInt(options.page, 10),
+			search: options.search,
+			id: options.id,
+			limit: Number.parseInt(options.limit, 10),
+			format: options.format,
+			includeArchived: options.includeArchived,
+		});
+	});
+
 /**
  * This is a hack to silence the DeprecationWarning about url.parse()
  */
