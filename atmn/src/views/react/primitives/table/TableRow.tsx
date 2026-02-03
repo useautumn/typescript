@@ -39,21 +39,31 @@ export function TableRow<T>({
 				const width = columnWidths[index] ?? 10;
 				const content = column.render(item, isSelected);
 
-				// If content is a string, handle truncation and styling
+				// If content is a string, truncate and style it
 				if (typeof content === "string") {
-					const truncated = truncate(content, width - 1);
+					const truncated = truncate(content, width);
 					return (
-						<Box key={column.key} width={width} marginLeft={index > 0 ? 1 : 0}>
-							<Text bold={isSelected} dimColor={!isSelected}>
+						<Box
+							key={column.key}
+							width={width}
+							marginLeft={index > 0 ? 1 : 0}
+							overflow="hidden"
+						>
+							<Text bold={isSelected} dimColor={!isSelected} wrap="truncate">
 								{truncated}
 							</Text>
 						</Box>
 					);
 				}
 
-				// If content is a React node, render it directly
+				// If content is a React node, render it directly (no wrapping)
 				return (
-					<Box key={column.key} width={width} marginLeft={index > 0 ? 1 : 0}>
+					<Box
+						key={column.key}
+						width={width}
+						marginLeft={index > 0 ? 1 : 0}
+						overflow="hidden"
+					>
 						{content}
 					</Box>
 				);
@@ -86,8 +96,13 @@ export function TableHeader<T>({
 			{columns.map((column, index) => {
 				const width = columnWidths[index] ?? 10;
 				return (
-					<Box key={column.key} width={width} marginLeft={index > 0 ? 1 : 0}>
-						<Text color="gray" bold>
+					<Box
+						key={column.key}
+						width={width}
+						marginLeft={index > 0 ? 1 : 0}
+						overflow="hidden"
+					>
+						<Text color="gray" bold wrap="truncate">
 							{column.header}
 						</Text>
 					</Box>

@@ -121,13 +121,6 @@ export function DataTable<T>({
 		};
 	}, []);
 
-	// Update selected item when index changes
-	useEffect(() => {
-		if (data[selectedIndex]) {
-			onSelect(data[selectedIndex], selectedIndex);
-		}
-	}, [selectedIndex, data, onSelect]);
-
 	// Calculate column widths based on data and terminal width
 	const columnWidths = useMemo(
 		() => calculateColumnWidths(data, columns, terminalWidth, reservedWidth),

@@ -297,9 +297,27 @@ program
 program
 	.command("customers")
 	.description("Browse and inspect customers")
-	.action(async () => {
+	.option("--headless", "Run in headless mode (output for AI/agents)")
+	.option("--page <n>", "Page number (headless)", "1")
+	.option("--search <query>", "Search query (headless)")
+	.option("--id <id>", "Get customer by ID (headless)")
+	.option("--limit <n>", "Items per page (headless)", "50")
+	.option(
+		"--format <format>",
+		"Output format: text, json, csv (headless)",
+		"text",
+	)
+	.action(async (options) => {
 		const { customersCommand } = await import("./commands/customers/index.js");
-		await customersCommand({ prod: isProd() });
+		await customersCommand({
+			prod: isProd(),
+			headless: options.headless,
+			page: Number.parseInt(options.page, 10),
+			search: options.search,
+			id: options.id,
+			limit: Number.parseInt(options.limit, 10),
+			format: options.format,
+		});
 	});
 
 /**

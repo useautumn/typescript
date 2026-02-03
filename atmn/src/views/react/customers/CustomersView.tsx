@@ -1,26 +1,87 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { Text, useApp, useInput } from "ink";
 import open from "open";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
+import type { ApiCustomer } from "../../../lib/api/endpoints/customers.js";
 import { AppEnv } from "../../../lib/env/detect.js";
 import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import { useCustomerExpanded } from "../../../lib/hooks/useCustomerExpanded.js";
-import { useCustomerNavigation } from "../../../lib/hooks/useCustomerNavigation.js";
+import {
+	useCustomerNavigation,
+	type FocusTarget,
+} from "../../../lib/hooks/useCustomerNavigation.js";
 import { useCustomers } from "../../../lib/hooks/useCustomers.js";
 import {
-	CustomerSheet,
-	CustomersTable,
-	EmptyState,
-	ErrorState,
-	KeybindHints,
-	LoadingState,
-	SearchInput,
-	TitleBar,
-} from "./components/index.js";
-import { calculateColumnWidths, getPaginationDisplay } from "./types.js";
+	DataTable,
+	ListViewLayout,
+	SplitPane,
+	formatDate,
+	getPaginationDisplay,
+	type Column,
+	type KeybindHint,
+	type ListViewState,
+} from "../primitives/index.js";
+// Keep CustomerSheet - it's domain-specific
+import { CustomerSheet } from "./components/CustomerSheet.js";
 
 const AUTUMN_DASHBOARD_URL = "https://app.useautumn.com";
 
 const PAGE_SIZE = 50;
+
+// Column definitions for the DataTable
+const columns: Column<ApiCustomer>[] = [
+	{
+		key: "id",
+		header: "ID",
+		render: (c) => c.id,
+		minWidth: 8,
+	},
+	{
+		key: "name",
+		header: "Name",
+		render: (c) => c.name ?? "-",
+	},
+	{
+		key: "email",
+		header: "Email",
+		render: (c) => c.email ?? "-",
+	},
+	{
+		key: "created",
+		header: "Created",
+		render: (c) => formatDate(c.created_at),
+		minWidth: 14,
+	},
+];
+
+// Generate keyboard hints based on current state
+const getHints = (
+	focusTarget: FocusTarget,
+	sheetOpen: boolean,
+	canGoPrev: boolean,
+	canGoNext: boolean,
+	searchQuery: string,
+): KeybindHint[] => {
+	if (focusTarget === "sheet" && sheetOpen) {
+		return [
+			{ key: "Tab", label: "focus table" },
+			{ key: "Esc", label: "close" },
+			{ key: "c", label: "copy ID" },
+			{ key: "o", label: "open" },
+			{ key: "q", label: "quit" },
+		];
+	}
+
+	return [
+		{ key: "↑↓", label: "navigate" },
+		{ key: "←", label: "prev page", visible: canGoPrev },
+		{ key: "→", label: "next page", visible: canGoNext },
+		{ key: "Enter", label: "inspect" },
+		{ key: "/", label: "search" },
+		{ key: "x", label: "clear search", visible: !!searchQuery },
+		{ key: "r", label: "refresh" },
+		{ key: "q", label: "quit" },
+	];
+};
 
 export interface CustomersViewProps {
 	environment?: AppEnv;
@@ -212,13 +273,6 @@ export function CustomersView({
 		),
 	);
 
-	// Calculate column widths based on actual customer data and terminal width
-	const columnWidths = useMemo(
-		() =>
-			calculateColumnWidths(customers, process.stdout.columns, state.sheetOpen),
-		[customers, state.sheetOpen],
-	);
-
 	// Sync selected customer when customers load
 	useEffect(() => {
 		if (customers.length > 0 && state.selectedIndex < customers.length) {
@@ -226,109 +280,59 @@ export function CustomersView({
 		}
 	}, [customers, state.selectedIndex, selectCustomer]);
 
-	// Loading state
-	if (isLoading && !data) {
-		return (
-			<Box flexDirection="column" marginBottom={1}>
-				<LoadingState environment={environment} />
-			</Box>
-		);
-	}
+	// Determine view state for ListViewLayout
+	const getViewState = (): ListViewState => {
+		if (isLoading && !data) return "loading";
+		if (isError && error) return "error";
+		if (!customers.length && !isFetching) return "empty";
+		return "data";
+	};
 
-	// Error state
-	if (isError && error) {
-		return (
-			<Box flexDirection="column" marginBottom={1}>
-				<ErrorState error={error} onRetry={refetch} />
-			</Box>
-		);
-	}
-
-	// Empty state
-	if (!customers.length && !isFetching) {
-		return (
-			<Box flexDirection="column" width="100%">
-				<TitleBar
-					environment={environment}
-					pagination={pagination}
-					searchQuery={state.searchQuery}
-				/>
-				{state.searchOpen && (
-					<Box marginTop={0} width="100%">
-						<SearchInput
-							initialValue={state.searchQuery}
-							onSubmit={setSearchQuery}
-							onCancel={closeSearch}
-						/>
-					</Box>
-				)}
-				<Box marginTop={1} width="100%">
-					<EmptyState
-						environment={environment}
-						searchQuery={state.searchQuery}
-					/>
-				</Box>
-				<Box marginTop={1} width="100%">
-					<KeybindHints
-						focusTarget={state.focusTarget}
-						sheetOpen={state.sheetOpen}
-						canGoPrev={pagination.canGoPrev}
-						canGoNext={pagination.canGoNext}
-					/>
-				</Box>
-			</Box>
-		);
-	}
-
-	// Main view with table and optional sheet
 	return (
-		<Box flexDirection="column" width="100%">
-			{/* Title bar */}
-			<TitleBar
-				environment={environment}
-				pagination={pagination}
-				searchQuery={state.searchQuery}
-			/>
-
-			{/* Inline search input */}
-			{state.searchOpen && (
-				<Box marginTop={1} width="100%">
-					<SearchInput
-						initialValue={state.searchQuery}
-						onSubmit={setSearchQuery}
-						onCancel={closeSearch}
-					/>
-				</Box>
+		<ListViewLayout
+			viewState={getViewState()}
+			commandName="atmn customers"
+			version="v1.0.0-beta.14"
+			paginationText={pagination.text}
+			searchQuery={state.searchQuery}
+			searchOpen={state.searchOpen}
+			onSearchSubmit={setSearchQuery}
+			onSearchCancel={closeSearch}
+			hints={getHints(
+				state.focusTarget,
+				state.sheetOpen,
+				pagination.canGoPrev,
+				pagination.canGoNext,
+				state.searchQuery,
 			)}
-
-			{/* Main content: Table + Sheet side by side */}
-			<Box marginTop={1} flexDirection="row" width="100%" flexGrow={1}>
-				{/* Table container - takes remaining space */}
-				<Box
-					flexDirection="column"
-					borderStyle="round"
-					borderColor={state.focusTarget === "table" ? "magenta" : "gray"}
-					paddingX={1}
-					flexGrow={1}
-					flexShrink={1}
-				>
-					<CustomersTable
-						customers={customers}
+			loadingMessage={`Loading ${environment === AppEnv.Live ? "live" : "sandbox"} customers...`}
+			error={error as Error}
+			onRetry={refetch}
+			emptyTitle={
+				state.searchQuery
+					? `No results for "${state.searchQuery}"`
+					: "No customers found"
+			}
+			emptyDescription={
+				state.searchQuery
+					? "Press 'x' to clear search"
+					: "Create customers via the API or Autumn dashboard"
+			}
+		>
+			<SplitPane
+				main={
+					<DataTable
+						data={customers}
+						columns={columns}
 						selectedIndex={state.selectedIndex}
-						onSelect={selectCustomer}
+						onSelect={(customer, index) => selectCustomer(customer, index)}
 						isFocused={state.focusTarget === "table"}
-						columnWidths={columnWidths}
+						keyExtractor={(c) => c.id}
+						reservedWidth={state.sheetOpen ? 45 : 0}
 					/>
-					{isFetching && (
-						<Box marginTop={1}>
-							<Text color="yellow">Loading...</Text>
-						</Box>
-					)}
-				</Box>
-
-				{/* Sheet (when open) - fixed width, doesn't shrink */}
-				{state.sheetOpen && state.selectedCustomer && (
-					<Box marginLeft={1} flexShrink={0}>
+				}
+				side={
+					state.sheetOpen && state.selectedCustomer ? (
 						<CustomerSheet
 							customer={state.selectedCustomer}
 							isFocused={state.focusTarget === "sheet"}
@@ -351,19 +355,14 @@ export function CustomersView({
 							isLoadingExpanded={isLoadingExpanded}
 							expandedError={expandedError as Error | null}
 						/>
-					</Box>
-				)}
-			</Box>
-
-			{/* Keybind hints */}
-			<Box marginTop={1} width="100%">
-				<KeybindHints
-					focusTarget={state.focusTarget}
-					sheetOpen={state.sheetOpen}
-					canGoPrev={pagination.canGoPrev}
-					canGoNext={pagination.canGoNext}
-				/>
-			</Box>
-		</Box>
+					) : undefined
+				}
+				focusTarget={state.focusTarget === "table" ? "main" : "side"}
+				sideOpen={state.sheetOpen}
+				loadingIndicator={
+					isFetching ? <Text color="yellow">Loading...</Text> : undefined
+				}
+			/>
+		</ListViewLayout>
 	);
 }
