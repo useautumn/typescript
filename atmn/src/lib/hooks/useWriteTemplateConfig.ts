@@ -1,7 +1,7 @@
 import fs from "node:fs";
-import path from "node:path";
 import { useMutation } from "@tanstack/react-query";
 import { templateConfigs } from "../constants/templates/index.js";
+import { resolveConfigPath } from "../env/index.js";
 import { buildConfigFile } from "../transforms/sdkToCode/configFile.js";
 
 interface WriteTemplateConfigParams {
@@ -33,8 +33,8 @@ export function useWriteTemplateConfig() {
 			// Generate the config file content
 			const configContent = buildConfigFile(config.features, config.plans);
 
-			// Write to autumn.config.ts
-			const configPath = path.join(cwd, "autumn.config.ts");
+			// Write to config file (respects --config flag)
+			const configPath = resolveConfigPath(cwd);
 			fs.writeFileSync(configPath, configContent, "utf-8");
 
 			return {

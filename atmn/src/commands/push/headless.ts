@@ -1,11 +1,11 @@
 import fs from "node:fs";
-import path, { resolve } from "node:path";
+import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import chalk from "chalk";
 import createJiti from "jiti";
 import type { Feature, Plan } from "../../compose/models/index.js";
 import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
-import { AppEnv } from "../../lib/env/index.js";
+import { AppEnv, resolveConfigPath } from "../../lib/env/index.js";
 import {
 	createFeatureArchivedPrompt,
 	createFeatureDeletePrompt,
@@ -57,7 +57,7 @@ interface HeadlessPushResult {
  * Load local config file using jiti
  */
 async function loadLocalConfig(cwd: string): Promise<LocalConfig> {
-	const configPath = path.join(cwd, "autumn.config.ts");
+	const configPath = resolveConfigPath(cwd);
 
 	if (!fs.existsSync(configPath)) {
 		throw new Error(

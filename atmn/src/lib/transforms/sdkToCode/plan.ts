@@ -50,9 +50,9 @@ export function buildPlanCode(
 		lines.push(`\t},`);
 	}
 
-	// Add features
+	// Add features (always include array for parser detection)
+	lines.push(`\tfeatures: [`);
 	if (plan.features && plan.features.length > 0) {
-		lines.push(`\tfeatures: [`);
 		for (const planFeature of plan.features) {
 			const featureCode = buildPlanFeatureCode(
 				planFeature,
@@ -61,8 +61,8 @@ export function buildPlanCode(
 			);
 			lines.push(featureCode);
 		}
-		lines.push(`\t],`);
 	}
+	lines.push(`\t],`);
 
 	// Add free_trial
 	if (plan.free_trial) {

@@ -6,8 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {
 	deleteCustomersBatch,
-	deleteFeaturesSequential,
-	deletePlansSequential,
+	deleteFeaturesBatch,
+	deletePlansBatch,
 } from "../../commands/nuke/deletions.js";
 import type {
 	DeletionProgress,
@@ -130,7 +130,7 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 				),
 			);
 
-			await deletePlansSequential(
+			await deletePlansBatch(
 				plans.map((p) => ({ id: p.id })),
 				async (id: string, allVersions: boolean) => {
 					await deletePlan({ secretKey, planId: id, allVersions });
@@ -155,7 +155,7 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 				),
 			);
 
-			await deleteFeaturesSequential(
+			await deleteFeaturesBatch(
 				features.map((f) => ({ id: f.id, type: f.type })),
 				async (id: string) => {
 					await deleteFeature({ secretKey, featureId: id });

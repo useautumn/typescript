@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import path from "node:path";
+import { resolveConfigPath } from "./env/index.js";
 
 /**
  * Writes an empty/skeleton autumn.config.ts file to the current working directory
@@ -10,6 +10,6 @@ export function writeEmptyConfig(): void {
 // export const free = plan({ "id": "free", "name": "Free Tier", features: [...] })
 `;
 
-	const configPath = path.join(process.cwd(), "autumn.config.ts");
+	const configPath = resolveConfigPath();
 	fs.writeFileSync(configPath, content, "utf-8");
 }

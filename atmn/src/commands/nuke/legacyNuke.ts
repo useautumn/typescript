@@ -6,7 +6,6 @@
 import fs from "node:fs";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
-import type { Feature } from "../../compose/models/featureModels.js";
 import {
 	type ApiCustomer,
 	deleteCustomer,
@@ -23,8 +22,8 @@ import { getKey } from "../../lib/env/index.js";
 import { initSpinner, isSandboxKey, readFromEnv } from "../../lib/utils.js";
 import {
 	deleteCustomersBatch,
-	deleteFeaturesSequential,
-	deletePlansSequential,
+	deleteFeaturesBatch,
+	deletePlansBatch,
 } from "./deletions.js";
 import { validateSandboxOnly } from "./validation.js";
 
@@ -126,16 +125,8 @@ export default async function Nuke() {
 			`Loaded all ${chalk.yellowBright("customers")}, ${chalk.yellowBright("features")} and ${chalk.yellowBright("plans")} for deletion`,
 		);
 
-		// Sort features: credit_system first
-		const sortedFeatures = [...features].sort((a: Feature, _b: Feature) => {
-			if (a.type === "credit_system") {
-				return -1;
-			}
-			return 1;
-		});
-
 		try {
-			// Delete customers
+			// Delete customers (parallel - independent)
 			const customerSpinner = initSpinner("Deleting customers...");
 			await deleteCustomersBatch(
 				customers.map((c: ApiCustomer) => ({ id: c.id })),
@@ -148,9 +139,9 @@ export default async function Nuke() {
 			);
 			customerSpinner.success("Customers deleted successfully!");
 
-			// Delete plans
+			// Delete plans (parallel - independent)
 			const planSpinner = initSpinner("Deleting plans...");
-			await deletePlansSequential(
+			await deletePlansBatch(
 				plans.map((p) => ({ id: p.id })),
 				async (id: string, allVersions: boolean) => {
 					await deletePlan({ secretKey, planId: id, allVersions });
@@ -161,10 +152,10 @@ export default async function Nuke() {
 			);
 			planSpinner.success("Plans deleted successfully!");
 
-			// Delete features
+			// Delete features (credit systems first in parallel, then rest in parallel)
 			const featureSpinner = initSpinner("Deleting features...");
-			await deleteFeaturesSequential(
-				sortedFeatures.map((f) => ({ id: f.id, type: f.type })),
+			await deleteFeaturesBatch(
+				features.map((f) => ({ id: f.id, type: f.type })),
 				async (id: string) => {
 					await deleteFeature({ secretKey, featureId: id });
 				},

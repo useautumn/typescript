@@ -50,7 +50,7 @@ export function usePull(options?: {
 	const forceOverwrite = options?.forceOverwrite ?? false;
 
 	// Get org info using TanStack Query (this IS a query)
-	const orgQuery = useOrganization(effectiveCwd);
+	const orgQuery = useOrganization(effectiveCwd, environment);
 
 	// Use mutation for the pull operation
 	const pullMutation = useMutation({

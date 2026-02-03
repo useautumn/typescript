@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import path, { resolve } from "node:path";
+import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { useMutation } from "@tanstack/react-query";
 import createJiti from "jiti";
@@ -27,7 +27,7 @@ import {
 } from "../../commands/push/index.js";
 import type { Feature, Plan } from "../../compose/models/index.js";
 import { formatError } from "../api/client.js";
-import { AppEnv } from "../env/index.js";
+import { AppEnv, resolveConfigPath } from "../env/index.js";
 import { type OrganizationInfo, useOrganization } from "./useOrganization.js";
 
 export type PushPhase =
@@ -75,7 +75,7 @@ interface LocalConfig {
 
 // Load local config file
 async function loadLocalConfig(cwd: string): Promise<LocalConfig> {
-	const configPath = path.join(cwd, "autumn.config.ts");
+	const configPath = resolveConfigPath(cwd);
 
 	if (!fs.existsSync(configPath)) {
 		throw new Error(
@@ -171,7 +171,7 @@ export function usePush(options?: UsePushOptions) {
 	const [remotePlans, setRemotePlans] = useState<Plan[]>([]);
 
 	// Get org info
-	const orgQuery = useOrganization(effectiveCwd);
+	const orgQuery = useOrganization(effectiveCwd, environment);
 
 	// Current prompt
 	const currentPrompt =

@@ -1,7 +1,7 @@
 import { existsSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
 import prettier from "prettier";
 import type { Feature, Plan } from "../../compose/models/index.js";
+import { resolveConfigPath } from "../../lib/env/index.js";
 import { buildConfigFile } from "../../lib/transforms/index.js";
 import {
 	type UpdateResult,
@@ -35,7 +35,7 @@ export async function writeConfig(
 	cwd: string = process.cwd(),
 	options: WriteConfigOptions = {},
 ): Promise<WriteConfigResult> {
-	const configPath = resolve(cwd, "autumn.config.ts");
+	const configPath = resolveConfigPath(cwd);
 	const configExists = existsSync(configPath);
 	const { forceOverwrite = false } = options;
 

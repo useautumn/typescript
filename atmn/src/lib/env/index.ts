@@ -3,6 +3,7 @@ export {
 	getCliContext,
 	isLocal,
 	isProd,
+	resolveConfigPath,
 	setCliContext,
 } from "./cliContext.js";
 export {

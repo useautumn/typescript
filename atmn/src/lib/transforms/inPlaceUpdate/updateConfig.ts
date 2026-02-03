@@ -5,9 +5,10 @@
  */
 
 import { existsSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
 import type { Feature, Plan } from "../../../compose/models/index.js";
+import { resolveConfigPath } from "../../env/index.js";
 import { buildFeatureCode } from "../sdkToCode/feature.js";
+import { buildImports } from "../sdkToCode/imports.js";
 import { buildPlanCode } from "../sdkToCode/plan.js";
 import { parseExistingConfig } from "./parseConfig.js";
 
@@ -75,7 +76,7 @@ export async function updateConfigInPlace(
 	plans: Plan[],
 	cwd: string = process.cwd(),
 ): Promise<UpdateResult> {
-	const configPath = resolve(cwd, "autumn.config.ts");
+	const configPath = resolveConfigPath(cwd);
 
 	if (!existsSync(configPath)) {
 		throw new Error(`Config file not found: ${configPath}`);
@@ -117,6 +118,10 @@ export async function updateConfigInPlace(
 	let sawFeaturesComment = false;
 	let sawPlansComment = false;
 
+	// Check if the atmn import already exists
+	let hasAtmnImport = false;
+	let lastImportBlockIndex = -1;
+
 	for (let i = 0; i < parsed.blocks.length; i++) {
 		const block = parsed.blocks[i];
 
@@ -134,7 +139,18 @@ export async function updateConfigInPlace(
 		}
 
 		// Keep imports and other blocks as-is
-		if (block.type === "import" || block.type === "other") {
+		if (block.type === "import") {
+			const importText = block.lines.join("\n");
+			// Check if this is the atmn import
+			if (/from\s+['"]atmn['"]/.test(importText)) {
+				hasAtmnImport = true;
+			}
+			outputBlocks.push(importText);
+			lastImportBlockIndex = outputBlocks.length - 1;
+			continue;
+		}
+
+		if (block.type === "other") {
 			outputBlocks.push(block.lines.join("\n"));
 			continue;
 		}
@@ -180,6 +196,32 @@ export async function updateConfigInPlace(
 
 		// Fallback - keep block as-is
 		outputBlocks.push(block.lines.join("\n"));
+	}
+
+	// Add atmn import if missing
+	if (!hasAtmnImport) {
+		const atmnImport = buildImports();
+		if (lastImportBlockIndex >= 0) {
+			// Insert after the last import
+			outputBlocks.splice(lastImportBlockIndex + 1, 0, atmnImport);
+			// Adjust indices since we inserted
+			if (lastFeatureBlockIndex > lastImportBlockIndex) {
+				lastFeatureBlockIndex++;
+			}
+			if (lastPlanBlockIndex > lastImportBlockIndex) {
+				lastPlanBlockIndex++;
+			}
+		} else {
+			// No imports found, add at the beginning
+			outputBlocks.unshift(atmnImport);
+			// Adjust all indices since we inserted at the beginning
+			if (lastFeatureBlockIndex >= 0) {
+				lastFeatureBlockIndex++;
+			}
+			if (lastPlanBlockIndex >= 0) {
+				lastPlanBlockIndex++;
+			}
+		}
 	}
 
 	// Add new features (in API but not in local config)

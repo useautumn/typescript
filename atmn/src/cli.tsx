@@ -36,6 +36,10 @@ program.option(
 	"Use localhost:8080 API server (default: api.useautumn.com)",
 );
 program.option("--headless", "Force non-interactive mode (for CI/agents)");
+program.option(
+	"-c, --config <path>",
+	"Path to config file (default: autumn.config.ts)",
+);
 
 // Set CLI context before any command runs
 // This allows combined flags like -lp to work correctly
@@ -44,6 +48,7 @@ program.hook("preAction", (thisCommand) => {
 	setCliContext({
 		prod: opts["prod"] ?? false,
 		local: opts["local"] ?? false,
+		configPath: opts["config"],
 	});
 
 	// Override TTY detection if --headless flag is passed globally

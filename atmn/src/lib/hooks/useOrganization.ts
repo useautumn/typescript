@@ -8,17 +8,17 @@ export interface OrganizationInfo {
 	environment: "Sandbox" | "Live";
 }
 
-export function useOrganization(cwd?: string) {
+export function useOrganization(cwd?: string, environment: AppEnv = AppEnv.Sandbox) {
 	return useQuery({
-		queryKey: ["organization", cwd],
+		queryKey: ["organization", cwd, environment],
 		queryFn: async (): Promise<OrganizationInfo> => {
-			const sandboxKey = getKey(AppEnv.Sandbox, cwd);
-			const orgData = await fetchOrganizationMe({ secretKey: sandboxKey });
+			const secretKey = getKey(environment, cwd);
+			const orgData = await fetchOrganizationMe({ secretKey });
 
 			return {
 				name: orgData.name,
 				slug: orgData.slug,
-				environment: orgData.env === AppEnv.Sandbox ? "Sandbox" : "Live",
+				environment: environment === AppEnv.Sandbox ? "Sandbox" : "Live",
 			};
 		},
 	});
