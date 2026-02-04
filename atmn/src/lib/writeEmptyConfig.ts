@@ -1,15 +1,19 @@
 import fs from "node:fs";
+import path from "node:path";
 import { resolveConfigPath } from "./env/index.js";
 
 /**
- * Writes an empty/skeleton autumn.config.ts file to the current working directory
+ * Writes an empty/skeleton autumn.config.ts file to the specified directory or current working directory
+ * @param targetDir - Optional directory to write the config file to. If not provided, uses resolveConfigPath()
  */
-export function writeEmptyConfig(): void {
+export function writeEmptyConfig(targetDir?: string): void {
 	const content = `import { plan, feature, planFeature } from 'atmn'
 // export const message = feature({ "id": "msg", "name": "Messages", "type": "metered", "consumable": true })
 // export const free = plan({ "id": "free", "name": "Free Tier", features: [...] })
 `;
 
-	const configPath = resolveConfigPath();
+	const configPath = targetDir
+		? path.join(targetDir, "autumn.config.ts")
+		: resolveConfigPath();
 	fs.writeFileSync(configPath, content, "utf-8");
 }

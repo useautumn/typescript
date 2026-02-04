@@ -1,4 +1,4 @@
-import { Box } from "ink";
+import { Box, Text } from "ink";
 import type { ReactNode } from "react";
 import { SearchInput } from "../input/index.js";
 import { EmptyState, ErrorState, LoadingState } from "../states/index.js";
@@ -45,20 +45,8 @@ export interface ListViewLayoutProps {
  * A high-level orchestrator component that composes all primitives into a complete list view layout.
  * This component is a LAYOUT orchestrator - it doesn't handle keyboard input or state management.
  *
- * Layout structure:
- * ┌─────────────────────────────────────────────┐
- * │ TitleBar                                    │
- * ├─────────────────────────────────────────────┤
- * │ SearchInput (conditional, when searchOpen)  │
- * ├─────────────────────────────────────────────┤
- * │ Content area:                               │
- * │   - LoadingState when viewState="loading"   │
- * │   - ErrorState when viewState="error"       │
- * │   - EmptyState when viewState="empty"       │
- * │   - children when viewState="data"          │
- * ├─────────────────────────────────────────────┤
- * │ BottomBar                                   │
- * └─────────────────────────────────────────────┘
+ * Pattern matches the working `next` branch: NO height constraints, pure flexbox layout.
+ * Content flows naturally, terminal may scroll if content exceeds terminal height.
  */
 export function ListViewLayout({
 	viewState,
@@ -107,8 +95,8 @@ export function ListViewLayout({
 				</Box>
 			)}
 
-			{/* Content area - switches based on viewState */}
-			<Box marginTop={1} width="100%">
+			{/* Content area */}
+			<Box marginTop={1} width="100%" flexGrow={1}>
 				{viewState === "loading" && (
 					<LoadingState message={loadingMessage} />
 				)}

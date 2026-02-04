@@ -349,6 +349,74 @@ program
 		});
 	});
 
+program
+	.command("features")
+	.description("Browse and inspect features")
+	.option("--headless", "Run in headless mode (output for AI/agents)")
+	.option("--page <n>", "Page number (headless)", "1")
+	.option("--search <query>", "Search query (headless)")
+	.option("--id <id>", "Get feature by ID (headless)")
+	.option("--limit <n>", "Items per page (headless)", "50")
+	.option(
+		"--format <format>",
+		"Output format: text, json, csv (headless)",
+		"text",
+	)
+	.option("--include-archived", "Include archived features")
+	.action(async (options) => {
+		const { featuresCommand } = await import("./commands/features/index.js");
+		await featuresCommand({
+			prod: isProd(),
+			headless: options.headless,
+			page: Number.parseInt(options.page, 10),
+			search: options.search,
+			id: options.id,
+			limit: Number.parseInt(options.limit, 10),
+			format: options.format,
+			includeArchived: options.includeArchived,
+		});
+	});
+
+program
+	.command("events")
+	.description("Browse and inspect usage events")
+	.option("--headless", "Run in headless mode (output for AI/agents)")
+	.option("--page <n>", "Page number (headless)", "1")
+	.option("--customer <id>", "Filter by customer ID (headless)")
+	.option("--feature <id>", "Filter by feature ID (headless)")
+	.option("--limit <n>", "Items per page (headless)", "100")
+	.option(
+		"--format <format>",
+		"Output format: text, json, csv (headless)",
+		"text",
+	)
+	.action(async (options) => {
+		const { eventsCommand } = await import("./commands/events/index.js");
+		await eventsCommand({
+			prod: isProd(),
+			headless: options.headless,
+			page: Number.parseInt(options.page, 10),
+			customerId: options.customer,
+			featureId: options.feature,
+			limit: Number.parseInt(options.limit, 10),
+			format: options.format,
+		});
+	});
+
+program
+	.command("events-aggregate-test")
+	.description("Test aggregate data and charts (dev only)")
+	.option("--limit <n>", "Number of events to fetch", "100")
+	.action(async (options) => {
+		const { eventsAggregateTestCommand } = await import(
+			"./commands/events-aggregate-test/index.js"
+		);
+		await eventsAggregateTestCommand({
+			prod: isProd(),
+			limit: Number.parseInt(options.limit, 10),
+		});
+	});
+
 /**
  * This is a hack to silence the DeprecationWarning about url.parse()
  */

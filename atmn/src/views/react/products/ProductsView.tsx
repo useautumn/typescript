@@ -99,7 +99,7 @@ const getHints = (
 	}
 
 	return [
-		{ key: "j/k", label: "navigate" },
+		{ key: "↑/↓", label: "navigate" },
 		{ key: "n", label: "next page", visible: canGoNext },
 		{ key: "p", label: "prev page", visible: canGoPrev },
 		{ key: "Enter", label: "inspect" },
@@ -371,6 +371,7 @@ export function ProductsView({
 						isFocused={state.focusTarget === "table"}
 						keyExtractor={(p) => p.id}
 						reservedWidth={state.sheetOpen ? 45 : 0}
+						searchOpen={state.searchOpen}
 					/>
 				}
 				side={

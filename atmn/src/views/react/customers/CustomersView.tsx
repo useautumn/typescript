@@ -329,6 +329,7 @@ export function CustomersView({
 						isFocused={state.focusTarget === "table"}
 						keyExtractor={(c) => c.id}
 						reservedWidth={state.sheetOpen ? 45 : 0}
+						searchOpen={state.searchOpen}
 					/>
 				}
 				side={

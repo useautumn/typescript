@@ -4,12 +4,16 @@ import { pull } from "../../../commands/pull/pull.js";
 import { AppEnv } from "../../../lib/env/index.js";
 import {
 	useConfigCounts,
-	useCreateGuides,
+	useCreateSkills,
 	useHeadlessAuth,
 } from "../../../lib/hooks/index.js";
+import { detectMonorepo } from "../../../lib/utils/monorepo.js";
 import { writeEmptyConfig } from "../../../lib/writeEmptyConfig.js";
 
-type Step = "auth" | "detect" | "sync" | "guides" | "complete" | "error";
+type Step = "auth" | "detect" | "sync" | "skills" | "complete" | "error";
+
+// Default skills location for headless mode
+const DEFAULT_SKILLS_DIR = ".claude/skills";
 
 interface SyncResult {
 	features: number;
@@ -22,6 +26,7 @@ export function HeadlessInitFlow() {
 	const [step, setStep] = useState<Step>("auth");
 	const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [monorepoInfo, setMonorepoInfo] = useState<{ detected: boolean; reason?: string } | null>(null);
 
 	// Hooks
 	const { authState, orgInfo, error: authError } = useHeadlessAuth();
@@ -31,15 +36,15 @@ export function HeadlessInitFlow() {
 		error: configError,
 	} = useConfigCounts();
 	const {
-		create: createGuides,
-		state: guidesState,
+		create: createSkills,
+		state: skillsState,
 		filesCreated,
-		guidesDir,
-	} = useCreateGuides();
+		skillsDir,
+	} = useCreateSkills();
 
 	// Refs to prevent double-execution
 	const hasStartedSync = useRef(false);
-	const hasStartedGuides = useRef(false);
+	const hasStartedSkills = useRef(false);
 
 	// Step 1: Auth -> Detect
 	useEffect(() => {
@@ -99,7 +104,7 @@ export function HeadlessInitFlow() {
 					writeEmptyConfig();
 					setSyncResult({ features: 0, plans: 0 });
 				}
-				setStep("guides");
+				setStep("skills");
 			} catch (err) {
 				setErrorMessage(
 					err instanceof Error ? err.message : "Failed to sync configuration",
@@ -111,25 +116,29 @@ export function HeadlessInitFlow() {
 		doSync();
 	}, [step, configCounts]);
 
-	// Step 4: Guides step
+	// Step 4: Skills step
 	useEffect(() => {
-		if (step !== "guides" || hasStartedGuides.current) return;
-		hasStartedGuides.current = true;
+		if (step !== "skills" || hasStartedSkills.current) return;
+		hasStartedSkills.current = true;
 
-		createGuides(true);
-	}, [step, createGuides]);
+		const hasPricing = (configCounts?.plansCount ?? 0) > 0;
+		createSkills(DEFAULT_SKILLS_DIR, { saveAll: true, hasPricing });
+	}, [step, createSkills, configCounts]);
 
-	// Step 5: Guides -> Complete
+	// Step 5: Skills -> Complete
 	useEffect(() => {
-		if (step !== "guides") return;
+		if (step !== "skills") return;
 
-		if (guidesState === "done") {
+		if (skillsState === "done") {
+			// Detect monorepo before completing
+			const detected = detectMonorepo();
+			setMonorepoInfo(detected);
 			setStep("complete");
-		} else if (guidesState === "error") {
-			setErrorMessage("Failed to create integration guides");
+		} else if (skillsState === "error") {
+			setErrorMessage("Failed to create AI skills");
 			setStep("error");
 		}
-	}, [step, guidesState]);
+	}, [step, skillsState]);
 
 	// Exit on complete or error
 	useEffect(() => {
@@ -177,7 +186,7 @@ export function HeadlessInitFlow() {
 			)}
 
 			{/* Step 3: Sync - show after detect */}
-			{(step === "sync" || step === "guides" || step === "complete") &&
+			{(step === "sync" || step === "skills" || step === "complete") &&
 				configCounts && (
 					<>
 						<Text>
@@ -204,14 +213,14 @@ export function HeadlessInitFlow() {
 					</>
 				)}
 
-			{/* Step 4: Guides - show after sync */}
-			{(step === "guides" || step === "complete") && (
+			{/* Step 4: Skills - show after sync */}
+			{(step === "skills" || step === "complete") && (
 				<>
-					<Text>{"\n"}Creating integration guides...</Text>
-					{guidesState === "done" && (
+					<Text>{"\n"}Creating AI skills...</Text>
+					{skillsState === "done" && (
 						<>
 							<Text color="green">
-								{"✓"} Created {guidesDir}/
+								{"✓"} Created {skillsDir}/
 							</Text>
 							{filesCreated.map((file, i) => (
 								<Text key={file} color="cyan">
@@ -230,18 +239,37 @@ export function HeadlessInitFlow() {
 					<Text bold>Setup complete!</Text>
 					<Text>{"\n"}Next steps:</Text>
 					<Text>
-						1. Review the guides in {guidesDir}/ for integration instructions
+						1. Skills in {skillsDir}/ are auto-detected by AI coding assistants
 					</Text>
 					<Text>
-						2. Each guide walks through one part of the Autumn integration
+						2. Ask your AI assistant to help integrate Autumn billing
 					</Text>
-					<Text>
-						3. Run `atmn push` when ready to deploy changes to your sandbox
-					</Text>
-					<Text>{"\n"}</Text>
-					<Text dimColor>Documentation: https://docs.useautumn.com</Text>
-					<Text dimColor>Discord: https://discord.gg/atmn</Text>
-				</Box>
+				<Text>
+					3. Run `atmn push` when ready to deploy changes to your sandbox
+				</Text>
+
+				{/* Monorepo warning */}
+				{monorepoInfo?.detected && (
+					<Box flexDirection="column" marginTop={1}>
+						<Text color="yellow">
+							{"⚠️"}  Monorepo detected ({monorepoInfo.reason})
+						</Text>
+						<Text>   Files were created in the root directory:</Text>
+						<Text>   - autumn.config.ts</Text>
+						<Text>   - @useautumn-sdk.d.ts</Text>
+						{filesCreated.length > 0 && (
+							<Text>   - {skillsDir}/</Text>
+						)}
+						<Text dimColor>
+							{"   "}You may want to move these to your preferred package location.
+						</Text>
+					</Box>
+				)}
+
+				<Text>{"\n"}</Text>
+				<Text dimColor>Documentation: https://docs.useautumn.com</Text>
+				<Text dimColor>Discord: https://discord.gg/atmn</Text>
+			</Box>
 			)}
 
 			{/* Error state */}

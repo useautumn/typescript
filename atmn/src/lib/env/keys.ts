@@ -14,16 +14,30 @@ export interface ApiKeys {
  * Read API keys from .env files
  * Returns keys organized by environment
  *
+ * Checks both the specified cwd AND process.cwd() (root) to handle monorepo cases
+ * where .env might be at the root but output goes to a subdirectory.
+ *
  * Standard naming convention:
  * - AUTUMN_SECRET_KEY: sandbox key (am_sk_test_* prefix)
  * - AUTUMN_PROD_SECRET_KEY: production/live key (am_sk_live_* prefix)
  */
 export function readApiKeys(cwd?: string): ApiKeys {
 	const keys: ApiKeys = {};
+	const rootCwd = process.cwd();
 
-	// Read standard environment variables
-	const autumnSecretKey = getDotenvValue("AUTUMN_SECRET_KEY", cwd);
-	const autumnProdSecretKey = getDotenvValue("AUTUMN_PROD_SECRET_KEY", cwd);
+	// Helper to get value from cwd first, then fallback to root
+	const getValue = (key: string): string | undefined => {
+		if (cwd && cwd !== rootCwd) {
+			// Try specified cwd first
+			const value = getDotenvValue(key, cwd);
+			if (value) return value;
+		}
+		// Fallback to root cwd
+		return getDotenvValue(key, rootCwd);
+	};
+
+	const autumnSecretKey = getValue("AUTUMN_SECRET_KEY");
+	const autumnProdSecretKey = getValue("AUTUMN_PROD_SECRET_KEY");
 
 	// AUTUMN_SECRET_KEY is always sandbox (ask_* prefix)
 	if (autumnSecretKey && isValidKey(autumnSecretKey)) {

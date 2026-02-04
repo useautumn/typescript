@@ -1,6 +1,6 @@
 import { Box } from "ink";
-import { ScrollList, type ScrollListRef } from "ink-scroll-list";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
+import { useVisibleRowCount } from "../../../../lib/hooks/useVisibleRowCount.js";
 import { TableHeader, TableRow } from "./TableRow.js";
 import type { Column } from "./index.js";
 
@@ -22,6 +22,8 @@ export interface DataTableProps<T> {
 	keyExtractor: (item: T) => string;
 	/** Optional: reserved width for adjacent elements (like sidebar) */
 	reservedWidth?: number;
+	/** Whether search input is currently open (affects visible row calculation) */
+	searchOpen?: boolean;
 }
 
 // Row overhead: marker (2) + column margins (1 per column after first)
@@ -33,11 +35,6 @@ const SAMPLE_SIZE = 50;
 /**
  * Calculate column widths based on actual data content.
  * Shows full content by default, only truncates if total row width exceeds available space.
- *
- * @param data - Array of items to measure
- * @param columns - Column definitions with render functions
- * @param terminalWidth - Available terminal width
- * @param reservedWidth - Width reserved for other elements
  */
 function calculateColumnWidths<T>(
 	data: T[],
@@ -45,21 +42,16 @@ function calculateColumnWidths<T>(
 	terminalWidth: number,
 	reservedWidth: number = 0,
 ): number[] {
-	// Calculate available width for table content
-	const columnMargins = Math.max(0, columns.length - 1); // 1 margin between each column
-	const markerWidth = 2; // "▸ " or "  "
+	const columnMargins = Math.max(0, columns.length - 1);
+	const markerWidth = 2;
 	const availableWidth =
 		terminalWidth - TABLE_OVERHEAD - reservedWidth - columnMargins - markerWidth;
 
-	// Sample data (first N items) to measure content widths
 	const sampleData = data.slice(0, SAMPLE_SIZE);
 
-	// Find maximum content width for each column
 	const maxWidths = columns.map((column) => {
-		// Start with header length as minimum
 		let maxLen = column.header.length;
 
-		// Measure actual content
 		for (const item of sampleData) {
 			const content = column.render(item, false);
 			if (typeof content === "string") {
@@ -67,7 +59,6 @@ function calculateColumnWidths<T>(
 			}
 		}
 
-		// Apply column's minWidth if specified
 		if (column.minWidth) {
 			maxLen = Math.max(maxLen, column.minWidth);
 		}
@@ -75,15 +66,12 @@ function calculateColumnWidths<T>(
 		return maxLen;
 	});
 
-	// Total width needed to show all content
 	const totalContentWidth = maxWidths.reduce((sum, w) => sum + w, 0);
 
-	// If everything fits, use actual content widths (no truncation)
 	if (totalContentWidth <= availableWidth) {
 		return maxWidths;
 	}
 
-	// Need to truncate - distribute available space proportionally
 	const ratio = availableWidth / totalContentWidth;
 
 	return maxWidths.map((width) => {
@@ -93,8 +81,44 @@ function calculateColumnWidths<T>(
 }
 
 /**
- * Generic scrollable data table component.
- * Uses ink-scroll-list for virtualized scrolling.
+ * Calculate the visible window of items based on selected index.
+ * Keeps the selected item visible and scrolls the window as needed.
+ */
+function calculateVisibleWindow(
+	totalItems: number,
+	selectedIndex: number,
+	visibleCount: number,
+): { start: number; end: number } {
+	if (totalItems <= visibleCount) {
+		// All items fit - show everything
+		return { start: 0, end: totalItems };
+	}
+
+	// Calculate window that keeps selected item visible
+	// Try to keep selected item in the middle when possible
+	const halfWindow = Math.floor(visibleCount / 2);
+	
+	let start = selectedIndex - halfWindow;
+	let end = start + visibleCount;
+
+	// Clamp to valid range
+	if (start < 0) {
+		start = 0;
+		end = visibleCount;
+	} else if (end > totalItems) {
+		end = totalItems;
+		start = Math.max(0, end - visibleCount);
+	}
+
+	return { start, end };
+}
+
+/**
+ * Generic data table component with dynamic windowed rendering.
+ * 
+ * Instead of relying on ink-scroll-list for virtualization (which doesn't work well),
+ * we calculate how many rows fit in the terminal and render only that window of data.
+ * The window shifts as the user navigates to keep the selected item visible.
  */
 export function DataTable<T>({
 	data,
@@ -104,45 +128,43 @@ export function DataTable<T>({
 	isFocused,
 	keyExtractor,
 	reservedWidth = 0,
+	searchOpen = false,
 }: DataTableProps<T>) {
-	const listRef = useRef<ScrollListRef>(null);
-	const [terminalWidth, setTerminalWidth] = useState(process.stdout.columns);
+	// Calculate how many rows can fit
+	const visibleRowCount = useVisibleRowCount({ searchOpen });
 
-	// Handle terminal resize
-	useEffect(() => {
-		const handleResize = () => {
-			setTerminalWidth(process.stdout.columns);
-			listRef.current?.remeasure();
-		};
-
-		process.stdout.on("resize", handleResize);
-		return () => {
-			process.stdout.off("resize", handleResize);
-		};
-	}, []);
-
-	// Calculate column widths based on data and terminal width
+	// Calculate column widths
 	const columnWidths = useMemo(
-		() => calculateColumnWidths(data, columns, terminalWidth, reservedWidth),
-		[data, columns, terminalWidth, reservedWidth],
+		() => calculateColumnWidths(data, columns, process.stdout.columns ?? 80, reservedWidth),
+		[data, columns, reservedWidth],
 	);
+
+	// Calculate which slice of data to show
+	const { start, end } = useMemo(
+		() => calculateVisibleWindow(data.length, selectedIndex, visibleRowCount),
+		[data.length, selectedIndex, visibleRowCount],
+	);
+
+	// Get the visible slice
+	const visibleData = data.slice(start, end);
 
 	return (
 		<Box flexDirection="column" flexGrow={1}>
 			<TableHeader columns={columns} columnWidths={columnWidths} />
-			<Box flexDirection="column" flexGrow={1}>
-				<ScrollList ref={listRef} selectedIndex={selectedIndex}>
-					{data.map((item, index) => (
+			<Box flexDirection="column">
+				{visibleData.map((item, visibleIndex) => {
+					const actualIndex = start + visibleIndex;
+					return (
 						<TableRow
 							key={keyExtractor(item)}
 							item={item}
 							columns={columns}
-							isSelected={index === selectedIndex}
+							isSelected={actualIndex === selectedIndex}
 							isFocused={isFocused}
 							columnWidths={columnWidths}
 						/>
-					))}
-				</ScrollList>
+					);
+				})}
 			</Box>
 		</Box>
 	);

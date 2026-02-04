@@ -18,6 +18,8 @@ interface PullViewProps {
 	environment?: AppEnv;
 	/** Force overwrite config (skip in-place update) */
 	forceOverwrite?: boolean;
+	/** Working directory for file operations */
+	cwd?: string;
 }
 
 /**
@@ -28,6 +30,7 @@ export function PullView({
 	onComplete,
 	environment = AppEnv.Sandbox,
 	forceOverwrite = false,
+	cwd,
 }: PullViewProps) {
 	const [startTime] = useState(Date.now());
 	const {
@@ -41,7 +44,7 @@ export function PullView({
 		error,
 		inPlace,
 		updateResult,
-	} = usePull({ environment, onComplete, forceOverwrite });
+	} = usePull({ environment, onComplete, forceOverwrite, cwd });
 
 	const duration = ((Date.now() - startTime) / 1000).toFixed(1);
 

@@ -39,7 +39,7 @@ async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 		forceOverwrite = false,
 	} = options;
 
-	// 1. Get key for specified environment
+	// 1. Get key for specified environment (checks cwd then falls back to root)
 	const primaryKey = getKey(environment, cwd);
 
 	// 2. Fetch & transform from specified environment

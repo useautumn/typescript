@@ -28,9 +28,10 @@ interface ConfigStepProps {
 	step: number;
 	totalSteps: number;
 	onComplete: (hasPricing: boolean) => void;
+	targetPath?: string;
 }
 
-export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
+export function ConfigStep({ step, totalSteps, onComplete, targetPath }: ConfigStepProps) {
 	const [configState, setConfigState] = useState<ConfigState>("choosing");
 	const [error, setError] = useState<string | null>(null);
 	const [completionAction, setCompletionAction] = useState<
@@ -65,7 +66,7 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 
 	const handleBlank = useCallback(() => {
 		try {
-			writeEmptyConfig();
+			writeEmptyConfig(targetPath);
 			setCompletionAction("blank");
 			setConfigState("complete");
 			setTimeout(() => {
@@ -75,12 +76,12 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 			setError(err instanceof Error ? err.message : "Failed to write config");
 			setConfigState("error");
 		}
-	}, [onComplete]);
+	}, [onComplete, targetPath]);
 
 	const handleTemplateSelect = useCallback(
 		(template: string) => {
 			writeTemplateConfig.mutate(
-				{ template },
+				{ template, cwd: targetPath },
 				{
 					onSuccess: () => {
 						setCompletionAction("template");
@@ -98,7 +99,7 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 				},
 			);
 		},
-		[onComplete, writeTemplateConfig],
+		[onComplete, writeTemplateConfig, targetPath],
 	);
 
 	const handleTemplateCancel = useCallback(() => {
@@ -216,6 +217,7 @@ export function ConfigStep({ step, totalSteps, onComplete }: ConfigStepProps) {
 			)}
 			{configState === "pulling" && (
 				<PullView
+					cwd={targetPath}
 					onComplete={() => {
 						setCompletionAction("pull");
 						setConfigState("complete");

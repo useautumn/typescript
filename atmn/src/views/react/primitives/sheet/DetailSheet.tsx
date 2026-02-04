@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import Spinner from "ink-spinner";
 
 export interface DetailSheetProps {
 	/** Title to display at top of sheet */
@@ -14,15 +13,14 @@ export interface DetailSheetProps {
 	actions?: React.ReactNode;
 	/** Optional minimum width (default: 44) */
 	minWidth?: number;
-	/** Whether to show loading spinner */
-	isLoading?: boolean;
-	/** Error to display */
-	error?: Error | null;
 }
 
 /**
  * Generic sidebar container component for detail views.
- * Provides consistent styling, loading/error states, and layout structure.
+ * Provides consistent styling and layout structure.
+ *
+ * Pattern frozen from working CustomerSheet/ProductSheet/FeatureSheet.
+ * Uses height="100%" and lets flexbox handle layout (no pixel calculations).
  */
 export function DetailSheet({
 	title,
@@ -31,8 +29,6 @@ export function DetailSheet({
 	children,
 	actions,
 	minWidth = 44,
-	isLoading,
-	error,
 }: DetailSheetProps) {
 	const borderColor = isFocused ? "magenta" : "gray";
 
@@ -42,8 +38,8 @@ export function DetailSheet({
 			borderStyle="round"
 			borderColor={borderColor}
 			paddingX={1}
-			flexShrink={0}
 			minWidth={minWidth}
+			height="100%"
 		>
 			{/* Title */}
 			<Text bold color="white">
@@ -53,35 +49,13 @@ export function DetailSheet({
 			{/* Subtitle */}
 			{subtitle && <Text color="gray">{subtitle}</Text>}
 
-			{/* Divider */}
-			<Box marginTop={1}>
-				<Text color="gray">{"─".repeat(minWidth - 4)}</Text>
-			</Box>
-
-			{/* Loading state */}
-			{isLoading && (
-				<Box marginTop={1}>
-					<Text color="magenta">
-						<Spinner type="dots" />
-					</Text>
-					<Text> Loading...</Text>
-				</Box>
-			)}
-
-			{/* Error state */}
-			{error && (
-				<Box marginTop={1}>
-					<Text color="red">{error.message || "An error occurred"}</Text>
-				</Box>
-			)}
-
 			{/* Content */}
-			{!isLoading && !error && children}
+			{children}
 
 			{/* Spacer to push actions to bottom */}
 			<Box flexGrow={1} />
 
-			{/* Actions */}
+			{/* Actions - pinned to bottom */}
 			{actions && <Box flexDirection="column">{actions}</Box>}
 		</Box>
 	);

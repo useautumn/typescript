@@ -7,6 +7,7 @@ import { AppEnv } from "../../lib/env/detect.js";
 import { getKey } from "../../lib/env/keys.js";
 import { fetchPlans } from "../../lib/api/endpoints/plans.js";
 import type { ApiPlan } from "../../lib/api/types/index.js";
+import { formatError } from "../../lib/api/client.js";
 
 export interface HeadlessProductsOptions {
 	/** Environment (sandbox/live) */
@@ -87,10 +88,21 @@ export async function headlessProductsCommand(
 			options.search,
 		);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
+		const message = formatError(error);
 
 		if (format === "json") {
-			console.log(JSON.stringify({ error: message }, null, 2));
+			const apiError = error as { status?: number; response?: unknown };
+			console.log(
+				JSON.stringify(
+					{
+						error: error instanceof Error ? error.message : String(error),
+						status: apiError.status,
+						details: apiError.response,
+					},
+					null,
+					2,
+				),
+			);
 		} else {
 			console.error(`Error: ${message}`);
 		}

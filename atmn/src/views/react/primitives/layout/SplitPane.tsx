@@ -19,6 +19,9 @@ export interface SplitPaneProps {
 /**
  * A layout component that displays a main content area alongside an optional sidebar.
  * Handles the visual layout only - no keyboard handling or state management.
+ *
+ * Pattern matches the working `next` branch: NO height constraints, NO overflow.
+ * Pure flexbox layout - content flows naturally.
  */
 export function SplitPane({
 	main,

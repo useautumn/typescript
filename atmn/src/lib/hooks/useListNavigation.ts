@@ -17,6 +17,7 @@ export type ListNavigationAction<T> =
 	| { type: "MOVE_DOWN"; maxIndex: number }
 	| { type: "NEXT_PAGE"; canNavigate: boolean }
 	| { type: "PREV_PAGE" }
+	| { type: "RESET_PAGE" }
 	| { type: "OPEN_SHEET"; item: T }
 	| { type: "CLOSE_SHEET" }
 	| { type: "TOGGLE_FOCUS" }
@@ -60,13 +61,16 @@ function createNavigationReducer<T>() {
 				}
 				return state;
 
-			case "PREV_PAGE":
-				if (state.page > 1) {
-					return { ...state, page: state.page - 1, selectedIndex: 0 };
-				}
-				return state;
+		case "PREV_PAGE":
+			if (state.page > 1) {
+				return { ...state, page: state.page - 1, selectedIndex: 0 };
+			}
+			return state;
 
-			case "OPEN_SHEET":
+		case "RESET_PAGE":
+			return { ...state, page: 1, selectedIndex: 0 };
+
+		case "OPEN_SHEET":
 				return {
 					...state,
 					sheetOpen: true,
@@ -137,6 +141,7 @@ export function useListNavigation<T>(): {
 	moveDown: (maxIndex: number) => void;
 	nextPage: (canNavigate: boolean) => void;
 	prevPage: () => void;
+	resetPage: () => void;
 	openSheet: (item: T) => void;
 	closeSheet: () => void;
 	toggleFocus: () => void;
@@ -167,6 +172,10 @@ export function useListNavigation<T>(): {
 
 	const prevPage = useCallback(() => {
 		dispatch({ type: "PREV_PAGE" });
+	}, []);
+
+	const resetPage = useCallback(() => {
+		dispatch({ type: "RESET_PAGE" });
 	}, []);
 
 	const openSheet = useCallback((item: T) => {
@@ -212,6 +221,7 @@ export function useListNavigation<T>(): {
 		moveDown,
 		nextPage,
 		prevPage,
+		resetPage,
 		openSheet,
 		closeSheet,
 		toggleFocus,

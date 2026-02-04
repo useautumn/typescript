@@ -28,3 +28,16 @@ export {
 	unarchivePlan,
 	updatePlan,
 } from "./plans.js";
+export {
+	type AggregateBinSize,
+	type AggregateFeatureTotal,
+	type AggregateRange,
+	type AggregateTimeBucket,
+	type ApiEventsAggregateResponse,
+	type ApiEventsListItem,
+	type ApiEventsListResponse,
+	type FetchEventsAggregateOptions,
+	type FetchEventsOptions,
+	fetchEvents,
+	fetchEventsAggregate,
+} from "./events.js";

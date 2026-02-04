@@ -12,6 +12,7 @@ export function useOrganization(cwd?: string, environment: AppEnv = AppEnv.Sandb
 	return useQuery({
 		queryKey: ["organization", cwd, environment],
 		queryFn: async (): Promise<OrganizationInfo> => {
+			// Checks cwd first, then falls back to process.cwd()
 			const secretKey = getKey(environment, cwd);
 			const orgData = await fetchOrganizationMe({ secretKey });
 

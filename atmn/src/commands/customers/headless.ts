@@ -7,6 +7,7 @@ import { AppEnv } from "../../lib/env/detect.js";
 import { createCustomersController } from "../../lib/headless/index.js";
 import type { ApiCustomer } from "../../lib/api/endpoints/customers.js";
 import type { ApiCustomerExpanded } from "../../views/react/customers/types.js";
+import { formatError } from "../../lib/api/client.js";
 
 export interface HeadlessCustomersOptions {
 	/** Environment (sandbox/live) */
@@ -55,10 +56,21 @@ export async function headlessCustomersCommand(
 		// Otherwise output the list
 		outputCustomerList(controller.getItems(), controller.getPagination(), format, options.search);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
+		const message = formatError(error);
 
 		if (format === "json") {
-			console.log(JSON.stringify({ error: message }, null, 2));
+			const apiError = error as { status?: number; response?: unknown };
+			console.log(
+				JSON.stringify(
+					{
+						error: error instanceof Error ? error.message : String(error),
+						status: apiError.status,
+						details: apiError.response,
+					},
+					null,
+					2,
+				),
+			);
 		} else {
 			console.error(`Error: ${message}`);
 		}

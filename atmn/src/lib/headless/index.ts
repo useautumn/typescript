@@ -15,3 +15,8 @@ export {
 	PlansController,
 	createPlansController,
 } from "./PlansController.js";
+
+export {
+	FeaturesController,
+	createFeaturesController,
+} from "./FeaturesController.js";
