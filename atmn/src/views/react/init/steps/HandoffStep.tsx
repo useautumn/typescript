@@ -130,22 +130,15 @@ export function HandoffStep({
 	const handleNextStepsChoice = async (value: string) => {
 		if (value === "docs") {
 			await open("https://docs.useautumn.com");
-			// Stay on the same screen so they can choose another option
-			return;
-		}
-
-		if (value === "copy") {
+		} else if (value === "copy") {
 			await copy(SYSTEM_PROMPT);
-			// Stay on the same screen so they can choose another option
-			return;
 		}
 
-		if (value === "exit") {
-			setState("manual_exit");
-			setTimeout(() => {
-				exit();
-			}, 100);
-		}
+		// All options exit the app
+		setState("manual_exit");
+		setTimeout(() => {
+			exit();
+		}, 100);
 	};
 
 	// User already has customers - they're all set!

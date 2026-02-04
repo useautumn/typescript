@@ -83,15 +83,18 @@ export function InitFlow() {
 				onComplete={handleAuthComplete}
 			/>
 
-			{/* Step 2: Path Input (only if monorepo detected) */}
-			{currentStep === "path" && monorepoInfo?.detected && (
-				<PathInputStep
-					step={2}
-					totalSteps={totalSteps}
-					monorepoReason={monorepoInfo.reason || "monorepo structure"}
-					onComplete={handlePathComplete}
-				/>
-			)}
+			{/* Step 2: Path Input (only if monorepo detected) - stays visible after completion */}
+			{monorepoInfo?.detected &&
+				(currentStep === "path" ||
+					currentStep === "config" ||
+					currentStep === "handoff") && (
+					<PathInputStep
+						step={2}
+						totalSteps={totalSteps}
+						monorepoReason={monorepoInfo.reason || "monorepo structure"}
+						onComplete={handlePathComplete}
+					/>
+				)}
 
 			{/* Step 3: Configuration (only show after auth/path) */}
 			{(currentStep === "config" || currentStep === "handoff") && (
