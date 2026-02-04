@@ -21,9 +21,10 @@ export function PathInputStep({
 	onComplete,
 }: PathInputStepProps) {
 	const [state, setState] = useState<State>("input");
-	const [inputValue, setInputValue] = useState(".");
+	const [inputValue, setInputValue] = useState("");
 	const [resolvedPath, setResolvedPath] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const cwd = process.cwd();
 
 	const handleSubmit = async () => {
 		if (state !== "input") return;
@@ -31,8 +32,9 @@ export function PathInputStep({
 		setState("creating");
 
 		try {
-			// Resolve the path relative to cwd
-			const absolutePath = resolve(process.cwd(), inputValue);
+			// Resolve the path relative to cwd (use cwd if empty)
+			const pathToUse = inputValue.trim() || ".";
+			const absolutePath = resolve(cwd, pathToUse);
 			setResolvedPath(absolutePath);
 
 			// Create directory if it doesn't exist (recursive)
@@ -77,7 +79,7 @@ export function PathInputStep({
 						<TextInput
 							value={inputValue}
 							onChange={setInputValue}
-							placeholder="."
+							placeholder={cwd}
 						/>
 					</Box>
 					<Box marginTop={1}>
@@ -95,7 +97,7 @@ export function PathInputStep({
 			{state === "complete" && resolvedPath && (
 				<StatusLine
 					status="success"
-					message={`Files will be saved to: ${inputValue === "." ? "current directory" : inputValue}`}
+					message={`Files will be saved to: ${inputValue.trim() === "" ? "current directory" : inputValue}`}
 				/>
 			)}
 

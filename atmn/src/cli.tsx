@@ -22,7 +22,7 @@ declare const VERSION: string;
 const computedVersion =
 	typeof VERSION !== "undefined" && VERSION ? VERSION : "dev";
 
-program.version(computedVersion);
+program.version(computedVersion, "-v, --version");
 
 // Global options - available for all commands
 // These are orthogonal: -p controls env (sandbox vs live), -l controls API server (remote vs localhost)

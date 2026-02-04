@@ -210,7 +210,7 @@ export function HandoffStep({
 					<Box marginTop={1}>
 						<Text color="gray">{">"} </Text>
 						<TextInput
-							placeholder="e.g., .cursor/skills"
+							placeholder={process.cwd()}
 							value={customPath}
 							onChange={setCustomPath}
 							onSubmit={handleCustomPathSubmit}
