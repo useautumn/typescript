@@ -1,16 +1,19 @@
 /**
  * Headless mode for the events command.
  * Provides structured output (text/json/csv) for AI/programmatic interaction.
- * Events uses SERVER-SIDE pagination (offset/limit) unlike products/features.
+ * Supports both list mode (paginated events) and aggregate mode (time-series data).
  */
 
 import { AppEnv } from "../../lib/env/detect.js";
 import { getKey } from "../../lib/env/keys.js";
 import {
 	fetchEvents,
+	fetchEventsAggregate,
+	type AggregateBinSize,
+	type AggregateRange,
 	type ApiEventsListItem,
-	type ApiEventsListResponse,
 } from "../../lib/api/endpoints/events.js";
+import { fetchFeatures } from "../../lib/api/endpoints/features.js";
 import { formatError } from "../../lib/api/client.js";
 
 export interface HeadlessEventsOptions {
@@ -24,8 +27,16 @@ export interface HeadlessEventsOptions {
 	format?: "text" | "json" | "csv";
 	/** Filter by customer ID */
 	customerId?: string;
-	/** Filter by feature ID */
+	/** Filter by feature ID (can be comma-separated for multiple) */
 	featureId?: string;
+	/** Time range: 24h, 7d, 30d, 90d */
+	timeRange?: "24h" | "7d" | "30d" | "90d";
+	/** View mode: list or aggregate */
+	mode?: "list" | "aggregate";
+	/** Bin size for aggregate: hour, day, month */
+	binSize?: "hour" | "day" | "month";
+	/** Group by property (for aggregate mode) */
+	groupBy?: string;
 }
 
 /**
@@ -36,42 +47,18 @@ export async function headlessEventsCommand(
 ): Promise<void> {
 	const environment = options.prod ? AppEnv.Live : AppEnv.Sandbox;
 	const format = options.format ?? "text";
-	const page = options.page ?? 1;
-	const limit = options.limit ?? 100;
+	const mode = options.mode ?? "list";
 
 	try {
-		const secretKey = getKey(environment);
-
-		// Convert page to offset for server-side pagination
-		const offset = (page - 1) * limit;
-
-		// Fetch events with server-side pagination
-		const response = await fetchEvents({
-			secretKey,
-			customerId: options.customerId,
-			featureId: options.featureId,
-			offset,
-			limit,
-		});
-
-		// Output the list
-		outputEventList(
-			response.list,
-			{
-				page,
-				pageSize: limit,
-				total: response.total,
-				hasMore: response.has_more,
-			},
-			format,
-			options.customerId,
-			options.featureId,
-		);
+		if (mode === "aggregate") {
+			await runAggregateMode(options, environment, format);
+		} else {
+			await runListMode(options, environment, format);
+		}
 	} catch (error) {
 		const message = formatError(error);
 
 		if (format === "json") {
-			// For JSON, include structured error info
 			const apiError = error as { status?: number; response?: unknown };
 			console.log(
 				JSON.stringify(
@@ -93,6 +80,155 @@ export async function headlessEventsCommand(
 }
 
 /**
+ * Run list mode - paginated event list
+ */
+async function runListMode(
+	options: HeadlessEventsOptions,
+	environment: AppEnv,
+	format: "text" | "json" | "csv",
+): Promise<void> {
+	const page = options.page ?? 1;
+	const limit = options.limit ?? 100;
+	const secretKey = getKey(environment);
+
+	// Convert page to offset for server-side pagination
+	const offset = (page - 1) * limit;
+
+	// Convert time range to custom_range if specified
+	let customRange: { start?: number; end?: number } | undefined;
+	if (options.timeRange) {
+		const now = Date.now();
+		const ranges: Record<string, number> = {
+			"24h": 24 * 60 * 60 * 1000,
+			"7d": 7 * 24 * 60 * 60 * 1000,
+			"30d": 30 * 24 * 60 * 60 * 1000,
+			"90d": 90 * 24 * 60 * 60 * 1000,
+		};
+		const ms = ranges[options.timeRange];
+		if (ms) {
+			customRange = { start: now - ms, end: now };
+		}
+	}
+
+	// Fetch events with server-side pagination
+	const response = await fetchEvents({
+		secretKey,
+		customerId: options.customerId,
+		featureId: options.featureId,
+		customRange,
+		offset,
+		limit,
+	});
+
+	// Output the list
+	outputEventList(
+		response.list,
+		{
+			page,
+			pageSize: limit,
+			total: response.total,
+			hasMore: response.has_more,
+		},
+		format,
+		options.customerId,
+		options.featureId,
+		options.timeRange,
+	);
+}
+
+/**
+ * Run aggregate mode - time-series aggregate data
+ */
+async function runAggregateMode(
+	options: HeadlessEventsOptions,
+	environment: AppEnv,
+	format: "text" | "json" | "csv",
+): Promise<void> {
+	const secretKey = getKey(environment);
+
+	// Aggregate mode requires customer ID
+	if (!options.customerId) {
+		if (format === "json") {
+			console.log(
+				JSON.stringify(
+					{
+						error: "Customer ID is required for aggregate mode",
+						hint: "Use --customer <id> to specify a customer",
+					},
+					null,
+					2,
+				),
+			);
+		} else {
+			console.error("Error: Customer ID is required for aggregate mode.");
+			console.error("Use --customer <id> to specify a customer.");
+		}
+		process.exit(1);
+	}
+
+	// Parse feature IDs (comma-separated)
+	let featureIds: string[] = [];
+	if (options.featureId) {
+		featureIds = options.featureId.split(",").map((f) => f.trim());
+	} else {
+		// If no features specified, fetch all available features
+		const featuresResponse = await fetchFeatures({ secretKey });
+		featureIds = featuresResponse.map((f) => f.id);
+	}
+
+	if (featureIds.length === 0) {
+		if (format === "json") {
+			console.log(
+				JSON.stringify(
+					{
+						error: "No features available for aggregation",
+						hint: "Create features first or specify feature IDs with --feature",
+					},
+					null,
+					2,
+				),
+			);
+		} else {
+			console.error("Error: No features available for aggregation.");
+			console.error("Create features first or specify feature IDs with --feature.");
+		}
+		process.exit(1);
+	}
+
+	// Map time range to API range
+	const range: AggregateRange = (options.timeRange as AggregateRange) ?? "7d";
+	const binSize: AggregateBinSize = options.binSize ?? (range === "24h" ? "hour" : "day");
+
+	// Prepare groupBy with properties. prefix if needed
+	let groupBy = options.groupBy;
+	if (groupBy && !groupBy.startsWith("properties.")) {
+		groupBy = `properties.${groupBy}`;
+	}
+
+	// Fetch aggregate data
+	const response = await fetchEventsAggregate({
+		secretKey,
+		customerId: options.customerId,
+		featureId: featureIds,
+		range,
+		binSize,
+		groupBy,
+	});
+
+	// Output aggregate data
+	outputAggregateData(
+		response.list,
+		response.total,
+		format,
+		options.customerId,
+		featureIds,
+		range,
+		binSize,
+		groupBy,
+	);
+}
+
+/**
  * Output a list of events
  */
 function outputEventList(
@@ -106,11 +242,13 @@ function outputEventList(
 	format: "text" | "json" | "csv",
 	customerId?: string,
 	featureId?: string,
+	timeRange?: string,
 ): void {
 	if (format === "json") {
 		console.log(
 			JSON.stringify(
 				{
+					mode: "list",
 					events,
 					pagination: {
 						page: pagination.page,
@@ -121,6 +259,7 @@ function outputEventList(
 					filters: {
 						customerId: customerId ?? null,
 						featureId: featureId ?? null,
+						timeRange: timeRange ?? null,
 					},
 				},
 				null,
@@ -131,13 +270,9 @@ function outputEventList(
 	}
 
 	if (format === "csv") {
-		// CSV header
 		console.log("id,timestamp,customer_id,feature_id,value");
-		// CSV rows
 		for (const e of events) {
-			const timestamp = new Date(
-				normalizeTimestamp(e.timestamp),
-			).toISOString();
+			const timestamp = new Date(normalizeTimestamp(e.timestamp)).toISOString();
 			console.log(
 				`${e.id},${timestamp},${e.customer_id},${e.feature_id},${e.value}`,
 			);
@@ -147,20 +282,18 @@ function outputEventList(
 
 	// Text format
 	const startItem = (pagination.page - 1) * pagination.pageSize + 1;
-	const endItem = Math.min(
-		startItem + events.length - 1,
-		pagination.total,
-	);
+	const endItem = Math.min(startItem + events.length - 1, pagination.total);
 	console.log(
 		`Events (Page ${pagination.page}, showing ${startItem}-${endItem} of ${pagination.total})`,
 	);
-	console.log("=".repeat(60));
+	console.log("=".repeat(70));
 
 	// Show active filters
-	if (customerId || featureId) {
-		const filters: string[] = [];
-		if (customerId) filters.push(`customer: ${customerId}`);
-		if (featureId) filters.push(`feature: ${featureId}`);
+	const filters: string[] = [];
+	if (customerId) filters.push(`customer: ${customerId}`);
+	if (featureId) filters.push(`feature: ${featureId}`);
+	if (timeRange) filters.push(`time: ${timeRange}`);
+	if (filters.length > 0) {
 		console.log(`Filters: ${filters.join(", ")}`);
 	}
 
@@ -169,24 +302,26 @@ function outputEventList(
 	if (events.length === 0) {
 		console.log("No events found.");
 		console.log("");
-		console.log('Actions: --customer "cus_xxx", --feature "feature_id"');
+		console.log("Actions:");
+		console.log("  --customer <id>    Filter by customer ID");
+		console.log("  --feature <id>     Filter by feature ID");
+		console.log("  --time <range>     Filter by time (24h, 7d, 30d, 90d)");
+		console.log("  --mode aggregate   Switch to aggregate view");
 		return;
 	}
 
-	// Calculate column widths - use truncated display for readability
-	const idWidth = 16; // Truncate long IDs
-	const timestampWidth = 18;
-	const customerWidth = 16;
-	const featureWidth = 14;
+	// Column widths
+	const idWidth = 20;
+	const timestampWidth = 20;
+	const customerWidth = 20;
+	const featureWidth = 16;
 	const valueWidth = 8;
 
 	// Header
 	console.log(
 		`${"ID".padEnd(idWidth)}  ${"Timestamp".padEnd(timestampWidth)}  ${"Customer".padEnd(customerWidth)}  ${"Feature".padEnd(featureWidth)}  ${"Value".padEnd(valueWidth)}`,
 	);
-	console.log(
-		"-".repeat(idWidth + timestampWidth + customerWidth + featureWidth + valueWidth + 8),
-	);
+	console.log("-".repeat(idWidth + timestampWidth + customerWidth + featureWidth + valueWidth + 8));
 
 	// Rows
 	for (const e of events) {
@@ -199,21 +334,184 @@ function outputEventList(
 	}
 
 	console.log("");
-	const actions: string[] = [];
+	console.log("Actions:");
 	if (pagination.hasMore) {
-		actions.push(`--page ${pagination.page + 1}`);
+		console.log(`  --page ${pagination.page + 1}         Next page`);
 	}
-	actions.push('--customer "cus_xxx"');
-	actions.push('--feature "feature_id"');
-	console.log(`Actions: ${actions.join(", ")}`);
+	console.log("  --customer <id>    Filter by customer ID");
+	console.log("  --feature <id>     Filter by feature ID");
+	console.log("  --time <range>     Filter by time (24h, 7d, 30d, 90d)");
+	console.log("  --mode aggregate   Switch to aggregate view");
+}
+
+/**
+ * Output aggregate data
+ */
+function outputAggregateData(
+	list: Array<{ period: number; [key: string]: number | Record<string, number> }>,
+	total: Record<string, { count: number; sum: number }>,
+	format: "text" | "json" | "csv",
+	customerId: string,
+	featureIds: string[],
+	range: string,
+	binSize: string,
+	groupBy?: string,
+): void {
+	if (format === "json") {
+		console.log(
+			JSON.stringify(
+				{
+					mode: "aggregate",
+					timeSeries: list,
+					totals: total,
+					filters: {
+						customerId,
+						featureIds,
+						range,
+						binSize,
+						groupBy: groupBy ?? null,
+					},
+				},
+				null,
+				2,
+			),
+		);
+		return;
+	}
+
+	if (format === "csv") {
+		// CSV for time series data
+		const featureColumns = featureIds.join(",");
+		console.log(`period,${featureColumns}`);
+		for (const bucket of list) {
+			const periodStr = new Date(bucket.period).toISOString();
+			const values = featureIds.map((fid) => {
+				const val = bucket[fid];
+				if (typeof val === "number") return val;
+				if (typeof val === "object" && val !== null) {
+					return Object.values(val).reduce((sum, v) => sum + v, 0);
+				}
+				return 0;
+			});
+			console.log(`${periodStr},${values.join(",")}`);
+		}
+		return;
+	}
+
+	// Text format
+	console.log(`Aggregate Events (${range}, ${binSize})`);
+	console.log("=".repeat(60));
+	console.log(`Customer: ${customerId}`);
+	console.log(`Features: ${featureIds.join(", ")}`);
+	if (groupBy) {
+		console.log(`Group by: ${groupBy}`);
+	}
+	console.log("");
+
+	// Summary stats
+	const totalEntries = Object.entries(total);
+	const totalEvents = totalEntries.reduce((sum, [, t]) => sum + t.count, 0);
+	const totalValue = totalEntries.reduce((sum, [, t]) => sum + t.sum, 0);
+
+	console.log("Summary:");
+	console.log(`  Total events: ${totalEvents.toLocaleString()}`);
+	console.log(`  Total value:  ${totalValue.toLocaleString()}`);
+	console.log(`  Features:     ${totalEntries.length}`);
+	console.log("");
+
+	// Per-feature breakdown
+	if (totalEntries.length > 0) {
+		console.log("By Feature:");
+		for (const [featureId, stats] of totalEntries) {
+			console.log(
+				`  ${truncate(featureId, 24).padEnd(24)}  ${stats.count.toLocaleString().padStart(8)} events  ${stats.sum.toLocaleString().padStart(10)} total`,
+			);
+		}
+		console.log("");
+	}
+
+	// ASCII chart
+	if (list.length > 0) {
+		console.log("Time Series:");
+		renderAsciiChart(list, binSize);
+		console.log("");
+	}
+
+	console.log("Actions:");
+	console.log("  --time <range>     Change time range (24h, 7d, 30d, 90d)");
+	console.log("  --bin <size>       Change bin size (hour, day, month)");
+	console.log("  --group-by <prop>  Group by property");
+	console.log("  --mode list        Switch to list view");
+}
+
+/**
+ * Render ASCII bar chart for time series data
+ */
+function renderAsciiChart(
+	list: Array<{ period: number; [key: string]: number | Record<string, number> }>,
+	binSize: string,
+): void {
+	// Calculate total value for each bucket
+	const buckets = list.map((bucket) => {
+		let total = 0;
+		for (const [key, value] of Object.entries(bucket)) {
+			if (key === "period") continue;
+			if (typeof value === "number") {
+				total += value;
+			} else if (typeof value === "object" && value !== null) {
+				total += Object.values(value).reduce((sum, v) => sum + v, 0);
+			}
+		}
+		return { period: bucket.period, total };
+	});
+
+	// Take last 20 buckets for display
+	const displayBuckets = buckets.slice(-20);
+	const maxValue = Math.max(...displayBuckets.map((b) => b.total), 1);
+	const chartHeight = 8;
+	const chartWidth = displayBuckets.length;
+
+	// Render chart rows (top to bottom)
+	for (let row = chartHeight - 1; row >= 0; row--) {
+		const threshold = (row / chartHeight) * maxValue;
+		let rowStr = row === chartHeight - 1 ? `${maxValue.toString().padStart(6)} |` : "       |";
+		for (const bucket of displayBuckets) {
+			rowStr += bucket.total > threshold ? "█" : " ";
+		}
+		console.log(rowStr);
+	}
+
+	// X-axis
+	console.log(`     0 |${"─".repeat(chartWidth)}`);
+
+	// Time labels
+	if (displayBuckets.length > 0) {
+		const firstLabel = formatBucketLabel(displayBuckets[0].period, binSize);
+		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1].period, binSize);
+		const padding = chartWidth - firstLabel.length - lastLabel.length;
+		console.log(`        ${firstLabel}${" ".repeat(Math.max(0, padding))}${lastLabel}`);
+	}
+}
+
+/**
+ * Format bucket period label based on bin size
+ */
+function formatBucketLabel(timestamp: number, binSize: string): string {
+	const date = new Date(timestamp);
+	switch (binSize) {
+		case "hour":
+			return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:00`;
+		case "month":
+			return `${date.getMonth() + 1}/${date.getFullYear()}`;
+		default:
+			return `${date.getMonth() + 1}/${date.getDate()}`;
+	}
 }
 
 /**
  * Normalize a timestamp to milliseconds.
- * Events use milliseconds, but handle both for safety.
  */
 function normalizeTimestamp(timestamp: number): number {
-	// If timestamp is less than ~10 billion, it's in seconds, convert to ms
 	return timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
 }
 

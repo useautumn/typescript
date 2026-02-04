@@ -381,13 +381,17 @@ program
 	.command("events")
 	.description("Browse and inspect usage events")
 	.option("--headless", "Run in headless mode (output for AI/agents)")
-	.option("--page <n>", "Page number (headless)", "1")
-	.option("--customer <id>", "Filter by customer ID (headless)")
-	.option("--feature <id>", "Filter by feature ID (headless)")
-	.option("--limit <n>", "Items per page (headless)", "100")
+	.option("--page <n>", "Page number", "1")
+	.option("--customer <id>", "Filter by customer ID")
+	.option("--feature <id>", "Filter by feature ID (comma-separated for multiple)")
+	.option("--limit <n>", "Items per page", "100")
+	.option("--time <range>", "Time range: 24h, 7d, 30d, 90d", "7d")
+	.option("--mode <mode>", "View mode: list, aggregate", "list")
+	.option("--bin <size>", "Bin size for aggregate: hour, day, month")
+	.option("--group-by <property>", "Group by property (aggregate mode)")
 	.option(
 		"--format <format>",
-		"Output format: text, json, csv (headless)",
+		"Output format: text, json, csv",
 		"text",
 	)
 	.action(async (options) => {
@@ -399,6 +403,10 @@ program
 			customerId: options.customer,
 			featureId: options.feature,
 			limit: Number.parseInt(options.limit, 10),
+			timeRange: options.time,
+			mode: options.mode,
+			binSize: options.bin,
+			groupBy: options.groupBy,
 			format: options.format,
 		});
 	});

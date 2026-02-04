@@ -13,8 +13,16 @@ export interface EventsCommandOptions {
 	format?: "text" | "json" | "csv";
 	/** Filter by customer ID */
 	customerId?: string;
-	/** Filter by feature ID */
+	/** Filter by feature ID (can be comma-separated for multiple) */
 	featureId?: string;
+	/** Time range: 24h, 7d, 30d, 90d */
+	timeRange?: "24h" | "7d" | "30d" | "90d";
+	/** View mode: list or aggregate */
+	mode?: "list" | "aggregate";
+	/** Bin size for aggregate: hour, day, month */
+	binSize?: "hour" | "day" | "month";
+	/** Group by property (for aggregate mode) */
+	groupBy?: string;
 }
 
 /**
@@ -34,6 +42,10 @@ export async function eventsCommand(
 			format: options.format,
 			customerId: options.customerId,
 			featureId: options.featureId,
+			timeRange: options.timeRange,
+			mode: options.mode,
+			binSize: options.binSize,
+			groupBy: options.groupBy,
 		});
 		return;
 	}
