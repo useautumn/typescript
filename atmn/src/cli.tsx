@@ -15,14 +15,9 @@ import { readFromEnv } from "./lib/utils.js";
 import { QueryProvider } from "./views/react/components/providers/QueryProvider.js";
 import { InitFlow } from "./views/react/init/InitFlow.js";
 import { PullView } from "./views/react/pull/Pull.js";
+import { APP_VERSION } from "./lib/version.js";
 
-declare const VERSION: string;
-
-// Guard against missing define in watch/incremental rebuilds
-const computedVersion =
-	typeof VERSION !== "undefined" && VERSION ? VERSION : "dev";
-
-program.version(computedVersion, "-v, --version");
+program.version(APP_VERSION, "-v, --version");
 
 // Global options - available for all commands
 // These are orthogonal: -p controls env (sandbox vs live), -l controls API server (remote vs localhost)
@@ -291,7 +286,7 @@ program
 	.alias("v")
 	.description("Show the version of Autumn")
 	.action(() => {
-		console.log(computedVersion);
+		console.log(APP_VERSION);
 	});
 
 program
@@ -374,6 +369,20 @@ program
 			limit: Number.parseInt(options.limit, 10),
 			format: options.format,
 			includeArchived: options.includeArchived,
+		});
+	});
+
+program
+	.command("preview")
+	.description("Preview plans from autumn.config.ts")
+	.option("--plan <id>", "Preview a specific plan by ID")
+	.option("--currency <code>", "Currency for price display (default: USD)", "USD")
+	.action(async (options) => {
+		const { previewCommand } = await import("./commands/preview/index.js");
+		await previewCommand({
+			planId: options.plan,
+			currency: options.currency,
+			cwd: process.cwd(),
 		});
 	});
 
