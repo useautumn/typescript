@@ -1,12 +1,18 @@
 #!/usr/bin/env tsx
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import { writeFileSync, mkdirSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { TypeGenerator, TypeGeneratorUtils, generateBuilderFunctionsFile, extractZodSchema } from "./genUtils/index.js";
 import { getAtmnTypeConfigs, getAtmnApiTypeConfigs } from "./typeConfigs.js";
 import { generatePlanFeatureType, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
 import { generateApiTypeFile, generateApiTypesIndex } from "./genUtils/atmnApiTypeHelpers.js";
+import { generatePreviewDisplayUtils } from "./genUtils/atmnPreviewHelpers.js";
+
+// ESM-compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Generate snake_case types for atmn CLI from @autumn/shared
@@ -159,10 +165,17 @@ export interface ApiOrganization {
 			}
 		}
 
+		// Generate preview display utilities (copied from @autumn/shared)
+		const previewStart = Date.now();
+		console.log(`\n🎨 Generating preview display utilities...`);
+		generatePreviewDisplayUtils({ serverPath, atmnPath });
+		console.log(`   ⏱️  Preview utils generated in ${Date.now() - previewStart}ms`);
+		console.log(`   📝 Generated: displayUtils.ts, planFeatureToItem.ts`);
+
 		const totalTime = Date.now() - startTime;
 		console.log(`\n✅ All type generation completed in ${totalTime}ms!`);
 		console.log(
-			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - src/compose/models/planModels.ts\n   - src/compose/models/featureModels.ts\n   - src/compose/builders/builderFunctions.ts`,
+			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - src/compose/models/planModels.ts\n   - src/compose/models/featureModels.ts\n   - src/compose/builders/builderFunctions.ts\n   - src/commands/preview/displayUtils.ts\n   - src/commands/preview/planFeatureToItem.ts`,
 		);
 	} catch (error) {
 		console.error("💥 atmn type generation failed:", error);
