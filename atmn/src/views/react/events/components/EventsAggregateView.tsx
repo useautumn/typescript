@@ -49,19 +49,42 @@ export interface EventsAggregateViewProps {
 }
 
 /**
- * Colors for different features in charts
+ * Colors for different groups/features in charts
  */
-const FEATURE_COLORS = ["cyan", "green", "yellow", "magenta", "blue"] as const;
+const GROUP_COLORS = ["magenta", "blue", "green", "yellow", "cyan", "red"] as const;
 
 /**
- * Get color for a feature index
+ * Get color for a group/feature index
  */
-function getFeatureColor(index: number): string {
-	return FEATURE_COLORS[index % FEATURE_COLORS.length];
+function getGroupColor(index: number): typeof GROUP_COLORS[number] {
+	return GROUP_COLORS[index % GROUP_COLORS.length];
+}
+
+/**
+ * Check if data has grouped values (i.e., groupBy was used)
+ */
+function hasGroupedData(data: FormattedTimeBucket[]): boolean {
+	return data.some((bucket) => Object.keys(bucket.groupedValues).length > 0);
+}
+
+/**
+ * Collect all unique group keys across all buckets
+ */
+function collectAllGroupKeys(data: FormattedTimeBucket[]): string[] {
+	const allKeys = new Set<string>();
+	for (const bucket of data) {
+		for (const groupData of Object.values(bucket.groupedValues)) {
+			for (const key of Object.keys(groupData)) {
+				allKeys.add(key);
+			}
+		}
+	}
+	return Array.from(allKeys).sort();
 }
 
 /**
  * ASCII time-series bar chart component
+ * Supports stacked bars when groupBy data is present
  */
 function TimeSeriesChart({
 	data,
@@ -82,8 +105,20 @@ function TimeSeriesChart({
 			return <Text color="gray">No buckets to display</Text>;
 		}
 
+		const isGrouped = hasGroupedData(buckets);
 		const maxValue = Math.max(...buckets.map((b) => b.totalValue), 1);
 
+		if (isGrouped) {
+			return (
+				<StackedChart 
+					buckets={buckets} 
+					maxBarHeight={maxBarHeight} 
+					maxValue={maxValue} 
+				/>
+			);
+		}
+
+		// Simple (non-stacked) chart
 		const rows: string[] = [];
 		for (let row = maxBarHeight - 1; row >= 0; row--) {
 			const threshold = (row / maxBarHeight) * maxValue;
@@ -128,6 +163,116 @@ function TimeSeriesChart({
 		console.error("TimeSeriesChart error:", err);
 		return <Text color="red">Chart error: {err instanceof Error ? err.message : String(err)}</Text>;
 	}
+}
+
+/**
+ * Stacked bar chart component with colored groups
+ */
+function StackedChart({
+	buckets,
+	maxBarHeight,
+	maxValue,
+}: {
+	buckets: FormattedTimeBucket[];
+	maxBarHeight: number;
+	maxValue: number;
+}) {
+	const groupKeys = collectAllGroupKeys(buckets);
+
+	// Pre-calculate stacked data for each bucket
+	const stackedBuckets = buckets.map((bucket) => {
+		const groupTotals: Record<string, number> = {};
+		for (const groupData of Object.values(bucket.groupedValues)) {
+			for (const [groupKey, val] of Object.entries(groupData)) {
+				groupTotals[groupKey] = (groupTotals[groupKey] ?? 0) + val;
+			}
+		}
+		return { ...bucket, groupTotals };
+	});
+
+	// Render rows from top to bottom
+	const rows: Array<{ chars: Array<{ char: string; color: typeof GROUP_COLORS[number] | "gray" }> }> = [];
+	
+	for (let row = maxBarHeight - 1; row >= 0; row--) {
+		const rowThresholdBottom = (row / maxBarHeight) * maxValue;
+		const rowThresholdTop = ((row + 1) / maxBarHeight) * maxValue;
+		
+		const chars: Array<{ char: string; color: typeof GROUP_COLORS[number] | "gray" }> = [];
+		
+		for (const bucket of stackedBuckets) {
+			if (bucket.totalValue <= rowThresholdBottom) {
+				chars.push({ char: " ", color: "gray" });
+			} else {
+				// Find which group is at this height
+				let cumulative = 0;
+				let foundColor: typeof GROUP_COLORS[number] | "gray" = "gray";
+				
+				for (let i = 0; i < groupKeys.length; i++) {
+					const groupKey = groupKeys[i];
+					const groupVal = bucket.groupTotals[groupKey] ?? 0;
+					const prevCumulative = cumulative;
+					cumulative += groupVal;
+					
+					if (cumulative > rowThresholdBottom && prevCumulative < rowThresholdTop) {
+						foundColor = getGroupColor(i);
+						break;
+					}
+				}
+				
+				chars.push({ char: "█", color: foundColor });
+			}
+		}
+		
+		rows.push({ chars });
+	}
+
+	return (
+		<Box flexDirection="column">
+			<Box>
+				<Text color="gray">{maxValue.toString().padStart(5)} </Text>
+				<Text color="gray">{"─".repeat(buckets.length)}</Text>
+			</Box>
+			{/* biome-ignore lint/suspicious/noArrayIndexKey: chart cells have no stable ID */}
+			{rows.map((row, rowIndex) => (
+				<Box key={`row-${maxBarHeight - rowIndex}`}>
+					<Text color="gray">{"     "} </Text>
+					{row.chars.map((c, charIdx) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: chart cells have no stable ID
+						<Text key={`c-${charIdx}`} color={c.color}>{c.char}</Text>
+					))}
+				</Box>
+			))}
+			<Box>
+				<Text color="gray">{"    0"} </Text>
+				<Text color="gray">{"─".repeat(buckets.length)}</Text>
+			</Box>
+			{buckets.length > 0 && (
+				<Box>
+					<Text color="gray">{"      "}</Text>
+					<Text color="gray">{buckets[0]?.label ?? ""}</Text>
+					{buckets.length > 1 && (
+						<Text color="gray">
+							{"".padEnd(Math.max(0, buckets.length - (buckets[0]?.label?.length ?? 0) - (buckets[buckets.length - 1]?.label?.length ?? 0)))}
+							{buckets[buckets.length - 1]?.label ?? ""}
+						</Text>
+					)}
+				</Box>
+			)}
+			{/* Legend */}
+			<Box marginTop={1} flexDirection="column">
+				<Text color="gray" bold>Groups:</Text>
+				{groupKeys.slice(0, 6).map((key, idx) => (
+					<Box key={key} gap={1}>
+						<Text color={getGroupColor(idx)}>{"█"}</Text>
+						<Text color="white">{key}</Text>
+					</Box>
+				))}
+				{groupKeys.length > 6 && (
+					<Text color="gray">  ... and {groupKeys.length - 6} more</Text>
+				)}
+			</Box>
+		</Box>
+	);
 }
 
 /**
@@ -234,6 +379,7 @@ export function EventsAggregateView({
 		}
 
 		const binLabel = binSize === "hour" ? "Hourly" : binSize === "month" ? "Monthly" : "Daily";
+		const isGrouped = hasGroupedData(data);
 
 		return (
 			<Box flexDirection="column">
@@ -242,20 +388,23 @@ export function EventsAggregateView({
 					<Text bold color="gray">{binLabel} Events</Text>
 					<TimeSeriesChart data={data} maxBarHeight={maxBarHeight} maxBuckets={maxBuckets} />
 				</Box>
-				<Box marginTop={1} flexDirection="column">
-					<Text bold color="gray">By Feature</Text>
-					{Object.entries(totals).slice(0, 8).map(([featureId, stats], idx) => (
-						<Box key={featureId} gap={1}>
-							<Text color={getFeatureColor(idx)}>{"█"}</Text>
-							<Text color="white">
-								{featureId.length > 20 ? `${featureId.slice(0, 18)}..` : featureId.padEnd(20)}
-							</Text>
-							<Text color="gray">
-								{stats.count.toLocaleString()} events, {stats.sum.toLocaleString()} total
-							</Text>
-						</Box>
-					))}
-				</Box>
+				{/* Only show "By Feature" when not grouped (stacked chart shows its own legend) */}
+				{!isGrouped && (
+					<Box marginTop={1} flexDirection="column">
+						<Text bold color="gray">By Feature</Text>
+						{Object.entries(totals).slice(0, 8).map(([featureId, stats], idx) => (
+							<Box key={featureId} gap={1}>
+								<Text color={getGroupColor(idx)}>{"█"}</Text>
+								<Text color="white">
+									{featureId.length > 20 ? `${featureId.slice(0, 18)}..` : featureId.padEnd(20)}
+								</Text>
+								<Text color="gray">
+									{stats.count.toLocaleString()} events, {stats.sum.toLocaleString()} total
+								</Text>
+							</Box>
+						))}
+					</Box>
+				)}
 			</Box>
 		);
 	} catch (err) {

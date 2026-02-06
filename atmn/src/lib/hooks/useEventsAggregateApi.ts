@@ -40,13 +40,19 @@ function getDefaultBinSize(timeRange: UITimeRange): AggregateBinSize {
 export interface FormattedTimeBucket {
 	period: number;
 	label: string;
+	/** Feature values (when not grouped) or summed values (when grouped) */
 	values: Record<string, number>;
+	/** Group breakdown per feature (when groupBy is used) */
+	groupedValues: Record<string, Record<string, number>>;
+	/** All unique group keys found in this bucket */
+	groupKeys: string[];
 	totalValue: number;
 }
 
 /**
  * Parse and format the aggregate response for display
  * New API shape: { list: [...], total: {...} }
+ * Preserves grouped data structure for stacked chart rendering
  */
 function formatAggregateResponse(
 	response: ApiEventsAggregateResponse,
@@ -62,6 +68,8 @@ function formatAggregateResponse(
 		.map((bucket) => {
 			const periodTimestamp = Number(bucket.period);
 			const values: Record<string, number> = {};
+			const groupedValues: Record<string, Record<string, number>> = {};
+			const groupKeysSet = new Set<string>();
 			let totalValue = 0;
 
 			// Defensive check for bucket entries
@@ -73,11 +81,17 @@ function formatAggregateResponse(
 						values[key] = value;
 						totalValue += value;
 					} else if (typeof value === "object" && value !== null) {
-						// Grouped values - sum them up for display
-						const valueEntries = Object.values(value as Record<string, number>);
-						const groupSum = Array.isArray(valueEntries)
-							? valueEntries.reduce((sum, v) => sum + (typeof v === "number" ? v : 0), 0)
-							: 0;
+						// Grouped values - preserve the breakdown
+						const groupData = value as Record<string, number>;
+						groupedValues[key] = groupData;
+						
+						let groupSum = 0;
+						for (const [groupKey, groupVal] of Object.entries(groupData)) {
+							groupKeysSet.add(groupKey);
+							if (typeof groupVal === "number") {
+								groupSum += groupVal;
+							}
+						}
 						values[key] = groupSum;
 						totalValue += groupSum;
 					}
@@ -88,6 +102,8 @@ function formatAggregateResponse(
 				period: periodTimestamp,
 				label: formatPeriodLabel(periodTimestamp, binSize),
 				values,
+				groupedValues,
+				groupKeys: Array.from(groupKeysSet).sort(),
 				totalValue,
 			};
 		});

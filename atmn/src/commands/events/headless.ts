@@ -433,7 +433,7 @@ function outputAggregateData(
 	// ASCII chart
 	if (list.length > 0) {
 		console.log("Time Series:");
-		renderAsciiChart(list, binSize);
+		renderAsciiChart(list, binSize, groupBy);
 		console.log("");
 	}
 
@@ -445,9 +445,49 @@ function outputAggregateData(
 }
 
 /**
+ * ANSI color codes for stacked chart groups
+ */
+const GROUP_COLORS = [
+	"\x1b[35m", // magenta
+	"\x1b[34m", // blue
+	"\x1b[32m", // green
+	"\x1b[33m", // yellow
+	"\x1b[36m", // cyan
+	"\x1b[31m", // red
+];
+const RESET_COLOR = "\x1b[0m";
+
+/**
  * Render ASCII bar chart for time series data
+ * Supports stacked groups when groupBy is used
  */
 function renderAsciiChart(
+	list: Array<{ period: number; [key: string]: number | Record<string, number> }>,
+	binSize: string,
+	groupBy?: string,
+): void {
+	// Detect if we have grouped data by checking the first bucket's structure
+	const hasGroupedData = list.some((bucket) => {
+		for (const [key, value] of Object.entries(bucket)) {
+			if (key === "period") continue;
+			if (typeof value === "object" && value !== null) {
+				return true;
+			}
+		}
+		return false;
+	});
+
+	if (hasGroupedData && groupBy) {
+		renderStackedChart(list, binSize);
+	} else {
+		renderSimpleChart(list, binSize);
+	}
+}
+
+/**
+ * Render a simple (non-stacked) ASCII bar chart
+ */
+function renderSimpleChart(
 	list: Array<{ period: number; [key: string]: number | Record<string, number> }>,
 	binSize: string,
 ): void {
@@ -490,6 +530,115 @@ function renderAsciiChart(
 		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1].period, binSize);
 		const padding = chartWidth - firstLabel.length - lastLabel.length;
 		console.log(`        ${firstLabel}${" ".repeat(Math.max(0, padding))}${lastLabel}`);
+	}
+}
+
+/**
+ * Render a stacked ASCII bar chart with different colors for each group
+ */
+function renderStackedChart(
+	list: Array<{ period: number; [key: string]: number | Record<string, number> }>,
+	binSize: string,
+): void {
+	// Collect all unique group keys across all buckets
+	const allGroups = new Set<string>();
+	for (const bucket of list) {
+		for (const [key, value] of Object.entries(bucket)) {
+			if (key === "period") continue;
+			if (typeof value === "object" && value !== null) {
+				for (const groupKey of Object.keys(value)) {
+					allGroups.add(groupKey);
+				}
+			}
+		}
+	}
+	const groupKeys = Array.from(allGroups).sort();
+
+	// Parse buckets into stacked data
+	const buckets = list.map((bucket) => {
+		const groupValues: Record<string, number> = {};
+		let total = 0;
+
+		for (const [key, value] of Object.entries(bucket)) {
+			if (key === "period") continue;
+			if (typeof value === "object" && value !== null) {
+				for (const [groupKey, groupVal] of Object.entries(value)) {
+					groupValues[groupKey] = (groupValues[groupKey] ?? 0) + groupVal;
+					total += groupVal;
+				}
+			} else if (typeof value === "number") {
+				total += value;
+			}
+		}
+
+		return { period: bucket.period, total, groupValues };
+	});
+
+	// Take last 20 buckets for display
+	const displayBuckets = buckets.slice(-20);
+	const maxValue = Math.max(...displayBuckets.map((b) => b.total), 1);
+	const chartHeight = 10;
+	const chartWidth = displayBuckets.length;
+
+	// For each row, determine which group's color to show based on stacked position
+	for (let row = chartHeight - 1; row >= 0; row--) {
+		const rowThresholdBottom = (row / chartHeight) * maxValue;
+		const rowThresholdTop = ((row + 1) / chartHeight) * maxValue;
+		
+		let rowStr = row === chartHeight - 1 ? `${maxValue.toString().padStart(6)} |` : "       |";
+		
+		for (const bucket of displayBuckets) {
+			if (bucket.total <= rowThresholdBottom) {
+				// Below this row - empty
+				rowStr += " ";
+			} else {
+				// Determine which group is at this height
+				let cumulative = 0;
+				let foundGroup = false;
+				
+				for (let i = 0; i < groupKeys.length; i++) {
+					const groupKey = groupKeys[i];
+					const groupVal = bucket.groupValues[groupKey] ?? 0;
+					const prevCumulative = cumulative;
+					cumulative += groupVal;
+					
+					// Check if this row falls within this group's portion
+					if (cumulative > rowThresholdBottom && prevCumulative < rowThresholdTop) {
+						const color = GROUP_COLORS[i % GROUP_COLORS.length];
+						rowStr += `${color}█${RESET_COLOR}`;
+						foundGroup = true;
+						break;
+					}
+				}
+				
+				if (!foundGroup) {
+					rowStr += "█";
+				}
+			}
+		}
+		console.log(rowStr);
+	}
+
+	// X-axis
+	console.log(`     0 |${"─".repeat(chartWidth)}`);
+
+	// Time labels
+	if (displayBuckets.length > 0) {
+		const firstLabel = formatBucketLabel(displayBuckets[0].period, binSize);
+		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1].period, binSize);
+		const padding = chartWidth - firstLabel.length - lastLabel.length;
+		console.log(`        ${firstLabel}${" ".repeat(Math.max(0, padding))}${lastLabel}`);
+	}
+
+	// Legend
+	console.log("");
+	console.log("  Groups:");
+	for (let i = 0; i < groupKeys.length && i < 6; i++) {
+		const color = GROUP_COLORS[i % GROUP_COLORS.length];
+		console.log(`    ${color}█${RESET_COLOR} ${groupKeys[i]}`);
+	}
+	if (groupKeys.length > 6) {
+		console.log(`    ... and ${groupKeys.length - 6} more`);
 	}
 }
 

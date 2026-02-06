@@ -7,7 +7,7 @@ import type { ApiPlanFeature } from "../../../../../../../sirtenzin-autumn/share
 /**
  * ApiPlanFeature - Raw API response type
  * Source: apiPlanFeature.ts
- *
+ * 
  * This type matches the exact structure returned by the Autumn API.
  * Use transform functions in src/lib/transforms/apiToSdk to convert to SDK types.
  */
