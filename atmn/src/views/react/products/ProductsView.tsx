@@ -3,6 +3,7 @@ import open from "open";
 import { useCallback, useEffect, useMemo } from "react";
 import type { ApiPlan } from "../../../lib/api/types/index.js";
 import { AppEnv } from "../../../lib/env/detect.js";
+import { APP_VERSION } from "../../../lib/version.js";
 import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import { useListNavigation, type FocusTarget } from "../../../lib/hooks/useListNavigation.js";
 import { usePlans, useLocalPagination } from "../../../lib/hooks/usePlans.js";
@@ -334,7 +335,7 @@ export function ProductsView({
 		<ListViewLayout
 			viewState={getViewState()}
 			commandName="atmn products"
-			version="v1.0.0-beta.14"
+			version={APP_VERSION}
 			paginationText={paginationText}
 			searchQuery={state.searchQuery}
 			searchOpen={state.searchOpen}

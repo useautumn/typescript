@@ -3,6 +3,7 @@ import open from "open";
 import { useCallback, useEffect, useMemo } from "react";
 import type { ApiFeature } from "../../../lib/api/types/index.js";
 import { AppEnv } from "../../../lib/env/detect.js";
+import { APP_VERSION } from "../../../lib/version.js";
 import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import { useFeatures } from "../../../lib/hooks/useFeatures.js";
 import {
@@ -329,7 +330,7 @@ export function FeaturesView({
 		<ListViewLayout
 			viewState={getViewState()}
 			commandName="atmn features"
-			version="v1.0.0-beta.14"
+			version={APP_VERSION}
 			paginationText={paginationText}
 			searchQuery={state.searchQuery}
 			searchOpen={state.searchOpen}

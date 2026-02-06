@@ -3,6 +3,7 @@ import open from "open";
 import { useCallback, useEffect } from "react";
 import type { ApiCustomer } from "../../../lib/api/endpoints/customers.js";
 import { AppEnv } from "../../../lib/env/detect.js";
+import { APP_VERSION } from "../../../lib/version.js";
 import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import { useCustomerExpanded } from "../../../lib/hooks/useCustomerExpanded.js";
 import {
@@ -292,7 +293,7 @@ export function CustomersView({
 		<ListViewLayout
 			viewState={getViewState()}
 			commandName="atmn customers"
-			version="v1.0.0-beta.14"
+			version={APP_VERSION}
 			paginationText={pagination.text}
 			searchQuery={state.searchQuery}
 			searchOpen={state.searchOpen}

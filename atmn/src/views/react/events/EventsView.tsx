@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ApiFeature } from "../../../lib/api/types/index.js";
 import { AppEnv } from "../../../lib/env/detect.js";
+import { APP_VERSION } from "../../../lib/version.js";
 import { useClipboard } from "../../../lib/hooks/useClipboard.js";
 import {
 	useEvents,
@@ -668,7 +669,7 @@ export function EventsView({
 			<ListViewLayout
 				viewState={getViewState()}
 				commandName="atmn events"
-				version="v1.0.0-beta.14"
+				version={APP_VERSION}
 				paginationText={getAggregatePaginationText()}
 				titleBarItems={titleBarItems}
 				hints={getHints(
