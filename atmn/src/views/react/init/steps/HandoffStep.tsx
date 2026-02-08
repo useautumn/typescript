@@ -8,9 +8,14 @@ import { StatusLine, StepHeader } from "../../components/index.js";
 // System prompt for AI integration - will be copied to clipboard
 const SYSTEM_PROMPT = `You are an expert AI assistant that helps users set up Autumn, a billing and entitlements layer over Stripe. The user has already installed Autumn Skills ready for you to use the load skill tool.
 
-Begin by helping the user create their first customer in Autumn by loading the 'autumn-creating-customer' skill.
-Then setup accepting payments by loading the 'autumn-accepting-payments' skill.
-Lastly start tracking usage by loading the 'autumn-tracking-usage' skill.`;
+The user's business structure in terms of its billing, pricing, plans and features are set out in a file called 'autumn.config.ts'.
+If this file is empty, then you should help the user model their pricing structure by loading the 'autumn-modelling-pricing-plans' skill. If there is no pricing structure - you MUST initiate the user into a discussion about the plans they want, the prices of each, the limits, how often usage should reset, how much usage they should get etc... Do not make any decisions on that regard on your own. Make these prompts conversational; Don't ask every question to the user immediately. Ask for a general overview and then make follow up questions until you or the user is sure.
+
+Once a pricing model is either decided upon or already found to exist already continue onwards:
+
+- Begin by helping the user create their first customer in Autumn by loading the 'autumn-creating-customer' skill.
+- Then setup accepting payments by loading the 'autumn-accepting-payments' skill.
+- Lastly start tracking usage by loading the 'autumn-tracking-usage' skill.`;
 
 interface HandoffStepProps {
 	step: number;
@@ -31,7 +36,10 @@ type HandoffState =
 
 const PRESET_LOCATIONS = [
 	{ label: ".claude/skills (Claude Code)", value: ".claude/skills" },
-	{ label: ".agents/skills (OpenCode, Cursor, Amp, Codex...)", value: ".agents/skills" },
+	{
+		label: ".agents/skills (OpenCode, Cursor, Amp, Codex...)",
+		value: ".agents/skills",
+	},
 	{ label: "Custom path...", value: "custom" },
 ];
 
