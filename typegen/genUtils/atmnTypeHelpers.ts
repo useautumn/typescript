@@ -212,37 +212,46 @@ type PlanFeatureBaseFields = {
   rollover?: RolloverConfig;
 };
 
-// Price when reset IS defined - interval is forbidden
-type PriceWithoutInterval = {
-  /** Price amount */
-  amount: number;
+// Shared price fields (common to all price variants)
+type PriceBaseFields = {
   /** Billing method: 'prepaid' or 'usage_based' */
   billing_method: BillingMethod;
-  /** Tiered pricing structure based on usage ranges */
-  tiers?: Array<{ to: number | "inf"; amount: number }>;
   /** Number of units per billing cycle */
   billing_units?: number;
   /** Maximum purchasable quantity */
   max_purchase?: number;
+};
+
+// Price with flat amount (no tiers)
+type PriceWithAmount = PriceBaseFields & {
+  /** Price amount */
+  amount: number;
+  /** Cannot have tiers when using flat amount */
+  tiers?: never;
+};
+
+// Price with tiered pricing (no flat amount)
+type PriceWithTiers = PriceBaseFields & {
+  /** Cannot have flat amount when using tiers */
+  amount?: never;
+  /** Tiered pricing structure based on usage ranges */
+  tiers: Array<{ to: number | "inf"; amount: number }>;
+};
+
+// Price must have either amount OR tiers (not both, not neither)
+type PriceAmountOrTiers = PriceWithAmount | PriceWithTiers;
+
+// Price when reset IS defined - interval is forbidden
+type PriceWithoutInterval = PriceAmountOrTiers & {
   /** Cannot have interval when using top-level reset */
   interval?: never;
   interval_count?: never;
 };
 
 // Price when reset is NOT defined - interval is required
-type PriceWithInterval = {
-  /** Price amount */
-  amount: number;
-  /** Billing method: 'prepaid' or 'usage_based' */
-  billing_method: BillingMethod;
+type PriceWithInterval = PriceAmountOrTiers & {
   /** Billing interval - required when no top-level reset */
   interval: BillingInterval;
-  /** Tiered pricing structure based on usage ranges */
-  tiers?: Array<{ to: number | "inf"; amount: number }>;
-  /** Number of units per billing cycle */
-  billing_units?: number;
-  /** Maximum purchasable quantity */
-  max_purchase?: number;
   /** Number of intervals between billing cycles (default: 1) */
   interval_count?: number;
 };

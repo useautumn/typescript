@@ -1,6 +1,8 @@
 import chalk from "chalk";
+import { render } from "ink";
+import React from "react";
 import { loadConfig } from "./loadConfig.js";
-import { formatPlanPreviewAsText, getPlanPreview } from "./previewPlan.js";
+import { PreviewView } from "../../views/react/preview/index.js";
 
 export const previewCommand = async ({
 	planId,
@@ -42,23 +44,14 @@ export const previewCommand = async ({
 		}
 	}
 
-	// 3. For each plan, generate preview and print
-	// 4. Separate multiple plans with blank line
-	for (let i = 0; i < plansToPreview.length; i++) {
-		const plan = plansToPreview[i];
-
-		const preview = getPlanPreview({
-			plan,
+	// 3. Render the preview using Ink
+	const { waitUntilExit } = render(
+		React.createElement(PreviewView, {
+			plans: plansToPreview,
 			features,
 			currency,
-		});
+		}),
+	);
 
-		const text = formatPlanPreviewAsText({ preview });
-		console.log(text);
-
-		// Add blank line between plans (but not after the last one)
-		if (i < plansToPreview.length - 1) {
-			console.log();
-		}
-	}
+	await waitUntilExit();
 };
