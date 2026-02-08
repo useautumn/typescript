@@ -153,19 +153,30 @@ async function checkPlanForVersioning(
 		};
 	}
 
-	// Transform SDK plan to API format for comparison
-	const apiPlan = transformPlanToApi(plan);
-	const response = await getPlanHasCustomers({
-		secretKey,
-		planId: plan.id,
-		plan: apiPlan,
-	});
+	try {
+		// Transform SDK plan to API format for comparison
+		const apiPlan = transformPlanToApi(plan);
+		const response = await getPlanHasCustomers({
+			secretKey,
+			planId: plan.id,
+			plan: apiPlan,
+		});
 
-	return {
-		plan,
-		willVersion: response.will_version || false,
-		isArchived: response.archived || false,
-	};
+		return {
+			plan,
+			willVersion: response.will_version || false,
+			isArchived: response.archived || false,
+		};
+	} catch {
+		// If the API can't validate the plan (e.g., it references a feature
+		// that hasn't been created yet), skip the versioning check.
+		// Features are always pushed before plans, so this resolves itself.
+		return {
+			plan,
+			willVersion: false,
+			isArchived: false,
+		};
+	}
 }
 
 /**
