@@ -275,6 +275,30 @@ program
 	});
 
 program
+	.command("logout")
+	.description("Remove Autumn API keys from your .env file")
+	.action(async () => {
+		const { removeKeysFromEnv } = await import("./lib/env/dotenv.js");
+
+		const removed = removeKeysFromEnv([
+			"AUTUMN_SECRET_KEY",
+			"AUTUMN_PROD_SECRET_KEY",
+		]);
+
+		if (removed.length === 0) {
+			console.log(
+				chalk.yellow("No Autumn keys found in .env file."),
+			);
+		} else {
+			console.log(
+				chalk.green(
+					`Removed ${removed.join(", ")} from .env file.`,
+				),
+			);
+		}
+	});
+
+program
 	.command("dashboard")
 	.description("Open the Autumn dashboard in your browser")
 	.action(() => {
