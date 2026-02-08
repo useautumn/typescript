@@ -200,6 +200,8 @@ type RolloverConfig = {
 type PlanFeatureBaseFields = {
   /** Reference to the feature being configured */
   feature_id: string;
+  /** The entity feature ID of the product item if applicable */
+  entity_feature_id?: string | null;
   /** Amount of usage included in this plan */
   included?: number;
   /** Whether usage is unlimited */

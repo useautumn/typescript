@@ -132,36 +132,58 @@ import { feature, plan, planFeature } from "atmn";
 
 // Features
 export const messages = feature({
-  id: "messages",
-  name: "Messages",
-  type: "single_use",
+	id: "messages",
+	name: "Messages",
+	type: "metered",
+	consumable: true,
 });
 
 export const seats = feature({
-  id: "seats",
-  name: "Team Seats",
-  type: "continuous_use",
+	id: "seats",
+	name: "Team Seats",
+	type: "metered",
+	consumable: false,
 });
 
 // Plans
 export const free = plan({
-  id: "free",
-  name: "Free",
-  is_default: true,
-  items: [
-    { feature_id: "messages", included_usage: 100 },
-    { feature_id: "seats", included_usage: 1 },
-  ],
+	id: "free",
+	name: "Free",
+	auto_enable: true,
+	features: [
+		planFeature({ feature_id: messages.id, included: 100 }),
+		planFeature({ feature_id: seats.id, included: 1 }),
+	],
 });
 
 export const pro = plan({
-  id: "pro",
-  name: "Pro",
-  items: [
-    { feature_id: null, price: 29, interval: "month" },
-    { feature_id: "messages", included_usage: 10000, price: 0.01, usage_model: "pay_per_use" },
-    { feature_id: "seats", included_usage: 5, price: 10, usage_model: "pay_per_use", billing_units: 1 },
-  ],
+	id: "pro",
+	name: "Pro",
+	price: {
+		amount: 29,
+		interval: "month",
+	},
+	features: [
+		planFeature({
+			feature_id: seats.id,
+			included: 5,
+			price: {
+				amount: 10,
+				interval: "month",
+				billing_method: "usage_based",
+			},
+		}),
+		planFeature({
+			feature_id: messages.id,
+			included: 10_000,
+			entity_feature_id: seats.id,
+			price: {
+				amount: 0.01,
+				interval: "month",
+				billing_method: "usage_based",
+			},
+		}),
+	],
 });
 \`\`\`
 

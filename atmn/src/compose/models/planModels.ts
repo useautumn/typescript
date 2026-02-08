@@ -14,61 +14,64 @@ const idRegex = /^[a-zA-Z0-9_-]+$/;
 
 export const PlanFeatureSchema = z.object({
   feature_id: z.string(),
-    granted_balance: z.number().optional(),
+  entity_feature_id: z.string().nullish().meta({
+    description: "The entity feature ID of the product item if applicable.",
+  }),
+  included: z.number().optional(),
   unlimited: z.boolean().optional(),
   reset: z
     .object({
-    interval: z.union([z.literal("one_off"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]),
-    interval_count: z.number().optional(),
-    reset_when_enabled: z.boolean().optional(),
+      interval: z.union([z.literal("one_off"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]),
+      interval_count: z.number().optional(),
+      reset_when_enabled: z.boolean().optional(),
     })
     .optional(),
   price: z
     .object({
-    amount: z.number().optional(),
-    tiers: z.array(UsageTierSchema).optional(),
-    
-    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
-    interval_count: z.number().default(1).optional(),
-    
-    billing_units: z.number().default(1).optional(),
-    usage_model: z.union([z.literal("prepaid"), z.literal("pay_per_use")]),
-    max_purchase: z.number().optional(),
+      amount: z.number().optional(),
+      tiers: z.array(UsageTierSchema).optional(),
+
+      interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
+      interval_count: z.number().default(1).optional(),
+
+      billing_units: z.number().default(1).optional(),
+      usage_model: z.union([z.literal("prepaid"), z.literal("pay_per_use")]),
+      max_purchase: z.number().optional(),
     })
     .optional(),
   proration: z
     .object({
-    on_increase: z.union([z.literal("prorate"), z.literal("charge_immediately")]),
-    on_decrease: z.union([z.literal("prorate"), z.literal("refund_immediately"), z.literal("no_action")]),
+      on_increase: z.union([z.literal("prorate"), z.literal("charge_immediately")]),
+      on_decrease: z.union([z.literal("prorate"), z.literal("refund_immediately"), z.literal("no_action")]),
     })
     .optional(),
   rollover: z
     .object({
-    max: z.number(),
-    expiry_duration_type: z.union([z.literal("month"), z.literal("forever")]),
-    expiry_duration_length: z.number().optional(),
+      max: z.number(),
+      expiry_duration_type: z.union([z.literal("month"), z.literal("forever")]),
+      expiry_duration_length: z.number().optional(),
     })
     .optional()
 });
 
 export const FreeTrialSchema = z.object({
   duration_type: z.union([z.literal("day"), z.literal("month"), z.literal("year")]),
-    duration_length: z.number(),
+  duration_length: z.number(),
   card_required: z.boolean()
 });
 
 export const PlanSchema = z.object({
   description: z.string().nullable().default(null),
   add_on: z.boolean().default(false),
-    default: z.boolean().default(false),
+  default: z.boolean().default(false),
   price: z
     .object({
-    amount: z.number(),
-    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
+      amount: z.number(),
+      interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
     })
     .optional(),
   features: z.array(PlanFeatureSchema).optional(),
-    free_trial: FreeTrialSchema.nullable().optional(),
+  free_trial: FreeTrialSchema.nullable().optional(),
   /** Unique identifier for the plan */
   id: z.string().nonempty().regex(idRegex),
   /** Display name for the plan */
@@ -119,6 +122,8 @@ type RolloverConfig = {
 type PlanFeatureBaseFields = {
   /** Reference to the feature being configured */
   feature_id: string;
+  /** The entity feature ID of the product item if applicable */
+  entity_feature_id?: string | null;
   /** Amount of usage included in this plan */
   included?: number;
   /** Whether usage is unlimited */
@@ -235,7 +240,8 @@ export type Plan = {
     amount: number;
 
     /** Billing frequency */
-    interval: BillingInterval;  }
+    interval: BillingInterval;
+  }
 
   /** Features included with usage limits and pricing */
   features?: PlanFeature[];
@@ -243,4 +249,3 @@ export type Plan = {
   /** Free trial period before billing begins */
   free_trial?: FreeTrial | null;
 };
-
