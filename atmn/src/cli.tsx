@@ -11,11 +11,11 @@ import { FRONTEND_URL } from "./constants.js";
 import { fetchOrganizationMe } from "./lib/api/endpoints/index.js";
 import { isProd, setCliContext } from "./lib/env/cliContext.js";
 import { readFromEnv } from "./lib/utils.js";
+import { APP_VERSION } from "./lib/version.js";
 // Import Ink views
 import { QueryProvider } from "./views/react/components/providers/QueryProvider.js";
 import { InitFlow } from "./views/react/init/InitFlow.js";
 import { PullView } from "./views/react/pull/Pull.js";
-import { APP_VERSION } from "./lib/version.js";
 
 program.version(APP_VERSION, "-v, --version");
 
@@ -78,7 +78,13 @@ program
 program
 	.command("nuke")
 	.description("Permanently nuke your sandbox.")
-	.action(async () => {
+	.option(
+		"--dangerously-skip-all-confirmation-prompts",
+		"Skip all confirmation prompts (DANGEROUS)",
+	)
+	.action(async (options) => {
+		const skipAllPrompts =
+			options.dangerouslySkipAllConfirmationPrompts ?? false;
 		// Nuke is sandbox-only - panic if prod flag is passed
 		if (isProd()) {
 			console.error(
@@ -97,7 +103,7 @@ program
 			process.exit(1);
 		}
 
-		if (process.stdout.isTTY) {
+		if (process.stdout.isTTY && !skipAllPrompts) {
 			// Interactive mode - use new beautiful Ink UI
 			const { NukeView } = await import("./views/react/nuke/NukeView.js");
 			render(
@@ -106,8 +112,8 @@ program
 				</QueryProvider>,
 			);
 		} else {
-			// Non-TTY mode - use legacy command
-			await Nuke();
+			// Non-TTY mode or skip-all-prompts - use legacy command
+			await Nuke({ skipAllPrompts });
 		}
 	});
 
@@ -286,15 +292,9 @@ program
 		]);
 
 		if (removed.length === 0) {
-			console.log(
-				chalk.yellow("No Autumn keys found in .env file."),
-			);
+			console.log(chalk.yellow("No Autumn keys found in .env file."));
 		} else {
-			console.log(
-				chalk.green(
-					`Removed ${removed.join(", ")} from .env file.`,
-				),
-			);
+			console.log(chalk.green(`Removed ${removed.join(", ")} from .env file.`));
 		}
 	});
 
@@ -400,7 +400,11 @@ program
 	.command("preview")
 	.description("Preview plans from autumn.config.ts")
 	.option("--plan <id>", "Preview a specific plan by ID")
-	.option("--currency <code>", "Currency for price display (default: USD)", "USD")
+	.option(
+		"--currency <code>",
+		"Currency for price display (default: USD)",
+		"USD",
+	)
 	.action(async (options) => {
 		const { previewCommand } = await import("./commands/preview/index.js");
 		await previewCommand({
@@ -416,17 +420,16 @@ program
 	.option("--headless", "Run in headless mode (output for AI/agents)")
 	.option("--page <n>", "Page number", "1")
 	.option("--customer <id>", "Filter by customer ID")
-	.option("--feature <id>", "Filter by feature ID (comma-separated for multiple)")
+	.option(
+		"--feature <id>",
+		"Filter by feature ID (comma-separated for multiple)",
+	)
 	.option("--limit <n>", "Items per page", "100")
 	.option("--time <range>", "Time range: 24h, 7d, 30d, 90d", "7d")
 	.option("--mode <mode>", "View mode: list, aggregate", "list")
 	.option("--bin <size>", "Bin size for aggregate: hour, day, month")
 	.option("--group-by <property>", "Group by property (aggregate mode)")
-	.option(
-		"--format <format>",
-		"Output format: text, json, csv",
-		"text",
-	)
+	.option("--format <format>", "Output format: text, json, csv", "text")
 	.action(async (options) => {
 		const { eventsCommand } = await import("./commands/events/index.js");
 		await eventsCommand({
