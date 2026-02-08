@@ -31,7 +31,7 @@ type HandoffState =
 
 const PRESET_LOCATIONS = [
 	{ label: ".claude/skills (Claude Code)", value: ".claude/skills" },
-	{ label: ".agents/skills (OpenCode)", value: ".agents/skills" },
+	{ label: ".agents/skills (OpenCode, Cursor, Amp, Codex...)", value: ".agents/skills" },
 	{ label: "Custom path...", value: "custom" },
 ];
 
