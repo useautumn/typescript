@@ -474,10 +474,6 @@ async function _headlessPushImpl(
 	const analysis = await analyzePush(config.features, config.plans);
 
 	// Check if there are any changes that require action
-	// Note: plansToUpdate and featuresToUpdate contain ALL items that exist both locally and remotely
-	// We always push these (to ensure sync), but only show "has changes" for things that need
-	// user attention (creates, deletes, versioning, archives)
-	const _hasVersioningPlans = analysis.plansToUpdate.some((p) => p.willVersion);
 	const hasChanges =
 		analysis.featuresToCreate.length > 0 ||
 		analysis.featuresToUpdate.length > 0 ||
