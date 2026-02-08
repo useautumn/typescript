@@ -141,6 +141,7 @@ async function checkPlanDeleteInfo(planId: string): Promise<PlanDeleteInfo> {
 async function checkPlanForVersioning(
 	plan: Plan,
 	remotePlans: Plan[],
+	newFeatureIds: Set<string>,
 ): Promise<PlanUpdateInfo> {
 	const secretKey = getSecretKey();
 	const remotePlan = remotePlans.find((p) => p.id === plan.id);
@@ -153,30 +154,32 @@ async function checkPlanForVersioning(
 		};
 	}
 
-	try {
-		// Transform SDK plan to API format for comparison
-		const apiPlan = transformPlanToApi(plan);
-		const response = await getPlanHasCustomers({
-			secretKey,
-			planId: plan.id,
-			plan: apiPlan,
-		});
+	// Strip features that reference not-yet-created features before
+	// sending to the API — they don't exist upstream yet so they can't
+	// affect the versioning check.
+	const planForCheck =
+		newFeatureIds.size > 0 && plan.features
+			? {
+					...plan,
+					features: plan.features.filter(
+						(f) => !newFeatureIds.has(f.feature_id),
+					),
+				}
+			: plan;
 
-		return {
-			plan,
-			willVersion: response.will_version || false,
-			isArchived: response.archived || false,
-		};
-	} catch {
-		// If the API can't validate the plan (e.g., it references a feature
-		// that hasn't been created yet), skip the versioning check.
-		// Features are always pushed before plans, so this resolves itself.
-		return {
-			plan,
-			willVersion: false,
-			isArchived: false,
-		};
-	}
+	// Transform SDK plan to API format for comparison
+	const apiPlan = transformPlanToApi(planForCheck);
+	const response = await getPlanHasCustomers({
+		secretKey,
+		planId: plan.id,
+		plan: apiPlan,
+	});
+
+	return {
+		plan,
+		willVersion: response.will_version || false,
+		isArchived: response.archived || false,
+	};
 }
 
 /**
@@ -441,8 +444,9 @@ export async function analyzePush(
 	});
 
 	// Check versioning info for each plan to update
+	const newFeatureIds = new Set(featuresToCreate.map((f) => f.id));
 	const planUpdatePromises = plansToUpdateLocal.map((plan) =>
-		checkPlanForVersioning(plan, remoteData.plans),
+		checkPlanForVersioning(plan, remoteData.plans, newFeatureIds),
 	);
 	const plansToUpdate = await Promise.all(planUpdatePromises);
 
