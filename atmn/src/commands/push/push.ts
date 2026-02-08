@@ -1,5 +1,5 @@
 // @ts-nocheck - Using ts-nocheck due to complex Record<string, unknown> index signature issues
-import type { Feature, Plan } from "../../compose/models/index.js";
+import type { Feature, Plan, PlanFeature } from "../../compose/models/index.js";
 import {
 	archiveFeature as archiveFeatureApi,
 	archivePlan as archivePlanApi,
@@ -19,6 +19,10 @@ import {
 } from "../../lib/api/endpoints/index.js";
 import { isProd } from "../../lib/env/cliContext.js";
 import { AppEnv, getKey } from "../../lib/env/index.js";
+import {
+	transformApiFeature,
+	transformApiPlan,
+} from "../../lib/transforms/apiToSdk/index.js";
 import { transformPlanToApi } from "../../lib/transforms/sdkToApi/index.js";
 import type {
 	FeatureDeleteInfo,
@@ -165,6 +169,194 @@ async function checkPlanForVersioning(
 }
 
 /**
+ * Deep equality check that treats null and undefined as equivalent.
+ */
+function valuesEqual(a: unknown, b: unknown): boolean {
+	if (a === b) return true;
+	if (a == null && b == null) return true;
+	if (a == null || b == null) return false;
+	if (typeof a !== typeof b) return false;
+
+	if (Array.isArray(a) && Array.isArray(b)) {
+		if (a.length !== b.length) return false;
+		return a.every((item, i) => valuesEqual(item, b[i]));
+	}
+
+	if (typeof a === "object" && typeof b === "object") {
+		const aObj = a as Record<string, unknown>;
+		const bObj = b as Record<string, unknown>;
+		const allKeys = new Set([...Object.keys(aObj), ...Object.keys(bObj)]);
+		for (const key of allKeys) {
+			if (!valuesEqual(aObj[key], bObj[key])) return false;
+		}
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Normalize a feature to a canonical form for comparison.
+ * Strips default/empty values so semantically identical features
+ * produce the same representation.
+ */
+function normalizeFeatureForCompare(f: Feature): Record<string, unknown> {
+	const result: Record<string, unknown> = {
+		id: f.id,
+		name: f.name,
+		type: f.type,
+	};
+
+	// consumable is only meaningful for metered features.
+	// For credit_system it's always true (the only valid value), so omit it.
+	if (f.type === "metered" && "consumable" in f) {
+		result.consumable = (f as { consumable: boolean }).consumable;
+	}
+
+	if (f.event_names && f.event_names.length > 0) {
+		result.event_names = [...f.event_names].sort();
+	}
+
+	if (f.credit_schema && f.credit_schema.length > 0) {
+		result.credit_schema = [...f.credit_schema]
+			.sort((a, b) =>
+				a.metered_feature_id.localeCompare(b.metered_feature_id),
+			)
+			.map((cs) => ({
+				metered_feature_id: cs.metered_feature_id,
+				credit_cost: cs.credit_cost,
+			}));
+	}
+
+	return result;
+}
+
+/**
+ * Normalize a plan feature to a canonical form for comparison.
+ * Strips default values (unlimited: false, billing_units: 1, interval_count: 1).
+ */
+function normalizePlanFeatureForCompare(
+	pf: PlanFeature,
+): Record<string, unknown> {
+	const f = pf as Record<string, unknown>;
+	const result: Record<string, unknown> = {
+		feature_id: pf.feature_id,
+	};
+
+	if (f.included != null) result.included = f.included;
+	if (f.unlimited === true) result.unlimited = true;
+
+	const reset = f.reset as Record<string, unknown> | undefined;
+	if (reset != null) {
+		const r: Record<string, unknown> = { interval: reset.interval };
+		if (reset.interval_count != null && reset.interval_count !== 1) {
+			r.interval_count = reset.interval_count;
+		}
+		result.reset = r;
+	}
+
+	const price = f.price as Record<string, unknown> | undefined;
+	if (price != null) {
+		const p: Record<string, unknown> = {};
+		if (price.amount != null) p.amount = price.amount;
+		if (price.billing_method != null)
+			p.billing_method = price.billing_method;
+		if (price.interval != null) p.interval = price.interval;
+		if (price.interval_count != null && price.interval_count !== 1) {
+			p.interval_count = price.interval_count;
+		}
+		if (
+			price.tiers != null &&
+			Array.isArray(price.tiers) &&
+			price.tiers.length > 0
+		) {
+			p.tiers = price.tiers;
+		}
+		if (price.billing_units != null && price.billing_units !== 1) {
+			p.billing_units = price.billing_units;
+		}
+		if (price.max_purchase != null) p.max_purchase = price.max_purchase;
+		if (Object.keys(p).length > 0) result.price = p;
+	}
+
+	const proration = f.proration as Record<string, unknown> | undefined;
+	if (proration != null) result.proration = proration;
+
+	const rollover = f.rollover as Record<string, unknown> | undefined;
+	if (rollover != null) result.rollover = rollover;
+
+	return result;
+}
+
+/**
+ * Normalize a plan to a canonical form for comparison.
+ * Strips default/empty values so semantically identical plans
+ * produce the same representation.
+ */
+function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
+	const result: Record<string, unknown> = {
+		id: plan.id,
+		name: plan.name,
+	};
+
+	if (plan.description != null && plan.description !== "") {
+		result.description = plan.description;
+	}
+	if (plan.group != null && plan.group !== "") {
+		result.group = plan.group;
+	}
+	if (plan.add_on === true) result.add_on = true;
+	if (plan.auto_enable === true) result.auto_enable = true;
+
+	if (plan.price != null) {
+		result.price = {
+			amount: plan.price.amount,
+			interval: plan.price.interval,
+		};
+	}
+
+	if (plan.free_trial != null) {
+		result.free_trial = {
+			duration_type: plan.free_trial.duration_type,
+			duration_length: plan.free_trial.duration_length,
+			card_required: plan.free_trial.card_required,
+		};
+	}
+
+	if (plan.features != null && plan.features.length > 0) {
+		result.features = [...plan.features]
+			.sort((a, b) => a.feature_id.localeCompare(b.feature_id))
+			.map(normalizePlanFeatureForCompare);
+	}
+
+	return result;
+}
+
+/**
+ * Check if a local feature differs from its remote counterpart.
+ * Transforms the remote API data to SDK format before comparing.
+ */
+function hasFeatureChanged(local: Feature, remoteRaw: unknown): boolean {
+	const remote = transformApiFeature(remoteRaw);
+	return !valuesEqual(
+		normalizeFeatureForCompare(local),
+		normalizeFeatureForCompare(remote),
+	);
+}
+
+/**
+ * Check if a local plan differs from its remote counterpart.
+ * Transforms the remote API data to SDK format before comparing.
+ */
+function hasPlanChanged(local: Plan, remoteRaw: unknown): boolean {
+	const remote = transformApiPlan(remoteRaw as any);
+	return !valuesEqual(
+		normalizePlanForCompare(local),
+		normalizePlanForCompare(remote),
+	);
+}
+
+/**
  * Analyze what changes need to be pushed
  */
 export async function analyzePush(
@@ -178,13 +370,16 @@ export async function analyzePush(
 	const remoteFeatureIds = new Set(remoteData.features.map((f) => f.id));
 	const remotePlanIds = new Set(remoteData.plans.map((p) => p.id));
 
-	// Find features to create, update, and delete
+	// Find features to create and update (only actually changed features)
 	const featuresToCreate = localFeatures.filter(
 		(f) => !remoteFeatureIds.has(f.id),
 	);
-	const featuresToUpdate = localFeatures.filter((f) =>
-		remoteFeatureIds.has(f.id),
-	);
+	const featuresToUpdate = localFeatures.filter((f) => {
+		if (!remoteFeatureIds.has(f.id)) return false;
+		const remoteFeature = remoteData.features.find((rf) => rf.id === f.id);
+		if (!remoteFeature) return false;
+		return hasFeatureChanged(f, remoteFeature);
+	});
 
 	// Find features that exist remotely but not locally (potential deletes)
 	// Exclude already archived features
@@ -225,9 +420,14 @@ export async function analyzePush(
 		return remote && (remote as Feature & { archived?: boolean }).archived;
 	});
 
-	// Find plans to create, update, and delete
+	// Find plans to create and update (only actually changed plans)
 	const plansToCreate = localPlans.filter((p) => !remotePlanIds.has(p.id));
-	const plansToUpdateLocal = localPlans.filter((p) => remotePlanIds.has(p.id));
+	const plansToUpdateLocal = localPlans.filter((p) => {
+		if (!remotePlanIds.has(p.id)) return false;
+		const remotePlan = remoteData.plans.find((rp) => rp.id === p.id);
+		if (!remotePlan) return false;
+		return hasPlanChanged(p, remotePlan);
+	});
 
 	// Check versioning info for each plan to update
 	const planUpdatePromises = plansToUpdateLocal.map((plan) =>
