@@ -127,7 +127,7 @@ export function removeKeysFromEnv(
 
 	const content = readFileSync(envPath, "utf-8");
 	const lines = content.split("\n");
-	const removed: string[] = [];
+	const removed = new Set<string>();
 
 	const filtered = lines.filter((line) => {
 		const trimmed = line.trim();
@@ -140,7 +140,7 @@ export function removeKeysFromEnv(
 		// Check if this uncommented line matches one of the keys to remove
 		for (const key of keys) {
 			if (trimmed.startsWith(`${key}=`)) {
-				removed.push(key);
+				removed.add(key);
 				return false;
 			}
 		}
@@ -148,7 +148,14 @@ export function removeKeysFromEnv(
 		return true;
 	});
 
-	writeFileSync(envPath, filtered.join("\n"), "utf-8");
+	if (removed.size > 0) {
+		const endsWithNewline = content.endsWith("\n");
+		let output = filtered.join("\n");
+		if (endsWithNewline && !output.endsWith("\n")) {
+			output += "\n";
+		}
+		writeFileSync(envPath, output, "utf-8");
+	}
 
-	return removed;
+	return [...removed];
 }
