@@ -74,7 +74,7 @@ async function promptAndConfirmNuke(orgName: string): Promise<boolean> {
 	return backupConfirm;
 }
 
-export default async function Nuke() {
+export default async function Nuke(options?: { skipAllPrompts?: boolean }) {
 	const apiKey = readFromEnv();
 
 	if (!apiKey) {
@@ -98,7 +98,17 @@ export default async function Nuke() {
 		}
 
 		const org = await fetchOrganization({ secretKey });
-		const backupConfirm = await promptAndConfirmNuke(org.name);
+
+		let backupConfirm = false;
+		if (options?.skipAllPrompts) {
+			console.log(
+				chalk.yellow(
+					"⚠ Skipping all confirmation prompts (--dangerously-skip-all-confirmation-prompts)",
+				),
+			);
+		} else {
+			backupConfirm = await promptAndConfirmNuke(org.name);
+		}
 
 		if (backupConfirm) {
 			try {
