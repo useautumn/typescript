@@ -38,6 +38,7 @@
 		"clipboardy": "^5.0.2",
 		"commander": "^14.0.0",
 		"dotenv": "^17.2.0",
+		"ervy": "^1.0.7",
 		"ink": "^6.6.0",
 		"ink-big-text": "^2.0.0",
 		"ink-chart": "^0.1.1",

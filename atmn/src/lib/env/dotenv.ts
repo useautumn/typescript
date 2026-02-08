@@ -112,3 +112,53 @@ export function setDotenvValue(
 	entries.set(key, value);
 	writeDotenvFile(envPath, entries);
 }
+
+/**
+ * Remove specific keys from .env file, preserving all other lines (comments, blank lines, other keys).
+ * Only removes lines that are uncommented and match one of the given keys.
+ * Returns the list of keys that were actually removed.
+ */
+export function removeKeysFromEnv(
+	keys: string[],
+	cwd = process.cwd(),
+): string[] {
+	const envPath = resolve(cwd, ".env");
+
+	if (!existsSync(envPath)) {
+		return [];
+	}
+
+	const content = readFileSync(envPath, "utf-8");
+	const lines = content.split("\n");
+	const removed = new Set<string>();
+
+	const filtered = lines.filter((line) => {
+		const trimmed = line.trim();
+
+		// Keep comments and blank lines
+		if (!trimmed || trimmed.startsWith("#")) {
+			return true;
+		}
+
+		// Check if this uncommented line matches one of the keys to remove
+		for (const key of keys) {
+			if (trimmed.startsWith(`${key}=`)) {
+				removed.add(key);
+				return false;
+			}
+		}
+
+		return true;
+	});
+
+	if (removed.size > 0) {
+		const endsWithNewline = content.endsWith("\n");
+		let output = filtered.join("\n");
+		if (endsWithNewline && !output.endsWith("\n")) {
+			output += "\n";
+		}
+		writeFileSync(envPath, output, "utf-8");
+	}
+
+	return [...removed];
+}

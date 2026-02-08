@@ -6,6 +6,7 @@ packages:
   - compose
   - cli
   - atmn
+  - atmn-tests
   - atmn/atmn-tests
   - ui
   - test-worker
