@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
-import dotenv from "dotenv";
 import yoctoSpinner from "yocto-spinner";
 import { isLocal, isProd } from "./env/cliContext.js";
+import { AppEnv } from "./env/detect.js";
+import { getKey } from "./env/keys.js";
 
 export const notNullish = (value: unknown) =>
 	value !== null && value !== undefined;
@@ -115,58 +116,33 @@ export async function storeToEnv(prodKey: string, sandboxKey: string) {
 	}
 }
 
-function getEnvVar(parsed: { [key: string]: string }, prodFlag: boolean) {
-	if (prodFlag) return parsed.AUTUMN_PROD_SECRET_KEY;
-
-	return parsed.AUTUMN_SECRET_KEY;
-}
-
+/**
+ * Read API key from environment using centralized env resolution.
+ * Precedence: process.env → .env → .env.local (via getKey/getDotenvValue)
+ *
+ * @deprecated Prefer using getKey(env) or getAnyKey() from lib/env directly.
+ */
 export function readFromEnv(options?: { bypass?: boolean }) {
-	const envPath = `${process.cwd()}/.env`;
-	const envLocalPath = `${process.cwd()}/.env.local`;
-	const prodFlag = isProd();
+	const env = isProd() ? AppEnv.Live : AppEnv.Sandbox;
 
-	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-	if (prodFlag && process.env["AUTUMN_PROD_SECRET_KEY"]) {
-		return process.env.AUTUMN_PROD_SECRET_KEY;
-	}
-
-	// biome-ignore lint/complexity/useLiteralKeys: will throw "index signature" error otherwise
-	if (!prodFlag && process.env["AUTUMN_SECRET_KEY"]) {
-		return process.env.AUTUMN_SECRET_KEY;
-	}
-
-	let secretKey: string | undefined;
-
-	// Check .env second
-	if (fs.existsSync(envPath) && !secretKey)
-		secretKey = getEnvVar(
-			dotenv.parse(fs.readFileSync(envPath, "utf-8")),
-			prodFlag,
-		);
-
-	// If not found in .env, check .env.local
-	if (fs.existsSync(envLocalPath) && !secretKey)
-		secretKey = getEnvVar(
-			dotenv.parse(fs.readFileSync(envLocalPath, "utf-8")),
-			prodFlag,
-		);
-
-	if (!secretKey && !options?.bypass) {
-		if (prodFlag) {
-			console.error(
-				"[Error] atmn uses the AUTUMN_PROD_SECRET_KEY to call the Autumn production API. Please add it to your .env file or run `atmn login` to authenticate.",
-			);
-			process.exit(1);
-		} else {
-			console.error(
-				"[Error] atmn uses the AUTUMN_SECRET_KEY to call the Autumn sandbox API. Please add it to your .env (or .env.local) file or run `atmn login` to authenticate.",
-			);
+	try {
+		return getKey(env);
+	} catch {
+		if (!options?.bypass) {
+			if (isProd()) {
+				console.error(
+					"[Error] atmn uses the AUTUMN_PROD_SECRET_KEY to call the Autumn production API. Please add it to your .env file or run `atmn login` to authenticate.",
+				);
+			} else {
+				console.error(
+					"[Error] atmn uses the AUTUMN_SECRET_KEY to call the Autumn sandbox API. Please add it to your .env (or .env.local) file or run `atmn login` to authenticate.",
+				);
+			}
 			process.exit(1);
 		}
-	}
 
-	return secretKey;
+		return undefined;
+	}
 }
 
 export function initSpinner(message: string) {

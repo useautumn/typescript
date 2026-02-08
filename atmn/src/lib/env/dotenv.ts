@@ -74,26 +74,29 @@ export function writeDotenvFile(
 }
 
 /**
- * Get value from environment (checks process.env first, then .env.local, then .env)
+ * Get value from environment
+ * Precedence: process.env → .env → .env.local
  */
 export function getDotenvValue(
 	key: string,
 	cwd = process.cwd(),
 ): string | undefined {
-	// Check process.env first (for environment variables set in shell)
+	// 1. Check process.env first (for environment variables set in shell)
 	if (process.env[key]) {
 		return process.env[key];
 	}
 
-	const localPath = resolve(cwd, ".env.local");
-	const localEntries = readDotenvFile(localPath);
-	if (localEntries.has(key)) {
-		return localEntries.get(key);
-	}
-
+	// 2. Check .env
 	const envPath = resolve(cwd, ".env");
 	const envEntries = readDotenvFile(envPath);
-	return envEntries.get(key);
+	if (envEntries.has(key)) {
+		return envEntries.get(key);
+	}
+
+	// 3. Check .env.local
+	const localPath = resolve(cwd, ".env.local");
+	const localEntries = readDotenvFile(localPath);
+	return localEntries.get(key);
 }
 
 /**
