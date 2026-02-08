@@ -10,10 +10,12 @@ import { pull as newPull } from "./commands/pull/pull.js"; // New pull implement
 import { FRONTEND_URL } from "./constants.js";
 import { fetchOrganizationMe } from "./lib/api/endpoints/index.js";
 import { isProd, setCliContext } from "./lib/env/cliContext.js";
+import { checkAtmnInstalled } from "./lib/precheck.js";
 import { readFromEnv } from "./lib/utils.js";
 // Import Ink views
 import { QueryProvider } from "./views/react/components/providers/QueryProvider.js";
 import { InitFlow } from "./views/react/init/InitFlow.js";
+import { InstallPrompt } from "./views/react/install/InstallPrompt.js";
 import { PullView } from "./views/react/pull/Pull.js";
 import { APP_VERSION } from "./lib/version.js";
 
@@ -450,4 +452,13 @@ const originalEmit = process.emitWarning as any;
 	return originalEmit(warning, ...args);
 };
 
-program.parse();
+async function main() {
+	if (!checkAtmnInstalled() && process.stdout.isTTY) {
+		const { waitUntilExit } = render(<InstallPrompt />);
+		await waitUntilExit();
+	}
+
+	program.parse();
+}
+
+main();
