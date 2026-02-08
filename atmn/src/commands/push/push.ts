@@ -384,23 +384,24 @@ export async function analyzePush(
 
 	const localFeatureIds = new Set(localFeatures.map((f) => f.id));
 	const localPlanIds = new Set(localPlans.map((p) => p.id));
-	const remoteFeatureIds = new Set(remoteData.features.map((f) => f.id));
-	const remotePlanIds = new Set(remoteData.plans.map((p) => p.id));
+	const remoteFeaturesById = new Map(
+		remoteData.features.map((f) => [f.id, f]),
+	);
+	const remotePlansById = new Map(remoteData.plans.map((p) => [p.id, p]));
 
 	// Find features to create and update (only actually changed features)
 	const featuresToCreate = localFeatures.filter(
-		(f) => !remoteFeatureIds.has(f.id),
+		(f) => !remoteFeaturesById.has(f.id),
 	);
 	const featuresToUpdate = localFeatures.filter((f) => {
-		if (!remoteFeatureIds.has(f.id)) return false;
-		const remoteFeature = remoteData.features.find((rf) => rf.id === f.id);
+		const remoteFeature = remoteFeaturesById.get(f.id);
 		if (!remoteFeature) return false;
 		return hasFeatureChanged(f, remoteFeature);
 	});
 
 	// Find features that exist remotely but not locally (potential deletes)
 	// Exclude already archived features
-	const featureIdsToDelete = remoteData.features
+	const featureIdsToDelete = [...remoteFeaturesById.values()]
 		.filter(
 			(f) =>
 				!localFeatureIds.has(f.id) &&
@@ -433,15 +434,16 @@ export async function analyzePush(
 
 	// Find archived features in local config
 	const archivedFeatures = localFeatures.filter((f) => {
-		const remote = remoteData.features.find((rf) => rf.id === f.id);
+		const remote = remoteFeaturesById.get(f.id);
 		return remote && (remote as Feature & { archived?: boolean }).archived;
 	});
 
 	// Find plans to create and update (only actually changed plans)
-	const plansToCreate = localPlans.filter((p) => !remotePlanIds.has(p.id));
+	const plansToCreate = localPlans.filter(
+		(p) => !remotePlansById.has(p.id),
+	);
 	const plansToUpdateLocal = localPlans.filter((p) => {
-		if (!remotePlanIds.has(p.id)) return false;
-		const remotePlan = remoteData.plans.find((rp) => rp.id === p.id);
+		const remotePlan = remotePlansById.get(p.id);
 		if (!remotePlan) return false;
 		return hasPlanChanged(p, remotePlan);
 	});
@@ -453,7 +455,7 @@ export async function analyzePush(
 	const plansToUpdate = await Promise.all(planUpdatePromises);
 
 	// Find plans that exist remotely but not locally (potential deletes)
-	const planIdsToDelete = remoteData.plans
+	const planIdsToDelete = [...remotePlansById.values()]
 		.filter(
 			(p) =>
 				!localPlanIds.has(p.id) &&
@@ -469,7 +471,7 @@ export async function analyzePush(
 
 	// Find archived plans in local config
 	const archivedPlans = localPlans.filter((p) => {
-		const remote = remoteData.plans.find((rp) => rp.id === p.id);
+		const remote = remotePlansById.get(p.id);
 		return remote && (remote as Plan & { archived?: boolean }).archived;
 	});
 
