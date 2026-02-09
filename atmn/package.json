@@ -1,6 +1,6 @@
 {
 	"name": "atmn",
-	"version": "1.0.0-ayushsmells.6",
+	"version": "1.0.0-ayushsmells.7",
 	"license": "MIT",
 	"bin": {
 		"atmn": "dist/cli.js"
