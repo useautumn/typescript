@@ -617,7 +617,7 @@ export function getAtmnTypeConfigs(
 				sourceType: "zod",
 				keepCase: true,
 				replaceEnumsWithStrings: true,
-				omitFields: ["display", "archived", "consumable", "type"],
+				omitFields: ["display", "consumable", "type"],
 				extendFields: {},
 				skipTypeExport: true, // We'll add discriminated union manually
 			},

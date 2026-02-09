@@ -432,10 +432,14 @@ export async function analyzePush(
 		return 0;
 	});
 
-	// Find archived features in local config
+	// Find archived features in local config that need unarchiving
+	// Only include if: remote is archived AND local does NOT have archived: true
 	const archivedFeatures = localFeatures.filter((f) => {
 		const remote = remoteFeaturesById.get(f.id);
-		return remote && (remote as Feature & { archived?: boolean }).archived;
+		const localArchived = (f as Feature & { archived?: boolean }).archived;
+		const remoteArchived = remote && (remote as Feature & { archived?: boolean }).archived;
+		// Prompt to unarchive only if remote is archived but local doesn't explicitly want it archived
+		return remoteArchived && !localArchived;
 	});
 
 	// Find plans to create and update (only actually changed plans)
@@ -469,10 +473,14 @@ export async function analyzePush(
 	);
 	const plansToDelete = await Promise.all(planDeletePromises);
 
-	// Find archived plans in local config
+	// Find archived plans in local config that need unarchiving
+	// Only include if: remote is archived AND local does NOT have archived: true
 	const archivedPlans = localPlans.filter((p) => {
 		const remote = remotePlansById.get(p.id);
-		return remote && (remote as Plan & { archived?: boolean }).archived;
+		const localArchived = (p as Plan & { archived?: boolean }).archived;
+		const remoteArchived = remote && (remote as Plan & { archived?: boolean }).archived;
+		// Prompt to unarchive only if remote is archived but local doesn't explicitly want it archived
+		return remoteArchived && !localArchived;
 	});
 
 	return {

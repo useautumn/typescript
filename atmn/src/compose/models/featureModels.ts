@@ -16,7 +16,8 @@ export const FeatureSchema = z.object({
     credit_cost: z.number(),
     }),
     )
-    .optional()
+    .optional(),
+  archived: z.boolean()
 });
 
 
@@ -27,6 +28,8 @@ type FeatureBase = {
   id: string;
   /** Display name for the feature */
   name: string;
+  /** Whether the feature is archived */
+  archived?: boolean;
   /** Event names that trigger this feature */
   event_names?: string[];
   /** Credit schema for credit_system features */

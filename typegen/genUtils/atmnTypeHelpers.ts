@@ -418,6 +418,8 @@ type FeatureBase = {
   id: string;
   /** Display name for the feature */
   name: string;
+  /** Whether the feature is archived */
+  archived?: boolean;
   /** Event names that trigger this feature */
   event_names?: string[];
   /** Credit schema for credit_system features */
