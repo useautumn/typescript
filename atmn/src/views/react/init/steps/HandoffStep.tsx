@@ -1,7 +1,7 @@
 import { MultiSelect, Select, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import open from "open";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useClipboard, useCreateSkills } from "../../../../lib/hooks/index.js";
 import { StatusLine, StepHeader } from "../../components/index.js";
 
@@ -34,6 +34,8 @@ type HandoffState =
 	| "complete_with_customers"
 	| "manual_exit";
 
+type NextStepChoice = "docs" | "copy" | "exit";
+
 const PRESET_LOCATIONS = [
 	{ label: ".claude/skills (Claude Code)", value: ".claude/skills" },
 	{
@@ -59,6 +61,8 @@ export function HandoffStep({
 	const [customPath, setCustomPath] = useState("");
 	const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 	const [allCreatedDirs, setAllCreatedDirs] = useState<string[]>([]);
+	const [lastNextStepChoice, setLastNextStepChoice] =
+		useState<NextStepChoice>("exit");
 	const { create, state: skillsState, filesCreated, error } = useCreateSkills();
 
 	const nextStepsOptions = [
@@ -136,6 +140,8 @@ export function HandoffStep({
 	};
 
 	const handleNextStepsChoice = async (value: string) => {
+		setLastNextStepChoice(value as NextStepChoice);
+
 		if (value === "docs") {
 			await open("https://docs.useautumn.com");
 		} else if (value === "copy") {
@@ -146,20 +152,23 @@ export function HandoffStep({
 		setState("manual_exit");
 		setTimeout(() => {
 			exit();
-		}, 100);
+		}, 900);
 	};
 
 	// User already has customers - they're all set!
 	if (state === "complete_with_customers") {
 		setTimeout(() => {
 			exit();
-		}, 100);
+		}, 900);
 
 		return (
 			<Box flexDirection="column" marginBottom={1}>
 				<StepHeader step={step} totalSteps={totalSteps} title="Next Steps" />
 				<Box flexDirection="column">
-					<StatusLine status="success" message="You're all set!" />
+					<StatusLine
+						status="success"
+						message="You're all set - next, run atmn push when you're ready to sync your config."
+					/>
 					<Box marginTop={1} flexDirection="column" gap={0}>
 						<Text dimColor>
 							Docs: <Text color="cyan">https://docs.useautumn.com</Text>
@@ -179,7 +188,10 @@ export function HandoffStep({
 			<Box flexDirection="column" marginBottom={1}>
 				<StepHeader step={step} totalSteps={totalSteps} title="Next Steps" />
 				<Box flexDirection="column">
-					<Text>Would you like us to setup Autumn's AI skills?</Text>
+					<Text>
+						Would you like to install AI skills to help model your pricing plans
+						and implement Autumn into your codebase?
+					</Text>
 					<Box marginTop={1}>
 						<Select options={aiChoiceOptions} onChange={handleAiChoice} />
 					</Box>
@@ -284,11 +296,18 @@ export function HandoffStep({
 
 	// Manual exit
 	if (state === "manual_exit") {
+		const finalMessage =
+			lastNextStepChoice === "docs"
+				? "You're all set - we're opening the docs now for you."
+				: lastNextStepChoice === "copy"
+					? "You're all set - paste the prompt we copied into your agent of choice to get started."
+					: "You're all set - next, run atmn push when you're ready to sync your config.";
+
 		return (
 			<Box flexDirection="column" marginBottom={1}>
 				<StepHeader step={step} totalSteps={totalSteps} title="Next Steps" />
 				<Box flexDirection="column">
-					<StatusLine status="success" message="You're all set!" />
+					<StatusLine status="success" message={finalMessage} />
 					<Box marginTop={1} flexDirection="column" gap={0}>
 						<Text dimColor>
 							Docs: <Text color="cyan">https://docs.useautumn.com</Text>

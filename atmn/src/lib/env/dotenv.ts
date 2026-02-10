@@ -75,7 +75,7 @@ export function writeDotenvFile(
 
 /**
  * Get value from environment
- * Precedence: process.env → .env → .env.local
+ * Precedence: process.env → .env.local → .env
  */
 export function getDotenvValue(
 	key: string,
@@ -86,17 +86,17 @@ export function getDotenvValue(
 		return process.env[key];
 	}
 
-	// 2. Check .env
-	const envPath = resolve(cwd, ".env");
-	const envEntries = readDotenvFile(envPath);
-	if (envEntries.has(key)) {
-		return envEntries.get(key);
-	}
-
-	// 3. Check .env.local
+	// 2. Check .env.local
 	const localPath = resolve(cwd, ".env.local");
 	const localEntries = readDotenvFile(localPath);
-	return localEntries.get(key);
+	if (localEntries.has(key)) {
+		return localEntries.get(key);
+	}
+
+	// 3. Check .env
+	const envPath = resolve(cwd, ".env");
+	const envEntries = readDotenvFile(envPath);
+	return envEntries.get(key);
 }
 
 /**

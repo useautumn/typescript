@@ -8,8 +8,6 @@ import { resolveConfigPath } from "./env/index.js";
  */
 export function writeEmptyConfig(targetDir?: string): void {
 	const content = `import { plan, feature, planFeature } from 'atmn'
-// export const message = feature({ "id": "msg", "name": "Messages", "type": "metered", "consumable": true })
-// export const free = plan({ "id": "free", "name": "Free Tier", features: [...] })
 `;
 
 	const configPath = targetDir

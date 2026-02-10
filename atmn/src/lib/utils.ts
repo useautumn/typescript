@@ -118,7 +118,7 @@ export async function storeToEnv(prodKey: string, sandboxKey: string) {
 
 /**
  * Read API key from environment using centralized env resolution.
- * Precedence: process.env → .env → .env.local (via getKey/getDotenvValue)
+ * Precedence: process.env → .env.local → .env (via getKey/getDotenvValue)
  *
  * @deprecated Prefer using getKey(env) or getAnyKey() from lib/env directly.
  */

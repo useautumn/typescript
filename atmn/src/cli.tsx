@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { program } from "commander";
 import { render } from "ink";
 import open from "open";
+import React from "react";
 import AuthCommand from "./commands/auth/command.js";
 import Nuke from "./commands/nuke/legacyNuke.js";
 import { pull as newPull } from "./commands/pull/pull.js"; // New pull implementation
@@ -446,21 +447,6 @@ program
 			format: options.format,
 		});
 	});
-
-program
-	.command("events-aggregate-test")
-	.description("Test aggregate data and charts (dev only)")
-	.option("--limit <n>", "Number of events to fetch", "100")
-	.action(async (options) => {
-		const { eventsAggregateTestCommand } = await import(
-			"./commands/events-aggregate-test/index.js"
-		);
-		await eventsAggregateTestCommand({
-			prod: isProd(),
-			limit: Number.parseInt(options.limit, 10),
-		});
-	});
-
 /**
  * This is a hack to silence the DeprecationWarning about url.parse()
  */
