@@ -142,14 +142,14 @@ function outputProductList(
 
 	if (format === "csv") {
 		// CSV header
-		console.log("id,name,version,type,price,features_count,created_at");
+		console.log("id,name,version,type,price,items_count,created_at");
 		// CSV rows
 		for (const p of products) {
 			const name = escapeCsv(p.name);
 			const version = p.version;
-			const type = p.add_on ? "Add-on" : "Plan";
+			const type = p.add_on ? "Add-on" : p.auto_enable ? "Default" : "Plan";
 			const price = p.price?.amount ?? 0;
-			const featuresCount = p.features?.length ?? 0;
+			const featuresCount = p.items?.length ?? 0;
 			const created = new Date(normalizeTimestamp(p.created_at)).toISOString();
 			console.log(`${p.id},${name},${version},${type},${price},${featuresCount},${created}`);
 		}
@@ -181,7 +181,7 @@ function outputProductList(
 
 	// Header
 	console.log(
-		`${"ID".padEnd(idWidth)}  ${"Name".padEnd(nameWidth)}  ${"Ver".padEnd(4)}  ${"Type".padEnd(6)}  ${"Price".padEnd(14)}  Features`,
+		`${"ID".padEnd(idWidth)}  ${"Name".padEnd(nameWidth)}  ${"Ver".padEnd(4)}  ${"Type".padEnd(7)}  ${"Price".padEnd(14)}  Items`,
 	);
 	console.log("-".repeat(idWidth + nameWidth + 50));
 
@@ -189,9 +189,9 @@ function outputProductList(
 	for (const p of products) {
 		const name = p.name.padEnd(nameWidth);
 		const version = `v${p.version}`.padEnd(4);
-		const type = (p.add_on ? "Add-on" : "Plan").padEnd(6);
+		const type = (p.add_on ? "Add-on" : p.auto_enable ? "Default" : "Plan").padEnd(7);
 		const price = formatPrice(p.price?.amount ?? 0, p.price?.interval).padEnd(14);
-		const featuresCount = p.features?.length ?? 0;
+		const featuresCount = p.items?.length ?? 0;
 		console.log(`${p.id.padEnd(idWidth)}  ${name}  ${version}  ${type}  ${price}  ${featuresCount}`);
 	}
 
@@ -219,14 +219,14 @@ function outputSingleProduct(
 
 	if (format === "csv") {
 		// For single product, just output basic fields as CSV
-		console.log("id,name,version,type,price,features_count,created_at");
+		console.log("id,name,version,type,items_count,price,created_at");
 		const name = escapeCsv(product.name);
 		const version = product.version;
-		const type = product.add_on ? "Add-on" : "Plan";
+		const type = product.add_on ? "Add-on" : product.auto_enable ? "Default" : "Plan";
 		const price = product.price?.amount ?? 0;
-		const featuresCount = product.features?.length ?? 0;
+		const featuresCount = product.items?.length ?? 0;
 		const created = new Date(normalizeTimestamp(product.created_at)).toISOString();
-		console.log(`${product.id},${name},${version},${type},${price},${featuresCount},${created}`);
+		console.log(`${product.id},${name},${version},${type},${featuresCount},${price},${created}`);
 		return;
 	}
 
@@ -239,9 +239,11 @@ function outputSingleProduct(
 	console.log(`  Name:        ${product.name}`);
 	console.log(`  Description: ${product.description ?? "-"}`);
 	console.log(`  Version:     v${product.version}`);
-	console.log(`  Type:        ${product.add_on ? "Add-on" : "Plan"}`);
+	console.log(
+		`  Type:        ${product.add_on ? "Add-on" : product.auto_enable ? "Default" : "Plan"}`,
+	);
 	console.log(`  Group:       ${product.group ?? "-"}`);
-	console.log(`  Default:     ${product.default ? "Yes" : "No"}`);
+	console.log(`  Default:     ${product.auto_enable ? "Yes" : "No"}`);
 	console.log(`  Archived:    ${product.archived ? "Yes" : "No"}`);
 	console.log(`  Environment: ${product.env}`);
 	console.log(`  Created:     ${formatDate(product.created_at)}`);
@@ -265,24 +267,25 @@ function outputSingleProduct(
 		console.log(`  Card Required: ${product.free_trial.card_required ? "Yes" : "No"}`);
 	}
 
-	// Features
-	if (product.features && product.features.length > 0) {
+	// Items
+	if (product.items && product.items.length > 0) {
 		console.log("");
-		console.log(`Features (${product.features.length}):`);
-		for (const feature of product.features) {
+		console.log(`Items (${product.items.length}):`);
+		for (const feature of product.items) {
 			const featureName = feature.feature?.name ?? feature.feature_id;
 			let valueStr = "";
 
 			if (feature.unlimited) {
 				valueStr = "Unlimited";
-			} else if (feature.balance !== undefined && feature.balance !== null) {
-				valueStr = `${feature.balance} credits`;
-			} else if (feature.enabled !== undefined) {
-				valueStr = feature.enabled ? "ON" : "OFF";
+			} else if (feature.included !== undefined && feature.included !== null) {
+				valueStr = `${feature.included}`;
 			}
 
 			if (feature.price) {
-				const priceStr = formatPrice(feature.price.amount, feature.price.interval);
+				const priceStr =
+					feature.price.amount !== undefined
+						? formatPrice(feature.price.amount, feature.price.interval)
+						: `Tiered/${feature.price.interval}`;
 				valueStr += valueStr ? ` (${priceStr})` : priceStr;
 			}
 

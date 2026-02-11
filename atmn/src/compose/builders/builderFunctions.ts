@@ -18,7 +18,7 @@ type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> 
  *   id: 'pro',
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
- *   features: [
+ *   items: [
  *     planFeature({ feature_id: seats.id, included: 10 }),
  *     planFeature({
  *       feature_id: messages.id,
@@ -71,7 +71,7 @@ export const feature = (params: Feature): Feature => {
  * Include a feature in a plan with specific configuration
  *
  * @param config - Feature configuration for this plan
- * @returns PlanFeature for use in plan's features array
+ * @returns PlanFeature for use in plan's items array
  *
  * @example
  * // Simple included usage

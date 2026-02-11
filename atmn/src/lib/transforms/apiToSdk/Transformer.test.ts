@@ -66,19 +66,18 @@ describe("Transformer", () => {
 	});
 
 	describe("Plan transforms", () => {
-		test("basic plan with default → auto_enable rename", () => {
+		test("basic plan with native auto_enable field", () => {
 			const apiPlan: any = {
 				id: "pro",
 				name: "Pro Plan",
 				description: "Professional tier",
-				default: true,
-				features: [],
+				auto_enable: true,
+				items: [],
 			};
 
 			const result = transformApiPlan(apiPlan);
 
 			expect(result.auto_enable).toBe(true);
-			expect("default" in result).toBe(false);
 			expect(result.id).toBe("pro");
 		});
 
@@ -90,7 +89,7 @@ describe("Transformer", () => {
 					amount: 9900,
 					interval: "month" as const,
 				},
-				features: [],
+				items: [],
 			};
 
 			const result = transformApiPlan(apiPlan);

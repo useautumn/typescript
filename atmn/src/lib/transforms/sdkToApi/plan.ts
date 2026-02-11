@@ -9,22 +9,22 @@ export interface ApiPlanParams {
 	description?: string | null;
 	group?: string;
 	add_on?: boolean;
-	default?: boolean;
+	auto_enable?: boolean;
 	price?: {
 		amount: number;
 		interval: string;
 	};
-	features?: ApiPlanFeatureParams[];
+	items?: ApiPlanFeatureParams[];
 	free_trial?: {
 		duration_type: string;
 		duration_length: number;
 		card_required: boolean;
-	} | null;
+	};
 }
 
 export interface ApiPlanFeatureParams {
 	feature_id: string;
-	granted_balance?: number; // API uses granted_balance, SDK uses included
+	included?: number;
 	unlimited?: boolean;
 	reset?: {
 		interval: string;
@@ -36,7 +36,7 @@ export interface ApiPlanFeatureParams {
 		interval: string;
 		interval_count?: number;
 		billing_units?: number;
-		usage_model: string;
+		billing_method: string;
 		max_purchase?: number;
 	};
 	proration?: {
@@ -62,9 +62,8 @@ function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 		feature_id: feature.feature_id,
 	};
 
-	// SDK uses 'included', API uses 'granted_balance'
 	if (feature.included !== undefined) {
-		result.granted_balance = feature.included;
+		result.included = feature.included;
 	}
 
 	if (feature.unlimited !== undefined) {
@@ -91,16 +90,10 @@ function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
 		const interval = priceInterval ?? feature.reset?.interval;
 		const intervalCount = priceIntervalCount ?? feature.reset?.interval_count;
 
-		// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
-		const usageModel =
-			feature.price.billing_method === "usage_based"
-				? "pay_per_use"
-				: (feature.price.billing_method ?? "prepaid");
-
 		result.price = {
 			interval,
 			billing_units: feature.price.billing_units ?? 1,
-			usage_model: usageModel,
+			billing_method: feature.price.billing_method ?? "prepaid",
 			...(feature.price.amount !== undefined && {
 				amount: feature.price.amount,
 			}),
@@ -156,9 +149,8 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 		result.add_on = plan.add_on;
 	}
 
-	// SDK uses 'auto_enable', API uses 'default'
 	if (plan.auto_enable !== undefined) {
-		result.default = plan.auto_enable;
+		result.auto_enable = plan.auto_enable;
 	}
 
 	if (plan.price) {
@@ -168,18 +160,16 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 		};
 	}
 
-	if (plan.features && plan.features.length > 0) {
-		result.features = plan.features.map(transformPlanFeature);
+	if (plan.items && plan.items.length > 0) {
+		result.items = plan.items.map(transformPlanFeature);
 	}
 
-	if (plan.free_trial !== undefined) {
-		result.free_trial = plan.free_trial
-			? {
-					duration_type: plan.free_trial.duration_type,
-					duration_length: plan.free_trial.duration_length,
-					card_required: plan.free_trial.card_required,
-				}
-			: null;
+	if (plan.free_trial) {
+		result.free_trial = {
+			duration_type: plan.free_trial.duration_type,
+			duration_length: plan.free_trial.duration_length,
+			card_required: plan.free_trial.card_required,
+		};
 	}
 
 	return result;

@@ -111,12 +111,12 @@ export interface ApiOrganization {
 		// Extract meta descriptions from PlanFeature schema for manual type generation
 		const planFeatureConfig = typeConfig.configs.find(c => c.targetName === "PlanFeature");
 		if (planFeatureConfig) {
-			const planFeatureSourceFile = path.join(serverPath, "api/products/planFeature/planFeatureOpModels.ts");
-			const { metaDescriptions: planFeatureMeta } = extractZodSchema(planFeatureSourceFile, "UpdatePlanFeatureSchema");
+			const planFeatureSourceFile = path.join(serverPath, "api/products/items/crud/createPlanItemParamsV1.ts");
+			const { metaDescriptions: planFeatureMeta } = extractZodSchema(planFeatureSourceFile, "CreatePlanItemParamsV1Schema");
 
 			// Extract from Plan schema for Plan type JSDoc
-			const planSourceFile = path.join(serverPath, "api/products/planOpModels.ts");
-			const { metaDescriptions: planMeta } = extractZodSchema(planSourceFile, "CreatePlanParamsSchema");
+			const planSourceFile = path.join(serverPath, "api/products/crud/createPlanParamsV0.ts");
+			const { metaDescriptions: planMeta } = extractZodSchema(planSourceFile, "CreatePlanParamsV1Schema");
 
 			// Generate manual type unions with JSDoc
 			const planModelsFile = path.join(atmnPath, "src/compose/models/planModels.ts");

@@ -60,7 +60,7 @@ function validatePlanFeature(
 ): ValidationError[] {
 	const errors: ValidationError[] = [];
 	const featureId = planFeature.feature_id || `(no feature_id)`;
-	const basePath = `plan "${planId}" → features[${featureIndex}] (${featureId})`;
+	const basePath = `plan "${planId}" → items[${featureIndex}] (${featureId})`;
 
 	// Look up the actual feature definition
 	const featureDefinition = features.find(
@@ -224,14 +224,14 @@ function validatePlan(plan: Plan, features: Feature[]): ValidationError[] {
 	}
 
 	// Validate each plan feature
-	if (plan.features && Array.isArray(plan.features)) {
-		for (let i = 0; i < plan.features.length; i++) {
-			const planFeature = plan.features[i];
+	if (plan.items && Array.isArray(plan.items)) {
+		for (let i = 0; i < plan.items.length; i++) {
+			const planFeature = plan.items[i];
 			if (planFeature) {
 				// feature_id is required
 				if (!planFeature.feature_id) {
 					errors.push({
-						path: `plan "${planId}" → features[${i}]`,
+						path: `plan "${planId}" → items[${i}]`,
 						message: `"feature_id" is required.`,
 					});
 				}

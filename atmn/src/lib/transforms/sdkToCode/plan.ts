@@ -50,10 +50,10 @@ export function buildPlanCode(
 		lines.push(`\t},`);
 	}
 
-	// Add features (always include array for parser detection)
-	lines.push(`\tfeatures: [`);
-	if (plan.features && plan.features.length > 0) {
-		for (const planFeature of plan.features) {
+	// Add items (always include array for parser detection)
+	lines.push(`\titems: [`);
+	if (plan.items && plan.items.length > 0) {
+		for (const planFeature of plan.items) {
 			const featureCode = buildPlanFeatureCode(
 				planFeature,
 				features,

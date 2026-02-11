@@ -49,7 +49,7 @@ export const plans: Plan[] = [
 		id: "free",
 		name: "Free",
 		auto_enable: true,
-		features: [
+		items: [
 			{ feature_id: "credits", included: 500, reset: { interval: "one_off" } },
 		],
 	},
@@ -57,7 +57,7 @@ export const plans: Plan[] = [
 		id: "hobby",
 		name: "Hobby",
 		price: { amount: 5, interval: "month" },
-		features: [
+		items: [
 			{
 				feature_id: "credits",
 				included: 500,
@@ -74,7 +74,7 @@ export const plans: Plan[] = [
 		id: "pro",
 		name: "Pro",
 		price: { amount: 20, interval: "month" },
-		features: [
+		items: [
 			{
 				feature_id: "credits",
 				included: 2000,

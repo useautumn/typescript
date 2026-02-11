@@ -150,7 +150,7 @@ export const free = plan({
 	id: "free",
 	name: "Free",
 	auto_enable: true,
-	features: [
+	items: [
 		planFeature({ feature_id: messages.id, included: 100 }),
 		planFeature({ feature_id: seats.id, included: 1 }),
 	],
@@ -163,7 +163,7 @@ export const pro = plan({
 		amount: 29,
 		interval: "month",
 	},
-	features: [
+	items: [
 		planFeature({
 			feature_id: seats.id,
 			included: 5,

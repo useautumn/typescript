@@ -1,6 +1,5 @@
 import type { PlanFeature } from "../../../compose/models/planModels.js";
 import type { ApiPlanFeature } from "../../api/types/index.js";
-import { mapUsageModel } from "./helpers.js";
 import { createTransformer } from "./Transformer.js";
 
 /**
@@ -18,8 +17,8 @@ export const planFeatureTransformer = createTransformer<
 
 	// Computed fields
 	compute: {
-		// Only include 'included' (granted_balance) if not unlimited
-		included: (api) => (api.unlimited ? undefined : api.granted_balance),
+		// Only include included if not unlimited
+		included: (api) => (api.unlimited ? undefined : api.included),
 
 		// Top-level reset: only from api.reset when there's no price with interval
 		// If price exists with interval, the interval belongs in price.interval, not top-level
@@ -42,17 +41,13 @@ export const planFeatureTransformer = createTransformer<
 		price: (api) => {
 			if (!api.price) return undefined;
 
-			const billingMethod = api.price.usage_model
-				? mapUsageModel(api.price.usage_model)
-				: undefined;
-
 			// Build price object with interval directly on it
 			return {
 				amount: api.price.amount,
 				tiers: api.price.tiers,
 				billing_units: api.price.billing_units,
 				max_purchase: api.price.max_purchase ?? undefined,
-				billing_method: billingMethod,
+				billing_method: api.price.billing_method,
 				// Map API price.interval directly to SDK price.interval
 				interval: api.price.interval,
 				interval_count: api.price.interval_count,

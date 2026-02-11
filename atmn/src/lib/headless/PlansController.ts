@@ -301,7 +301,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 				const name = p.name ?? "(no name)";
 				const archived = p.archived ? " [archived]" : "";
 				const addOn = p.add_on ? " [add-on]" : "";
-				const isDefault = p.default ? " [default]" : "";
+				const isDefault = p.auto_enable ? " [default]" : "";
 				lines.push(
 					`${marker} [${i}] ${p.id} | ${name}${archived}${addOn}${isDefault}`,
 				);
@@ -316,7 +316,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 			lines.push(`  Version: ${selected.version}`);
 			lines.push(`  Group: ${selected.group ?? "-"}`);
 			lines.push(`  Add-on: ${selected.add_on ? "yes" : "no"}`);
-			lines.push(`  Default: ${selected.default ? "yes" : "no"}`);
+			lines.push(`  Default: ${selected.auto_enable ? "yes" : "no"}`);
 			lines.push(`  Archived: ${selected.archived ? "yes" : "no"}`);
 			lines.push(`  Environment: ${selected.env}`);
 			if (selected.price) {
@@ -324,7 +324,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 					`  Price: ${selected.price.amount} / ${selected.price.interval}`,
 				);
 			}
-			lines.push(`  Features: ${selected.features?.length ?? 0}`);
+			lines.push(`  Items: ${selected.items?.length ?? 0}`);
 			lines.push(
 				`  Created: ${new Date(selected.created_at * 1000).toISOString()}`,
 			);

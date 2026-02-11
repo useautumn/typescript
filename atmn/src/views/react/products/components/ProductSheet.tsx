@@ -24,7 +24,7 @@ export function ProductSheet({
 	const borderColor = isFocused ? "magenta" : "gray";
 
 	// Determine plan type
-	const planType = plan.add_on ? "Add-on" : plan.default ? "Default" : "Plan";
+	const planType = plan.add_on ? "Add-on" : plan.auto_enable ? "Default" : "Plan";
 
 	return (
 		<Box
@@ -136,11 +136,11 @@ export function ProductSheet({
 
 			{/* Features Section */}
 			<SheetSection
-				title={`Features (${plan.features.length})`}
-				isEmpty={plan.features.length === 0}
-				emptyMessage="No features"
+				title={`Items (${plan.items.length})`}
+				isEmpty={plan.items.length === 0}
+				emptyMessage="No items"
 			>
-				{plan.features.slice(0, 10).map((feature, index) => (
+				{plan.items.slice(0, 10).map((feature, index) => (
 					<Box key={feature.feature_id} flexDirection="column">
 						<Text>
 							<Text color="gray">{index + 1}. </Text>
@@ -152,7 +152,7 @@ export function ProductSheet({
 								{feature.unlimited ? (
 									<Text color="cyan">Unlimited</Text>
 								) : (
-									<Text>{feature.granted_balance}</Text>
+									<Text>{feature.included}</Text>
 								)}
 							</Text>
 							{feature.reset && (
@@ -181,8 +181,8 @@ export function ProductSheet({
 						</Box>
 					</Box>
 				))}
-				{plan.features.length > 10 && (
-					<Text dimColor>... and {plan.features.length - 10} more</Text>
+				{plan.items.length > 10 && (
+					<Text dimColor>... and {plan.items.length - 10} more</Text>
 				)}
 			</SheetSection>
 

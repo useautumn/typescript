@@ -2,13 +2,13 @@
 // Generated from @autumn/shared API schemas
 // Run typegen to regenerate
 
-import type { ApiPlanFeature } from "../../../../../../../sirtenzin-autumn/shared/api/products/planFeature/apiPlanFeature.js";
+import type { ApiPlanItemV1 } from "../../../../../../../sirtenzin-autumn/shared/api/products/items/apiPlanItemV1.js";
 
 /**
  * ApiPlanFeature - Raw API response type
- * Source: apiPlanFeature.ts
+ * Source: apiPlanItemV1.ts
  * 
  * This type matches the exact structure returned by the Autumn API.
  * Use transform functions in src/lib/transforms/apiToSdk to convert to SDK types.
  */
-export type { ApiPlanFeature };
+export type ApiPlanFeature = ApiPlanItemV1;

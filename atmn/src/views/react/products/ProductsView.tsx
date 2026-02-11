@@ -44,7 +44,7 @@ const columns: Column<ApiPlan>[] = [
 	{
 		key: "type",
 		header: "Type",
-		render: (p) => (p.add_on ? "Add-on" : p.default ? "Default" : "Plan"),
+		render: (p) => (p.add_on ? "Add-on" : p.auto_enable ? "Default" : "Plan"),
 		minWidth: 7,
 	},
 	{
@@ -59,7 +59,7 @@ const columns: Column<ApiPlan>[] = [
 	{
 		key: "features",
 		header: "Features",
-		render: (p) => `${p.features.length}`,
+		render: (p) => `${p.items.length}`,
 		minWidth: 8,
 	},
 	{

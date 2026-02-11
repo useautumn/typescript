@@ -509,15 +509,15 @@ export function getAtmnApiTypeConfigs(
 
 	return [
 		{
-			schemaName: "ApiPlanSchema",
+			schemaName: "ApiPlanV1Schema",
 			typeName: "ApiPlan",
-			sourceFile: path.join(serverPath, "api/products/apiPlan.ts"),
+			sourceFile: path.join(serverPath, "api/products/apiPlanV1.ts"),
 			outputFile: path.join(apiTypesDir, "plan.ts"),
 		},
 		{
-			schemaName: "ApiPlanFeatureSchema",
+			schemaName: "ApiPlanItemV1Schema",
 			typeName: "ApiPlanFeature",
-			sourceFile: path.join(serverPath, "api/products/planFeature/apiPlanFeature.ts"),
+			sourceFile: path.join(serverPath, "api/products/items/apiPlanItemV1.ts"),
 			outputFile: path.join(apiTypesDir, "planFeature.ts"),
 		},
 		{
@@ -540,13 +540,17 @@ export function getAtmnTypeConfigs(
 	// Source files from @autumn/shared
 	const planOpModelsFile = path.join(
 		serverPath,
-		"api/products/planOpModels.ts",
+		"api/products/crud/createPlanParamsV0.ts",
 	);
 	const planFeatureOpModelsFile = path.join(
 		serverPath,
-		"api/products/planFeature/planFeatureOpModels.ts",
+		"api/products/items/crud/createPlanItemParamsV1.ts",
 	);
-	const apiPlanFile = path.join(serverPath, "api/products/apiPlan.ts");
+	const apiPlanFile = path.join(serverPath, "api/products/apiPlanV1.ts");
+	const freeTrialParamsFile = path.join(
+		serverPath,
+		"api/common/freeTrial/freeTrialParamsV1.ts",
+	);
 	const apiFeatureFile = path.join(serverPath, "api/features/apiFeatureV1.ts");
 
 	// Target directories in atmn
@@ -560,7 +564,7 @@ export function getAtmnTypeConfigs(
 			// PLAN
 			// ==================
 			{
-				sourceName: "CreatePlanParamsSchema",
+				sourceName: "CreatePlanParamsV1Schema",
 				targetName: "Plan",
 				sourceFile: planOpModelsFile,
 				targetFile: path.join(modelsDir, "planModels.ts"),
@@ -589,7 +593,7 @@ export function getAtmnTypeConfigs(
 			// PLAN FEATURE (features in a plan)
 			// ==================
 			{
-				sourceName: "UpdatePlanFeatureSchema",
+				sourceName: "CreatePlanItemParamsV1Schema",
 				targetName: "PlanFeature",
 				sourceFile: planFeatureOpModelsFile,
 				targetFile: path.join(modelsDir, "planModels.ts"),
@@ -598,11 +602,7 @@ export function getAtmnTypeConfigs(
 				replaceEnumsWithStrings: true,
 				omitFields: [],
 				extendFields: {},
-				renameFields: {
-					granted_balance: "included",
-					// Note: usage_model -> billing_method is handled in atmnTypeHelpers.ts 
-					// for the discriminated union types, and in push.ts for API transformation
-				},
+				renameFields: {},
 				skipTypeExport: true, // Don't export type - we'll add discriminated union manually
 			},
 
@@ -626,9 +626,9 @@ export function getAtmnTypeConfigs(
 			// FREE TRIAL
 			// ==================
 			{
-				sourceName: "ApiFreeTrialV2Schema",
+				sourceName: "FreeTrialParamsV1Schema",
 				targetName: "FreeTrial",
-				sourceFile: apiPlanFile,
+				sourceFile: freeTrialParamsFile,
 				targetFile: path.join(modelsDir, "planModels.ts"),
 				sourceType: "zod",
 				keepCase: true,
@@ -665,7 +665,7 @@ export function getAtmnTypeConfigs(
  *   id: 'pro',
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
- *   features: [
+ *   items: [
  *     planFeature({ feature_id: seats.id, included: 10 }),
  *     planFeature({
  *       feature_id: messages.id,
@@ -716,7 +716,7 @@ export function getAtmnTypeConfigs(
  * Include a feature in a plan with specific configuration
  *
  * @param config - Feature configuration for this plan
- * @returns PlanFeature for use in plan's features array
+ * @returns PlanFeature for use in plan's items array
  *
  * @example
  * // Simple included usage

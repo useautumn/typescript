@@ -9,7 +9,7 @@ interface PlanRowProps {
  * Displays a single plan with checkmark and feature count
  */
 export function PlanRow({ plan }: PlanRowProps) {
-	const featureCount = plan.features?.length || 0;
+	const featureCount = plan.items?.length || 0;
 
 	return (
 		<Text>

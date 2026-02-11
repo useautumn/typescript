@@ -20,19 +20,3 @@ export function mapFeatureType(
 	// The consumable field is what matters
 	return "metered";
 }
-
-/**
- * Map API usage_model to SDK billing_method
- * API uses 'pay_per_use', SDK uses 'usage_based'
- */
-export function mapUsageModel(
-	usageModel: string,
-): "prepaid" | "usage_based" | undefined {
-	if (usageModel === "prepaid") {
-		return "prepaid";
-	}
-	if (usageModel === "pay_per_use") {
-		return "usage_based";
-	}
-	return undefined;
-}

@@ -103,9 +103,9 @@ async function loadLocalConfig(cwd: string): Promise<LocalConfig> {
 		for (const [key, value] of Object.entries(modRecord)) {
 			if (key === "default") continue;
 
-			const obj = value as { features?: unknown; type?: unknown };
+			const obj = value as { items?: unknown; type?: unknown };
 			if (obj && typeof obj === "object") {
-				if (Array.isArray(obj.features)) {
+				if (Array.isArray(obj.items) || "id" in obj) {
 					plans.push(obj as unknown as Plan);
 				} else if ("type" in obj) {
 					features.push(obj as unknown as Feature);

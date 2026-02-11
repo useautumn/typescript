@@ -49,14 +49,14 @@ function getSecretKey(): string {
 export async function fetchRemoteData(): Promise<RemoteData> {
 	const secretKey = getSecretKey();
 
-	const [features, plans] = await Promise.all([
+	const [apiFeatures, apiPlans] = await Promise.all([
 		fetchFeatures({ secretKey, includeArchived: true }),
 		fetchPlans({ secretKey, includeArchived: true }),
 	]);
 
 	return {
-		features: features as Feature[],
-		plans: plans as Plan[],
+		features: apiFeatures.map(transformApiFeature),
+		plans: apiPlans.map(transformApiPlan),
 	};
 }
 
@@ -340,8 +340,8 @@ function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
 		};
 	}
 
-	if (plan.features != null && plan.features.length > 0) {
-		result.features = [...plan.features]
+	if (plan.items != null && plan.items.length > 0) {
+		result.items = [...plan.items]
 			.sort((a, b) => a.feature_id.localeCompare(b.feature_id))
 			.map(normalizePlanFeatureForCompare);
 	}
@@ -354,10 +354,9 @@ function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
  * Transforms the remote API data to SDK format before comparing.
  */
 function hasFeatureChanged(local: Feature, remoteRaw: unknown): boolean {
-	const remote = transformApiFeature(remoteRaw);
 	return !valuesEqual(
 		normalizeFeatureForCompare(local),
-		normalizeFeatureForCompare(remote),
+		normalizeFeatureForCompare(remoteRaw as Feature),
 	);
 }
 
@@ -366,10 +365,9 @@ function hasFeatureChanged(local: Feature, remoteRaw: unknown): boolean {
  * Transforms the remote API data to SDK format before comparing.
  */
 function hasPlanChanged(local: Plan, remoteRaw: unknown): boolean {
-	const remote = transformApiPlan(remoteRaw as any);
 	return !valuesEqual(
 		normalizePlanForCompare(local),
-		normalizePlanForCompare(remote),
+		normalizePlanForCompare(remoteRaw as Plan),
 	);
 }
 
@@ -496,84 +494,6 @@ export async function analyzePush(
 }
 
 /**
- * Transform plan data for API submission.
- * Maps SDK field names to API field names.
- */
-function transformPlanForApi(plan: Plan): Record<string, unknown> {
-	const transformed = { ...plan } as Record<string, unknown>;
-
-	// 'auto_enable' -> 'default'
-	if ("auto_enable" in plan) {
-		transformed.default = (
-			plan as Plan & { auto_enable?: boolean }
-		).auto_enable;
-		delete transformed.auto_enable;
-	}
-
-	// Transform features array
-	if (plan.features && Array.isArray(plan.features)) {
-		transformed.features = plan.features.map((feature) => {
-			const transformedFeature = { ...feature } as Record<string, unknown>;
-
-			// 'included' -> 'granted_balance'
-			if ("included" in feature && feature.included !== undefined) {
-				transformedFeature.granted_balance = feature.included;
-				delete transformedFeature.included;
-			}
-
-			// Pass through reset object as-is (already nested in SDK format)
-			// Just strip out reset_when_enabled if present (we ignore it)
-			const featureAny = feature as Record<string, unknown>;
-			if (
-				"reset" in featureAny &&
-				featureAny.reset &&
-				typeof featureAny.reset === "object"
-			) {
-				const reset = { ...(featureAny.reset as Record<string, unknown>) };
-				delete reset.reset_when_enabled; // Ignore this field
-				transformedFeature.reset = reset;
-			}
-
-			// Transform nested price object: 'billing_method' -> 'usage_model'
-			if (
-				"price" in feature &&
-				feature.price &&
-				typeof feature.price === "object"
-			) {
-				const price = feature.price as Record<string, unknown>;
-				const transformedPrice = { ...price };
-
-				if ("billing_method" in price) {
-					// SDK uses billing_method (prepaid | usage_based), API uses usage_model (prepaid | pay_per_use)
-					transformedPrice.usage_model =
-						price.billing_method === "usage_based"
-							? "pay_per_use"
-							: price.billing_method;
-					delete transformedPrice.billing_method;
-				}
-
-				// Copy interval to price from reset if needed
-				const resetObj = transformedFeature.reset as
-					| Record<string, unknown>
-					| undefined;
-				if (resetObj?.interval) {
-					transformedPrice.interval = resetObj.interval;
-					if (resetObj.interval_count) {
-						transformedPrice.interval_count = resetObj.interval_count;
-					}
-				}
-
-				transformedFeature.price = transformedPrice;
-			}
-
-			return transformedFeature;
-		});
-	}
-
-	return transformed;
-}
-
-/**
  * Push a single feature (create or update)
  */
 export async function pushFeature(
@@ -615,7 +535,7 @@ export async function pushPlan(
 ): Promise<{ action: "created" | "updated" | "versioned" }> {
 	const secretKey = getSecretKey();
 	const remotePlan = remotePlans.find((p) => p.id === plan.id);
-	const apiPlan = transformPlanForApi(plan);
+	const apiPlan = transformPlanToApi(plan);
 
 	if (!remotePlan) {
 		await createPlan({ secretKey, plan: apiPlan });
@@ -645,12 +565,9 @@ export async function pushPlan(
 		updatePayload.add_on = false;
 	}
 
-	// Handle swapFalse for auto_enable (maps to 'default' in API)
-	if (
-		(plan as Plan & { auto_enable?: boolean }).auto_enable === undefined &&
-		(remotePlan as Plan & { default?: boolean }).default === true
-	) {
-		updatePayload.default = false;
+	// Handle swapFalse for auto_enable field
+	if (plan.auto_enable === undefined && remotePlan.auto_enable === true) {
+		updatePayload.auto_enable = false;
 	}
 
 	await updatePlan({ secretKey, planId: plan.id, plan: updatePayload });

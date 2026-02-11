@@ -277,7 +277,7 @@ ${imports}
       ResetInterval: ['one_off', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
       RolloverExpiryDurationType: ['month', 'forever'],
       UsageModel: ['prepaid', 'pay_per_use'], // Legacy - maps to BillingMethod in SDK
-      BillingMethod: ['prepaid', 'pay_per_use'],
+      BillingMethod: ['prepaid', 'usage_based'],
       OnIncrease: ['prorate', 'charge_immediately'],
       OnDecrease: ['prorate', 'refund_immediately', 'no_action'],
       FreeTrialDuration: ['day', 'month', 'year'],
@@ -298,6 +298,21 @@ ${imports}
       const pattern = new RegExp(`z\\.enum\\(${enumName}\\)`, 'g');
       result = result.replace(pattern, `z.union([${literalUnion}])`);
     }
+
+    // Replace enum default references with literal defaults after enum conversion.
+    // Example: .default(FreeTrialDuration.Month) -> .default("month")
+    result = result.replace(
+      /\.default\(FreeTrialDuration\.Day\)/g,
+      '.default("day")',
+    );
+    result = result.replace(
+      /\.default\(FreeTrialDuration\.Month\)/g,
+      '.default("month")',
+    );
+    result = result.replace(
+      /\.default\(FreeTrialDuration\.Year\)/g,
+      '.default("year")',
+    );
 
     return result;
   }

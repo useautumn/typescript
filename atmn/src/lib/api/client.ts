@@ -91,7 +91,7 @@ export async function request<T = unknown>(
 	const headers: Record<string, string> = {
 		Authorization: `Bearer ${secretKey}`,
 		"Content-Type": "application/json",
-		"X-API-Version": "2.0.0",
+		"X-API-Version": "2.1.0",
 		...customHeaders,
 	};
 

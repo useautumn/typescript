@@ -271,8 +271,8 @@ export const getPlanPreview = ({
 		});
 		basePrice = `${amount}${interval}`;
 	} else {
-		// Check if any features have pricing
-		const hasPricedFeatures = plan.features?.some((pf) => pf.price) ?? false;
+		// Check if any items have pricing
+		const hasPricedFeatures = plan.items?.some((pf) => pf.price) ?? false;
 
 		if (hasPricedFeatures) {
 			// Has usage-based pricing but no base price
@@ -293,11 +293,11 @@ export const getPlanPreview = ({
 		freeTrial = `${duration_length} ${durationUnit} free trial`;
 	}
 
-	// 3. Map plan.features to PlanFeatureDisplay[]
+	// 3. Map plan.items to PlanFeatureDisplay[]
 	const featureDisplays: PlanFeatureDisplay[] = [];
 
-	if (plan.features) {
-		for (const planFeature of plan.features) {
+	if (plan.items) {
+		for (const planFeature of plan.items) {
 			// Find matching Feature by feature_id
 			const feature = features.find((f) => f.id === planFeature.feature_id);
 

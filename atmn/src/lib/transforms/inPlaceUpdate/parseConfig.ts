@@ -72,8 +72,8 @@ function determineEntityType(lines: string[]): "feature" | "plan" | null {
 		return "feature";
 	}
 
-	// Check for plan indicators: features: [ array
-	if (/features:\s*\[/.test(joined)) {
+	// Check for plan indicators: items: [ array (or legacy features: [)
+	if (/items:\s*\[/.test(joined) || /features:\s*\[/.test(joined)) {
 		return "plan";
 	}
 	// Also check for plan() function call

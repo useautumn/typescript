@@ -65,14 +65,14 @@ export const loadConfig = async ({
 		for (const [key, value] of Object.entries(modRecord)) {
 			if (key === "default") continue;
 
-			const obj = value as { features?: unknown; type?: unknown; id?: string };
-			// Detect if it's a plan (has features array or id+name without type) or feature (has type)
+			const obj = value as { items?: unknown; type?: unknown; id?: string };
+			// Detect if it's a plan (has items array or id+name without type) or feature (has type)
 			if (obj && typeof obj === "object") {
 				if ("type" in obj) {
 					// Has type field = feature
 					features.push(obj as unknown as Feature);
-				} else if ("id" in obj) {
-					// Has id but no type = plan
+				} else if (Array.isArray(obj.items) || "id" in obj) {
+					// Has items array (or id without type) = plan
 					plans.push(obj as unknown as Plan);
 				}
 			}

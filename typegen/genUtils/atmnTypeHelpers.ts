@@ -380,11 +380,11 @@ export function generatePlanTypeWithJSDoc(
 			],
 		},
 		{
-			name: "features",
+			name: "items",
 			type: "PlanFeature[]",
 			optional: true,
-			descriptionKey: "features",
-			defaultDescription: "Features included with usage limits and pricing",
+			descriptionKey: "items",
+			defaultDescription: "Items included with usage limits and pricing",
 		},
 		{
 			name: "free_trial",

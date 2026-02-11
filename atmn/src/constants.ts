@@ -17,13 +17,15 @@ export const DEFAULT_CONFIG = `import {
 export const seats = feature({
 	id: 'seats',
 	name: 'Seats',
-	type: 'continuous_use',
+	type: 'metered',
+	consumable: false,
 });
 
 export const messages = feature({
 	id: 'messages',
 	name: 'Messages',
-	type: 'single_use',
+	type: 'metered',
+	consumable: true,
 });
 
 export const pro = plan({
@@ -36,18 +38,18 @@ export const pro = plan({
 		amount: 50,
 		interval: 'month',
 	},
-	features: [
+	items: [
 		// 500 messages per month
 		planFeature({
 			feature_id: messages.id,
-			granted: 500,
+			included: 500,
 			reset: { interval: 'month' },
 		}),
 
 		// $10 per seat per month
 		planFeature({
 			feature_id: seats.id,
-			granted: 1,
+			included: 1,
 			price: {
 				amount: 10,
 				interval: 'month',
