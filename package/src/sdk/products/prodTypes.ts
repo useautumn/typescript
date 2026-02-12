@@ -117,6 +117,7 @@ export interface CreateProductParams {
 
 export interface ListProductsParams {
   customer_id?: string;
+  group?: string;
 }
 
 export interface DeleteProductParams {
