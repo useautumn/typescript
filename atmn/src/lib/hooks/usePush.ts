@@ -17,6 +17,8 @@ import {
 	deleteFeature as deleteFeatureApi,
 	deletePlan as deletePlanApi,
 	fetchRemoteData,
+	checkFeatureDeleteInfo,
+	type FeatureDeleteInfo,
 	type PushAnalysis,
 	type PushPrompt,
 	type PushResult,
@@ -125,10 +127,10 @@ async function loadLocalConfig(cwd: string): Promise<LocalConfig> {
 			const obj = value as { items?: unknown; type?: unknown };
 			// Detect if it's a plan (has items array) or feature (has type)
 			if (obj && typeof obj === "object") {
-				if (Array.isArray(obj.items) || "id" in obj) {
-					plans.push(obj as unknown as Plan);
-				} else if ("type" in obj) {
+				if ("type" in obj) {
 					features.push(obj as unknown as Feature);
+				} else if (Array.isArray(obj.items) || "id" in obj) {
+					plans.push(obj as unknown as Plan);
 				}
 			}
 		}
@@ -482,6 +484,7 @@ export function usePush(options?: UsePushOptions) {
 	// Handle deletions mutation
 	const deletionsMutation = useMutation({
 		mutationFn: async () => {
+			const localFeatures = localConfig?.features || [];
 			const featuresDeleted: string[] = [];
 			const featuresArchived: string[] = [];
 			const featuresSkipped: string[] = [];
@@ -489,35 +492,12 @@ export function usePush(options?: UsePushOptions) {
 			const plansArchived: string[] = [];
 			const plansSkipped: string[] = [];
 
-			// Handle feature deletions based on prompt responses
-			for (const info of analysis?.featuresToDelete || []) {
-				const promptId = promptQueue.find(
-					(p) => p.type.startsWith("feature_delete") && p.entityId === info.id,
-				)?.id;
-				const response = promptId ? promptResponses.get(promptId) : undefined;
-
-				// Use response from prompt (auto-set to default in --yes mode)
-				const action = response;
-
-				if (action === "delete") {
-					setFeatureProgress((prev) => new Map(prev).set(info.id, "pushing"));
-					await deleteFeatureApi(info.id);
-					featuresDeleted.push(info.id);
-					setFeatureProgress((prev) => new Map(prev).set(info.id, "deleted"));
-				} else if (action === "archive") {
-					setFeatureProgress((prev) => new Map(prev).set(info.id, "pushing"));
-					await archiveFeatureApi(info.id);
-					featuresArchived.push(info.id);
-					setFeatureProgress((prev) => new Map(prev).set(info.id, "archived"));
-				} else {
-					// skip or no response
-					featuresSkipped.push(info.id);
-					setFeatureProgress((prev) => new Map(prev).set(info.id, "skipped"));
-				}
-			}
+			const featuresToDelete = analysis?.featuresToDelete || [];
+			const plansToDelete = analysis?.plansToDelete || [];
+			const refreshedFeatureDeleteInfo = new Map<string, FeatureDeleteInfo>();
 
 			// Handle plan deletions based on prompt responses
-			for (const info of analysis?.plansToDelete || []) {
+			for (const info of plansToDelete) {
 				const promptId = promptQueue.find(
 					(p) => p.type.startsWith("plan_delete") && p.entityId === info.id,
 				)?.id;
@@ -540,6 +520,58 @@ export function usePush(options?: UsePushOptions) {
 					// skip or no response
 					plansSkipped.push(info.id);
 					setPlanProgress((prev) => new Map(prev).set(info.id, "skipped"));
+				}
+			}
+
+			if (featuresToDelete.length > 0) {
+				const remoteData = await fetchRemoteData();
+				const refreshedInfos = await Promise.all(
+					featuresToDelete.map((featureInfo) =>
+						checkFeatureDeleteInfo(
+							featureInfo.id,
+							localFeatures,
+							remoteData.features,
+						),
+					),
+				);
+				for (const info of refreshedInfos) {
+					refreshedFeatureDeleteInfo.set(info.id, info);
+				}
+			}
+
+			// Handle feature deletions based on prompt responses
+			for (const info of featuresToDelete) {
+				const promptId = promptQueue.find(
+					(p) => p.type.startsWith("feature_delete") && p.entityId === info.id,
+				)?.id;
+				const response = promptId ? promptResponses.get(promptId) : undefined;
+				const latestInfo = refreshedFeatureDeleteInfo.get(info.id) ?? info;
+
+				// Use response from prompt (auto-set to default in --yes mode)
+				const action = response;
+
+				if (action === "delete") {
+					if (!latestInfo.canDelete) {
+						featuresSkipped.push(info.id);
+						setFeatureProgress((prev) =>
+							new Map(prev).set(info.id, "skipped"),
+						);
+						continue;
+					}
+
+					setFeatureProgress((prev) => new Map(prev).set(info.id, "pushing"));
+					await deleteFeatureApi(info.id);
+					featuresDeleted.push(info.id);
+					setFeatureProgress((prev) => new Map(prev).set(info.id, "deleted"));
+				} else if (action === "archive") {
+					setFeatureProgress((prev) => new Map(prev).set(info.id, "pushing"));
+					await archiveFeatureApi(info.id);
+					featuresArchived.push(info.id);
+					setFeatureProgress((prev) => new Map(prev).set(info.id, "archived"));
+				} else {
+					// skip or no response
+					featuresSkipped.push(info.id);
+					setFeatureProgress((prev) => new Map(prev).set(info.id, "skipped"));
 				}
 			}
 

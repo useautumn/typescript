@@ -17,6 +17,7 @@ import {
 } from "./prompts.js";
 import {
 	analyzePush,
+	checkFeatureDeleteInfo,
 	archiveFeature,
 	archivePlan,
 	deleteFeature,
@@ -105,10 +106,10 @@ async function loadLocalConfig(cwd: string): Promise<LocalConfig> {
 
 			const obj = value as { items?: unknown; type?: unknown };
 			if (obj && typeof obj === "object") {
-				if (Array.isArray(obj.items) || "id" in obj) {
-					plans.push(obj as unknown as Plan);
-				} else if ("type" in obj) {
+				if ("type" in obj) {
 					features.push(obj as unknown as Feature);
+				} else if (Array.isArray(obj.items) || "id" in obj) {
+					plans.push(obj as unknown as Plan);
 				}
 			}
 		}
@@ -332,26 +333,7 @@ async function executePushWithDefaults(
 		result.plansUpdated.push(planInfo.plan.id);
 	}
 
-	// Handle feature deletions
-	for (const info of analysis.featuresToDelete) {
-		const promptId = prompts.find(
-			(p) => p.type.startsWith("feature_delete") && p.entityId === info.id,
-		)?.id;
-		const response = promptId ? responses.get(promptId) : undefined;
-
-		if (response === "delete") {
-			console.log(chalk.dim(`  Deleting feature: ${info.id}`));
-			await deleteFeature(info.id);
-			result.featuresDeleted.push(info.id);
-		} else if (response === "archive") {
-			console.log(chalk.dim(`  Archiving feature: ${info.id}`));
-			await archiveFeature(info.id);
-			result.featuresArchived.push(info.id);
-		}
-		// skip = do nothing
-	}
-
-	// Handle plan deletions
+	// Handle plan deletions first so feature dependencies are removed first
 	for (const info of analysis.plansToDelete) {
 		const promptId = prompts.find(
 			(p) => p.type.startsWith("plan_delete") && p.entityId === info.id,
@@ -366,6 +348,47 @@ async function executePushWithDefaults(
 			console.log(chalk.dim(`  Archiving plan: ${info.id}`));
 			await archivePlan(info.id);
 			result.plansArchived.push(info.id);
+		}
+		// skip = do nothing
+	}
+
+	const latestRemoteData = await fetchRemoteData();
+	const refreshedFeatureDeleteInfo = new Map<string, boolean>();
+	if (analysis.featuresToDelete.length > 0) {
+		const refreshedInfos = await Promise.all(
+			analysis.featuresToDelete.map((featureInfo) =>
+				checkFeatureDeleteInfo(
+					featureInfo.id,
+					config.features,
+					latestRemoteData.features,
+				),
+			),
+		);
+		for (const info of refreshedInfos) {
+			refreshedFeatureDeleteInfo.set(info.id, info.canDelete);
+		}
+	}
+
+	// Handle feature deletions
+	for (const info of analysis.featuresToDelete) {
+		const promptId = prompts.find(
+			(p) => p.type.startsWith("feature_delete") && p.entityId === info.id,
+		)?.id;
+		const response = promptId ? responses.get(promptId) : undefined;
+		const canDelete = refreshedFeatureDeleteInfo.get(info.id) ?? info.canDelete;
+
+		if (response === "delete") {
+			if (!canDelete) {
+				console.log(chalk.yellow(`  Skipping feature delete: ${info.id}`));
+				continue;
+			}
+			console.log(chalk.dim(`  Deleting feature: ${info.id}`));
+			await deleteFeature(info.id);
+			result.featuresDeleted.push(info.id);
+		} else if (response === "archive") {
+			console.log(chalk.dim(`  Archiving feature: ${info.id}`));
+			await archiveFeature(info.id);
+			result.featuresArchived.push(info.id);
 		}
 		// skip = do nothing
 	}

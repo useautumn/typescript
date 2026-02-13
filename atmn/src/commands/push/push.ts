@@ -61,7 +61,7 @@ export async function fetchRemoteData(): Promise<RemoteData> {
 }
 
 // Check if a feature can be deleted
-async function checkFeatureDeleteInfo(
+export async function checkFeatureDeleteInfo(
 	featureId: string,
 	localFeatures: Feature[],
 	remoteFeatures: Feature[],
@@ -305,6 +305,10 @@ function normalizePlanFeatureForCompare(
 	return result;
 }
 
+function getPlanFeatureIds(plan: Plan): string[] {
+	return (plan.items || []).map((item) => item.feature_id);
+}
+
 /**
  * Normalize a plan to a canonical form for comparison.
  * Strips default/empty values so semantically identical plans
@@ -371,6 +375,10 @@ function hasPlanChanged(local: Plan, remoteRaw: unknown): boolean {
 	);
 }
 
+function planContainsFeature(plan: Plan, featureId: string): boolean {
+	return getPlanFeatureIds(plan).some((id) => id === featureId);
+}
+
 /**
  * Analyze what changes need to be pushed
  */
@@ -386,6 +394,7 @@ export async function analyzePush(
 		remoteData.features.map((f) => [f.id, f]),
 	);
 	const remotePlansById = new Map(remoteData.plans.map((p) => [p.id, p]));
+	const localPlansById = new Map(localPlans.map((p) => [p.id, p]));
 
 	// Find features to create and update (only actually changed features)
 	const featuresToCreate = localFeatures.filter(
@@ -395,39 +404,6 @@ export async function analyzePush(
 		const remoteFeature = remoteFeaturesById.get(f.id);
 		if (!remoteFeature) return false;
 		return hasFeatureChanged(f, remoteFeature);
-	});
-
-	// Find features that exist remotely but not locally (potential deletes)
-	// Exclude already archived features
-	const featureIdsToDelete = [...remoteFeaturesById.values()]
-		.filter(
-			(f) =>
-				!localFeatureIds.has(f.id) &&
-				!(f as Feature & { archived?: boolean }).archived,
-		)
-		.map((f) => f.id);
-
-	// Check deletion info for each feature
-	const featureDeletePromises = featureIdsToDelete.map((id) =>
-		checkFeatureDeleteInfo(id, localFeatures, remoteData.features),
-	);
-	const featuresToDeleteUnsorted = await Promise.all(featureDeletePromises);
-
-	// Sort features to delete: credit systems first to prevent dependency issues
-	const featuresToDelete = featuresToDeleteUnsorted.sort((a, b) => {
-		if (
-			a.featureType === "credit_system" &&
-			b.featureType !== "credit_system"
-		) {
-			return -1;
-		}
-		if (
-			a.featureType !== "credit_system" &&
-			b.featureType === "credit_system"
-		) {
-			return 1;
-		}
-		return 0;
 	});
 
 	// Find archived features in local config that need unarchiving
@@ -479,6 +455,132 @@ export async function analyzePush(
 		const remoteArchived = remote && (remote as Plan & { archived?: boolean }).archived;
 		// Prompt to unarchive only if remote is archived but local doesn't explicitly want it archived
 		return remoteArchived && !localArchived;
+	});
+
+	// Build a quick feature->plans reference index from remote plans
+	const remoteFeaturePlanRefs = new Map<string, Set<string>>();
+	for (const plan of remoteData.plans) {
+		for (const featureId of getPlanFeatureIds(plan)) {
+			const plansForFeature = remoteFeaturePlanRefs.get(featureId);
+			if (plansForFeature) {
+				plansForFeature.add(plan.id);
+			} else {
+				remoteFeaturePlanRefs.set(featureId, new Set([plan.id]));
+			}
+		}
+	}
+
+	const planIdsToDeleteSet = new Set(plansToDelete.map((plan) => plan.id));
+	const planDeleteCustomerCount = new Map(
+		plansToDelete.map((plan) => [plan.id, plan.customerCount]),
+	);
+	const plansToUpdateById = new Map(
+		plansToUpdate.map((planInfo) => [planInfo.plan.id, planInfo]),
+	);
+	const plansRemovingFeatureById = new Map<string, Set<string>>();
+	for (const remotePlan of remoteData.plans) {
+		const localPlan = localPlansById.get(remotePlan.id);
+		for (const featureId of getPlanFeatureIds(remotePlan)) {
+			const localHasFeature = localPlan
+				? planContainsFeature(localPlan, featureId)
+				: false;
+			if (!localPlan || !localHasFeature) {
+				const plansRemovingFeature = plansRemovingFeatureById.get(featureId);
+				if (plansRemovingFeature) {
+					plansRemovingFeature.add(remotePlan.id);
+				} else {
+					plansRemovingFeatureById.set(
+						featureId,
+						new Set([remotePlan.id]),
+					);
+				}
+			}
+		}
+	}
+
+	// Find features that exist remotely but not locally (potential deletes)
+	// Exclude already archived features
+	const featureIdsToDelete = [...remoteFeaturesById.values()]
+		.filter(
+			(f) =>
+				!localFeatureIds.has(f.id) &&
+				!(f as Feature & { archived?: boolean }).archived,
+		)
+		.map((f) => f.id);
+
+	// Check deletion info for each feature
+	const featureDeletePromises = featureIdsToDelete.map((id) =>
+		checkFeatureDeleteInfo(id, localFeatures, remoteData.features),
+	);
+	const rawFeatureDeleteInfos = await Promise.all(featureDeletePromises);
+
+	// Re-evaluate delete blockers for features that are only referenced
+	// by plans being changed in this push. If all blockers are removed by
+	// current operations and none require versioning, allow deletion.
+	const featuresToDeleteUnsorted = rawFeatureDeleteInfos.map((info) => {
+		if (info.reason !== "products") {
+			return info;
+		}
+
+		const remotePlansForFeature = remoteFeaturePlanRefs.get(info.id) ?? new Set();
+		let hasBlockingPlan = false;
+
+		for (const planId of remotePlansForFeature) {
+			const isPlanDeleted = planIdsToDeleteSet.has(planId);
+			const isPlanUpdated = plansToUpdateById.has(planId);
+			const isPlanRemovingFeature = plansRemovingFeatureById
+				.get(info.id)
+				?.has(planId);
+			const removesReferenceInThisPush =
+				isPlanDeleted || (isPlanUpdated && isPlanRemovingFeature);
+
+			if (!removesReferenceInThisPush) {
+				hasBlockingPlan = true;
+				break;
+			}
+
+			if (isPlanDeleted) {
+				const customerCount = planDeleteCustomerCount.get(planId) || 0;
+				if (customerCount > 0) {
+					hasBlockingPlan = true;
+					break;
+				}
+			} else {
+				const planInfo = plansToUpdateById.get(planId);
+				if (!planInfo || planInfo.willVersion) {
+					hasBlockingPlan = true;
+					break;
+				}
+			}
+		}
+
+		if (!hasBlockingPlan) {
+			return {
+				...info,
+				canDelete: true,
+				reason: undefined,
+				referencingProducts: undefined,
+			};
+		}
+
+		return info;
+	});
+
+	// Sort features to delete: credit systems first to prevent dependency issues
+	const featuresToDelete = featuresToDeleteUnsorted.sort((a, b) => {
+		if (
+			a.featureType === "credit_system" &&
+			b.featureType !== "credit_system"
+		) {
+			return -1;
+		}
+		if (
+			a.featureType !== "credit_system" &&
+			b.featureType === "credit_system"
+		) {
+			return 1;
+		}
+		return 0;
 	});
 
 	return {

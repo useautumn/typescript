@@ -77,14 +77,14 @@ export function FeaturesCard({
 
 	if (allItems.length === 0) {
 		return (
-			<Card title="🎯 Features (0)">
+			<Card title="🎯 Changed Features (0)">
 				<Text color="gray">No features to push</Text>
 			</Card>
 		);
 	}
 
 	return (
-		<Card title={`🎯 Features (${allItems.length})`}>
+		<Card title={`🎯 Changed Features (${allItems.length})`}>
 			{allItems.slice(0, displayLimit).map((item) => {
 				const status = progress.get(item.id) || "pending";
 				return (

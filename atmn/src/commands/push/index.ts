@@ -11,6 +11,7 @@ export {
 } from "./prompts.js";
 export {
 	analyzePush,
+	checkFeatureDeleteInfo,
 	archiveFeature,
 	archivePlan,
 	deleteFeature,

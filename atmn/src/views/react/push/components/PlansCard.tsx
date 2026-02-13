@@ -76,14 +76,14 @@ export function PlansCard({ plans, progress, deletions = [] }: PlansCardProps) {
 
 	if (totalCount === 0) {
 		return (
-			<Card title="📋 Plans (0)">
+			<Card title="📋 Changed Plans (0)">
 				<Text color="gray">No plans to push</Text>
 			</Card>
 		);
 	}
 
 	return (
-		<Card title={`📋 Plans (${totalCount})`}>
+		<Card title={`📋 Changed Plans (${totalCount})`}>
 			{allItems.slice(0, displayLimit).map((item) => {
 				const status = progress.get(item.id) || "pending";
 				return (
