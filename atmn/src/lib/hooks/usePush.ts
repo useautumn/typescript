@@ -18,6 +18,7 @@ import {
 	deletePlan as deletePlanApi,
 	fetchRemoteData,
 	checkFeatureDeleteInfo,
+	refreshPlansForVersioning,
 	type FeatureDeleteInfo,
 	type PushAnalysis,
 	type PushPrompt,
@@ -30,6 +31,7 @@ import {
 import type { Feature, Plan } from "../../compose/models/index.js";
 import { formatError } from "../api/client.js";
 import { AppEnv, resolveConfigPath } from "../env/index.js";
+import { writeConfig } from "../../commands/pull/writeConfig.js";
 import { type OrganizationInfo, useOrganization } from "./useOrganization.js";
 
 export type PushPhase =
@@ -137,6 +139,53 @@ async function loadLocalConfig(cwd: string): Promise<LocalConfig> {
 	}
 
 	return { features, plans };
+}
+
+function mergeArchivedFeaturesIntoConfig(
+	localFeatures: Feature[],
+	remoteFeatures: Feature[],
+	archivedFeatureIds: string[],
+): { features: Feature[]; hasChanges: boolean } {
+	const uniqueIds = [...new Set(archivedFeatureIds)];
+	if (uniqueIds.length === 0) {
+		return { features: localFeatures, hasChanges: false };
+	}
+
+	const remoteFeatureMap = new Map(remoteFeatures.map((f) => [f.id, f]));
+	const merged = new Map(localFeatures.map((f) => [f.id, f]));
+	let hasChanges = false;
+
+	for (const featureId of uniqueIds) {
+		const existingFeature = merged.get(featureId);
+		if (existingFeature) {
+			if (existingFeature.archived) {
+				continue;
+			}
+			merged.set(featureId, {
+				...existingFeature,
+				archived: true,
+			});
+			hasChanges = true;
+			continue;
+		}
+
+		const remoteFeature = remoteFeatureMap.get(featureId);
+		if (!remoteFeature) {
+			continue;
+		}
+
+		merged.set(featureId, {
+			...(remoteFeature as Feature),
+			archived: true,
+		});
+		hasChanges = true;
+	}
+
+	if (!hasChanges) {
+		return { features: localFeatures, hasChanges: false };
+	}
+
+	return { features: Array.from(merged.values()), hasChanges: true };
 }
 
 export function usePush(options?: UsePushOptions) {
@@ -394,6 +443,13 @@ export function usePush(options?: UsePushOptions) {
 			const updated: string[] = [];
 			const versioned: string[] = [];
 			const skipped: string[] = [];
+			const planUpdates = await refreshPlansForVersioning(
+				analysis?.plansToUpdate || [],
+				localConfig?.features || [],
+			);
+			const planUpdateById = new Map(
+				planUpdates.map((planInfo) => [planInfo.plan.id, planInfo]),
+			);
 
 			// Check which archived plans should be unarchived
 			for (const plan of analysis?.archivedPlans || []) {
@@ -418,8 +474,9 @@ export function usePush(options?: UsePushOptions) {
 
 			// Push plans to update
 			for (const planInfo of analysis?.plansToUpdate || []) {
+				const resolvedPlanInfo = planUpdateById.get(planInfo.plan.id) || planInfo;
 				// Check if this was skipped via prompt
-				if (planInfo.willVersion) {
+				if (resolvedPlanInfo.willVersion) {
 					const response = promptResponses.get(
 						promptQueue.find(
 							(p) =>
@@ -457,7 +514,7 @@ export function usePush(options?: UsePushOptions) {
 				);
 				await pushPlan(planInfo.plan, remotePlans);
 
-				if (planInfo.willVersion) {
+				if (resolvedPlanInfo.willVersion) {
 					versioned.push(planInfo.plan.id);
 					setPlanProgress((prev) =>
 						new Map(prev).set(planInfo.plan.id, "versioned"),
@@ -485,6 +542,7 @@ export function usePush(options?: UsePushOptions) {
 	const deletionsMutation = useMutation({
 		mutationFn: async () => {
 			const localFeatures = localConfig?.features || [];
+			const localPlans = localConfig?.plans || [];
 			const featuresDeleted: string[] = [];
 			const featuresArchived: string[] = [];
 			const featuresSkipped: string[] = [];
@@ -495,6 +553,7 @@ export function usePush(options?: UsePushOptions) {
 			const featuresToDelete = analysis?.featuresToDelete || [];
 			const plansToDelete = analysis?.plansToDelete || [];
 			const refreshedFeatureDeleteInfo = new Map<string, FeatureDeleteInfo>();
+			let archivedConfigFeatures = localFeatures;
 
 			// Handle plan deletions based on prompt responses
 			for (const info of plansToDelete) {
@@ -523,8 +582,10 @@ export function usePush(options?: UsePushOptions) {
 				}
 			}
 
+			let remoteDataForFeatureSync: Feature[] | null = null;
 			if (featuresToDelete.length > 0) {
 				const remoteData = await fetchRemoteData();
+				remoteDataForFeatureSync = remoteData.features;
 				const refreshedInfos = await Promise.all(
 					featuresToDelete.map((featureInfo) =>
 						checkFeatureDeleteInfo(
@@ -575,6 +636,25 @@ export function usePush(options?: UsePushOptions) {
 				}
 			}
 
+			if (featuresArchived.length > 0) {
+				if (!remoteDataForFeatureSync) {
+					const remoteData = await fetchRemoteData();
+					remoteDataForFeatureSync = remoteData.features;
+				}
+
+				const { features: mergedFeatures, hasChanges } =
+					mergeArchivedFeaturesIntoConfig(
+						localFeatures,
+						remoteDataForFeatureSync,
+						featuresArchived,
+					);
+
+				archivedConfigFeatures = mergedFeatures;
+				if (hasChanges) {
+					await writeConfig(mergedFeatures, localPlans, effectiveCwd);
+				}
+			}
+
 			return {
 				featuresDeleted,
 				featuresArchived,
@@ -582,10 +662,21 @@ export function usePush(options?: UsePushOptions) {
 				plansDeleted,
 				plansArchived,
 				plansSkipped,
+				archivedConfigFeatures,
 			};
 		},
 		onSuccess: (deletionResult) => {
 			// Combine all results
+			if (deletionResult.archivedConfigFeatures !== localConfig?.features) {
+				setLocalConfig((prev) =>
+					prev
+						? {
+								...prev,
+								features: deletionResult.archivedConfigFeatures,
+						  }
+						: prev,
+				);
+			}
 			const finalResult: PushResult = {
 				featuresCreated: pushFeaturesMutation.data?.created || [],
 				featuresUpdated: pushFeaturesMutation.data?.updated || [],

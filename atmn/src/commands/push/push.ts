@@ -141,15 +141,49 @@ async function checkPlanDeleteInfo(planId: string): Promise<PlanDeleteInfo> {
 async function checkPlanForVersioning(
 	plan: Plan,
 	remotePlans: Plan[],
+	localFeatureIds: Set<string>,
+	remoteFeatureIds: Set<string>,
 ): Promise<PlanUpdateInfo> {
 	const secretKey = getSecretKey();
 	const remotePlan = remotePlans.find((p) => p.id === plan.id);
+	const remotePlanArchived = Boolean(remotePlan?.archived);
 
 	if (!remotePlan) {
 		return {
 			plan,
 			willVersion: false,
 			isArchived: false,
+		};
+	}
+
+	const missingFeatureIds =
+		(plan.items || [])
+			.map((item) => item.feature_id)
+			.filter((featureId) => !remoteFeatureIds.has(featureId));
+
+	const missingLocalFeatureIds = missingFeatureIds.filter((featureId) =>
+		localFeatureIds.has(featureId),
+	);
+	const missingUnknownFeatureIds = missingFeatureIds.filter(
+		(featureId) => !localFeatureIds.has(featureId),
+	);
+
+	if (missingLocalFeatureIds.length > 0) {
+		if (missingUnknownFeatureIds.length > 0) {
+			console.log(
+				`[checkPlanForVersioning] plan=${plan.id} has mixed missing features. Local-first features: ${missingLocalFeatureIds.join(", ")}; missing unknown: ${missingUnknownFeatureIds.join(", ")}.`,
+			);
+		} else {
+			console.log(
+				`[checkPlanForVersioning] plan=${plan.id} has local-only feature refs (${missingLocalFeatureIds.join(", ")}). Deferring versioning check until after feature upsert.`,
+			);
+		}
+
+		return {
+			plan,
+			willVersion: false,
+			isArchived: remotePlanArchived,
+			requiresVersioningRecheck: true,
 		};
 	}
 
@@ -169,20 +203,89 @@ async function checkPlanForVersioning(
 		};
 	} catch (error: unknown) {
 		const apiError = error as { response?: { code?: string } };
+		const response = apiError.response as
+			| { message?: string; feature?: string; feature_id?: string }
+			| undefined;
+		const responseMessage =
+			(response && (response.message as string | undefined)) || "";
+
+		const missingFeatureMatch = /Feature\s+["']?([a-zA-Z0-9_-]+)["']?\s+not\s+found/i.exec(
+			responseMessage,
+		);
+		const missingFeature =
+			response?.feature || response?.feature_id || missingFeatureMatch?.[1];
 
 		// If the plan references a feature that hasn't been created yet,
-		// the API can't validate it. Default to willVersion: true so the
-		// user still gets the versioning prompt — better safe than silent.
-		if (apiError.response?.code === "feature_not_found") {
+		// defer versioning validation until after the feature upsert step.
+		if (
+			apiError.response?.code === "feature_not_found" ||
+			/Feature\s+["']?([a-zA-Z0-9_-]+)["']?\s+not\s+found/i.test(
+				responseMessage,
+			)
+		) {
+			if (missingUnknownFeatureIds.length > 0) {
+				console.log(
+					`[checkPlanForVersioning] plan=${plan.id} failed versioning check: feature "${missingFeature || "unknown"}" not found and not in local config`,
+				);
+			} else if (missingFeature) {
+				console.log(
+					`[checkPlanForVersioning] plan=${plan.id} deferring versioning check due feature_not_found for feature "${missingFeature}", will recheck after feature upsert`,
+				);
+			} else {
+				console.log(
+					`[checkPlanForVersioning] plan=${plan.id} deferring versioning check due feature_not_found`,
+				);
+			}
+
 			return {
 				plan,
-				willVersion: true,
-				isArchived: false,
+				willVersion: false,
+				isArchived: remotePlanArchived,
+				requiresVersioningRecheck: missingLocalFeatureIds.length > 0,
 			};
 		}
 
 		throw error;
 	}
+}
+
+/**
+ * Re-check plan versioning after feature-level writes have run.
+ * This allows the normal API-side versioning check to run when missing
+ * features were only missing during analysis and are expected to be created
+ * in the same push.
+ */
+export async function refreshPlansForVersioning(
+	planUpdates: PlanUpdateInfo[],
+	localFeatures: Feature[],
+	forceRecheck = false,
+): Promise<PlanUpdateInfo[]> {
+	const needsRecheck = planUpdates.some(
+		(plan) => forceRecheck || plan.requiresVersioningRecheck,
+	);
+
+	if (!needsRecheck) {
+		return planUpdates;
+	}
+
+	const localFeatureIds = new Set(localFeatures.map((f) => f.id));
+	const remoteData = await fetchRemoteData();
+	const remoteFeatureIds = new Set(remoteData.features.map((f) => f.id));
+
+	return Promise.all(
+		planUpdates.map((planUpdate) => {
+			if (!forceRecheck && !planUpdate.requiresVersioningRecheck) {
+				return Promise.resolve(planUpdate);
+			}
+
+			return checkPlanForVersioning(
+				planUpdate.plan,
+				remoteData.plans,
+				localFeatureIds,
+				remoteFeatureIds,
+			);
+		}),
+	);
 }
 
 /**
@@ -427,8 +530,9 @@ export async function analyzePush(
 	});
 
 	// Check versioning info for each plan to update
+	const remoteFeatureIds = new Set(remoteData.features.map((f) => f.id));
 	const planUpdatePromises = plansToUpdateLocal.map((plan) =>
-		checkPlanForVersioning(plan, remoteData.plans),
+		checkPlanForVersioning(plan, remoteData.plans, localFeatureIds, remoteFeatureIds),
 	);
 	const plansToUpdate = await Promise.all(planUpdatePromises);
 

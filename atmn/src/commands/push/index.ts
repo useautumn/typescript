@@ -17,6 +17,7 @@ export {
 	deleteFeature,
 	deletePlan,
 	fetchRemoteData,
+	refreshPlansForVersioning,
 	pushFeature,
 	pushPlan,
 	unarchiveFeature,

@@ -27,6 +27,7 @@ export interface PlanUpdateInfo {
 	plan: Plan;
 	willVersion: boolean;
 	isArchived: boolean;
+	requiresVersioningRecheck?: boolean;
 }
 
 // Analysis result

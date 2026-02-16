@@ -9,7 +9,7 @@ export const featureTransformer = createTransformer<any, Feature>({
 	cases: {
 		// Boolean features: just copy base fields, no consumable
 		boolean: {
-			copy: ["id", "name", "event_names", "credit_schema"],
+			copy: ["id", "name", "event_names", "credit_schema", "archived"],
 			compute: {
 				type: () => "boolean" as const,
 			},
@@ -17,7 +17,7 @@ export const featureTransformer = createTransformer<any, Feature>({
 
 		// Credit system features: always consumable
 		credit_system: {
-			copy: ["id", "name", "event_names", "credit_schema"],
+			copy: ["id", "name", "event_names", "credit_schema", "archived"],
 			compute: {
 				type: () => "credit_system" as const,
 				consumable: () => true,
@@ -27,7 +27,7 @@ export const featureTransformer = createTransformer<any, Feature>({
 
 		// Backend bug: API returns "single_use" instead of "metered" with consumable=true
 		single_use: {
-			copy: ["id", "name", "event_names", "credit_schema"],
+			copy: ["id", "name", "event_names", "credit_schema", "archived"],
 			compute: {
 				type: () => "metered" as const,
 				consumable: () => true,
@@ -36,7 +36,7 @@ export const featureTransformer = createTransformer<any, Feature>({
 
 		// Backend bug: API returns "continuous_use" instead of "metered" with consumable=false
 		continuous_use: {
-			copy: ["id", "name", "event_names", "credit_schema"],
+			copy: ["id", "name", "event_names", "credit_schema", "archived"],
 			compute: {
 				type: () => "metered" as const,
 				consumable: () => false,
@@ -45,7 +45,7 @@ export const featureTransformer = createTransformer<any, Feature>({
 
 		// If API ever returns "metered" properly
 		metered: {
-			copy: ["id", "name", "event_names", "credit_schema"],
+			copy: ["id", "name", "event_names", "credit_schema", "archived"],
 			compute: {
 				type: () => "metered" as const,
 				consumable: (api) => api.consumable ?? true,
@@ -55,7 +55,7 @@ export const featureTransformer = createTransformer<any, Feature>({
 
 	// Fallback for unknown types
 	default: {
-		copy: ["id", "name", "event_names", "credit_schema"],
+		copy: ["id", "name", "event_names", "credit_schema", "archived"],
 		compute: {
 			type: () => "metered" as const,
 			consumable: () => true,

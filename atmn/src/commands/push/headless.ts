@@ -6,6 +6,7 @@ import createJiti from "jiti";
 import type { Feature, Plan } from "../../compose/models/index.js";
 import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
 import { AppEnv, resolveConfigPath } from "../../lib/env/index.js";
+import { writeConfig } from "../pull/writeConfig.js";
 import {
 	createFeatureArchivedPrompt,
 	createFeatureDeletePrompt,
@@ -23,6 +24,7 @@ import {
 	deleteFeature,
 	deletePlan,
 	fetchRemoteData,
+	refreshPlansForVersioning,
 	pushFeature,
 	pushPlan,
 	unarchiveFeature,
@@ -215,6 +217,55 @@ function formatIssuesSummary(prompts: PushPrompt[]): string {
 	return issues.join("\n");
 }
 
+async function syncArchivedFeaturesToConfig(
+	config: LocalConfig,
+	archivedFeatureIds: string[],
+	cwd: string,
+): Promise<void> {
+	const uniqueIds = [...new Set(archivedFeatureIds)];
+	if (uniqueIds.length === 0) {
+		return;
+	}
+
+	const remoteData = await fetchRemoteData();
+	const remoteFeatureMap = new Map(remoteData.features.map((f) => [f.id, f]));
+
+	const localFeaturesById = new Map(config.features.map((f) => [f.id, f]));
+	let hasChanges = false;
+
+	for (const featureId of uniqueIds) {
+		const existingFeature = localFeaturesById.get(featureId);
+		if (existingFeature) {
+			if (existingFeature.archived) {
+				continue;
+			}
+			localFeaturesById.set(featureId, {
+				...existingFeature,
+				archived: true,
+			});
+			hasChanges = true;
+			continue;
+		}
+
+		const remoteFeature = remoteFeatureMap.get(featureId);
+		if (!remoteFeature) {
+			continue;
+		}
+
+		localFeaturesById.set(featureId, {
+			...(remoteFeature as Feature),
+			archived: true,
+		});
+		hasChanges = true;
+	}
+
+	if (!hasChanges) {
+		return;
+	}
+
+	await writeConfig(Array.from(localFeaturesById.values()), config.plans, cwd);
+}
+
 /**
  * Execute the push with --yes flag (auto-confirm all prompts with defaults)
  */
@@ -222,6 +273,7 @@ async function executePushWithDefaults(
 	config: LocalConfig,
 	analysis: PushAnalysis,
 	prompts: PushPrompt[],
+	cwd: string,
 ): Promise<HeadlessPushResult> {
 	const result: HeadlessPushResult = {
 		success: true,
@@ -307,9 +359,18 @@ async function executePushWithDefaults(
 		result.plansCreated.push(plan.id);
 	}
 
+	const refreshedPlanUpdates = await refreshPlansForVersioning(
+		analysis.plansToUpdate,
+		config.features,
+	);
+	const planUpdateById = new Map(
+		refreshedPlanUpdates.map((planInfo) => [planInfo.plan.id, planInfo]),
+	);
+
 	// Push plans to update
 	for (const planInfo of analysis.plansToUpdate) {
-		if (planInfo.willVersion) {
+		const refreshedPlanInfo = planUpdateById.get(planInfo.plan.id) ?? planInfo;
+		if (refreshedPlanInfo.willVersion) {
 			const promptId = prompts.find(
 				(p) => p.type === "plan_versioning" && p.entityId === planInfo.plan.id,
 			)?.id;
@@ -319,7 +380,7 @@ async function executePushWithDefaults(
 			}
 		}
 
-		if (planInfo.isArchived) {
+		if (planInfo.isArchived || refreshedPlanInfo.isArchived) {
 			const promptId = prompts.find(
 				(p) => p.type === "plan_archived" && p.entityId === planInfo.plan.id,
 			)?.id;
@@ -330,7 +391,11 @@ async function executePushWithDefaults(
 		}
 
 		await pushPlan(planInfo.plan, remotePlans);
-		result.plansUpdated.push(planInfo.plan.id);
+		if (refreshedPlanInfo.willVersion) {
+			result.plansUpdated.push(refreshedPlanInfo.plan.id);
+		} else {
+			result.plansUpdated.push(planInfo.plan.id);
+		}
 	}
 
 	// Handle plan deletions first so feature dependencies are removed first
@@ -391,6 +456,14 @@ async function executePushWithDefaults(
 			result.featuresArchived.push(info.id);
 		}
 		// skip = do nothing
+	}
+
+	if (result.featuresArchived.length > 0) {
+		await syncArchivedFeaturesToConfig(
+			config,
+			result.featuresArchived,
+			cwd,
+		);
 	}
 
 	return result;
@@ -555,7 +628,7 @@ async function _headlessPushImpl(
 	let result: HeadlessPushResult;
 	if (prompts.length > 0) {
 		// --yes was set, execute with defaults
-		result = await executePushWithDefaults(config, analysis, prompts);
+		result = await executePushWithDefaults(config, analysis, prompts, cwd);
 	} else {
 		// No edge cases, clean push
 		result = await executeCleanPush(config, analysis);

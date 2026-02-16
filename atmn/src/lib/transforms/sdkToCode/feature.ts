@@ -30,6 +30,11 @@ export function buildFeatureCode(feature: Feature): string {
 		lines.push(`\tevent_names: ${formatValue(feature.event_names)},`);
 	}
 
+	// Add archived flag only when explicitly true
+	if (feature.archived) {
+		lines.push(`\tarchived: true,`);
+	}
+
 	// Add credit_schema for credit_system features
 	if (feature.type === "credit_system" && feature.credit_schema) {
 		lines.push(`\tcredit_schema: ${formatValue(feature.credit_schema)},`);
