@@ -3,11 +3,10 @@
 
 declare module '@useautumn/sdk' {
   // Features
-  export const meeting_credits_v2: Feature;
-  export const to_dos: Feature;
+  export const messages: Feature;
 
   // Plans
-  export const pro: Plan;
+  export const free: Plan;
 
   // Base types
   export type Feature = import('./autumn.config').Feature;

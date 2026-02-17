@@ -93,7 +93,7 @@ export function ProductSheet({
 				<SheetSection title="Price">
 					<Text>
 						<Text color="gray">Amount: </Text>
-						<Text color="green">${(plan.price.amount / 100).toFixed(2)}</Text>
+						<Text color="green">${plan.price.amount.toFixed(2)}</Text>
 					</Text>
 					<Text>
 						<Text color="gray">Interval: </Text>
@@ -172,7 +172,7 @@ export function ProductSheet({
 									<Text color="gray">Usage Price: </Text>
 									<Text color="green">
 										{feature.price.amount !== undefined
-											? `$${(feature.price.amount / 100).toFixed(2)}`
+											? `$${feature.price.amount.toFixed(2)}`
 											: "Tiered"}
 										/{feature.price.interval}
 									</Text>

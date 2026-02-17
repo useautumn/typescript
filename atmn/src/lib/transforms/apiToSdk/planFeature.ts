@@ -14,6 +14,8 @@ export const planFeatureTransformer = createTransformer<
 	PlanFeature
 >({
 	copy: ["feature_id", "unlimited", "proration"],
+	// Only persist unlimited when true (false is implicit default)
+	swapFalse: ["unlimited"],
 
 	// Computed fields
 	compute: {

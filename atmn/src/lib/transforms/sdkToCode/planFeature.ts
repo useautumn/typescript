@@ -30,8 +30,8 @@ export function buildPlanFeatureCode(
 	}
 
 	// Add unlimited
-	if (planFeature.unlimited !== undefined) {
-		lines.push(`\t\t\tunlimited: ${planFeature.unlimited},`);
+	if (planFeature.unlimited === true) {
+		lines.push(`\t\t\tunlimited: true,`);
 	}
 
 	// Add reset object (nested)

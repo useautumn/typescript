@@ -192,8 +192,9 @@ export const pro = plan({
 Once you've designed your pricing:
 
 1. Update \`autumn.config.ts\` with your features and plans
-2. Run \`atmn push\` to sync your configuration to Autumn
-3. Test in sandbox mode before going live
+2. Run \`atmn preview\` to lint, validate and preview your plans - make sure to show the user the output to ensure they're happy with the results.
+3. Run \`atmn push\` to sync your configuration to Autumn
+4. Test in sandbox mode before going live
 
 ## Resources
 
