@@ -5,7 +5,7 @@
 import type { Plan, PlanFeature, FreeTrial } from "../models/planModels.js";
 import type { Feature } from "../models/featureModels.js";
 
-type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> & Partial<Pick<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'>>;
+type PlanInput = Omit<Plan, 'add_on' | 'auto_enable' | 'group'> & Partial<Pick<Plan, 'add_on' | 'auto_enable' | 'group'>>;
 
 /**
  * Define a pricing plan in your Autumn configuration
@@ -17,7 +17,6 @@ type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> 
  * export const pro = plan({
  *   id: 'pro',
  *   name: 'Pro Plan',
- *   description: 'For growing teams',
  *   items: [
  *     planFeature({ feature_id: seats.id, included: 10 }),
  *     planFeature({
@@ -32,7 +31,6 @@ type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> 
 export const plan = (params: PlanInput): Plan => {
   return {
     ...params,
-    description: params.description ?? null,
     add_on: params.add_on ?? false,
     auto_enable: params.auto_enable ?? false,
     group: params.group ?? ""

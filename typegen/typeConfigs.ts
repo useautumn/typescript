@@ -649,7 +649,6 @@ export function getAtmnTypeConfigs(
 				paramType: "Plan",
 				targetFile: path.join(buildersDir, "builderFunctions.ts"),
 				defaults: {
-					description: null,
 					add_on: false,
 					auto_enable: false,
 					group: "",
@@ -664,7 +663,6 @@ export function getAtmnTypeConfigs(
  * export const pro = plan({
  *   id: 'pro',
  *   name: 'Pro Plan',
- *   description: 'For growing teams',
  *   items: [
  *     planFeature({ feature_id: seats.id, included: 10 }),
  *     planFeature({

@@ -7,7 +7,7 @@ import { createTransformer } from "./Transformer.js";
  * Declarative plan transformer - replaces 57 lines with ~20 lines of config
  */
 export const planTransformer = createTransformer<ApiPlan, Plan>({
-	copy: ["id", "name", "description", "group", "add_on", "auto_enable", "free_trial"],
+	copy: ["id", "name", "group", "add_on", "auto_enable", "free_trial"],
 
 	// Swap null to undefined for these fields (API → SDK direction)
 	// When pulling from API: null becomes undefined (cleaner, won't show in generated code)

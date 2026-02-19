@@ -227,9 +227,6 @@ export type Plan = {
   /** Display name for the plan */
   name: string;
 
-  /** Optional description explaining what this plan offers */
-  description?: string | null;
-
   /** Grouping identifier for organizing related plans */
   group?: string;
 

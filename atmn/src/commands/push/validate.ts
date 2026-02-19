@@ -83,6 +83,15 @@ function validatePlanFeature(
 		});
 	}
 
+	// Cannot have both top-level reset AND price (with amount/tiers)
+	// These are conflicting billing models: reset = free allocation, price = paid
+	if (hasTopLevelReset && planFeature.price && (planFeature.price.amount !== undefined || planFeature.price.tiers)) {
+		errors.push({
+			path: basePath,
+			message: `Cannot have both "reset" and "price" with an amount/tiers. "reset" is for free allocations that reset periodically. For paid usage, remove "reset" and use "price: { interval: '...', amount: ..., billing_method: '...' }" instead.`,
+		});
+	}
+
 	// ========== FEATURE TYPE VALIDATIONS ==========
 	if (featureDefinition) {
 		// Boolean features cannot have reset
