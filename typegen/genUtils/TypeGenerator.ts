@@ -273,8 +273,10 @@ ${imports}
    */
   private getEnumValuesMap(): Record<string, string[]> {
     return {
-      BillingInterval: ['month', 'quarter', 'semi_annual', 'year'],
-      ResetInterval: ['one_off', 'hour', 'day', 'week', 'month', 'quarter', 'year'],
+      // For plan items, `price.interval` is recurring-only.
+      // Base plan price is handled separately via BasePriceParamsSchema below.
+      BillingInterval: ['week', 'month', 'quarter', 'semi_annual', 'year'],
+      ResetInterval: ['one_off', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'semi_annual', 'year'],
       RolloverExpiryDurationType: ['month', 'forever'],
       UsageModel: ['prepaid', 'pay_per_use'], // Legacy - maps to BillingMethod in SDK
       BillingMethod: ['prepaid', 'usage_based'],
@@ -325,6 +327,9 @@ ${imports}
 
     if (schemaCode.includes('UsageTierSchema')) {
       imports.push(`export const UsageTierSchema = z.object({\n  to: z.union([z.number(), z.literal("inf")]),\n  amount: z.number(),\n});`);
+    }
+    if (schemaCode.includes('BasePriceParamsSchema')) {
+      imports.push(`const BasePriceParamsSchema = z.object({\n  amount: z.number(),\n  interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),\n  interval_count: z.number().optional(),\n});`);
     }
     if (schemaCode.includes('idRegex')) {
       imports.push(`const idRegex = /^[a-zA-Z0-9_-]+$/;`);

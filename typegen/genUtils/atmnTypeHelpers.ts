@@ -148,9 +148,13 @@ export function generatePlanFeatureType(
 ): string {
 	const typeAliases = {
 		ResetInterval:
-			'"one_off" | "hour" | "day" | "week" | "month" | "quarter" | "year"',
+			'"one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "semi_annual" | "year"',
 		RolloverExpiryDurationType: '"month" | "forever"',
-		BillingInterval: '"month" | "quarter" | "semi_annual" | "year"',
+		// Recurring-only interval for plan item prices (`items[].price.interval`).
+		BillingInterval: '"week" | "month" | "quarter" | "semi_annual" | "year"',
+		// Base plan price interval (`plan.price.interval`) can also be one_off.
+		PlanPriceInterval:
+			'"one_off" | "week" | "month" | "quarter" | "semi_annual" | "year"',
 		BillingMethod: '"prepaid" | "usage_based"',
 		OnIncrease: '"prorate" | "charge_immediately"',
 		OnDecrease: '"prorate" | "refund_immediately" | "no_action"',
@@ -373,7 +377,7 @@ export function generatePlanTypeWithJSDoc(
 				},
 		{
 			name: "interval",
-			type: "BillingInterval",
+			type: "PlanPriceInterval",
 			descriptionKey: "price.interval",
 			defaultDescription: "Billing frequency",
 		},

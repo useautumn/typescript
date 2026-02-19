@@ -9,6 +9,12 @@ export const UsageTierSchema = z.object({
   amount: z.number(),
 });
 
+const BasePriceParamsSchema = z.object({
+  amount: z.number(),
+  interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
+  interval_count: z.number().optional(),
+});
+
 const idRegex = /^[a-zA-Z0-9_-]+$/;
 
 
@@ -18,7 +24,7 @@ export const PlanFeatureSchema = z.object({
   unlimited: z.boolean().optional(),
   reset: z
     .object({
-    interval: z.union([z.literal("one_off"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("year")]),
+    interval: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
     interval_count: z.number().optional(),
     })
     .optional(),
@@ -27,7 +33,7 @@ export const PlanFeatureSchema = z.object({
     amount: z.number().optional(),
     tiers: z.array(UsageTierSchema).optional(),
     
-    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
+    interval: z.union([z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
     interval_count: z.number().default(1).optional(),
     
     billing_units: z.number().default(1).optional(),
@@ -43,11 +49,20 @@ export const PlanFeatureSchema = z.object({
     .optional(),
   rollover: z
     .object({
-    max: z.number(),
+    max: z.number().optional(),
     expiry_duration_type: z.union([z.literal("month"), z.literal("forever")]),
     expiry_duration_length: z.number().optional(),
     })
-    .optional()
+    .optional(),
+  entity_feature_id: z.string().optional().meta({
+    internal: true,
+    }),
+  entitlement_id: z.string().optional().meta({
+    internal: true,
+    }),
+  price_id: z.string().optional().meta({
+    internal: true,
+    })
 });
 
 export const FreeTrialSchema = z.object({
@@ -59,13 +74,7 @@ export const FreeTrialSchema = z.object({
 export const PlanSchema = z.object({
   add_on: z.boolean().default(false),
     auto_enable: z.boolean().default(false),
-  price: z
-    .object({
-    amount: z.number(),
-    interval: z.union([z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
-    interval_count: z.number().optional(),
-    })
-    .optional(),
+  price: BasePriceParamsSchema.optional(),
   items: z.array(PlanFeatureSchema).optional(),
     free_trial: FreeTrialSchema.optional(),
   /** Unique identifier for the plan */
@@ -78,9 +87,10 @@ export const PlanSchema = z.object({
 
 
 // Type aliases for literal unions
-export type ResetInterval = "one_off" | "hour" | "day" | "week" | "month" | "quarter" | "year";
+export type ResetInterval = "one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "semi_annual" | "year";
 export type RolloverExpiryDurationType = "month" | "forever";
-export type BillingInterval = "month" | "quarter" | "semi_annual" | "year";
+export type BillingInterval = "week" | "month" | "quarter" | "semi_annual" | "year";
+export type PlanPriceInterval = "one_off" | "week" | "month" | "quarter" | "semi_annual" | "year";
 export type BillingMethod = "prepaid" | "usage_based";
 export type OnIncrease = "prorate" | "charge_immediately";
 export type OnDecrease = "prorate" | "refund_immediately" | "no_action";
@@ -245,7 +255,7 @@ export type Plan = {
     amount: number;
 
     /** Billing frequency */
-    interval: BillingInterval;  }
+    interval: PlanPriceInterval;  }
 
   /** Items included with usage limits and pricing */
   items?: PlanFeature[];
