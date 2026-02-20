@@ -2,7 +2,7 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: necessary */
 import chalk from "chalk";
 import { program } from "commander";
-import { render } from "ink";
+import { render } from "./lib/tui/ink-compat.js";
 import open from "open";
 import React from "react";
 import AuthCommand from "./commands/auth/command.js";
@@ -107,7 +107,7 @@ program
 		if (process.stdout.isTTY && !skipAllPrompts) {
 			// Interactive mode - use new beautiful Ink UI
 			const { NukeView } = await import("./views/react/nuke/NukeView.js");
-			render(
+			await render(
 				<QueryProvider>
 					<NukeView />
 				</QueryProvider>,
@@ -130,7 +130,7 @@ program
 		if (process.stdout.isTTY) {
 			// Interactive mode - use new beautiful Ink UI
 			const { PushView } = await import("./views/react/push/Push.js");
-			render(
+			await render(
 				<QueryProvider>
 					<PushView
 						environment={environment}
@@ -169,7 +169,7 @@ program
 
 		if (process.stdout.isTTY) {
 			// Interactive mode - use beautiful Ink UI
-			render(
+			await render(
 				<QueryProvider>
 					<PullView
 						environment={environment}
@@ -241,7 +241,7 @@ program
 	.action(async () => {
 		if (process.stdout.isTTY) {
 			// Interactive mode - use new Ink-based init flow
-			render(
+			await render(
 				<QueryProvider>
 					<InitFlow />
 				</QueryProvider>,
@@ -251,7 +251,7 @@ program
 			const { HeadlessInitFlow } = await import(
 				"./views/react/init/HeadlessInitFlow.js"
 			);
-			render(
+			await render(
 				<QueryProvider>
 					<HeadlessInitFlow />
 				</QueryProvider>,
@@ -266,7 +266,7 @@ program
 		if (process.stdout.isTTY) {
 			// Interactive mode - use new beautiful Ink UI
 			const { LoginView } = await import("./views/react/login/LoginView.js");
-			render(
+			await render(
 				<QueryProvider>
 					<LoginView
 						onComplete={() => {

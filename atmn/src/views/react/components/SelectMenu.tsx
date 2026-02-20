@@ -1,7 +1,5 @@
-import SelectInput from "ink-select-input";
-
 /**
- * Wrapper around ink-select-input for consistent styling
+ * Wrapper around OpenTUI select for consistent styling
  */
 
 export interface SelectMenuItem<V = string> {
@@ -19,5 +17,23 @@ export function SelectMenu<V = string>({
 	items,
 	onSelect,
 }: SelectMenuProps<V>) {
-	return <SelectInput items={items} onSelect={onSelect} />;
+	const selectOptions = items.map((item) => ({
+		name: item.label,
+	}));
+
+	const handleSelect = (
+		_index: number,
+		option: { name: string } | null,
+	) => {
+		if (option) {
+			const matched = items.find((item) => item.label === option.name);
+			if (matched) {
+				onSelect(matched);
+			}
+		}
+	};
+
+	return (
+		<select options={selectOptions} onSelect={handleSelect} focused />
+	);
 }

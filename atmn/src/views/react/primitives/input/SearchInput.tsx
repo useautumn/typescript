@@ -1,5 +1,4 @@
-import { Box, Text, useInput } from "ink";
-import TextInput from "ink-text-input";
+import { useKeyboard } from "../../../../lib/tui/ink-compat.js";
 import { useState } from "react";
 
 export interface SearchInputProps {
@@ -24,21 +23,33 @@ export function SearchInput({
 }: SearchInputProps) {
 	const [value, setValue] = useState(initialValue);
 
-	useInput((_input, key) => {
-		if (key.escape) {
+	useKeyboard((key: { name?: string }) => {
+		if (key.name === "escape") {
 			onCancel();
-			return;
-		}
-		if (key.return) {
-			onSubmit(value.trim());
 			return;
 		}
 	});
 
+	const handleSubmit = (submittedValue: string) => {
+		onSubmit(submittedValue.trim());
+	};
+
 	return (
-		<Box borderStyle="round" borderColor="magenta" paddingX={1} width="100%">
-			<Text color="magenta">Search: </Text>
-			<TextInput value={value} onChange={setValue} placeholder={placeholder} />
-		</Box>
+		<box
+			border
+			borderStyle="rounded"
+			borderColor="#FF00FF"
+			paddingX={1}
+			width="100%"
+		>
+			<text content="Search: " style={{ fg: "#FF00FF" }} />
+			<input
+				value={value}
+				onInput={setValue}
+				onSubmit={handleSubmit}
+				placeholder={placeholder}
+				focused
+			/>
+		</box>
 	);
 }

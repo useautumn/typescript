@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 export interface EmptyStateProps {
 	title: string;
 	description?: string;
@@ -16,48 +14,55 @@ export function EmptyState({
 }: EmptyStateProps) {
 	if (searchQuery) {
 		return (
-			<Box
+			<box
 				flexDirection="column"
-				borderStyle="round"
-				borderColor="gray"
+				border
+				borderStyle="rounded"
+				borderColor="#888888"
 				paddingX={2}
 				paddingY={1}
 				width="100%"
 				alignItems="center"
 				justifyContent="center"
 			>
-				<Box marginTop={1}>
-					<Text bold>No results for "{searchQuery}"</Text>
-				</Box>
-				<Box marginTop={1}>
-					<Text dimColor>
-						Try a different search term or press <Text color="magenta">x</Text>{" "}
-						to clear the search.
-					</Text>
-				</Box>
-			</Box>
+				<box marginTop={1}>
+					<b>
+						<text content={`No results for "${searchQuery}"`} />
+					</b>
+				</box>
+				<box marginTop={1}>
+					<text style={{ fg: "#666666" }}>
+						{"Try a different search term or press "}
+						<span fg="#FF00FF">x</span>
+						{" to clear the search."}
+					</text>
+				</box>
+			</box>
 		);
 	}
 
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
-			borderColor="gray"
+			border
+			borderStyle="rounded"
+			borderColor="#888888"
 			paddingX={2}
 			paddingY={1}
 			width="100%"
 			alignItems="center"
 			justifyContent="center"
 		>
-			<Box marginTop={1}>
-				<Text bold>{title}</Text>
-			</Box>
+			<box marginTop={1}>
+				<b>
+					<text content={title} />
+				</b>
+			</box>
 			{description && (
-				<Box marginTop={1}>
-					<Text dimColor>{description}</Text>
-				</Box>
+				<box marginTop={1}>
+					<text content={description} style={{ fg: "#666666" }} />
+				</box>
 			)}
-		</Box>
+		</box>
 	);
 }

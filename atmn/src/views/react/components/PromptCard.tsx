@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-import SelectInput from "ink-select-input";
 import React, { type ReactNode, useEffect, useId, useMemo } from "react";
 import { useCardWidth } from "./providers/CardWidthContext.js";
 
@@ -71,7 +69,13 @@ function extractTextContent(children: ReactNode): string[] {
 		}
 
 		if (React.isValidElement(node)) {
-			const props = node.props as { children?: ReactNode };
+			const props = node.props as {
+				children?: ReactNode;
+				content?: string;
+			};
+			if (props.content) {
+				lines.push(props.content);
+			}
 			if (props.children) {
 				extract(props.children);
 			}
@@ -96,8 +100,14 @@ export function PromptCard({
 	const id = useId();
 	const cardWidth = useCardWidth();
 
-	const handleSelect = (item: { value: string }) => {
-		onSelect(item.value);
+	const handleSelect = (_index: number, option: { name: string } | null) => {
+		if (option) {
+			// Find the original option by matching name to label
+			const matched = options.find((o) => o.label === option.name);
+			if (matched) {
+				onSelect(matched.value);
+			}
+		}
 	};
 
 	// Calculate the content width needed for this card
@@ -137,29 +147,39 @@ export function PromptCard({
 			cardWidth.registerWidth(id, contentWidth);
 			return () => cardWidth.unregisterWidth(id);
 		}
+		return undefined;
 	}, [id, contentWidth, cardWidth]);
 
 	// Use shared width from context, or fallback to default
 	const width = cardWidth?.width ?? Math.max(DEFAULT_WIDTH, contentWidth);
 
+	// Map options to OpenTUI select format
+	const selectOptions = options.map((opt) => ({
+		name: opt.label,
+	}));
+
 	return (
-		<Box
-			borderStyle="round"
+		<box
+			border
+			borderStyle="rounded"
 			borderColor="yellow"
 			paddingX={1}
 			paddingY={0}
 			flexDirection="column"
 			width={width}
 		>
-			<Text bold color="yellow">
-				{icon ? `${icon} ${title}` : title}
-			</Text>
-			<Box flexDirection="column" marginTop={1}>
+			<b>
+				<text
+					content={icon ? `${icon} ${title}` : title}
+					style={{ fg: "yellow" }}
+				/>
+			</b>
+			<box flexDirection="column" marginTop={1}>
 				{children}
-			</Box>
-			<Box marginTop={1}>
-				<SelectInput items={options} onSelect={handleSelect} />
-			</Box>
-		</Box>
+			</box>
+			<box marginTop={1}>
+				<select options={selectOptions} onSelect={handleSelect} focused />
+			</box>
+		</box>
 	);
 }

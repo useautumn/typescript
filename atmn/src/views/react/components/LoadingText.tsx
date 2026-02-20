@@ -1,5 +1,4 @@
-import { Text } from "ink";
-import Spinner from "ink-spinner";
+import { Spinner } from "./Spinner.js";
 
 interface LoadingTextProps {
 	text: string;
@@ -10,8 +9,9 @@ interface LoadingTextProps {
  */
 export function LoadingText({ text }: LoadingTextProps) {
 	return (
-		<Text color="magenta">
-			<Spinner type="dots" /> {text}
-		</Text>
+		<box flexDirection="row">
+			<Spinner color="#FF00FF" />
+			<text content={` ${text}`} style={{ fg: "#FF00FF" }} />
+		</box>
 	);
 }

@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 export interface DetailSheetProps {
 	/** Title to display at top of sheet */
 	title: string;
@@ -30,33 +28,36 @@ export function DetailSheet({
 	actions,
 	minWidth = 44,
 }: DetailSheetProps) {
-	const borderColor = isFocused ? "magenta" : "gray";
+	const borderColor = isFocused ? "#FF00FF" : "#888888";
 
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
+			border
+			borderStyle="rounded"
 			borderColor={borderColor}
 			paddingX={1}
 			minWidth={minWidth}
 			height="100%"
 		>
 			{/* Title */}
-			<Text bold color="white">
-				{title}
-			</Text>
+			<b>
+				<text content={title} style={{ fg: "white" }} />
+			</b>
 
 			{/* Subtitle */}
-			{subtitle && <Text color="gray">{subtitle}</Text>}
+			{subtitle && (
+				<text content={subtitle} style={{ fg: "#888888" }} />
+			)}
 
 			{/* Content */}
 			{children}
 
 			{/* Spacer to push actions to bottom */}
-			<Box flexGrow={1} />
+			<box flexGrow={1} />
 
 			{/* Actions - pinned to bottom */}
-			{actions && <Box flexDirection="column">{actions}</Box>}
-		</Box>
+			{actions && <box flexDirection="column">{actions}</box>}
+		</box>
 	);
 }

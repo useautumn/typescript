@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 export interface ErrorStateProps {
 	error: Error;
 	onRetry?: () => void;
@@ -10,32 +8,37 @@ export interface ErrorStateProps {
  */
 export function ErrorState({ error, onRetry }: ErrorStateProps) {
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
+			border
+			borderStyle="rounded"
 			borderColor="red"
 			paddingX={2}
 			paddingY={1}
 			width="100%"
 		>
-			<Box>
-				<Text color="red" bold>
-					Error
-				</Text>
-			</Box>
-			<Box marginTop={1}>
-				<Text dimColor>{error.message}</Text>
-			</Box>
-			<Box marginTop={1}>
-				<Text>
+			<box>
+				<b>
+					<text content="Error" style={{ fg: "red" }} />
+				</b>
+			</box>
+			<box marginTop={1}>
+				<text content={error.message} style={{ fg: "#666666" }} />
+			</box>
+			<box marginTop={1}>
+				<text>
 					{onRetry && (
 						<>
-							Press <Text color="magenta">r</Text> to retry or{" "}
+							{"Press "}
+							<span fg="#FF00FF">r</span>
+							{" to retry or "}
 						</>
 					)}
-					Press <Text color="magenta">q</Text> to quit
-				</Text>
-			</Box>
-		</Box>
+					{"Press "}
+					<span fg="#FF00FF">q</span>
+					{" to quit"}
+				</text>
+			</box>
+		</box>
 	);
 }

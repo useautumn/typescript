@@ -1,5 +1,4 @@
-import { Box, Text } from "ink";
-import Spinner from "ink-spinner";
+import { Spinner } from "../../components/Spinner.js";
 
 export interface LoadingStateProps {
 	message?: string;
@@ -10,20 +9,19 @@ export interface LoadingStateProps {
  */
 export function LoadingState({ message = "Loading..." }: LoadingStateProps) {
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
-			borderColor="gray"
+			border
+			borderStyle="rounded"
+			borderColor="#888888"
 			paddingX={2}
 			paddingY={1}
 			width="100%"
 		>
-			<Box>
-				<Text color="magenta">
-					<Spinner type="dots" />
-				</Text>
-				<Text> {message}</Text>
-			</Box>
-		</Box>
+			<box flexDirection="row">
+				<Spinner color="#FF00FF" />
+				<text content={` ${message}`} />
+			</box>
+		</box>
 	);
 }

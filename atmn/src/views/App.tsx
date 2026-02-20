@@ -1,12 +1,10 @@
-import { Box, Text } from "ink";
-
 export default function App() {
 	return (
-		<Box flexDirection="column">
-			<Text color="cyan" bold>
-				atmn
-			</Text>
-			<Text dimColor>Autumn CLI - Interactive Mode</Text>
-		</Box>
+		<box flexDirection="column">
+			<b>
+				<text content="atmn" style={{ fg: "cyan" }} />
+			</b>
+			<text content="Autumn CLI - Interactive Mode" style={{ fg: "#666666" }} />
+		</box>
 	);
 }
