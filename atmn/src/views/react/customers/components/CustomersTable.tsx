@@ -1,6 +1,5 @@
-import { Box } from "ink";
-import { ScrollList, type ScrollListRef } from "ink-scroll-list";
-import { useEffect, useRef } from "react";
+import { Box } from "../../../../lib/tui/ink-compat.js";
+import { useEffect, useState } from "react";
 import type { ColumnWidths, CustomersTableProps } from "../types.js";
 import { CustomerRow, CustomerTableHeader } from "./CustomerRow.js";
 
@@ -9,7 +8,8 @@ export interface CustomersTableComponentProps extends CustomersTableProps {
 }
 
 /**
- * Scrollable customer table using ink-scroll-list
+ * Customer table with virtual scrolling.
+ * Shows a window of visible rows based on terminal height.
  */
 export function CustomersTable({
 	customers,
@@ -18,12 +18,12 @@ export function CustomersTable({
 	isFocused,
 	columnWidths,
 }: CustomersTableComponentProps) {
-	const listRef = useRef<ScrollListRef>(null);
+	const [termHeight, setTermHeight] = useState(process.stdout.rows || 24);
 
 	// Handle terminal resize
 	useEffect(() => {
 		const handleResize = () => {
-			listRef.current?.remeasure();
+			setTermHeight(process.stdout.rows || 24);
 		};
 
 		process.stdout.on("resize", handleResize);
@@ -39,21 +39,34 @@ export function CustomersTable({
 		}
 	}, [selectedIndex, customers, onSelect]);
 
+	// Virtual scrolling: calculate visible window
+	const maxVisibleRows = Math.max(1, termHeight - 8); // Reserve space for header/footer
+	const halfWindow = Math.floor(maxVisibleRows / 2);
+	let startIndex = Math.max(0, selectedIndex - halfWindow);
+	const endIndex = Math.min(customers.length, startIndex + maxVisibleRows);
+	// Adjust start if we're near the end
+	if (endIndex - startIndex < maxVisibleRows) {
+		startIndex = Math.max(0, endIndex - maxVisibleRows);
+	}
+
+	const visibleCustomers = customers.slice(startIndex, endIndex);
+
 	return (
 		<Box flexDirection="column" flexGrow={1}>
 			<CustomerTableHeader columnWidths={columnWidths} />
 			<Box flexDirection="column" flexGrow={1}>
-				<ScrollList ref={listRef} selectedIndex={selectedIndex}>
-					{customers.map((customer, index) => (
+				{visibleCustomers.map((customer, i) => {
+					const actualIndex = startIndex + i;
+					return (
 						<CustomerRow
 							key={customer.id}
 							customer={customer}
-							isSelected={index === selectedIndex}
+							isSelected={actualIndex === selectedIndex}
 							isFocused={isFocused}
 							columnWidths={columnWidths}
 						/>
-					))}
-				</ScrollList>
+					);
+				})}
 			</Box>
 		</Box>
 	);

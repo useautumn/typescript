@@ -1,5 +1,5 @@
-import { Box, Text, useApp, useInput } from "ink";
-import TextInput from "ink-text-input";
+import { Box, Text, useApp, useInput } from "../../../lib/tui/ink-compat.js";
+import { TextInput } from "../../../lib/tui/ink-compat.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ApiFeature } from "../../../lib/api/types/index.js";

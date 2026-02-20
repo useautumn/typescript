@@ -1,4 +1,4 @@
-import { Box } from "ink";
+import { Box } from "../../../lib/tui/ink-compat.js";
 import { useMemo } from "react";
 import type { Feature, Plan } from "../../../compose/index.js";
 import { getPlanPreview, type PlanPreview } from "../../../commands/preview/previewPlan.js";

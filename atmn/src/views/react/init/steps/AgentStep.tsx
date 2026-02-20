@@ -1,5 +1,4 @@
-import { MultiSelect } from "@inkjs/ui";
-import { Box, Text } from "ink";
+import { Box, Text, Spinner } from "../../../../lib/tui/ink-compat.js";
 import { useEffect, useState } from "react";
 import {
 	type AgentIdentifier,

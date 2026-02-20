@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../../lib/tui/ink-compat.js";
 import type { ApiEventsListItem } from "../../../../lib/hooks/useEvents.js";
 import {
 	DetailSheet,

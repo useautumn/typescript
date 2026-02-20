@@ -1,5 +1,5 @@
-import { Box, Text } from "ink";
-import Spinner from "ink-spinner";
+import { Box, Text } from "../../../lib/tui/ink-compat.js";
+import { Spinner } from "../../../lib/tui/ink-compat.js";
 import { useEffect, useState } from "react";
 import { createConfigBackup } from "../../../commands/nuke/backup.js";
 import {

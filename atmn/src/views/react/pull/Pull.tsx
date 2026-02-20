@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../lib/tui/ink-compat.js";
 import { useState } from "react";
 import { AppEnv } from "../../../lib/env/index.js";
 import { usePull } from "../../../lib/hooks/index.js";

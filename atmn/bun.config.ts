@@ -16,7 +16,7 @@ async function build() {
 		define: {
 			VERSION: `"${version}"`,
 		},
-		external: ["prettier", "jiti"],
+		external: ["prettier", "jiti", "@opentui/core", "@opentui/react", "react", "react/jsx-runtime", "yoga-layout"],
 	});
 	console.timeEnd(`Building atmn v${version}`);
 

@@ -1,4 +1,4 @@
-import { render } from "ink";
+import { render } from "../../lib/tui/ink-compat.js";
 import { AppEnv } from "../../lib/env/detect.js";
 import { QueryProvider } from "../../views/react/components/providers/QueryProvider.js";
 import { FeaturesView } from "../../views/react/features/FeaturesView.js";

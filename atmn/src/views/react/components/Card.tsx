@@ -120,10 +120,10 @@ export function Card({ title, children }: CardProps) {
 	return (
 		<box
 			border
-			borderStyle="rounded"
+			borderStyle="round"
 			borderColor="#FF00FF"
-			paddingX={1}
-			paddingY={0}
+			paddingLeft={1}
+			paddingRight={1}
 			flexDirection="column"
 			width={width}
 		>

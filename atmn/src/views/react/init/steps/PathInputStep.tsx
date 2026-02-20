@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { Box, Text, useInput } from "ink";
-import TextInput from "ink-text-input";
+import { Box, Text, useInput } from "../../../../lib/tui/ink-compat.js";
+import { TextInput } from "../../../../lib/tui/ink-compat.js";
 import React, { useState } from "react";
 import { StatusLine, StepHeader } from "../../components/index.js";
 

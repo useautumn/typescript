@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../../../lib/tui/ink-compat.js";
 import type { ApiDiscount, ApiRewards } from "../../types.js";
 
 export interface RewardsSectionProps {

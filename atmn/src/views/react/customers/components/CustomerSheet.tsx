@@ -1,5 +1,4 @@
-import { Spinner } from "@inkjs/ui";
-import { Box, Text } from "ink";
+import { Box, Text, Spinner } from "../../../../lib/tui/ink-compat.js";
 import type { ApiBalance, CustomerSheetProps } from "../types.js";
 import { formatDate } from "../types.js";
 import {

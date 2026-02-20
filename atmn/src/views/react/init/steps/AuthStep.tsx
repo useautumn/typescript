@@ -1,4 +1,4 @@
-import { Box } from "ink";
+import { Box } from "../../../../lib/tui/ink-compat.js";
 import {
 	type OrgInfo,
 	useHeadlessAuth,

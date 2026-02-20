@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { render } from "ink";
+import { render } from "../../lib/tui/ink-compat.js";
 import React from "react";
 import { loadConfig } from "./loadConfig.js";
 import { PreviewView } from "../../views/react/preview/index.js";

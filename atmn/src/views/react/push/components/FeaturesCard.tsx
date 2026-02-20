@@ -1,4 +1,4 @@
-import { Text } from "ink";
+import { Text } from "../../../../lib/tui/ink-compat.js";
 import type { FeatureDeleteInfo } from "../../../../commands/push/types.js";
 import type { Feature } from "../../../../compose/models/index.js";
 import type { FeatureStatus } from "../../../../lib/hooks/usePush.js";

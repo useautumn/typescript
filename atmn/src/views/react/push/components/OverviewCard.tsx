@@ -1,4 +1,4 @@
-import { Text } from "ink";
+import { Text } from "../../../../lib/tui/ink-compat.js";
 import type { PushAnalysis } from "../../../../commands/push/types.js";
 import { Card, LoadingText } from "../../components/index.js";
 
