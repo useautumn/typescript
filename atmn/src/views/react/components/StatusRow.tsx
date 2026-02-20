@@ -1,5 +1,4 @@
-import { Text } from "ink";
-import Spinner from "ink-spinner";
+import { Spinner } from "./Spinner.js";
 
 export type StatusRowStatus =
 	| "pending"
@@ -32,23 +31,19 @@ export function StatusRow({ status, label, detail, action }: StatusRowProps) {
 	const renderIcon = () => {
 		switch (status) {
 			case "pending":
-				return <Text dimColor> </Text>;
+				return <text content=" " style={{ fg: "#666666" }} />;
 			case "loading":
-				return (
-					<Text color="magenta">
-						<Spinner type="dots" />
-					</Text>
-				);
+				return <Spinner color="#FF00FF" />;
 			case "success":
-				return <Text color="green">✓</Text>;
+				return <text content="✓" style={{ fg: "green" }} />;
 			case "warning":
-				return <Text color="yellow">⚠</Text>;
+				return <text content="⚠" style={{ fg: "yellow" }} />;
 			case "error":
-				return <Text color="red">✗</Text>;
+				return <text content="✗" style={{ fg: "red" }} />;
 			case "skipped":
-				return <Text color="gray">⊘</Text>;
+				return <text content="⊘" style={{ fg: "#888888" }} />;
 			default:
-				return <Text> </Text>;
+				return <text content=" " />;
 		}
 	};
 
@@ -56,21 +51,23 @@ export function StatusRow({ status, label, detail, action }: StatusRowProps) {
 		if (!action) return null;
 
 		const actionColor =
-			action === "skipped" || action === "unchanged" ? "gray" : "green";
+			action === "skipped" || action === "unchanged" ? "#888888" : "green";
+		const dimmed = action === "unchanged";
 
 		return (
-			<Text color={actionColor} dimColor={action === "unchanged"}>
-				{" "}
-				({action})
-			</Text>
+			<text
+				content={` (${action})`}
+				style={{ fg: dimmed ? "#666666" : actionColor }}
+			/>
 		);
 	};
 
 	return (
-		<Text>
-			{renderIcon()} {label}
-			{detail && <Text color="gray"> {detail}</Text>}
+		<box flexDirection="row">
+			{renderIcon()}
+			<text content={` ${label}`} />
+			{detail && <text content={` ${detail}`} style={{ fg: "#888888" }} />}
 			{renderAction()}
-		</Text>
+		</box>
 	);
 }

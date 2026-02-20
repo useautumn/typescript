@@ -1,4 +1,4 @@
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput } from "../../../lib/tui/ink-compat.js";
 import { useMemo, useState } from "react";
 import { templates } from "./data.js";
 import { calculatePlanWidth } from "./PlanCard.js";

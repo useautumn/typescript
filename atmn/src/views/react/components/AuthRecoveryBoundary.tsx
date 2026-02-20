@@ -1,5 +1,4 @@
-import { Box, Text } from "ink";
-// biome-ignore lint/style/useImportType: needed for ink
+// biome-ignore lint/style/useImportType: needed for react
 import React, {
 	createContext,
 	useCallback,
@@ -48,7 +47,7 @@ export function useAuthRecoveryContext(): AuthRecoveryContextValue {
 }
 
 interface AuthRecoveryBoundaryProps {
-	children: React.ReactNode;
+	children?: React.ReactNode;
 	/** Called when the original command should be retried after successful auth */
 	onRetry?: () => void;
 }
@@ -139,11 +138,14 @@ interface AuthRecoveryViewProps {
 function AuthRecoveryView({ phase, error }: AuthRecoveryViewProps) {
 	return (
 		<CardWidthProvider>
-			<Box flexDirection="column" marginBottom={1}>
+			<box flexDirection="column" marginBottom={1}>
 				{/* Header */}
 				<Card title="🔐 Session Expired">
-					<Text>Your authentication has expired or is invalid.</Text>
-					<Text color="gray">Please re-authenticate to continue.</Text>
+					<text content="Your authentication has expired or is invalid." />
+					<text
+						content="Please re-authenticate to continue."
+						style={{ fg: "#888888" }}
+					/>
 				</Card>
 
 				{/* Browser phases */}
@@ -180,21 +182,33 @@ function AuthRecoveryView({ phase, error }: AuthRecoveryViewProps) {
 				{/* Complete */}
 				{phase === "complete" && (
 					<Card title="✓ Re-authenticated">
-						<Text color="green">Authentication successful!</Text>
-						<Text color="gray">Resuming your previous command...</Text>
+						<text
+							content="Authentication successful!"
+							style={{ fg: "green" }}
+						/>
+						<text
+							content="Resuming your previous command..."
+							style={{ fg: "#888888" }}
+						/>
 					</Card>
 				)}
 
 				{/* Error */}
 				{phase === "error" && (
 					<Card title="✗ Authentication Failed">
-						<Text color="red">{error || "An unknown error occurred."}</Text>
-						<Box marginTop={1}>
-							<Text color="gray">Please try again with `atmn login`.</Text>
-						</Box>
+						<text
+							content={error || "An unknown error occurred."}
+							style={{ fg: "red" }}
+						/>
+						<box marginTop={1}>
+							<text
+								content="Please try again with `atmn login`."
+								style={{ fg: "#888888" }}
+							/>
+						</box>
 					</Card>
 				)}
-			</Box>
+			</box>
 		</CardWidthProvider>
 	);
 }

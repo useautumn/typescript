@@ -1,4 +1,4 @@
-import { Box, Text, useApp } from "ink";
+import { Box, Text, useApp } from "../../../lib/tui/ink-compat.js";
 import { useEffect, useState } from "react";
 import { createConfigBackup } from "../../../commands/nuke/backup.js";
 import {

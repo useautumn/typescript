@@ -1,5 +1,5 @@
-import { TitledBox } from "@mishieck/ink-titled-box";
-import { Box, Text } from "ink";
+// ink-titled-box removed - using Box with title
+import { Box, Text } from "../../../lib/tui/ink-compat.js";
 import type { PlanPreview } from "../../../commands/preview/previewPlan.js";
 
 // Border + padding overhead for width calculations

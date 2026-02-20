@@ -1,5 +1,4 @@
-import { ProgressBar } from "@inkjs/ui";
-import { Box, Text } from "ink";
+import { Box, Text, Spinner } from "../../../../../lib/tui/ink-compat.js";
 import type { ApiBalance } from "../../types.js";
 
 export interface BalancesSectionProps {

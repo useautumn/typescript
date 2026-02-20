@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 interface StepHeaderProps {
 	step: number;
 	totalSteps: number;
@@ -8,16 +6,17 @@ interface StepHeaderProps {
 
 export function StepHeader({ step, totalSteps, title }: StepHeaderProps) {
 	return (
-		<Box flexDirection="column" marginBottom={0}>
-			<Text>
-				<Text color="magenta" bold>
-					Step {step}/{totalSteps}:
-				</Text>{" "}
-				<Text bold>{title}</Text>
-			</Text>
-			<Text color="magentaBright">
-				{"─".repeat(`Step ${step}/${totalSteps}:`.length)}
-			</Text>
-		</Box>
+		<box flexDirection="column" marginBottom={0}>
+			<text>
+				<b>
+					<span fg="#FF00FF">{`Step ${step}/${totalSteps}:`}</span>
+				</b>{" "}
+				<b>{title}</b>
+			</text>
+			<text
+				content={"─".repeat(`Step ${step}/${totalSteps}:`.length)}
+				style={{ fg: "#FF55FF" }}
+			/>
+		</box>
 	);
 }

@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../../lib/tui/ink-compat.js";
 import { APP_VERSION } from "../../../../lib/version.js";
 import type { TitleBarProps } from "../types.js";
 

@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 export interface SheetSectionProps {
 	/** Section title */
 	title: string;
@@ -21,15 +19,15 @@ export function SheetSection({
 	isEmpty,
 }: SheetSectionProps) {
 	return (
-		<Box flexDirection="column" marginTop={1}>
-			<Text bold color="gray">
-				{title}
-			</Text>
+		<box flexDirection="column" marginTop={1}>
+			<b>
+				<text content={title} style={{ fg: "#888888" }} />
+			</b>
 			{isEmpty && emptyMessage ? (
-				<Text dimColor>{emptyMessage}</Text>
+				<text content={emptyMessage} style={{ fg: "#666666" }} />
 			) : (
 				children
 			)}
-		</Box>
+		</box>
 	);
 }

@@ -1,4 +1,4 @@
-import { Text } from "ink";
+import { Text } from "../../../../lib/tui/ink-compat.js";
 import type { Plan } from "../../../../compose/models/index.js";
 
 interface PlanRowProps {

@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 export interface KeybindHint {
 	/** The key or key combination (e.g., "↑↓", "Enter", "q") */
 	key: string;
@@ -22,21 +20,23 @@ export function BottomBar({ hints }: BottomBarProps) {
 	const visibleHints = hints.filter((hint) => hint.visible !== false);
 
 	return (
-		<Box
-			borderStyle="round"
-			borderColor="gray"
+		<box
+			border
+			borderStyle="rounded"
+			borderColor="#888888"
 			paddingX={1}
 			width="100%"
 			justifyContent="center"
-			gap={2}
 		>
-			{visibleHints.map((hint, index) => (
-				<Text key={`${hint.key}-${hint.label}`}>
-					{index > 0 && <Text color="gray">│ </Text>}
-					<Text color="magenta">{hint.key}</Text>
-					<Text color="gray"> {hint.label}</Text>
-				</Text>
-			))}
-		</Box>
+			<text>
+				{visibleHints.map((hint, index) => (
+					<span key={`${hint.key}-${hint.label}`}>
+						{index > 0 && <span fg="#888888">│ </span>}
+						<span fg="#FF00FF">{hint.key}</span>
+						<span fg="#888888"> {hint.label} </span>
+					</span>
+				))}
+			</text>
+		</box>
 	);
 }

@@ -1,4 +1,3 @@
-import { Box } from "ink";
 import type { ReactNode } from "react";
 
 export type FocusTarget = "main" | "side";
@@ -31,26 +30,27 @@ export function SplitPane({
 	loadingIndicator,
 }: SplitPaneProps) {
 	return (
-		<Box flexDirection="row" width="100%" flexGrow={1}>
+		<box flexDirection="row" width="100%" flexGrow={1}>
 			{/* Main pane - takes remaining space */}
-			<Box
+			<box
 				flexDirection="column"
-				borderStyle="round"
-				borderColor={focusTarget === "main" ? "magenta" : "gray"}
+				border
+				borderStyle="rounded"
+				borderColor={focusTarget === "main" ? "#FF00FF" : "#888888"}
 				paddingX={1}
 				flexGrow={1}
 				flexShrink={1}
 			>
 				{main}
-				{loadingIndicator && <Box marginTop={1}>{loadingIndicator}</Box>}
-			</Box>
+				{loadingIndicator && <box marginTop={1}>{loadingIndicator}</box>}
+			</box>
 
 			{/* Side pane - fixed width, doesn't shrink */}
 			{sideOpen && side && (
-				<Box marginLeft={1} flexShrink={0}>
+				<box marginLeft={1} flexShrink={0}>
 					{side}
-				</Box>
+				</box>
 			)}
-		</Box>
+		</box>
 	);
 }

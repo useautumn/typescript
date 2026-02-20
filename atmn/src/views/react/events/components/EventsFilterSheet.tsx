@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../../lib/tui/ink-compat.js";
 import type { ApiFeature } from "../../../../lib/api/types/index.js";
 import type { TimeRangePreset } from "../../../../lib/hooks/useEvents.js";
 import type { FilterField } from "../../../../lib/hooks/useEventsFilter.js";

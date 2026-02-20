@@ -1,5 +1,3 @@
-import { Box, Text } from "ink";
-
 export interface TitleBarItem {
 	label: string;
 	value: string;
@@ -31,43 +29,46 @@ export function TitleBar({
 	extraItems,
 }: TitleBarProps) {
 	return (
-		<Box
-			borderStyle="round"
-			borderColor="gray"
+		<box
+			border
+			borderStyle="rounded"
+			borderColor="#888888"
 			paddingX={1}
 			width="100%"
 			justifyContent="center"
 		>
-			{version && (
-				<>
-					<Text color="gray">{version}</Text>
-					<Text color="gray"> │ </Text>
-				</>
-			)}
-			<Text bold color="white">
-				{commandName}
-			</Text>
-			{paginationText && (
-				<>
-					<Text color="gray"> │ </Text>
-					<Text color="gray">{paginationText}</Text>
-				</>
-			)}
-			{extraItems?.map((item) => (
-				<Text key={`${item.label}-${item.value}`}>
-					<Text color="gray"> │ </Text>
-					<Text color="gray">{item.label}: </Text>
-					<Text color={item.color ?? "white"}>{item.value}</Text>
-				</Text>
-			))}
-			{searchQuery && (
-				<>
-					<Text color="gray"> │ </Text>
-					<Text color="magenta">search: </Text>
-					<Text color="white">{searchQuery}</Text>
-					<Text color="gray"> (x to clear)</Text>
-				</>
-			)}
-		</Box>
+			<text>
+				{version && (
+					<>
+						<span fg="#888888">{version}</span>
+						<span fg="#888888"> │ </span>
+					</>
+				)}
+				<b>
+					<span fg="white">{commandName}</span>
+				</b>
+				{paginationText && (
+					<>
+						<span fg="#888888"> │ </span>
+						<span fg="#888888">{paginationText}</span>
+					</>
+				)}
+				{extraItems?.map((item) => (
+					<span key={`${item.label}-${item.value}`}>
+						<span fg="#888888"> │ </span>
+						<span fg="#888888">{item.label}: </span>
+						<span fg={item.color ?? "white"}>{item.value}</span>
+					</span>
+				))}
+				{searchQuery && (
+					<>
+						<span fg="#888888"> │ </span>
+						<span fg="#FF00FF">search: </span>
+						<span fg="white">{searchQuery}</span>
+						<span fg="#888888"> (x to clear)</span>
+					</>
+				)}
+			</text>
+		</box>
 	);
 }

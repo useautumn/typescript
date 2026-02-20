@@ -1,5 +1,4 @@
-import { MultiSelect, Select, TextInput } from "@inkjs/ui";
-import { Box, Text, useApp } from "ink";
+import { Box, Text, useApp, Spinner } from "../../../../lib/tui/ink-compat.js";
 import open from "open";
 import React, { useState } from "react";
 import { useClipboard, useCreateSkills } from "../../../../lib/hooks/index.js";

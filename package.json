@@ -15,7 +15,8 @@
 		"frameworks/*",
 		"ui",
 		"atmn",
-		"nextjs"
+		"nextjs",
+		"ts-sdk"
 	],
 	"dependencies": {
 		"@types/better-sqlite3": "^7.6.13",

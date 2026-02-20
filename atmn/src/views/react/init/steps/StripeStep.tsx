@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../../lib/tui/ink-compat.js";
 import open from "open";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FRONTEND_URL } from "../../../../constants.js";

@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../lib/tui/ink-compat.js";
 import { useState } from "react";
 
 import { ASCII_TITLE } from "../../../constants.js";

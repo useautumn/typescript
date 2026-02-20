@@ -1,4 +1,4 @@
-import { Box, Text, useApp, useStdout } from "ink";
+import { Box, Text, useApp, useStdout } from "../../../lib/tui/ink-compat.js";
 import { useEffect, useState } from "react";
 import {
 	getExplodeFrame,

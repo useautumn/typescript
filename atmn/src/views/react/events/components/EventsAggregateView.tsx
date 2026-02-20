@@ -1,4 +1,4 @@
-import { Box, Text, useStdout } from "ink";
+import { Box, Text, useStdout } from "../../../../lib/tui/ink-compat.js";
 import type { FormattedTimeBucket } from "../../../../lib/hooks/useEventsAggregateApi.js";
 import type { AggregateBinSize } from "../../../../lib/api/endpoints/events.js";
 

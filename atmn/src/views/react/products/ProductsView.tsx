@@ -1,4 +1,4 @@
-import { Text, useApp, useInput } from "ink";
+import { Text, useApp, useInput } from "../../../lib/tui/ink-compat.js";
 import open from "open";
 import { useCallback, useEffect, useMemo } from "react";
 import type { ApiPlan } from "../../../lib/api/types/index.js";

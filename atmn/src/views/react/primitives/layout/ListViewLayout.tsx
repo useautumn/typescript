@@ -1,4 +1,3 @@
-import { Box, Text } from "ink";
 import type { ReactNode } from "react";
 import { SearchInput } from "../input/index.js";
 import { EmptyState, ErrorState, LoadingState } from "../states/index.js";
@@ -74,7 +73,7 @@ export function ListViewLayout({
 	children,
 }: ListViewLayoutProps) {
 	return (
-		<Box flexDirection="column" width="100%">
+		<box flexDirection="column" width="100%">
 			{/* Title bar */}
 			<TitleBar
 				commandName={commandName}
@@ -86,17 +85,17 @@ export function ListViewLayout({
 
 			{/* Inline search input (conditional) */}
 			{searchOpen && onSearchSubmit && onSearchCancel && (
-				<Box marginTop={1} width="100%">
+				<box marginTop={1} width="100%">
 					<SearchInput
 						initialValue={searchQuery}
 						onSubmit={onSearchSubmit}
 						onCancel={onSearchCancel}
 					/>
-				</Box>
+				</box>
 			)}
 
 			{/* Content area */}
-			<Box marginTop={1} width="100%" flexGrow={1}>
+			<box marginTop={1} width="100%" flexGrow={1}>
 				{viewState === "loading" && (
 					<LoadingState message={loadingMessage} />
 				)}
@@ -114,12 +113,12 @@ export function ListViewLayout({
 				)}
 
 				{viewState === "data" && children}
-			</Box>
+			</box>
 
 			{/* Bottom bar with keybind hints */}
-			<Box marginTop={1} width="100%">
+			<box marginTop={1} width="100%">
 				<BottomBar hints={hints} />
-			</Box>
-		</Box>
+			</box>
+		</box>
 	);
 }

@@ -1,5 +1,5 @@
-import { Box, Text } from "ink";
-import SelectInput from "ink-select-input";
+import { Box, Text } from "../../../lib/tui/ink-compat.js";
+import { SelectInput } from "../../../lib/tui/ink-compat.js";
 import { useLogin } from "../../../lib/hooks/useLogin.js";
 import { Card, CardWidthProvider, LoadingText } from "../components/index.js";
 

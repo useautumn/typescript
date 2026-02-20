@@ -1,4 +1,3 @@
-import { Box } from "ink";
 import { useMemo } from "react";
 import { useVisibleRowCount } from "../../../../lib/hooks/useVisibleRowCount.js";
 import { TableHeader, TableRow } from "./TableRow.js";
@@ -45,7 +44,11 @@ function calculateColumnWidths<T>(
 	const columnMargins = Math.max(0, columns.length - 1);
 	const markerWidth = 2;
 	const availableWidth =
-		terminalWidth - TABLE_OVERHEAD - reservedWidth - columnMargins - markerWidth;
+		terminalWidth -
+		TABLE_OVERHEAD -
+		reservedWidth -
+		columnMargins -
+		markerWidth;
 
 	const sampleData = data.slice(0, SAMPLE_SIZE);
 
@@ -97,7 +100,7 @@ function calculateVisibleWindow(
 	// Calculate window that keeps selected item visible
 	// Try to keep selected item in the middle when possible
 	const halfWindow = Math.floor(visibleCount / 2);
-	
+
 	let start = selectedIndex - halfWindow;
 	let end = start + visibleCount;
 
@@ -115,7 +118,7 @@ function calculateVisibleWindow(
 
 /**
  * Generic data table component with dynamic windowed rendering.
- * 
+ *
  * Instead of relying on ink-scroll-list for virtualization (which doesn't work well),
  * we calculate how many rows fit in the terminal and render only that window of data.
  * The window shifts as the user navigates to keep the selected item visible.
@@ -135,7 +138,13 @@ export function DataTable<T>({
 
 	// Calculate column widths
 	const columnWidths = useMemo(
-		() => calculateColumnWidths(data, columns, process.stdout.columns ?? 80, reservedWidth),
+		() =>
+			calculateColumnWidths(
+				data,
+				columns,
+				process.stdout.columns ?? 80,
+				reservedWidth,
+			),
 		[data, columns, reservedWidth],
 	);
 
@@ -149,9 +158,9 @@ export function DataTable<T>({
 	const visibleData = data.slice(start, end);
 
 	return (
-		<Box flexDirection="column" flexGrow={1}>
+		<box flexDirection="column" flexGrow={1}>
 			<TableHeader columns={columns} columnWidths={columnWidths} />
-			<Box flexDirection="column">
+			<box flexDirection="column">
 				{visibleData.map((item, visibleIndex) => {
 					const actualIndex = start + visibleIndex;
 					return (
@@ -165,7 +174,7 @@ export function DataTable<T>({
 						/>
 					);
 				})}
-			</Box>
-		</Box>
+			</box>
+		</box>
 	);
 }

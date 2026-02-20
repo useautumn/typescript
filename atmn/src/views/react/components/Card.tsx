@@ -1,4 +1,3 @@
-import { Box, Text } from "ink";
 import React, { type ReactNode, useEffect, useId, useMemo } from "react";
 import { useCardWidth } from "./providers/CardWidthContext.js";
 
@@ -62,7 +61,13 @@ function extractTextContent(children: ReactNode): string[] {
 		}
 
 		if (React.isValidElement(node)) {
-			const props = node.props as { children?: ReactNode };
+			const props = node.props as {
+				children?: ReactNode;
+				content?: string;
+			};
+			if (props.content) {
+				lines.push(props.content);
+			}
 			if (props.children) {
 				extract(props.children);
 			}
@@ -106,28 +111,30 @@ export function Card({ title, children }: CardProps) {
 			cardWidth.registerWidth(id, contentWidth);
 			return () => cardWidth.unregisterWidth(id);
 		}
+		return undefined;
 	}, [id, contentWidth, cardWidth]);
 
 	// Use shared width from context, or fallback to default
 	const width = cardWidth?.width ?? Math.max(DEFAULT_WIDTH, contentWidth);
 
 	return (
-		<Box
+		<box
+			border
 			borderStyle="round"
-			borderColor="magenta"
-			paddingX={1}
-			paddingY={0}
+			borderColor="#FF00FF"
+			paddingLeft={1}
+			paddingRight={1}
 			flexDirection="column"
 			width={width}
 		>
-			<Text bold color="magenta">
-				{title}
-			</Text>
+			<b>
+				<text content={title} style={{ fg: "#FF00FF" }} />
+			</b>
 			{children && (
-				<Box flexDirection="column" marginTop={1}>
+				<box flexDirection="column" marginTop={1}>
 					{children}
-				</Box>
+				</box>
 			)}
-		</Box>
+		</box>
 	);
 }

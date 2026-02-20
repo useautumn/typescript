@@ -1,4 +1,4 @@
-import { Text, useApp, useInput } from "ink";
+import { Text, useApp, useInput } from "../../../lib/tui/ink-compat.js";
 import open from "open";
 import { useCallback, useEffect } from "react";
 import type { ApiCustomer } from "../../../lib/api/endpoints/customers.js";

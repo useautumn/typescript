@@ -1,4 +1,4 @@
-import { useStdout } from "ink";
+import { useStdout } from "../tui/ink-compat.js";
 
 /**
  * Chrome heights for different layout configurations.

@@ -1,5 +1,3 @@
-import { Text } from "ink";
-
 interface KeyValueProps {
 	label: string;
 	value: string;
@@ -10,8 +8,8 @@ interface KeyValueProps {
  */
 export function KeyValue({ label, value }: KeyValueProps) {
 	return (
-		<Text>
-			<Text color="gray">{label}:</Text> {value}
-		</Text>
+		<text>
+			<span fg="#888888">{label}:</span> {value}
+		</text>
 	);
 }

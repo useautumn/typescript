@@ -1,5 +1,5 @@
-import { Text } from "ink";
-import Spinner from "ink-spinner";
+import { Text } from "../../../../lib/tui/ink-compat.js";
+import { Spinner } from "../../../../lib/tui/ink-compat.js";
 
 interface FileRowProps {
 	name: string;

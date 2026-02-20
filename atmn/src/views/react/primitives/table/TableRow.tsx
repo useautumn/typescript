@@ -1,4 +1,3 @@
-import { Box, Text } from "ink";
 import { truncate } from "../utils/truncate.js";
 import type { Column } from "./index.js";
 
@@ -30,11 +29,11 @@ export function TableRow<T>({
 	columnWidths,
 }: TableRowProps<T>) {
 	const marker = isSelected ? "▸ " : "  ";
-	const markerColor = isSelected && isFocused ? "magenta" : "gray";
+	const markerColor = isSelected && isFocused ? "#FF00FF" : "#888888";
 
 	return (
-		<Box>
-			<Text color={markerColor}>{marker}</Text>
+		<box flexDirection="row">
+			<text content={marker} style={{ fg: markerColor }} />
 			{columns.map((column, index) => {
 				const width = columnWidths[index] ?? 10;
 				const content = column.render(item, isSelected);
@@ -42,33 +41,28 @@ export function TableRow<T>({
 				// If content is a string, truncate and style it
 				if (typeof content === "string") {
 					const truncated = truncate(content, width);
+					const padded = truncated.padEnd(width);
 					return (
-						<Box
-							key={column.key}
-							width={width}
-							marginLeft={index > 0 ? 1 : 0}
-							overflow="hidden"
-						>
-							<Text bold={isSelected} dimColor={!isSelected} wrap="truncate">
-								{truncated}
-							</Text>
-						</Box>
+						<box key={column.key} width={width} marginLeft={index > 0 ? 1 : 0}>
+							{isSelected ? (
+								<b>
+									<text content={padded} />
+								</b>
+							) : (
+								<text content={padded} style={{ fg: "#AAAAAA" }} />
+							)}
+						</box>
 					);
 				}
 
-				// If content is a React node, render it directly (no wrapping)
+				// If content is a React node, render it directly
 				return (
-					<Box
-						key={column.key}
-						width={width}
-						marginLeft={index > 0 ? 1 : 0}
-						overflow="hidden"
-					>
+					<box key={column.key} width={width} marginLeft={index > 0 ? 1 : 0}>
 						{content}
-					</Box>
+					</box>
 				);
 			})}
-		</Box>
+		</box>
 	);
 }
 
@@ -91,23 +85,19 @@ export function TableHeader<T>({
 	columnWidths,
 }: TableHeaderProps<T>) {
 	return (
-		<Box marginBottom={0}>
-			<Text color="gray">{"  "}</Text>
+		<box marginBottom={0} flexDirection="row">
+			<text content="  " style={{ fg: "#888888" }} />
 			{columns.map((column, index) => {
 				const width = columnWidths[index] ?? 10;
+				const padded = column.header.padEnd(width);
 				return (
-					<Box
-						key={column.key}
-						width={width}
-						marginLeft={index > 0 ? 1 : 0}
-						overflow="hidden"
-					>
-						<Text color="gray" bold wrap="truncate">
-							{column.header}
-						</Text>
-					</Box>
+					<box key={column.key} width={width} marginLeft={index > 0 ? 1 : 0}>
+						<b>
+							<text content={padded} style={{ fg: "#888888" }} />
+						</b>
+					</box>
 				);
 			})}
-		</Box>
+		</box>
 	);
 }

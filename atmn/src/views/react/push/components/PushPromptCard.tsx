@@ -1,4 +1,4 @@
-import { Text } from "ink";
+import { Text } from "../../../../lib/tui/ink-compat.js";
 import type { PushPrompt } from "../../../../lib/push/prompts.js";
 import { PromptCard } from "../../components/index.js";
 

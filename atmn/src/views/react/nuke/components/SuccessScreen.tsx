@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text } from "../../../../lib/tui/ink-compat.js";
 import { useEffect } from "react";
 import { Card } from "../../components/index.js";
 

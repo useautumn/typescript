@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { render } from "ink";
+import { render } from "../../lib/tui/ink-compat.js";
 import { AgentStep } from "./init/steps/AgentStep.js";
 
 // Test the AgentStep component standalone
