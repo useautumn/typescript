@@ -78,7 +78,7 @@ export interface CreateProductsAppOptions {
 export async function createProductsApp(opts: CreateProductsAppOptions) {
 	const env = opts.environment ?? AppEnv.Sandbox;
 
-	const app = createNodeApp<ProductsState>({
+	const app = createNodeApp<ProductsState>({ config: { executionMode: "inline" },
 		initialState: {
 			allPlans: [],
 			loading: true,

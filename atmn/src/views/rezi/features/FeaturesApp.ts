@@ -73,7 +73,7 @@ export interface CreateFeaturesAppOptions {
 export async function createFeaturesApp(opts: CreateFeaturesAppOptions) {
 	const env = opts.environment ?? AppEnv.Sandbox;
 
-	const app = createNodeApp<FeaturesState>({
+	const app = createNodeApp<FeaturesState>({ config: { executionMode: "inline" },
 		initialState: {
 			allFeatures: [],
 			loading: true,

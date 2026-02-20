@@ -837,7 +837,7 @@ async function handleNextStepChoice(value: string) {
 // ─── Entry point ─────────────────────────────────────────────────────────────
 
 export async function createInitApp() {
-	app = createNodeApp<InitState>({
+	app = createNodeApp<InitState>({ config: { executionMode: "inline" },
 		initialState: {
 			currentStep: "auth",
 			totalSteps: 3,

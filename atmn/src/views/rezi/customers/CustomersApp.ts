@@ -613,7 +613,7 @@ export async function createCustomersApp(opts: {
 }): Promise<void> {
 	const { environment, onExit } = opts;
 
-	const app = createNodeApp<CustomersState>({
+	const app = createNodeApp<CustomersState>({ config: { executionMode: "inline" },
 		initialState: {
 			page: 1,
 			selectedIndex: 0,

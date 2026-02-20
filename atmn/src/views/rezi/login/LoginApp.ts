@@ -40,7 +40,7 @@ interface LoginState {
 export async function createLoginApp(opts?: { onComplete?: () => void }) {
 	let runOAuth: () => Promise<void>;
 
-	const app = createNodeApp<LoginState>({
+	const app = createNodeApp<LoginState>({ config: { executionMode: "inline" },
 		initialState: {
 			phase: "checking",
 			error: null,

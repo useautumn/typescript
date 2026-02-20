@@ -171,7 +171,7 @@ export async function createEventsApp(opts: CreateEventsAppOptions) {
 	const env = opts.environment ?? AppEnv.Sandbox;
 
 	let currentState: EventsState;
-	const app = createNodeApp<EventsState>({
+	const app = createNodeApp<EventsState>({ config: { executionMode: "inline" },
 		initialState: {
 			events: [],
 			features: [],

@@ -494,7 +494,7 @@ export async function createPushApp(opts: {
 		startTime: Date.now(),
 	};
 
-	const app = createNodeApp<PushState>({ initialState });
+	const app = createNodeApp<PushState>({ config: { executionMode: "inline" }, initialState });
 	app.view(renderView);
 	await app.start();
 

@@ -216,7 +216,7 @@ export async function createTemplateApp(opts?: {
 		}
 	}
 
-	const app = createNodeApp<TemplateState>({
+	const app = createNodeApp<TemplateState>({ config: { executionMode: "inline" },
 		initialState: {
 			selectedIndex: 0,
 			globalTierWidth: maxTierWidth,

@@ -106,7 +106,7 @@ export async function createNukeApp(opts?: { onExit?: () => void }) {
 		initialError = err instanceof NukeValidationError ? err.message : "Failed to validate environment";
 	}
 
-	const app = createNodeApp<NukeState>({
+	const app = createNodeApp<NukeState>({ config: { executionMode: "inline" },
 		initialState: {
 			screen: initialScreen,
 			error: initialError,

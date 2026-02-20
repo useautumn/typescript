@@ -186,7 +186,7 @@ export async function createPullApp(opts: {
 	const forceOverwrite = opts.forceOverwrite ?? false;
 	const effectiveCwd = opts.cwd ?? process.cwd();
 
-	const app = createNodeApp<PullState>({
+	const app = createNodeApp<PullState>({ config: { executionMode: "inline" },
 		initialState: {
 			orgInfo: null,
 			features: [],

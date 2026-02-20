@@ -166,7 +166,7 @@ export async function createPreviewApp(opts: {
 	const currency = opts.currency ?? "USD";
 	const cwd = opts.cwd ?? process.cwd();
 
-	const app = createNodeApp<PreviewState>({
+	const app = createNodeApp<PreviewState>({ config: { executionMode: "inline" },
 		initialState: {
 			previews: [],
 			sharedWidth: MIN_CARD_WIDTH,
