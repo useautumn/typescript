@@ -2,21 +2,15 @@
 /** biome-ignore-all lint/complexity/useLiteralKeys: necessary */
 import chalk from "chalk";
 import { program } from "commander";
-import { render } from "ink";
 import open from "open";
-import React from "react";
 import AuthCommand from "./commands/auth/command.js";
 import Nuke from "./commands/nuke/legacyNuke.js";
-import { pull as newPull } from "./commands/pull/pull.js"; // New pull implementation
+import { pull as newPull } from "./commands/pull/pull.js";
 import { FRONTEND_URL } from "./constants.js";
 import { fetchOrganizationMe } from "./lib/api/endpoints/index.js";
 import { isProd, setCliContext } from "./lib/env/cliContext.js";
 import { readFromEnv } from "./lib/utils.js";
 import { APP_VERSION } from "./lib/version.js";
-// Import Ink views
-import { QueryProvider } from "./views/react/components/providers/QueryProvider.js";
-import { InitFlow } from "./views/react/init/InitFlow.js";
-import { PullView } from "./views/react/pull/Pull.js";
 
 program.version(APP_VERSION, "-v, --version");
 
@@ -38,7 +32,6 @@ program.option(
 );
 
 // Set CLI context before any command runs
-// This allows combined flags like -lp to work correctly
 program.hook("preAction", (thisCommand) => {
 	const opts = thisCommand.opts();
 	setCliContext({
@@ -52,13 +45,13 @@ program.hook("preAction", (thisCommand) => {
 		process.stdout.isTTY = false;
 	}
 });
-// === Existing commands (unchanged from source/cli.ts) ===
+
+// === Commands ===
 
 program
 	.command("env")
 	.description("Check the environment and organization info")
 	.action(async () => {
-		// Ensure API key is present
 		const secretKey = readFromEnv();
 		if (!secretKey) {
 			console.error(
@@ -67,7 +60,6 @@ program
 			process.exit(1);
 		}
 
-		// Fetch organization info from API
 		const orgInfo = await fetchOrganizationMe({ secretKey });
 
 		const envDisplay = orgInfo.env === "sandbox" ? "Sandbox" : "Production";
@@ -86,7 +78,7 @@ program
 	.action(async (options) => {
 		const skipAllPrompts =
 			options.dangerouslySkipAllConfirmationPrompts ?? false;
-		// Nuke is sandbox-only - panic if prod flag is passed
+
 		if (isProd()) {
 			console.error(
 				chalk.red.bold(
@@ -105,15 +97,9 @@ program
 		}
 
 		if (process.stdout.isTTY && !skipAllPrompts) {
-			// Interactive mode - use new beautiful Ink UI
-			const { NukeView } = await import("./views/react/nuke/NukeView.js");
-			render(
-				<QueryProvider>
-					<NukeView />
-				</QueryProvider>,
-			);
+			const { createNukeApp } = await import("./views/rezi/nuke/NukeApp.js");
+			await createNukeApp();
 		} else {
-			// Non-TTY mode or skip-all-prompts - use legacy command
 			await Nuke({ skipAllPrompts });
 		}
 	});
@@ -123,26 +109,19 @@ program
 	.description("Push changes to Autumn")
 	.option("-y, --yes", "Confirm all prompts automatically")
 	.action(async (options) => {
-		// Import AppEnv here to avoid circular dependencies
 		const { AppEnv } = await import("./lib/env/index.js");
 		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
 
 		if (process.stdout.isTTY) {
-			// Interactive mode - use new beautiful Ink UI
-			const { PushView } = await import("./views/react/push/Push.js");
-			render(
-				<QueryProvider>
-					<PushView
-						environment={environment}
-						yes={options.yes}
-						onComplete={() => {
-							process.exit(0);
-						}}
-					/>
-				</QueryProvider>,
-			);
+			const { createPushApp } = await import("./views/rezi/push/PushApp.js");
+			await createPushApp({
+				environment,
+				yes: options.yes,
+				onComplete: () => {
+					process.exit(0);
+				},
+			});
 		} else {
-			// Non-TTY mode - use headless push with V2 logic
 			const { headlessPush } = await import("./commands/push/headless.js");
 			const { formatError } = await import("./lib/api/client.js");
 			try {
@@ -163,25 +142,19 @@ program
 	.description("Pull changes from Autumn")
 	.option("-f, --force", "Force overwrite config (skip in-place update)")
 	.action(async (options) => {
-		// Import AppEnv here to avoid circular dependencies
 		const { AppEnv } = await import("./lib/env/index.js");
 		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
 
 		if (process.stdout.isTTY) {
-			// Interactive mode - use beautiful Ink UI
-			render(
-				<QueryProvider>
-					<PullView
-						environment={environment}
-						forceOverwrite={options.force}
-						onComplete={() => {
-							process.exit(0);
-						}}
-					/>
-				</QueryProvider>,
-			);
+			const { createPullApp } = await import("./views/rezi/pull/PullApp.js");
+			await createPullApp({
+				environment,
+				forceOverwrite: options.force,
+				onComplete: () => {
+					process.exit(0);
+				},
+			});
 		} else {
-			// Non-TTY (CI/agent mode) - use plain text
 			console.log(`Pulling plans and features from Autumn (${environment})...`);
 
 			try {
@@ -198,7 +171,6 @@ program
 					),
 				);
 
-				// Show in-place update details
 				if (result.inPlace && result.updateResult) {
 					const {
 						featuresUpdated,
@@ -240,22 +212,11 @@ program
 	.description("Initialize an Autumn project.")
 	.action(async () => {
 		if (process.stdout.isTTY) {
-			// Interactive mode - use new Ink-based init flow
-			render(
-				<QueryProvider>
-					<InitFlow />
-				</QueryProvider>,
-			);
+			const { createInitApp } = await import("./views/rezi/init/InitApp.js");
+			await createInitApp();
 		} else {
-			// Non-TTY (agent/CI mode) - use headless init flow
-			const { HeadlessInitFlow } = await import(
-				"./views/react/init/HeadlessInitFlow.js"
-			);
-			render(
-				<QueryProvider>
-					<HeadlessInitFlow />
-				</QueryProvider>,
-			);
+			const { headlessInit } = await import("./views/rezi/init/InitApp.js");
+			await headlessInit();
 		}
 	});
 
@@ -264,19 +225,13 @@ program
 	.description("Authenticate with Autumn")
 	.action(async () => {
 		if (process.stdout.isTTY) {
-			// Interactive mode - use new beautiful Ink UI
-			const { LoginView } = await import("./views/react/login/LoginView.js");
-			render(
-				<QueryProvider>
-					<LoginView
-						onComplete={() => {
-							process.exit(0);
-						}}
-					/>
-				</QueryProvider>,
-			);
+			const { createLoginApp } = await import("./views/rezi/login/LoginApp.js");
+			await createLoginApp({
+				onComplete: () => {
+					process.exit(0);
+				},
+			});
 		} else {
-			// Non-TTY mode - use legacy command with URL fallback
 			await AuthCommand();
 		}
 	});
@@ -447,8 +402,9 @@ program
 			format: options.format,
 		});
 	});
+
 /**
- * This is a hack to silence the DeprecationWarning about url.parse()
+ * Silence the DeprecationWarning about url.parse()
  */
 // biome-ignore lint/suspicious/noExplicitAny: expected
 const originalEmit = process.emitWarning as any;

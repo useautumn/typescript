@@ -6,6 +6,8 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"skipLibCheck": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "@rezi-ui/jsx",
 		"paths": {
 			"@api/*": ["../../../sirtenzin-autumn/shared/api/*"],
 			"@models/*": ["../../../sirtenzin-autumn/shared/models/*"],

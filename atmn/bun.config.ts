@@ -9,7 +9,7 @@ async function build() {
 	// Build everything with Bun
 	console.time(`Building atmn v${version}`);
 	await Bun.build({
-		entrypoints: ["./src/cli.tsx", "./src/compose/index.ts"],
+		entrypoints: ["./src/cli.ts", "./src/compose/index.ts"],
 		outdir: "./dist",
 		format: "esm",
 		target: "node",

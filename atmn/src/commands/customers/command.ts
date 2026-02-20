@@ -1,7 +1,4 @@
-import { render } from "ink";
 import { AppEnv } from "../../lib/env/detect.js";
-import { QueryProvider } from "../../views/react/components/providers/QueryProvider.js";
-import { CustomersView } from "../../views/react/customers/CustomersView.js";
 import { headlessCustomersCommand } from "./headless.js";
 
 export interface CustomersCommandOptions {
@@ -43,26 +40,13 @@ export async function customersCommand(
 
 	const environment = options.prod ? AppEnv.Live : AppEnv.Sandbox;
 
-	// Interactive mode - render Ink UI
-	const instance = render(
-		<QueryProvider>
-			<CustomersView
-				environment={environment}
-				onExit={() => {
-					// Clear the terminal output for a clean exit
-					instance.clear();
-					instance.unmount();
-					process.exit(0);
-				}}
-			/>
-		</QueryProvider>,
+	// Interactive mode - render Rezi TUI
+	const { createCustomersApp } = await import(
+		"../../views/rezi/customers/CustomersApp.js"
 	);
-
-	// Handle Ctrl+C - clear terminal before exit
-	process.on("SIGINT", () => {
-		instance.clear();
-		instance.unmount();
-		process.exit(0);
+	await createCustomersApp({
+		environment,
+		onExit: () => process.exit(0),
 	});
 }
 
