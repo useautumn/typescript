@@ -4,7 +4,7 @@ import {
 	getApiKeysWithToken,
 	startOAuthFlow,
 } from "../../commands/auth/oauth.js";
-import { isAuthError } from "../hooks/useAuthRecovery.js";
+import { isAuthError } from "./isAuthError.js";
 import { storeEnvKeys } from "../hooks/useEnvironmentStore.js";
 
 /**
