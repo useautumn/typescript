@@ -23,6 +23,15 @@ atmn push           # Deploy your config to Autumn
 atmn pull           # Pull changes & generate SDK types
 ```
 
+## Templates
+
+`atmn init` offers starter templates for common pricing models:
+
+- **OpenAI** — Credit system with model tiers
+- **T3 Chat** — Seats + message limits
+- **Railway** — Resource-based usage pricing
+- **Linear** — Feature flags + usage controls
+
 ## What It Does
 
 You define features and plans in an `autumn.config.ts` file. The CLI syncs that config with your Autumn account — push to deploy, pull to fetch updates. It also generates TypeScript definitions so your SDK calls are type-safe.
@@ -169,15 +178,6 @@ The CLI auto-detects non-TTY environments and switches to headless mode. Set you
   env:
     AUTUMN_PROD_SECRET_KEY: ${{ secrets.AUTUMN_PROD_SECRET_KEY }}
 ```
-
-## Templates
-
-`atmn init` offers starter templates for common pricing models:
-
-- **OpenAI** — Credit system with model tiers
-- **T3 Chat** — Seats + message limits
-- **Railway** — Resource-based usage pricing
-- **Linear** — Feature flags + usage controls
 
 ## Links
 
