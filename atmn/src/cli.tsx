@@ -162,17 +162,19 @@ program
 	.command("pull")
 	.description("Pull changes from Autumn")
 	.option("-f, --force", "Force overwrite config (skip in-place update)")
+	.option("--declaration-file", "Generate @useautumn-sdk.d.ts (default: true)")
 	.option("--no-declaration-file", "Skip generating @useautumn-sdk.d.ts")
-	.action(async (options) => {
+	.action(async (options, cmd) => {
 		// Import AppEnv here to avoid circular dependencies
 		const { AppEnv } = await import("./lib/env/index.js");
 		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
 
-		// Resolve noDeclarationFile: CLI flag > global config > false
+		// Resolve noDeclarationFile: CLI flag > global config > default (true)
 		const { getGlobalConfig } = await import("./commands/config/command.js");
-		const skipDts =
-			options.declarationFile === false ||
-			(getGlobalConfig().get("noDeclarationFile") === true);
+		const cliExplicit = cmd.getOptionValueSource("declarationFile") === "cli";
+		const skipDts = cliExplicit
+			? options.declarationFile === false
+			: (getGlobalConfig().get("noDeclarationFile") === true);
 
 		if (process.stdout.isTTY) {
 			// Interactive mode - use beautiful Ink UI
