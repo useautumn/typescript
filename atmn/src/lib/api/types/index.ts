@@ -2,5 +2,5 @@
 // Re-exports for API types
 
 export type { ApiPlan } from "./plan.js";
-export type { ApiPlanFeature } from "./planFeature.js";
+export type { ApiPlanItem } from "./planItem.js";
 export type { ApiFeature } from "./feature.js";

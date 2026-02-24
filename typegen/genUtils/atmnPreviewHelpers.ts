@@ -170,11 +170,11 @@ export function generatePreviewDisplayUtils({
 		"utf-8",
 	);
 
-	// Generate planFeatureToItem.ts (translation layer)
-	const planFeatureToItemContent = generatePlanFeatureToItemFile();
+	// Generate planItemToItem.ts (translation layer)
+	const planItemToItemContent = generatePlanItemToItemFile();
 	writeFileSync(
-		path.join(outputDir, "planFeatureToItem.ts"),
-		planFeatureToItemContent,
+		path.join(outputDir, "planItemToItem.ts"),
+		planItemToItemContent,
 		"utf-8",
 	);
 }
@@ -429,20 +429,20 @@ export const formatTiers = ({
 }
 
 /**
- * Generate planFeatureToItem.ts - translation layer from atmn types to ProductItem-like shape
+ * Generate planItemToItem.ts - translation layer from atmn types to ProductItem-like shape
  */
-function generatePlanFeatureToItemFile(): string {
+function generatePlanItemToItemFile(): string {
 	return `${AUTO_GEN_HEADER}
 
 /**
- * Minimal translation from atmn PlanFeature to ProductItem-like shape
+ * Minimal translation from atmn PlanItem to ProductItem-like shape
  * This allows us to reuse display logic patterns from @autumn/shared
  *
  * NOTE: This is a simplified version for CLI preview. The full conversion
  * lives in @autumn/shared/utils/planFeatureUtils/planFeaturesToItems.ts
  */
 
-import type { Feature, PlanFeature } from "../../compose/index.js";
+import type { Feature, PlanItem } from "../../compose/index.js";
 
 /**
  * Minimal ProductItem shape needed for display functions
@@ -459,29 +459,30 @@ export interface ProductItemLike {
 }
 
 /**
- * Convert atmn PlanFeature to ProductItem-like shape for display
+ * Convert atmn PlanItem to ProductItem-like shape for display
  */
 export const planFeatureToItem = ({
 	planFeature,
 }: {
-	planFeature: PlanFeature;
+	planFeature: PlanItem;
 }): ProductItemLike => {
 	// Support both 'included' and legacy 'granted' field names
-	const pf = planFeature as PlanFeature & { granted?: number };
-	const includedValue = planFeature.included ?? pf.granted;
+	const pi = planFeature as PlanItem & { granted?: number };
+	const includedValue = planFeature.included ?? pi.granted;
 
 	// Determine interval: reset.interval > price.interval
 	const interval = planFeature.reset?.interval ?? planFeature.price?.interval ?? null;
-	const intervalCount = planFeature.reset?.interval_count ?? planFeature.price?.interval_count ?? null;
+	const priceWithInterval = planFeature.price as { intervalCount?: number } | undefined;
+	const intervalCount = planFeature.reset?.intervalCount ?? priceWithInterval?.intervalCount ?? null;
 
 	return {
-		feature_id: planFeature.feature_id,
+		feature_id: planFeature.featureId,
 		included_usage: planFeature.unlimited ? "inf" : (includedValue ?? null),
 		interval,
 		interval_count: intervalCount,
 		price: planFeature.price?.amount ?? null,
 		tiers: planFeature.price?.tiers ?? null,
-		billing_units: planFeature.price?.billing_units ?? null,
+		billing_units: (planFeature.price as { billingUnits?: number } | undefined)?.billingUnits ?? null,
 	};
 };
 

@@ -283,6 +283,7 @@ ${imports}
       OnIncrease: ['prorate', 'charge_immediately'],
       OnDecrease: ['prorate', 'refund_immediately', 'no_action'],
       FreeTrialDuration: ['day', 'month', 'year'],
+      TierBehaviours: ['graduated', 'volume'],
       ApiFeatureType: ['static', 'boolean', 'single_use', 'continuous_use', 'credit_system'],
       FeatureType: ['boolean', 'metered', 'credit_system'],
     };
@@ -297,8 +298,11 @@ ${imports}
 
     for (const [enumName, values] of Object.entries(enumMap)) {
       const literalUnion = values.map(v => `z.literal("${v}")`).join(', ');
-      const pattern = new RegExp(`z\\.enum\\(${enumName}\\)`, 'g');
-      result = result.replace(pattern, `z.union([${literalUnion}])`);
+      // Match both `z.enum(EnumName)` and chained `.enum(EnumName)`
+      const patternWithZ = new RegExp(`z\\.enum\\(${enumName}\\)`, 'g');
+      result = result.replace(patternWithZ, `z.union([${literalUnion}])`);
+      const patternChained = new RegExp(`\\.enum\\(${enumName}\\)`, 'g');
+      result = result.replace(patternChained, `.union([${literalUnion}])`);
     }
 
     // Replace enum default references with literal defaults after enum conversion.

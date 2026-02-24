@@ -1,13 +1,20 @@
 import type { Plan } from "../../../compose/models/planModels.js";
 import type { ApiPlan } from "../../api/types/index.js";
-import { transformApiPlanFeature } from "./planFeature.js";
+import { transformApiPlanItem } from "./planItem.js";
 import { createTransformer } from "./Transformer.js";
 
 /**
  * Declarative plan transformer - replaces 57 lines with ~20 lines of config
  */
 export const planTransformer = createTransformer<ApiPlan, Plan>({
-	copy: ["id", "name", "description", "group", "add_on", "auto_enable", "free_trial"],
+	copy: ["id", "name", "description", "group"],
+
+	// Rename snake_case API fields → camelCase SDK fields
+	rename: {
+		add_on: "addOn",
+		auto_enable: "autoEnable",
+		free_trial: "freeTrial",
+	},
 
 	// Swap null to undefined for these fields (API → SDK direction)
 	// When pulling from API: null becomes undefined (cleaner, won't show in generated code)
@@ -30,7 +37,7 @@ export const planTransformer = createTransformer<ApiPlan, Plan>({
 		// Transform items array (only if non-empty)
 		items: (api) =>
 			api.items && api.items.length > 0
-				? api.items.map(transformApiPlanFeature)
+				? api.items.map(transformApiPlanItem)
 				: undefined,
 	},
 });

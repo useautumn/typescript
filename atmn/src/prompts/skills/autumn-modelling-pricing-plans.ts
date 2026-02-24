@@ -128,7 +128,7 @@ This creates: $10/month base price that includes 1 unit, then $10 per additional
 ## Example Configuration
 
 \`\`\`typescript
-import { feature, plan, planFeature } from "atmn";
+import { feature, plan, item } from "atmn";
 
 // Features
 export const messages = feature({
@@ -149,10 +149,10 @@ export const seats = feature({
 export const free = plan({
 	id: "free",
 	name: "Free",
-	auto_enable: true,
+	autoEnable: true,
 	items: [
-		planFeature({ feature_id: messages.id, included: 100 }),
-		planFeature({ feature_id: seats.id, included: 1 }),
+		item({ featureId: messages.id, included: 100 }),
+		item({ featureId: seats.id, included: 1 }),
 	],
 });
 
@@ -164,23 +164,23 @@ export const pro = plan({
 		interval: "month",
 	},
 	items: [
-		planFeature({
-			feature_id: seats.id,
+		item({
+			featureId: seats.id,
 			included: 5,
 			price: {
 				amount: 10,
 				interval: "month",
-				billing_method: "usage_based",
+				billingMethod: "usage_based",
 			},
 		}),
-		planFeature({
-			feature_id: messages.id,
+		item({
+			featureId: messages.id,
 			included: 10_000,
-			entity_feature_id: seats.id,
+			entityFeatureId: seats.id,
 			price: {
 				amount: 0.01,
 				interval: "month",
-				billing_method: "usage_based",
+				billingMethod: "usage_based",
 			},
 		}),
 	],

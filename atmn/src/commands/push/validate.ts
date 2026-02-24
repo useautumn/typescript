@@ -1,4 +1,4 @@
-import type { Feature, Plan, PlanFeature } from "../../compose/models/index.js";
+import type { Feature, Plan, PlanItem } from "../../compose/models/index.js";
 
 /**
  * Validation errors with user-friendly messages.
@@ -14,15 +14,15 @@ export interface ValidationResult {
 }
 
 /**
- * Get the price.interval from a PlanFeature (handling the discriminated union)
+ * Get the price.interval from a PlanItem (handling the discriminated union)
  */
 function getPriceInterval(
-	feature: PlanFeature,
-): { interval: string; interval_count?: number } | undefined {
+	feature: PlanItem,
+): { interval: string; intervalCount?: number } | undefined {
 	if (!feature.price) return undefined;
-	const price = feature.price as { interval?: string; interval_count?: number };
+	const price = feature.price as { interval?: string; intervalCount?: number };
 	if (price.interval) {
-		return { interval: price.interval, interval_count: price.interval_count };
+		return { interval: price.interval, intervalCount: price.intervalCount };
 	}
 	return undefined;
 }
@@ -50,21 +50,21 @@ function _isContinuousUseFeature(feature: Feature): boolean {
 }
 
 /**
- * Validate a plan feature has all required fields.
+ * Validate a plan item has all required fields.
  */
 function validatePlanFeature(
-	planFeature: PlanFeature,
+	planFeature: PlanItem,
 	planId: string,
 	featureIndex: number,
 	features: Feature[],
 ): ValidationError[] {
 	const errors: ValidationError[] = [];
-	const featureId = planFeature.feature_id || `(no feature_id)`;
+	const featureId = planFeature.featureId || `(no featureId)`;
 	const basePath = `plan "${planId}" → items[${featureIndex}] (${featureId})`;
 
 	// Look up the actual feature definition
 	const featureDefinition = features.find(
-		(f) => f.id === planFeature.feature_id,
+		(f) => f.id === planFeature.featureId,
 	);
 
 	// Get reset configuration from either top-level or price.interval
@@ -112,11 +112,11 @@ function validatePlanFeature(
 
 	// ========== PRICE VALIDATION ==========
 	if (planFeature.price) {
-		// billing_method is required when price is defined
-		if (!planFeature.price.billing_method) {
+		// billingMethod is required when price is defined
+		if (!(planFeature.price as { billingMethod?: string }).billingMethod) {
 			errors.push({
 				path: `${basePath} → price`,
-				message: `"billing_method" is required when "price" is defined. Must be "prepaid" or "usage_based".`,
+				message: `"billingMethod" is required when "price" is defined. Must be "prepaid" or "usage_based".`,
 			});
 		}
 
@@ -228,11 +228,11 @@ function validatePlan(plan: Plan, features: Feature[]): ValidationError[] {
 		for (let i = 0; i < plan.items.length; i++) {
 			const planFeature = plan.items[i];
 			if (planFeature) {
-				// feature_id is required
-				if (!planFeature.feature_id) {
+				// featureId is required
+				if (!planFeature.featureId) {
 					errors.push({
 						path: `plan "${planId}" → items[${i}]`,
-						message: `"feature_id" is required.`,
+						message: `"featureId" is required.`,
 					});
 				}
 				errors.push(...validatePlanFeature(planFeature, planId, i, features));

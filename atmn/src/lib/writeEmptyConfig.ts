@@ -7,7 +7,7 @@ import { resolveConfigPath } from "./env/index.js";
  * @param targetDir - Optional directory to write the config file to. If not provided, uses resolveConfigPath()
  */
 export function writeEmptyConfig(targetDir?: string): void {
-	const content = `import { plan, feature, planFeature } from 'atmn'
+	const content = `import { feature, item, plan } from 'atmn'
 `;
 
 	const configPath = targetDir

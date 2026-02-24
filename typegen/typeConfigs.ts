@@ -516,9 +516,9 @@ export function getAtmnApiTypeConfigs(
 		},
 		{
 			schemaName: "ApiPlanItemV1Schema",
-			typeName: "ApiPlanFeature",
+			typeName: "ApiPlanItem",
 			sourceFile: path.join(serverPath, "api/products/items/apiPlanItemV1.ts"),
-			outputFile: path.join(apiTypesDir, "planFeature.ts"),
+			outputFile: path.join(apiTypesDir, "planItem.ts"),
 		},
 		{
 			schemaName: "ApiFeatureV1Schema",
@@ -540,9 +540,9 @@ export function getAtmnTypeConfigs(
 	// Source files from @autumn/shared
 	const planOpModelsFile = path.join(
 		serverPath,
-		"api/products/crud/createPlanParamsV0.ts",
+		"api/products/crud/createPlanParamsV1.ts",
 	);
-	const planFeatureOpModelsFile = path.join(
+	const planItemOpModelsFile = path.join(
 		serverPath,
 		"api/products/items/crud/createPlanItemParamsV1.ts",
 	);
@@ -589,22 +589,22 @@ export function getAtmnTypeConfigs(
 				},
 			},
 
-			// ==================
-			// PLAN FEATURE (features in a plan)
-			// ==================
-			{
-				sourceName: "CreatePlanItemParamsV1Schema",
-				targetName: "PlanFeature",
-				sourceFile: planFeatureOpModelsFile,
-				targetFile: path.join(modelsDir, "planModels.ts"),
-				sourceType: "zod",
-				keepCase: true,
-				replaceEnumsWithStrings: true,
-				omitFields: [],
-				extendFields: {},
-				renameFields: {},
-				skipTypeExport: true, // Don't export type - we'll add discriminated union manually
-			},
+		// ==================
+		// PLAN ITEM (features in a plan)
+		// ==================
+		{
+			sourceName: "CreatePlanItemParamsV1Schema",
+			targetName: "PlanItem",
+			sourceFile: planItemOpModelsFile,
+			targetFile: path.join(modelsDir, "planModels.ts"),
+			sourceType: "zod",
+			keepCase: true,
+			replaceEnumsWithStrings: true,
+			omitFields: [],
+			extendFields: {},
+			renameFields: {},
+			skipTypeExport: true, // Don't export type - we'll add discriminated union manually
+		},
 
 			// ==================
 			// FEATURE (reusable feature definitions)
@@ -643,18 +643,18 @@ export function getAtmnTypeConfigs(
 		// BUILDER FUNCTIONS
 		// ==================
 		builders: [
-			{
-				builderName: "plan",
-				schemaName: "PlanSchema",
-				paramType: "Plan",
-				targetFile: path.join(buildersDir, "builderFunctions.ts"),
-				defaults: {
-					description: null,
-					add_on: false,
-					auto_enable: false,
-					group: "",
-				},
-				jsdocOverride: `/**
+		{
+			builderName: "plan",
+			schemaName: "PlanSchema",
+			paramType: "Plan",
+			targetFile: path.join(buildersDir, "builderFunctions.ts"),
+			defaults: {
+				description: null,
+				addOn: false,
+				autoEnable: false,
+				group: "",
+			},
+			jsdocOverride: `/**
  * Define a pricing plan in your Autumn configuration
  *
  * @param p - Plan configuration
@@ -666,8 +666,8 @@ export function getAtmnTypeConfigs(
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
  *   items: [
- *     planFeature({ feature_id: seats.id, included: 10 }),
- *     planFeature({
+ *     item({ feature_id: seats.id, included: 10 }),
+ *     item({
  *       feature_id: messages.id,
  *       included: 1000,
  *       reset: { interval: 'month' }
@@ -676,7 +676,7 @@ export function getAtmnTypeConfigs(
  *   price: { amount: 50, interval: 'month' }
  * });
  */`,
-			},
+		},
 			{
 				builderName: "feature",
 				schemaName: "FeatureSchema",
@@ -707,20 +707,20 @@ export function getAtmnTypeConfigs(
  * });
  */`,
 			},
-			{
-				builderName: "planFeature",
-				schemaName: "PlanFeatureSchema",
-				paramType: "PlanFeature",
-				targetFile: path.join(buildersDir, "builderFunctions.ts"),
-				jsdocOverride: `/**
+		{
+			builderName: "item",
+			schemaName: "PlanItemSchema",
+			paramType: "PlanItem",
+			targetFile: path.join(buildersDir, "builderFunctions.ts"),
+			jsdocOverride: `/**
  * Include a feature in a plan with specific configuration
  *
  * @param config - Feature configuration for this plan
- * @returns PlanFeature for use in plan's items array
+ * @returns PlanItem for use in plan's items array
  *
  * @example
  * // Simple included usage
- * planFeature({
+ * item({
  *   feature_id: messages.id,
  *   included: 1000,
  *   reset: { interval: 'month' }
@@ -728,7 +728,7 @@ export function getAtmnTypeConfigs(
  *
  * @example
  * // Priced feature with tiers
- * planFeature({
+ * item({
  *   feature_id: seats.id,
  *   included: 5,
  *   reset: { interval: 'month' },
@@ -742,7 +742,7 @@ export function getAtmnTypeConfigs(
  *   }
  * })
  */`,
-			},
+		},
 		],
 	};
 }

@@ -2,10 +2,10 @@
 // Generated from @autumn/shared schemas
 // Run `pnpm gen:atmn` to regenerate
 
-import type { Plan, PlanFeature, FreeTrial } from "../models/planModels.js";
+import type { Plan, PlanItem, FreeTrial } from "../models/planModels.js";
 import type { Feature } from "../models/featureModels.js";
 
-type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> & Partial<Pick<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'>>;
+type PlanInput = Omit<Plan, 'description' | 'addOn' | 'autoEnable' | 'group'> & Partial<Pick<Plan, 'description' | 'addOn' | 'autoEnable' | 'group'>>;
 
 /**
  * Define a pricing plan in your Autumn configuration
@@ -19,8 +19,8 @@ type PlanInput = Omit<Plan, 'description' | 'add_on' | 'auto_enable' | 'group'> 
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
  *   items: [
- *     planFeature({ feature_id: seats.id, included: 10 }),
- *     planFeature({
+ *     item({ feature_id: seats.id, included: 10 }),
+ *     item({
  *       feature_id: messages.id,
  *       included: 1000,
  *       reset: { interval: 'month' }
@@ -33,8 +33,8 @@ export const plan = (params: PlanInput): Plan => {
   return {
     ...params,
     description: params.description ?? null,
-    add_on: params.add_on ?? false,
-    auto_enable: params.auto_enable ?? false,
+    addOn: params.addOn ?? false,
+    autoEnable: params.autoEnable ?? false,
     group: params.group ?? ""
   };
 };
@@ -71,11 +71,11 @@ export const feature = (params: Feature): Feature => {
  * Include a feature in a plan with specific configuration
  *
  * @param config - Feature configuration for this plan
- * @returns PlanFeature for use in plan's items array
+ * @returns PlanItem for use in plan's items array
  *
  * @example
  * // Simple included usage
- * planFeature({
+ * item({
  *   feature_id: messages.id,
  *   included: 1000,
  *   reset: { interval: 'month' }
@@ -83,7 +83,7 @@ export const feature = (params: Feature): Feature => {
  *
  * @example
  * // Priced feature with tiers
- * planFeature({
+ * item({
  *   feature_id: seats.id,
  *   included: 5,
  *   reset: { interval: 'month' },
@@ -97,6 +97,6 @@ export const feature = (params: Feature): Feature => {
  *   }
  * })
  */
-export const planFeature = (params: PlanFeature): PlanFeature => {
+export const item = (params: PlanItem): PlanItem => {
   return params;
 };

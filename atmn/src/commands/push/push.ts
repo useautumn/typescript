@@ -1,5 +1,5 @@
 // @ts-nocheck - Using ts-nocheck due to complex Record<string, unknown> index signature issues
-import type { Feature, Plan, PlanFeature } from "../../compose/models/index.js";
+import type { Feature, Plan, PlanItem } from "../../compose/models/index.js";
 import {
 	archiveFeature as archiveFeatureApi,
 	archivePlan as archivePlanApi,
@@ -158,7 +158,7 @@ async function checkPlanForVersioning(
 
 	const missingFeatureIds =
 		(plan.items || [])
-			.map((item) => item.feature_id)
+			.map((item) => item.featureId)
 			.filter((featureId) => !remoteFeatureIds.has(featureId));
 
 	const missingLocalFeatureIds = missingFeatureIds.filter((featureId) =>
@@ -333,18 +333,18 @@ function normalizeFeatureForCompare(f: Feature): Record<string, unknown> {
 		result.consumable = (f as { consumable: boolean }).consumable;
 	}
 
-	if (f.event_names && f.event_names.length > 0) {
-		result.event_names = [...f.event_names].sort();
+	if (f.eventNames && f.eventNames.length > 0) {
+		result.eventNames = [...f.eventNames].sort();
 	}
 
-	if (f.credit_schema && f.credit_schema.length > 0) {
-		result.credit_schema = [...f.credit_schema]
+	if (f.creditSchema && f.creditSchema.length > 0) {
+		result.creditSchema = [...f.creditSchema]
 			.sort((a, b) =>
-				a.metered_feature_id.localeCompare(b.metered_feature_id),
+				a.meteredFeatureId.localeCompare(b.meteredFeatureId),
 			)
 			.map((cs) => ({
-				metered_feature_id: cs.metered_feature_id,
-				credit_cost: cs.credit_cost,
+				meteredFeatureId: cs.meteredFeatureId,
+				creditCost: cs.creditCost,
 			}));
 	}
 
@@ -352,15 +352,15 @@ function normalizeFeatureForCompare(f: Feature): Record<string, unknown> {
 }
 
 /**
- * Normalize a plan feature to a canonical form for comparison.
- * Strips default values (unlimited: false, billing_units: 1, interval_count: 1).
+ * Normalize a plan item to a canonical form for comparison.
+ * Strips default values (unlimited: false, billingUnits: 1, intervalCount: 1).
  */
 function normalizePlanFeatureForCompare(
-	pf: PlanFeature,
+	pf: PlanItem,
 ): Record<string, unknown> {
 	const f = pf as Record<string, unknown>;
 	const result: Record<string, unknown> = {
-		feature_id: pf.feature_id,
+		featureId: pf.featureId,
 	};
 
 	if (f.included != null) result.included = f.included;
@@ -369,8 +369,8 @@ function normalizePlanFeatureForCompare(
 	const reset = f.reset as Record<string, unknown> | undefined;
 	if (reset != null) {
 		const r: Record<string, unknown> = { interval: reset.interval };
-		if (reset.interval_count != null && reset.interval_count !== 1) {
-			r.interval_count = reset.interval_count;
+		if (reset.intervalCount != null && reset.intervalCount !== 1) {
+			r.intervalCount = reset.intervalCount;
 		}
 		result.reset = r;
 	}
@@ -379,11 +379,11 @@ function normalizePlanFeatureForCompare(
 	if (price != null) {
 		const p: Record<string, unknown> = {};
 		if (price.amount != null) p.amount = price.amount;
-		if (price.billing_method != null)
-			p.billing_method = price.billing_method;
+		if (price.billingMethod != null)
+			p.billingMethod = price.billingMethod;
 		if (price.interval != null) p.interval = price.interval;
-		if (price.interval_count != null && price.interval_count !== 1) {
-			p.interval_count = price.interval_count;
+		if (price.intervalCount != null && price.intervalCount !== 1) {
+			p.intervalCount = price.intervalCount;
 		}
 		if (
 			price.tiers != null &&
@@ -392,10 +392,10 @@ function normalizePlanFeatureForCompare(
 		) {
 			p.tiers = price.tiers;
 		}
-		if (price.billing_units != null && price.billing_units !== 1) {
-			p.billing_units = price.billing_units;
+		if (price.billingUnits != null && price.billingUnits !== 1) {
+			p.billingUnits = price.billingUnits;
 		}
-		if (price.max_purchase != null) p.max_purchase = price.max_purchase;
+		if (price.maxPurchase != null) p.maxPurchase = price.maxPurchase;
 		if (Object.keys(p).length > 0) result.price = p;
 	}
 
@@ -409,7 +409,7 @@ function normalizePlanFeatureForCompare(
 }
 
 function getPlanFeatureIds(plan: Plan): string[] {
-	return (plan.items || []).map((item) => item.feature_id);
+	return (plan.items || []).map((item) => item.featureId);
 }
 
 /**
@@ -429,8 +429,8 @@ function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
 	if (plan.group != null && plan.group !== "") {
 		result.group = plan.group;
 	}
-	if (plan.add_on === true) result.add_on = true;
-	if (plan.auto_enable === true) result.auto_enable = true;
+	if (plan.addOn === true) result.addOn = true;
+	if (plan.autoEnable === true) result.autoEnable = true;
 
 	if (plan.price != null) {
 		result.price = {
@@ -439,11 +439,11 @@ function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
 		};
 	}
 
-	if (plan.free_trial != null) {
-		result.free_trial = {
-			duration_type: plan.free_trial.duration_type,
-			duration_length: plan.free_trial.duration_length,
-			card_required: plan.free_trial.card_required,
+	if (plan.freeTrial != null) {
+		result.freeTrial = {
+			duration_type: plan.freeTrial.duration_type,
+			duration_length: plan.freeTrial.duration_length,
+			card_required: plan.freeTrial.card_required,
 		};
 	}
 
@@ -767,12 +767,12 @@ export async function pushPlan(
 	}
 
 	// Handle swapFalse for add_on field
-	if (plan.add_on === undefined && remotePlan.add_on === true) {
+	if (plan.addOn === undefined && remotePlan.addOn === true) {
 		updatePayload.add_on = false;
 	}
 
 	// Handle swapFalse for auto_enable field
-	if (plan.auto_enable === undefined && remotePlan.auto_enable === true) {
+	if (plan.autoEnable === undefined && remotePlan.autoEnable === true) {
 		updatePayload.auto_enable = false;
 	}
 

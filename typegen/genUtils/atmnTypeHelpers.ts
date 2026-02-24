@@ -136,14 +136,14 @@ export function generateDiscriminatedUnion({
 }
 
 /**
- * Generate PlanFeature discriminated union type
+ * Generate PlanItem discriminated union type
  * 
  * SDK structure uses mutually exclusive reset patterns:
- * - PlanFeatureWithReset: Top-level reset (for free allocations or non-priced features)
- * - PlanFeatureWithPriceReset: Nested price.reset (for usage-based pricing)
- * - PlanFeatureNoReset: No reset at all (for continuous-use features like seats)
+ * - PlanItemWithReset: Top-level reset (for free allocations or non-priced features)
+ * - PlanItemWithPriceInterval: Nested price.interval (for usage-based pricing)
+ * - PlanItemNoReset: No reset at all (for continuous-use features like seats)
  */
-export function generatePlanFeatureType(
+export function generatePlanItemType(
 	_metaDescriptions: Record<string, string>,
 ): string {
 	const typeAliases = {
@@ -170,8 +170,8 @@ export function generatePlanFeatureType(
 	result += "\n";
 
 	// Add base type reference
-	result += "// Base type for PlanFeature\n";
-	result += "type PlanFeatureBase = z.infer<typeof PlanFeatureSchema>;\n\n";
+	result += "// Base type for PlanItem\n";
+	result += "type PlanItemBase = z.infer<typeof PlanItemSchema>;\n\n";
 
 	// Generate the discriminated union manually for precise control
 	result += `// Reset configuration object (for top-level reset)
@@ -179,15 +179,15 @@ type ResetConfig = {
   /** How often usage resets (e.g., 'month', 'day') */
   interval: ResetInterval;
   /** Number of intervals between resets (default: 1) */
-  interval_count?: number;
+  intervalCount?: number;
 };
 
 // Proration configuration
 type ProrationConfig = {
   /** Behavior when quantity increases */
-  on_increase: OnIncrease;
+  onIncrease: OnIncrease;
   /** Behavior when quantity decreases */
-  on_decrease: OnDecrease;
+  onDecrease: OnDecrease;
 };
 
 // Rollover configuration
@@ -195,17 +195,17 @@ type RolloverConfig = {
   /** Maximum amount that can roll over (null for unlimited) */
   max: number | null;
   /** How long rollover lasts before expiring */
-  expiry_duration_type: RolloverExpiryDurationType;
+  expiryDurationType: RolloverExpiryDurationType;
   /** Duration length for rollover expiry */
-  expiry_duration_length?: number;
+  expiryDurationLength?: number;
 };
 
-// Base fields shared by all PlanFeature variants
-type PlanFeatureBaseFields = {
+// Base fields shared by all PlanItem variants
+type PlanItemBaseFields = {
   /** Reference to the feature being configured */
-  feature_id: string;
+  featureId: string;
   /** The entity feature ID of the product item if applicable */
-  entity_feature_id?: string | null;
+  entityFeatureId?: string | null;
   /** Amount of usage included in this plan */
   included?: number;
   /** Whether usage is unlimited */
@@ -219,11 +219,11 @@ type PlanFeatureBaseFields = {
 // Shared price fields (common to all price variants)
 type PriceBaseFields = {
   /** Billing method: 'prepaid' or 'usage_based' */
-  billing_method: BillingMethod;
+  billingMethod: BillingMethod;
   /** Number of units per billing cycle */
-  billing_units?: number;
+  billingUnits?: number;
   /** Maximum purchasable quantity */
-  max_purchase?: number;
+  maxPurchase?: number;
 };
 
 // Price with flat amount (no tiers)
@@ -240,6 +240,8 @@ type PriceWithTiers = PriceBaseFields & {
   amount?: never;
   /** Tiered pricing structure based on usage ranges */
   tiers: Array<{ to: number | "inf"; amount: number }>;
+  /** Required when tiers is defined: how tiers are applied */
+  tierBehaviour: "graduated" | "volume";
 };
 
 // Price must have either amount OR tiers (not both, not neither)
@@ -249,7 +251,7 @@ type PriceAmountOrTiers = PriceWithAmount | PriceWithTiers;
 type PriceWithoutInterval = PriceAmountOrTiers & {
   /** Cannot have interval when using top-level reset */
   interval?: never;
-  interval_count?: never;
+  intervalCount?: never;
 };
 
 // Price when reset is NOT defined - interval is required
@@ -257,14 +259,14 @@ type PriceWithInterval = PriceAmountOrTiers & {
   /** Billing interval - required when no top-level reset */
   interval: BillingInterval;
   /** Number of intervals between billing cycles (default: 1) */
-  interval_count?: number;
+  intervalCount?: number;
 };
 
 /**
- * Plan feature with top-level reset configuration.
+ * Plan item with top-level reset configuration.
  * Use this for free allocations or features that reset but aren't priced per-use.
  */
-export type PlanFeatureWithReset = PlanFeatureBaseFields & {
+export type PlanItemWithReset = PlanItemBaseFields & {
   /** Reset configuration for usage limits */
   reset: ResetConfig;
   /** Optional pricing (cannot have price.interval when using top-level reset) */
@@ -272,10 +274,10 @@ export type PlanFeatureWithReset = PlanFeatureBaseFields & {
 };
 
 /**
- * Plan feature with pricing that includes interval configuration.
+ * Plan item with pricing that includes interval configuration.
  * Use this for usage-based pricing where interval determines billing cycle.
  */
-export type PlanFeatureWithPriceInterval = PlanFeatureBaseFields & {
+export type PlanItemWithPriceInterval = PlanItemBaseFields & {
   /** Cannot have top-level reset when using price.interval */
   reset?: never;
   /** Pricing configuration with billing interval */
@@ -283,10 +285,10 @@ export type PlanFeatureWithPriceInterval = PlanFeatureBaseFields & {
 };
 
 /**
- * Plan feature without any reset configuration.
+ * Plan item without any reset configuration.
  * Use this for continuous-use features (like seats) that don't reset.
  */
-export type PlanFeatureNoReset = PlanFeatureBaseFields & {
+export type PlanItemNoReset = PlanItemBaseFields & {
   /** No reset for continuous-use features */
   reset?: never;
   /** Pricing with required interval (since no top-level reset) */
@@ -294,12 +296,12 @@ export type PlanFeatureNoReset = PlanFeatureBaseFields & {
 };
 
 /**
- * Plan feature configuration with mutually exclusive reset patterns:
- * - PlanFeatureWithReset: Top-level reset (for free allocations)
- * - PlanFeatureWithPriceInterval: price.interval (for usage-based pricing billing cycle)
- * - PlanFeatureNoReset: No reset (for continuous-use features like seats)
+ * Plan item configuration with mutually exclusive reset patterns:
+ * - PlanItemWithReset: Top-level reset (for free allocations)
+ * - PlanItemWithPriceInterval: price.interval (for usage-based pricing billing cycle)
+ * - PlanItemNoReset: No reset (for continuous-use features like seats)
  */
-export type PlanFeature = PlanFeatureWithReset | PlanFeatureWithPriceInterval | PlanFeatureNoReset;
+export type PlanItem = PlanItemWithReset | PlanItemWithPriceInterval | PlanItemNoReset;
 `;
 
 	return result;
@@ -314,7 +316,7 @@ export function generatePlanTypeWithJSDoc(
 	let result = "";
 
 	// Add base type reference
-	result += "\n// Override Plan type to use PlanFeature discriminated union\n";
+	result += "\n// Override Plan type to use PlanItem discriminated union\n";
 	result += "type PlanBase = z.infer<typeof PlanSchema>;\n";
 	result += "export type FreeTrial = z.infer<typeof FreeTrialSchema>;\n\n";
 
@@ -348,7 +350,7 @@ export function generatePlanTypeWithJSDoc(
 			defaultDescription: "Grouping identifier for organizing related plans",
 		},
 		{
-			name: "add_on",
+			name: "addOn",
 			type: "boolean",
 			optional: true,
 			descriptionKey: "add_on",
@@ -356,7 +358,7 @@ export function generatePlanTypeWithJSDoc(
 				"Whether this plan can be purchased alongside other plans",
 		},
 		{
-			name: "auto_enable",
+			name: "autoEnable",
 			type: "boolean",
 			optional: true,
 			descriptionKey: "auto_enable",
@@ -385,13 +387,13 @@ export function generatePlanTypeWithJSDoc(
 		},
 		{
 			name: "items",
-			type: "PlanFeature[]",
+			type: "PlanItem[]",
 			optional: true,
 			descriptionKey: "items",
 			defaultDescription: "Items included with usage limits and pricing",
 		},
 		{
-			name: "free_trial",
+			name: "freeTrial",
 			type: "FreeTrial | null",
 			optional: true,
 			descriptionKey: "free_trial",
@@ -425,11 +427,11 @@ type FeatureBase = {
   /** Whether the feature is archived */
   archived?: boolean;
   /** Event names that trigger this feature */
-  event_names?: string[];
+  eventNames?: string[];
   /** Credit schema for credit_system features */
-  credit_schema?: Array<{
-    metered_feature_id: string;
-    credit_cost: number;
+  creditSchema?: Array<{
+    meteredFeatureId: string;
+    creditCost: number;
   }>;
 };
 
@@ -452,9 +454,9 @@ export type CreditSystemFeature = FeatureBase & {
   /** Credit systems are always consumable */
   consumable?: true;
   /** Required: defines how credits map to metered features */
-  credit_schema: Array<{
-    metered_feature_id: string;
-    credit_cost: number;
+  creditSchema: Array<{
+    meteredFeatureId: string;
+    creditCost: number;
   }>;
 };
 
@@ -462,7 +464,7 @@ export type CreditSystemFeature = FeatureBase & {
  * Feature definition with type-safe constraints:
  * - Boolean features cannot have consumable
  * - Metered features require consumable (true = single_use style, false = continuous_use style)
- * - Credit system features are always consumable and require credit_schema
+ * - Credit system features are always consumable and require creditSchema
  */
 export type Feature = BooleanFeature | MeteredFeature | CreditSystemFeature;
 `;

@@ -5,10 +5,10 @@
 import type { ApiPlanItemV1 } from "../../../../../../../sirtenzin-autumn/shared/api/products/items/apiPlanItemV1.js";
 
 /**
- * ApiPlanFeature - Raw API response type
+ * ApiPlanItem - Raw API response type
  * Source: apiPlanItemV1.ts
  * 
  * This type matches the exact structure returned by the Autumn API.
  * Use transform functions in src/lib/transforms/apiToSdk to convert to SDK types.
  */
-export type ApiPlanFeature = ApiPlanItemV1;
+export type ApiPlanItem = ApiPlanItemV1;

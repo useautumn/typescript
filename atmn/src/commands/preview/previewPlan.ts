@@ -1,4 +1,4 @@
-import type { Feature, Plan, PlanFeature } from "../../compose/index.js";
+import type { Feature, Plan, PlanItem } from "../../compose/index.js";
 import {
 	formatAmount,
 	formatInterval,
@@ -11,7 +11,7 @@ import {
 	featureToDisplayFeature,
 	type ProductItemLike,
 	planFeatureToItem,
-} from "./planFeatureToItem.js";
+} from "./planItemToItem.js";
 
 // =============================================================================
 // Types
@@ -130,7 +130,7 @@ const buildPriceString = ({
 // =============================================================================
 
 /**
- * Convert a PlanFeature to display strings.
+ * Convert a PlanItem to display strings.
  *
  * Uses ProductItemLike translation layer to align with @autumn/shared display logic.
  *
@@ -148,7 +148,7 @@ export const getPlanFeatureDisplay = ({
 	feature,
 	currency = "USD",
 }: {
-	planFeature: PlanFeature;
+	planFeature: PlanItem;
 	feature: Feature;
 	currency?: string;
 }): PlanFeatureDisplay => {
@@ -283,11 +283,11 @@ export const getPlanPreview = ({
 		}
 	}
 
-	// 2. Build freeTrial string if plan.free_trial exists
+	// 2. Build freeTrial string if plan.freeTrial exists
 	let freeTrial: string | undefined;
 
-	if (plan.free_trial) {
-		const { duration_length, duration_type } = plan.free_trial;
+	if (plan.freeTrial) {
+		const { duration_length, duration_type } = plan.freeTrial;
 		const durationUnit =
 			duration_length === 1 ? duration_type : `${duration_type}s`;
 		freeTrial = `${duration_length} ${durationUnit} free trial`;
@@ -298,8 +298,8 @@ export const getPlanPreview = ({
 
 	if (plan.items) {
 		for (const planFeature of plan.items) {
-			// Find matching Feature by feature_id
-			const feature = features.find((f) => f.id === planFeature.feature_id);
+			// Find matching Feature by featureId
+			const feature = features.find((f) => f.id === planFeature.featureId);
 
 			if (feature) {
 				const display = getPlanFeatureDisplay({
@@ -309,9 +309,9 @@ export const getPlanPreview = ({
 				});
 				featureDisplays.push(display);
 			} else {
-				// Feature not found, show feature_id as fallback
+				// Feature not found, show featureId as fallback
 				featureDisplays.push({
-					primary_text: planFeature.feature_id,
+					primary_text: planFeature.featureId,
 				});
 			}
 		}

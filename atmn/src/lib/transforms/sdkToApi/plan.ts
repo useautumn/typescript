@@ -1,4 +1,4 @@
-import type { Plan, PlanFeature } from "../../../compose/models/index.js";
+import type { Plan, PlanItem } from "../../../compose/models/index.js";
 
 /**
  * API plan format expected by the server's CreatePlanParams schema
@@ -14,7 +14,7 @@ export interface ApiPlanParams {
 		amount: number;
 		interval: string;
 	};
-	items?: ApiPlanFeatureParams[];
+	items?: ApiPlanItemParams[];
 	free_trial?: {
 		duration_type: string;
 		duration_length: number;
@@ -22,7 +22,7 @@ export interface ApiPlanParams {
 	};
 }
 
-export interface ApiPlanFeatureParams {
+export interface ApiPlanItemParams {
 	feature_id: string;
 	included?: number;
 	unlimited?: boolean;
@@ -38,6 +38,7 @@ export interface ApiPlanFeatureParams {
 		billing_units?: number;
 		billing_method: string;
 		max_purchase?: number;
+		tier_behaviour?: string;
 	};
 	proration?: {
 		on_increase: string;
@@ -51,76 +52,87 @@ export interface ApiPlanFeatureParams {
 }
 
 /**
- * Transform SDK PlanFeature to API format
+ * Transform SDK PlanItem to API format
  *
  * Handles mutually exclusive reset patterns:
  * - SDK top-level reset -> API reset.interval
  * - SDK price.interval -> API price.interval
  */
-function transformPlanFeature(feature: PlanFeature): ApiPlanFeatureParams {
-	const result: ApiPlanFeatureParams = {
-		feature_id: feature.feature_id,
+function transformPlanItem(planItem: PlanItem): ApiPlanItemParams {
+	const result: ApiPlanItemParams = {
+		feature_id: planItem.featureId,
 	};
 
-	if (feature.included !== undefined) {
-		result.included = feature.included;
+	if (planItem.included !== undefined) {
+		result.included = planItem.included;
 	}
 
-	if (feature.unlimited !== undefined) {
-		result.unlimited = feature.unlimited;
+	if (planItem.unlimited !== undefined) {
+		result.unlimited = planItem.unlimited;
 	}
 
 	// Top-level reset (for features without price.interval)
-	if (feature.reset) {
+	if (planItem.reset) {
 		result.reset = {
-			interval: feature.reset.interval,
-			...(feature.reset.interval_count !== undefined && {
-				interval_count: feature.reset.interval_count,
+			interval: planItem.reset.interval,
+			...(planItem.reset.intervalCount !== undefined && {
+				interval_count: planItem.reset.intervalCount,
 			}),
 		};
 	}
 
-	if (feature.price) {
+	if (planItem.price) {
 		// Get interval from price.interval if available, otherwise from top-level reset
-		const priceInterval = (
-			feature.price as { interval?: string; interval_count?: number }
-		).interval;
-		const priceIntervalCount = (feature.price as { interval_count?: number })
-			.interval_count;
-		const interval = priceInterval ?? feature.reset?.interval;
-		const intervalCount = priceIntervalCount ?? feature.reset?.interval_count;
+		const priceWithInterval = planItem.price as {
+			interval?: string;
+			intervalCount?: number;
+		};
+		const priceInterval = priceWithInterval.interval;
+		const priceIntervalCount = priceWithInterval.intervalCount;
+		const interval = priceInterval ?? planItem.reset?.interval;
+		const intervalCount = priceIntervalCount ?? planItem.reset?.intervalCount;
+
+		const priceWithBilling = planItem.price as {
+			billingUnits?: number;
+			billingMethod?: string;
+			maxPurchase?: number;
+			tierBehaviour?: string;
+		};
 
 		result.price = {
 			interval,
-			billing_units: feature.price.billing_units ?? 1,
-			billing_method: feature.price.billing_method ?? "prepaid",
-			...(feature.price.amount !== undefined && {
-				amount: feature.price.amount,
+			billing_units: priceWithBilling.billingUnits ?? 1,
+			billing_method: priceWithBilling.billingMethod ?? "prepaid",
+			...(planItem.price.amount !== undefined && {
+				amount: planItem.price.amount,
 			}),
-			...(feature.price.tiers && { tiers: feature.price.tiers }),
+			...(planItem.price.tiers && { tiers: planItem.price.tiers }),
 			...(intervalCount !== undefined && {
 				interval_count: intervalCount,
 			}),
-			...(feature.price.max_purchase !== undefined && {
-				max_purchase: feature.price.max_purchase,
+			...(priceWithBilling.maxPurchase !== undefined && {
+				max_purchase: priceWithBilling.maxPurchase,
+			}),
+			...(priceWithBilling.tierBehaviour !== undefined && {
+				tier_behaviour: priceWithBilling.tierBehaviour,
 			}),
 		};
 	}
 
-	if (feature.proration) {
+	if (planItem.proration) {
 		result.proration = {
-			on_increase: feature.proration.on_increase,
-			on_decrease: feature.proration.on_decrease,
+			on_increase: planItem.proration.onIncrease,
+			on_decrease: planItem.proration.onDecrease,
 		};
 	}
 
-	if (feature.rollover) {
+	if (planItem.rollover) {
 		result.rollover = {
 			// API expects number, SDK allows null (treat null as 0 or very large number)
-			max: feature.rollover.max ?? 0,
-			expiry_duration_type: feature.rollover.expiry_duration_type,
-			...(feature.rollover.expiry_duration_length !== undefined && {
-				expiry_duration_length: feature.rollover.expiry_duration_length,
+			max: planItem.rollover.max ?? 0,
+			expiry_duration_type: planItem.rollover.expiryDurationType,
+			...(planItem.rollover.expiryDurationLength !== undefined && {
+				expiry_duration_length: planItem.rollover.expiryDurationLength,
 			}),
 		};
 	}
@@ -145,12 +157,12 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 		result.group = plan.group;
 	}
 
-	if (plan.add_on !== undefined) {
-		result.add_on = plan.add_on;
+	if (plan.addOn !== undefined) {
+		result.add_on = plan.addOn;
 	}
 
-	if (plan.auto_enable !== undefined) {
-		result.auto_enable = plan.auto_enable;
+	if (plan.autoEnable !== undefined) {
+		result.auto_enable = plan.autoEnable;
 	}
 
 	if (plan.price) {
@@ -161,14 +173,14 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 	}
 
 	if (plan.items && plan.items.length > 0) {
-		result.items = plan.items.map(transformPlanFeature);
+		result.items = plan.items.map(transformPlanItem);
 	}
 
-	if (plan.free_trial) {
+	if (plan.freeTrial) {
 		result.free_trial = {
-			duration_type: plan.free_trial.duration_type,
-			duration_length: plan.free_trial.duration_length,
-			card_required: plan.free_trial.card_required,
+			duration_type: plan.freeTrial.duration_type,
+			duration_length: plan.freeTrial.duration_length,
+			card_required: plan.freeTrial.card_required,
 		};
 	}
 

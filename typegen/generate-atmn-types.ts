@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { TypeGenerator, TypeGeneratorUtils, generateBuilderFunctionsFile, extractZodSchema } from "./genUtils/index.js";
 import { getAtmnTypeConfigs, getAtmnApiTypeConfigs } from "./typeConfigs.js";
-import { generatePlanFeatureType, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
+import { generatePlanItemType, generatePlanTypeWithJSDoc, generateFeatureDiscriminatedUnion } from "./genUtils/atmnTypeHelpers.js";
 import { generateApiTypeFile, generateApiTypesIndex } from "./genUtils/atmnApiTypeHelpers.js";
 import { generatePreviewDisplayUtils } from "./genUtils/atmnPreviewHelpers.js";
 
@@ -96,7 +96,7 @@ export interface ApiOrganization {
 		);
 		
 		console.log(`   ⏱️  API types generated in ${Date.now() - apiStart}ms`);
-		console.log(`   📝 Generated: ApiPlan, ApiPlanFeature, ApiFeature, ApiOrganization`);
+		console.log(`   📝 Generated: ApiPlan, ApiPlanItem, ApiFeature, ApiOrganization`);
 
 		// Get type generation configuration
 		const typeConfig = getAtmnTypeConfigs(serverPath, atmnPath);
@@ -108,25 +108,25 @@ export interface ApiOrganization {
 		await generator.generateTypes(typeConfig);
 		console.log(`   ⏱️  Types generated in ${Date.now() - typeStart}ms`);
 
-		// Extract meta descriptions from PlanFeature schema for manual type generation
-		const planFeatureConfig = typeConfig.configs.find(c => c.targetName === "PlanFeature");
-		if (planFeatureConfig) {
-			const planFeatureSourceFile = path.join(serverPath, "api/products/items/crud/createPlanItemParamsV1.ts");
-			const { metaDescriptions: planFeatureMeta } = extractZodSchema(planFeatureSourceFile, "CreatePlanItemParamsV1Schema");
+		// Extract meta descriptions from PlanItem schema for manual type generation
+		const planItemConfig = typeConfig.configs.find(c => c.targetName === "PlanItem");
+		if (planItemConfig) {
+			const planItemSourceFile = path.join(serverPath, "api/products/items/crud/createPlanItemParamsV1.ts");
+			const { metaDescriptions: planItemMeta } = extractZodSchema(planItemSourceFile, "CreatePlanItemParamsV1Schema");
 
 			// Extract from Plan schema for Plan type JSDoc
-			const planSourceFile = path.join(serverPath, "api/products/crud/createPlanParamsV0.ts");
+			const planSourceFile = path.join(serverPath, "api/products/crud/createPlanParamsV1.ts");
 			const { metaDescriptions: planMeta } = extractZodSchema(planSourceFile, "CreatePlanParamsV1Schema");
 
 			// Generate manual type unions with JSDoc
 			const planModelsFile = path.join(atmnPath, "src/compose/models/planModels.ts");
-			const planFeatureUnion = generatePlanFeatureType(planFeatureMeta);
+			const planItemUnion = generatePlanItemType(planItemMeta);
 			const planType = generatePlanTypeWithJSDoc(planMeta);
 
 			// Read existing content and append
 			const fs = await import("fs");
 			const existingContent = fs.readFileSync(planModelsFile, "utf-8");
-			const newContent = existingContent + "\n" + planFeatureUnion + "\n" + planType + "\n";
+			const newContent = existingContent + "\n" + planItemUnion + "\n" + planType + "\n";
 			fs.writeFileSync(planModelsFile, newContent);
 
 			console.log(`   📝 Added Plan discriminated unions with JSDoc`);
@@ -146,14 +146,14 @@ export interface ApiOrganization {
 			console.log(`   📝 Added Feature discriminated unions with JSDoc`);
 		}
 
-		// Generate builder functions (plan(), feature(), planFeature())
+		// Generate builder functions (plan(), feature(), item())
 		if (typeConfig.builders && typeConfig.builders.length > 0) {
 			const builderStart = Date.now();
 			console.log(`\n🔧 Generating ${typeConfig.builders.length} builder functions...`);
 
 			// Collect imports for builders
 			const imports = [
-				{ typeName: "Plan, PlanFeature, FreeTrial", from: "../models/planModels.js" },
+				{ typeName: "Plan, PlanItem, FreeTrial", from: "../models/planModels.js" },
 				{ typeName: "Feature", from: "../models/featureModels.js" },
 			];
 
@@ -170,12 +170,12 @@ export interface ApiOrganization {
 		console.log(`\n🎨 Generating preview display utilities...`);
 		generatePreviewDisplayUtils({ serverPath, atmnPath });
 		console.log(`   ⏱️  Preview utils generated in ${Date.now() - previewStart}ms`);
-		console.log(`   📝 Generated: displayUtils.ts, planFeatureToItem.ts`);
+		console.log(`   📝 Generated: displayUtils.ts, planItemToItem.ts`);
 
 		const totalTime = Date.now() - startTime;
 		console.log(`\n✅ All type generation completed in ${totalTime}ms!`);
 		console.log(
-			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - src/compose/models/planModels.ts\n   - src/compose/models/featureModels.ts\n   - src/compose/builders/builderFunctions.ts\n   - src/commands/preview/displayUtils.ts\n   - src/commands/preview/planFeatureToItem.ts`,
+			`\n📝 Generated files:\n   - src/lib/api/types/ (API response types)\n   - src/compose/models/planModels.ts\n   - src/compose/models/featureModels.ts\n   - src/compose/builders/builderFunctions.ts\n   - src/commands/preview/displayUtils.ts\n   - src/commands/preview/planItemToItem.ts`,
 		);
 	} catch (error) {
 		console.error("💥 atmn type generation failed:", error);

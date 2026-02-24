@@ -1,10 +1,10 @@
-import { feature, plan, planFeature } from "./builders/builderFunctions.js";
+import { feature, plan, item } from "./builders/builderFunctions.js";
 import type { Feature } from "./models/featureModels.js";
-import type { FreeTrial, Plan, PlanFeature } from "./models/planModels.js";
+import type { FreeTrial, Plan, PlanItem } from "./models/planModels.js";
 
-export { plan, feature, planFeature };
+export { plan, feature, item };
 
-export type { Feature, Plan, PlanFeature, FreeTrial };
+export type { Feature, Plan, PlanItem, FreeTrial };
 
 export type Infinity = "infinity";
 
