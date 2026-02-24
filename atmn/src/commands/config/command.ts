@@ -18,22 +18,22 @@ export function getGlobalConfig(): Conf {
  * atmn config command — git-config style, always headless.
  * `atmn config --global <key> [value]`
  */
-export function configCommand(args: string[], flags: { global?: boolean }) {
-	if (!flags.global) {
-		console.log("Usage: atmn config --global <key> [value]");
-		console.log("");
-		console.log("Supported keys:");
-		for (const key of VALID_KEYS) {
-			console.log(`  ${key}`);
-		}
-		return;
-	}
-
+function printHelp() {
 	const store = getStore();
+	console.log("Usage: atmn config --global <key> [value]");
+	console.log(`Location: ${store.path}`);
+	console.log("");
+	console.log("Supported keys:");
+	for (const key of VALID_KEYS) {
+		console.log(`  ${key}`);
+	}
+}
+
+export function configCommand(args: string[], flags: { global?: boolean }) {
 	const [key, value] = args;
 
-	if (!key) {
-		console.log(store.path);
+	if (!flags.global || !key) {
+		printHelp();
 		return;
 	}
 
