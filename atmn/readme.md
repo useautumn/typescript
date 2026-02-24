@@ -84,7 +84,6 @@ export const pro = plan({
 
 | Command | Description |
 |---------|-------------|
-| `atmn dashboard` | Open the Autumn dashboard in your browser |
 | `atmn nuke` | Permanently delete all sandbox data |
 | `atmn version` | Show CLI version |
 
@@ -93,11 +92,10 @@ export const pro = plan({
 | Flag | Description |
 |------|-------------|
 | `-p, --prod` | Use production environment (default: sandbox) |
-| `-l, --local` | Use localhost:8080 API server |
 | `-c, --config <path>` | Path to config file (default: `autumn.config.ts`) |
 | `--headless` | Force non-interactive mode (for CI/agents) |
 
-Flags combine: `atmn push -lp` pushes to production on your local API server.
+Flags combine: `atmn push -p` pushes to production.
 
 ## Push & Pull
 
@@ -113,7 +111,6 @@ atmn push --yes     # Auto-confirm (for CI/CD)
 
 ```bash
 atmn pull           # Smart in-place update
-atmn pull --force   # Full overwrite
 ```
 
 Pull generates `@useautumn-sdk.d.ts` with typed feature and plan IDs — so `trackUsage('mesages')` is a compile-time error, not a runtime one.
@@ -186,4 +183,5 @@ The CLI auto-detects non-TTY environments and switches to headless mode. Set you
 
 - [Documentation](https://docs.useautumn.com)
 - [Dashboard](https://app.useautumn.com)
-- [GitHub](https://github.com/useautumn/autumn)
+- [Main GitHub](https://github.com/useautumn/autumn)
+- [CLI & SDKs GitHub](https://github.com/useautumn/typescript)
