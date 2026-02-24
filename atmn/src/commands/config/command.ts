@@ -37,6 +37,8 @@ export function configCommand(args: string[], flags: { global?: boolean }) {
 		return;
 	}
 
+	const store = getStore();
+
 	if (!VALID_KEYS.includes(key as ConfigKey)) {
 		console.error(`error: unknown key '${key}'`);
 		console.error(`Valid keys: ${VALID_KEYS.join(", ")}`);
