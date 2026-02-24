@@ -122,7 +122,6 @@ atmn push --yes     # Auto-confirm (for CI/CD)
 atmn pull           # Smart in-place update
 ```
 
-Pull generates `@useautumn-sdk.d.ts` with typed feature and plan IDs — so `trackUsage('mesages')` is a compile-time error, not a runtime one.
 
 ### Declaration File
 
