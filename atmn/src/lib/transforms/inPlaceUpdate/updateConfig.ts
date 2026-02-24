@@ -234,7 +234,10 @@ export async function updateConfigInPlace(
 		if (lastFeatureBlockIndex >= 0) {
 			// Insert after last feature
 			outputBlocks.splice(lastFeatureBlockIndex + 1, 0, newFeatureCode);
-			lastPlanBlockIndex++; // Adjust plan index since we inserted
+			lastFeatureBlockIndex++;
+			if (lastPlanBlockIndex >= 0) {
+				lastPlanBlockIndex++;
+			}
 		} else if (sawFeaturesComment) {
 			// Find features comment and insert after
 			for (let i = 0; i < outputBlocks.length; i++) {
@@ -244,7 +247,10 @@ export async function updateConfigInPlace(
 						outputBlocks[i].trim().startsWith("/*"))
 				) {
 					outputBlocks.splice(i + 1, 0, newFeatureCode);
-					lastPlanBlockIndex++; // Adjust
+					lastFeatureBlockIndex = i + 1;
+					if (lastPlanBlockIndex >= 0) {
+						lastPlanBlockIndex++;
+					}
 					break;
 				}
 			}
@@ -257,7 +263,10 @@ export async function updateConfigInPlace(
 				}
 			}
 			outputBlocks.splice(insertIdx, 0, `\n// Features\n${newFeatureCode}`);
-			lastPlanBlockIndex++; // Adjust
+			lastFeatureBlockIndex = insertIdx;
+			if (lastPlanBlockIndex >= 0) {
+				lastPlanBlockIndex++;
+			}
 		}
 		result.featuresAdded = newFeatures.length;
 	}
@@ -284,6 +293,13 @@ export async function updateConfigInPlace(
 					break;
 				}
 			}
+		} else if (lastFeatureBlockIndex >= 0) {
+			// No plan section yet — insert after the last feature block
+			outputBlocks.splice(
+				lastFeatureBlockIndex + 1,
+				0,
+				`\n// Plans\n${newPlanCode}`,
+			);
 		} else {
 			// Append at end with section comment
 			outputBlocks.push(`\n// Plans\n${newPlanCode}`);

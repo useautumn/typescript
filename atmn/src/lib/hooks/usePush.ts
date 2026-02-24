@@ -4,10 +4,12 @@ import { pathToFileURL } from "node:url";
 import { useMutation } from "@tanstack/react-query";
 import createJiti from "jiti";
 import { useCallback, useEffect, useState } from "react";
+import { writeConfig } from "../../commands/pull/writeConfig.js";
 import {
 	analyzePush,
 	archiveFeature as archiveFeatureApi,
 	archivePlan as archivePlanApi,
+	checkFeatureDeleteInfo,
 	createFeatureArchivedPrompt,
 	createFeatureDeletePrompt,
 	createPlanArchivedPrompt,
@@ -16,22 +18,21 @@ import {
 	createProdConfirmationPrompt,
 	deleteFeature as deleteFeatureApi,
 	deletePlan as deletePlanApi,
-	fetchRemoteData,
-	checkFeatureDeleteInfo,
-	refreshPlansForVersioning,
 	type FeatureDeleteInfo,
+	fetchRemoteData,
 	type PushAnalysis,
 	type PushPrompt,
 	type PushResult,
 	pushFeature,
 	pushPlan,
+	refreshPlansForVersioning,
 	unarchiveFeature as unarchiveFeatureApi,
 	unarchivePlan as unarchivePlanApi,
 } from "../../commands/push/index.js";
 import type { Feature, Plan } from "../../compose/models/index.js";
 import { formatError } from "../api/client.js";
-import { AppEnv, resolveConfigPath } from "../env/index.js";
-import { writeConfig } from "../../commands/pull/writeConfig.js";
+import { fetchPlans, migrateProduct } from "../api/endpoints/index.js";
+import { AppEnv, getKey, resolveConfigPath } from "../env/index.js";
 import { type OrganizationInfo, useOrganization } from "./useOrganization.js";
 
 export type PushPhase =
@@ -310,7 +311,7 @@ export function usePush(options?: UsePushOptions) {
 			// Plans that will version
 			for (const planInfo of analysisResult.plansToUpdate) {
 				if (planInfo.willVersion) {
-					prompts.push(createPlanVersioningPrompt(planInfo));
+					prompts.push(createPlanVersioningPrompt(planInfo, environment));
 				}
 			}
 
@@ -474,7 +475,8 @@ export function usePush(options?: UsePushOptions) {
 
 			// Push plans to update
 			for (const planInfo of analysis?.plansToUpdate || []) {
-				const resolvedPlanInfo = planUpdateById.get(planInfo.plan.id) || planInfo;
+				const resolvedPlanInfo =
+					planUpdateById.get(planInfo.plan.id) || planInfo;
 				// Check if this was skipped via prompt
 				if (resolvedPlanInfo.willVersion) {
 					const response = promptResponses.get(
@@ -512,7 +514,41 @@ export function usePush(options?: UsePushOptions) {
 				setPlanProgress((prev) =>
 					new Map(prev).set(planInfo.plan.id, "pushing"),
 				);
+
+				const versioningResponse = resolvedPlanInfo.willVersion
+					? promptResponses.get(
+							promptQueue.find(
+								(p) =>
+									p.type === "plan_versioning" &&
+									p.entityId === planInfo.plan.id,
+							)?.id || "",
+						)
+					: undefined;
+
 				await pushPlan(planInfo.plan, remotePlans);
+
+				if (
+					resolvedPlanInfo.willVersion &&
+					versioningResponse === "version_and_migrate"
+				) {
+					const secretKey = getKey(environment);
+					const updatedPlans = await fetchPlans({
+						secretKey,
+						includeArchived: false,
+					});
+					const updatedPlan = updatedPlans.find(
+						(p) => p.id === planInfo.plan.id,
+					);
+					if (updatedPlan && updatedPlan.version > 1) {
+						await migrateProduct({
+							secretKey,
+							fromProductId: planInfo.plan.id,
+							fromVersion: updatedPlan.version - 1,
+							toProductId: planInfo.plan.id,
+							toVersion: updatedPlan.version,
+						});
+					}
+				}
 
 				if (resolvedPlanInfo.willVersion) {
 					versioned.push(planInfo.plan.id);
@@ -614,9 +650,7 @@ export function usePush(options?: UsePushOptions) {
 				if (action === "delete") {
 					if (!latestInfo.canDelete) {
 						featuresSkipped.push(info.id);
-						setFeatureProgress((prev) =>
-							new Map(prev).set(info.id, "skipped"),
-						);
+						setFeatureProgress((prev) => new Map(prev).set(info.id, "skipped"));
 						continue;
 					}
 
@@ -673,7 +707,7 @@ export function usePush(options?: UsePushOptions) {
 						? {
 								...prev,
 								features: deletionResult.archivedConfigFeatures,
-						  }
+							}
 						: prev,
 				);
 			}

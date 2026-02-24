@@ -4,8 +4,9 @@ import { pathToFileURL } from "node:url";
 import chalk from "chalk";
 import createJiti from "jiti";
 import type { Feature, Plan } from "../../compose/models/index.js";
+import { fetchPlans, migrateProduct } from "../../lib/api/endpoints/index.js";
 import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
-import { AppEnv, resolveConfigPath } from "../../lib/env/index.js";
+import { AppEnv, getKey, resolveConfigPath } from "../../lib/env/index.js";
 import { writeConfig } from "../pull/writeConfig.js";
 import {
 	createFeatureArchivedPrompt,
@@ -18,15 +19,15 @@ import {
 } from "./prompts.js";
 import {
 	analyzePush,
-	checkFeatureDeleteInfo,
 	archiveFeature,
 	archivePlan,
+	checkFeatureDeleteInfo,
 	deleteFeature,
 	deletePlan,
 	fetchRemoteData,
-	refreshPlansForVersioning,
 	pushFeature,
 	pushPlan,
+	refreshPlansForVersioning,
 	unarchiveFeature,
 	unarchivePlan,
 } from "./push.js";
@@ -147,7 +148,7 @@ function buildPromptQueue(
 	// Plans that will version
 	for (const planInfo of analysis.plansToUpdate) {
 		if (planInfo.willVersion) {
-			prompts.push(createPlanVersioningPrompt(planInfo));
+			prompts.push(createPlanVersioningPrompt(planInfo, environment));
 		}
 	}
 
@@ -274,6 +275,7 @@ async function executePushWithDefaults(
 	analysis: PushAnalysis,
 	prompts: PushPrompt[],
 	cwd: string,
+	environment: AppEnv,
 ): Promise<HeadlessPushResult> {
 	const result: HeadlessPushResult = {
 		success: true,
@@ -370,14 +372,16 @@ async function executePushWithDefaults(
 	// Push plans to update
 	for (const planInfo of analysis.plansToUpdate) {
 		const refreshedPlanInfo = planUpdateById.get(planInfo.plan.id) ?? planInfo;
-		if (refreshedPlanInfo.willVersion) {
-			const promptId = prompts.find(
-				(p) => p.type === "plan_versioning" && p.entityId === planInfo.plan.id,
-			)?.id;
-			const response = promptId ? responses.get(promptId) : undefined;
-			if (response === "skip") {
-				continue;
-			}
+
+		const versioningPromptId = prompts.find(
+			(p) => p.type === "plan_versioning" && p.entityId === planInfo.plan.id,
+		)?.id;
+		const versioningResponse = versioningPromptId
+			? responses.get(versioningPromptId)
+			: undefined;
+
+		if (refreshedPlanInfo.willVersion && versioningResponse === "skip") {
+			continue;
 		}
 
 		if (planInfo.isArchived || refreshedPlanInfo.isArchived) {
@@ -391,6 +395,28 @@ async function executePushWithDefaults(
 		}
 
 		await pushPlan(planInfo.plan, remotePlans);
+
+		if (
+			refreshedPlanInfo.willVersion &&
+			versioningResponse === "version_and_migrate"
+		) {
+			const secretKey = getKey(environment);
+			const updatedPlans = await fetchPlans({
+				secretKey,
+				includeArchived: false,
+			});
+			const updatedPlan = updatedPlans.find((p) => p.id === planInfo.plan.id);
+			if (updatedPlan && updatedPlan.version > 1) {
+				await migrateProduct({
+					secretKey,
+					fromProductId: planInfo.plan.id,
+					fromVersion: updatedPlan.version - 1,
+					toProductId: planInfo.plan.id,
+					toVersion: updatedPlan.version,
+				});
+			}
+		}
+
 		if (refreshedPlanInfo.willVersion) {
 			result.plansUpdated.push(refreshedPlanInfo.plan.id);
 		} else {
@@ -459,11 +485,7 @@ async function executePushWithDefaults(
 	}
 
 	if (result.featuresArchived.length > 0) {
-		await syncArchivedFeaturesToConfig(
-			config,
-			result.featuresArchived,
-			cwd,
-		);
+		await syncArchivedFeaturesToConfig(config, result.featuresArchived, cwd);
 	}
 
 	return result;
@@ -628,7 +650,13 @@ async function _headlessPushImpl(
 	let result: HeadlessPushResult;
 	if (prompts.length > 0) {
 		// --yes was set, execute with defaults
-		result = await executePushWithDefaults(config, analysis, prompts, cwd);
+		result = await executePushWithDefaults(
+			config,
+			analysis,
+			prompts,
+			cwd,
+			environment,
+		);
 	} else {
 		// No edge cases, clean push
 		result = await executeCleanPush(config, analysis);
