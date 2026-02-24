@@ -21,11 +21,6 @@ export function buildPlanCode(
 	lines.push(`\tid: '${plan.id}',`);
 	lines.push(`\tname: '${plan.name}',`);
 
-	// Add description
-	if (plan.description !== undefined && plan.description !== null) {
-		lines.push(`\tdescription: '${plan.description}',`);
-	}
-
 	// Add group (only if it has a non-empty string value)
 	// undefined and null both mean "no group" and should be omitted from generated code
 	if (plan.group !== undefined && plan.group !== null && plan.group !== "") {

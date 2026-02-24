@@ -6,7 +6,6 @@ import type { Plan, PlanFeature } from "../../../compose/models/index.js";
 export interface ApiPlanParams {
 	id: string;
 	name: string;
-	description?: string | null;
 	group?: string;
 	add_on?: boolean;
 	auto_enable?: boolean;
@@ -136,10 +135,6 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 		id: plan.id,
 		name: plan.name,
 	};
-
-	if (plan.description !== undefined) {
-		result.description = plan.description;
-	}
 
 	if (plan.group !== undefined) {
 		result.group = plan.group;

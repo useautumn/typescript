@@ -31,7 +31,6 @@ export const messages = feature({
 export const pro = plan({
 	id: 'pro',
 	name: 'Pro',
-	description: 'Professional plan for growing teams',
 	add_on: false,
 	auto_enable: false,
 	price: {

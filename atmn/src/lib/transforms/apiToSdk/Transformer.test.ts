@@ -70,7 +70,6 @@ describe("Transformer", () => {
 			const apiPlan: any = {
 				id: "pro",
 				name: "Pro Plan",
-				description: "Professional tier",
 				auto_enable: true,
 				items: [],
 			};
