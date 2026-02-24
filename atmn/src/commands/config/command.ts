@@ -6,7 +6,7 @@ type ConfigKey = (typeof VALID_KEYS)[number];
 const BOOLEAN_KEYS: ConfigKey[] = ["noDeclarationFile"];
 
 function getStore() {
-	return new Conf({ projectName: "atmn" });
+	return new Conf({ projectName: "atmn", projectSuffix: "" });
 }
 
 /** Read a single key from global config */
