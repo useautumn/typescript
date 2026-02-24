@@ -14,6 +14,8 @@ export interface PullOptions {
 	environment?: AppEnv;
 	/** Force overwrite config file instead of in-place update */
 	forceOverwrite?: boolean;
+	/** Skip generating @useautumn-sdk.d.ts */
+	noDeclarationFile?: boolean;
 }
 
 /**

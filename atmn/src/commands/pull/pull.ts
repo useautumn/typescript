@@ -1,3 +1,4 @@
+import { dirname } from "node:path";
 import { withAuthRecovery } from "../../lib/auth/headlessAuthRecovery.js";
 import { AppEnv, getKey, hasKey } from "../../lib/env/index.js";
 import { mergeEnvironments } from "./mergeEnvironments.js";
@@ -37,6 +38,7 @@ async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 		cwd = process.cwd(),
 		environment = AppEnv.Sandbox,
 		forceOverwrite = false,
+		noDeclarationFile = false,
 	} = options;
 
 	// 1. Get key for specified environment (checks cwd then falls back to root)
@@ -61,8 +63,8 @@ async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 		updateResult: writeResult.updateResult,
 	};
 
-	// 4. Generate SDK types if requested
-	if (shouldGenerateSdkTypes) {
+	// 4. Generate SDK types if requested (and not disabled)
+	if (shouldGenerateSdkTypes && !noDeclarationFile) {
 		let mergedData = primaryData;
 
 		// If pulling from sandbox, try to merge with live for SDK types
@@ -90,11 +92,11 @@ async function _pullImpl(options: PullOptions = {}): Promise<PullResult> {
 			}
 		}
 
-		// Generate SDK types
+		// Generate SDK types in the same directory as the config file
 		const sdkTypesPath = await generateSdkTypes({
 			features: mergedData.features,
 			plans: mergedData.plans,
-			outputDir: cwd,
+			outputDir: dirname(writeResult.configPath),
 		});
 
 		result.sdkTypesPath = sdkTypesPath;

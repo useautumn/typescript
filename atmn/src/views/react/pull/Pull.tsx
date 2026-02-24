@@ -20,6 +20,8 @@ interface PullViewProps {
 	forceOverwrite?: boolean;
 	/** Working directory for file operations */
 	cwd?: string;
+	/** Skip generating @useautumn-sdk.d.ts */
+	noDeclarationFile?: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export function PullView({
 	environment = AppEnv.Sandbox,
 	forceOverwrite = false,
 	cwd,
+	noDeclarationFile = false,
 }: PullViewProps) {
 	const [startTime] = useState(Date.now());
 	const {
@@ -44,7 +47,7 @@ export function PullView({
 		error,
 		inPlace,
 		updateResult,
-	} = usePull({ environment, onComplete, forceOverwrite, cwd });
+	} = usePull({ environment, onComplete, forceOverwrite, cwd, noDeclarationFile });
 
 	const duration = ((Date.now() - startTime) / 1000).toFixed(1);
 

@@ -19,6 +19,7 @@ interface PullParams {
 	generateSdkTypes?: boolean;
 	environment?: AppEnv;
 	forceOverwrite?: boolean;
+	noDeclarationFile?: boolean;
 }
 
 interface PullData {
@@ -43,11 +44,13 @@ export function usePull(options?: {
 	environment?: AppEnv;
 	onComplete?: () => void;
 	forceOverwrite?: boolean;
+	noDeclarationFile?: boolean;
 }) {
 	const effectiveCwd = options?.cwd ?? process.cwd();
 	const environment = options?.environment ?? AppEnv.Sandbox;
 	const onComplete = options?.onComplete;
 	const forceOverwrite = options?.forceOverwrite ?? false;
+	const noDeclarationFile = options?.noDeclarationFile ?? false;
 
 	// Get org info using TanStack Query (this IS a query)
 	const orgQuery = useOrganization(effectiveCwd, environment);
@@ -60,6 +63,7 @@ export function usePull(options?: {
 				cwd: params.cwd,
 				environment: params.environment ?? AppEnv.Sandbox,
 				forceOverwrite: params.forceOverwrite,
+				noDeclarationFile: params.noDeclarationFile,
 			});
 
 			const files: GeneratedFile[] = [];
@@ -111,6 +115,7 @@ export function usePull(options?: {
 				generateSdkTypes: true,
 				environment,
 				forceOverwrite,
+				noDeclarationFile,
 			});
 		}
 	}, [
@@ -119,6 +124,7 @@ export function usePull(options?: {
 		effectiveCwd,
 		environment,
 		forceOverwrite,
+		noDeclarationFile,
 	]);
 
 	const error = orgQuery.error || pullMutation.error;

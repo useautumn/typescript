@@ -162,10 +162,17 @@ program
 	.command("pull")
 	.description("Pull changes from Autumn")
 	.option("-f, --force", "Force overwrite config (skip in-place update)")
+	.option("--no-declaration-file", "Skip generating @useautumn-sdk.d.ts")
 	.action(async (options) => {
 		// Import AppEnv here to avoid circular dependencies
 		const { AppEnv } = await import("./lib/env/index.js");
 		const environment = isProd() ? AppEnv.Live : AppEnv.Sandbox;
+
+		// Resolve noDeclarationFile: CLI flag > global config > false
+		const { getGlobalConfig } = await import("./commands/config/command.js");
+		const skipDts =
+			options.declarationFile === false ||
+			(getGlobalConfig().get("noDeclarationFile") === true);
 
 		if (process.stdout.isTTY) {
 			// Interactive mode - use beautiful Ink UI
@@ -174,6 +181,7 @@ program
 					<PullView
 						environment={environment}
 						forceOverwrite={options.force}
+						noDeclarationFile={skipDts}
 						onComplete={() => {
 							process.exit(0);
 						}}
@@ -190,6 +198,7 @@ program
 					cwd: process.cwd(),
 					environment,
 					forceOverwrite: options.force,
+					noDeclarationFile: skipDts,
 				});
 
 				console.log(
@@ -447,6 +456,18 @@ program
 			format: options.format,
 		});
 	});
+program
+	.command("config")
+	.description("Get and set global configuration")
+	.option("-g, --global", "Use global config")
+	.argument("[key]", "Config key")
+	.argument("[value]", "Config value (omit to read)")
+	.action(async (key, value, options) => {
+		const { configCommand } = await import("./commands/config/command.js");
+		const args = [key, value].filter((a) => a !== undefined);
+		configCommand(args, { global: options.global });
+	});
+
 /**
  * This is a hack to silence the DeprecationWarning about url.parse()
  */
