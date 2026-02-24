@@ -29,10 +29,11 @@ export function configCommand(args: string[], flags: { global?: boolean }) {
 		return;
 	}
 
+	const store = getStore();
 	const [key, value] = args;
 
 	if (!key) {
-		console.log("Usage: atmn config --global <key> [value]");
+		console.log(store.path);
 		return;
 	}
 
@@ -41,8 +42,6 @@ export function configCommand(args: string[], flags: { global?: boolean }) {
 		console.error(`Valid keys: ${VALID_KEYS.join(", ")}`);
 		process.exit(1);
 	}
-
-	const store = getStore();
 
 	// Read
 	if (value === undefined) {

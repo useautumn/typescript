@@ -3,8 +3,8 @@
  * This avoids relying on process.argv parsing which doesn't handle combined flags like -lp
  */
 
-import { existsSync, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, statSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 export interface CliContext {
 	prod: boolean;
@@ -63,6 +63,18 @@ export function resolveConfigPath(cwd: string = process.cwd()): string {
 
 		// If path exists and is a directory, append autumn.config.ts
 		if (existsSync(resolved) && statSync(resolved).isDirectory()) {
+			return resolve(resolved, "autumn.config.ts");
+		}
+
+		// Auto-create parent directories if they don't exist
+		const dir = resolved.endsWith(".ts") || resolved.endsWith(".js")
+			? dirname(resolved)
+			: resolved;
+		if (!existsSync(dir)) {
+			mkdirSync(dir, { recursive: true });
+		}
+		// If path doesn't look like a file, treat as directory
+		if (!resolved.endsWith(".ts") && !resolved.endsWith(".js")) {
 			return resolve(resolved, "autumn.config.ts");
 		}
 
