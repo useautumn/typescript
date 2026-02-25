@@ -59,7 +59,7 @@ export const planItemTransformer = createTransformer<
 				billingUnits: api.price.billing_units,
 				maxPurchase: api.price.max_purchase ?? undefined,
 				billingMethod: api.price.billing_method,
-				tierBehaviour: api.price.tier_behaviour,
+				tierBehavior: api.price.tier_behaviour,
 				// Map API price.interval directly to SDK price.interval
 				interval: api.price.interval,
 				...(api.price.interval_count !== undefined && {

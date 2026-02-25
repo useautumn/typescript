@@ -65,7 +65,7 @@ export function buildPlanItemCode(
 			billingUnits?: number;
 			billingMethod?: string;
 			maxPurchase?: number;
-			tierBehaviour?: string;
+			tierBehavior?: string;
 		};
 
 		if (priceWithBilling.billingUnits !== undefined) {
@@ -82,8 +82,8 @@ export function buildPlanItemCode(
 			lines.push(`\t\t\t\tmaxPurchase: ${priceWithBilling.maxPurchase},`);
 		}
 
-		if (priceWithBilling.tierBehaviour !== undefined) {
-			lines.push(`\t\t\t\ttierBehaviour: '${priceWithBilling.tierBehaviour}',`);
+		if (priceWithBilling.tierBehavior !== undefined) {
+			lines.push(`\t\t\t\ttierBehavior: '${priceWithBilling.tierBehavior}',`);
 		}
 
 		// Handle price.interval and price.intervalCount (from PriceWithInterval type)
