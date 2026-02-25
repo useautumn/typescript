@@ -96,7 +96,7 @@ function transformPlanItem(planItem: PlanItem): ApiPlanItemParams {
 			billingUnits?: number;
 			billingMethod?: string;
 			maxPurchase?: number;
-			tierBehaviour?: string;
+			tierBehavior?: string;
 		};
 
 		result.price = {
@@ -113,8 +113,8 @@ function transformPlanItem(planItem: PlanItem): ApiPlanItemParams {
 			...(priceWithBilling.maxPurchase !== undefined && {
 				max_purchase: priceWithBilling.maxPurchase,
 			}),
-			...(priceWithBilling.tierBehaviour !== undefined && {
-				tier_behaviour: priceWithBilling.tierBehaviour,
+			...(priceWithBilling.tierBehavior !== undefined && {
+				tier_behaviour: priceWithBilling.tierBehavior,
 			}),
 		};
 	}

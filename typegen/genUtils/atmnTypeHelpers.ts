@@ -241,7 +241,7 @@ type PriceWithTiers = PriceBaseFields & {
   /** Tiered pricing structure based on usage ranges */
   tiers: Array<{ to: number | "inf"; amount: number }>;
   /** Required when tiers is defined: how tiers are applied */
-  tierBehaviour: "graduated" | "volume";
+  tierBehavior: "graduated" | "volume";
 };
 
 // Price must have either amount OR tiers (not both, not neither)
