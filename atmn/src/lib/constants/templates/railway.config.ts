@@ -11,11 +11,11 @@ export const features: Feature[] = [
 		id: "credits",
 		name: "Credits",
 		type: "credit_system",
-		credit_schema: [
-			{ metered_feature_id: "memory", credit_cost: 0.039 },
-			{ metered_feature_id: "cpu", credit_cost: 0.078 },
-			{ metered_feature_id: "egress", credit_cost: 5 },
-			{ metered_feature_id: "storage", credit_cost: 1.5 },
+		creditSchema: [
+			{ meteredFeatureId: "memory", creditCost: 0.039 },
+			{ meteredFeatureId: "cpu", creditCost: 0.078 },
+			{ meteredFeatureId: "egress", creditCost: 5 },
+			{ meteredFeatureId: "storage", creditCost: 1.5 },
 		],
 	},
 	{
@@ -48,9 +48,9 @@ export const plans: Plan[] = [
 	{
 		id: "free",
 		name: "Free",
-		auto_enable: true,
+		autoEnable: true,
 		items: [
-			{ feature_id: "credits", included: 500, reset: { interval: "one_off" } },
+			{ featureId: "credits", included: 500, reset: { interval: "one_off" } },
 		],
 	},
 	{
@@ -59,13 +59,13 @@ export const plans: Plan[] = [
 		price: { amount: 5, interval: "month" },
 		items: [
 			{
-				feature_id: "credits",
+				featureId: "credits",
 				included: 500,
+				reset: { interval: "month" },
 				price: {
 					amount: 0.01,
-					billing_method: "usage_based",
-					billing_units: 1,
-					interval: "month",
+					billingMethod: "usage_based",
+					billingUnits: 1,
 				},
 			},
 		],
@@ -76,13 +76,13 @@ export const plans: Plan[] = [
 		price: { amount: 20, interval: "month" },
 		items: [
 			{
-				feature_id: "credits",
+				featureId: "credits",
 				included: 2000,
 				reset: { interval: "month" },
 				price: {
 					amount: 0.01,
-					billing_method: "usage_based",
-					billing_units: 1,
+					billingMethod: "usage_based",
+					billingUnits: 1,
 				},
 			},
 		],

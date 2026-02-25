@@ -24,10 +24,10 @@ export const plans: Plan[] = [
 	{
 		id: "free",
 		name: "Free",
-		auto_enable: true,
+		autoEnable: true,
 		items: [
 			{
-				feature_id: "standard_messages",
+				featureId: "standard_messages",
 				included: 100,
 				reset: { interval: "month" },
 			},
@@ -39,12 +39,12 @@ export const plans: Plan[] = [
 		price: { amount: 8, interval: "month" },
 		items: [
 			{
-				feature_id: "standard_messages",
+				featureId: "standard_messages",
 				included: 1500,
 				reset: { interval: "month" },
 			},
 			{
-				feature_id: "premium_messages",
+				featureId: "premium_messages",
 				included: 100,
 				reset: { interval: "month" },
 			},
@@ -53,11 +53,11 @@ export const plans: Plan[] = [
 	{
 		id: "premium-credits",
 		name: "Premium Credits",
-		add_on: true,
-		price: { amount: 8, interval: "one_off" },
+		addOn: true,
+		price: { amount: 8, interval: "month" },
 		items: [
 			{
-				feature_id: "premium_messages",
+				featureId: "premium_messages",
 				included: 100,
 				reset: { interval: "one_off" },
 			},
