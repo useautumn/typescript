@@ -12,14 +12,14 @@ export const UsageTierSchema = z.object({
 const BasePriceParamsSchema = z.object({
   amount: z.number(),
   interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
-  interval_count: z.number().optional(),
+  intervalCount: z.number().optional(),
 });
 
 const idRegex = /^[a-zA-Z0-9_-]+$/;
 
 
 export const PlanItemSchema = z.object({
-  feature_id: z.string().meta({
+  featureId: z.string().meta({
     description: "The ID of the feature to configure.",
     }),
   included: z.number().optional().meta({
@@ -113,20 +113,20 @@ export const PlanItemSchema = z.object({
     description:
     "Rollover config for unused units. If set, unused included units carry over.",
     }),
-  entity_feature_id: z.string().optional().meta({
+  entityFeatureId: z.string().optional().meta({
     internal: true,
     }),
-  entitlement_id: z.string().optional().meta({
+  entitlementId: z.string().optional().meta({
     internal: true,
     }),
-  price_id: z.string().optional().meta({
+  priceId: z.string().optional().meta({
     internal: true,
     })
 });
 
 export const FreeTrialSchema = z.object({
   durationLength: z.number().meta({
-    description: "Number of durationType periods the trial lasts.",
+    description: "Number of duration_type periods the trial lasts.",
     }),
   durationType: z
     .union([z.literal("day"), z.literal("month"), z.literal("year")])
@@ -144,11 +144,11 @@ export const PlanSchema = z.object({
   description: z.string().nullable().default(null).meta({
     description: "Optional description of the plan.",
     }),
-  add_on: z.boolean().default(false).meta({
+  addOn: z.boolean().default(false).meta({
     description:
     "If true, this plan can be attached alongside other plans. Otherwise, attaching replaces existing plans in the same group.",
     }),
-  auto_enable: z.boolean().default(false).meta({
+  autoEnable: z.boolean().default(false).meta({
     description:
     "If true, plan is automatically attached when a customer is created. Use for free tiers.",
     }),
@@ -160,7 +160,7 @@ export const PlanSchema = z.object({
     description:
     "Feature configurations for this plan. Each item defines included units, pricing, and reset behavior.",
     }),
-  free_trial: FreeTrialSchema.optional().meta({
+  freeTrial: FreeTrialSchema.optional().meta({
     description:
     "Free trial configuration. Customers can try this plan before being charged.",
     }),
@@ -218,7 +218,7 @@ type PlanItemBaseFields = {
   /** The entity feature ID of the product item if applicable */
   entityFeatureId?: string | null;
   /** Amount of usage included in this plan */
-  included?: number;
+  included: number;
   /** Whether usage is unlimited */
   unlimited?: boolean;
   /** Proration rules for quantity changes */

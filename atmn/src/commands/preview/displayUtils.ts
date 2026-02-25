@@ -251,11 +251,11 @@ export const formatTiers = ({
 	if (tiers.length === 0) return "";
 
 	if (tiers.length === 1) {
-		return formatAmount({ amount: tiers[0]!.amount, currency });
+		return formatAmount({ amount: tiers[0].amount, currency });
 	}
 
-	const firstAmount = formatAmount({ amount: tiers[0]!.amount, currency });
-	const lastAmount = formatAmount({ amount: tiers[tiers.length - 1]!.amount, currency });
+	const firstAmount = formatAmount({ amount: tiers[0].amount, currency });
+	const lastAmount = formatAmount({ amount: tiers[tiers.length - 1].amount, currency });
 
 	return `${firstAmount} - ${lastAmount}`;
 };

@@ -68,11 +68,17 @@ async function main() {
 			);
 		}
 		
-	// Generate index file
-	const apiIndexConfigs = apiConfigs.map(c => ({
-		typeName: c.typeName,
-		outputFile: c.outputFile,
-	}));
+	// Generate index file (including manually-written ApiOrganization)
+	const apiIndexConfigs = [
+		...apiConfigs.map(c => ({
+			typeName: c.typeName,
+			outputFile: c.outputFile,
+		})),
+		{
+			typeName: "ApiOrganization",
+			outputFile: path.join(apiTypesDir, "organization.ts"),
+		},
+	];
 	generateApiTypesIndex(apiIndexConfigs, path.join(apiTypesDir, "index.ts"));
 		
 		// Manually create organization type (not generated from schema)

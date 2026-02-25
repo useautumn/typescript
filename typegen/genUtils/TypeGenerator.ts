@@ -333,7 +333,7 @@ ${imports}
       imports.push(`export const UsageTierSchema = z.object({\n  to: z.union([z.number(), z.literal("inf")]),\n  amount: z.number(),\n});`);
     }
     if (schemaCode.includes('BasePriceParamsSchema')) {
-      imports.push(`const BasePriceParamsSchema = z.object({\n  amount: z.number(),\n  interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),\n  interval_count: z.number().optional(),\n});`);
+      imports.push(`const BasePriceParamsSchema = z.object({\n  amount: z.number(),\n  interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),\n  intervalCount: z.number().optional(),\n});`);
     }
     if (schemaCode.includes('idRegex')) {
       imports.push(`const idRegex = /^[a-zA-Z0-9_-]+$/;`);

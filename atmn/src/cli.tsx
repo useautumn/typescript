@@ -468,6 +468,20 @@ program
 		configCommand(args, { global: options.global });
 	});
 
+program
+	.command("test-diff", { hidden: true })
+	.description("Debug: show normalized diff between local config and remote")
+	.action(async () => {
+		const { testDiffCommand } = await import("./commands/test-diff/index.js");
+		try {
+			await testDiffCommand();
+		} catch (error) {
+			const { formatError } = await import("./lib/api/client.js");
+			console.error(chalk.red(`\nError: ${formatError(error)}`));
+			process.exit(1);
+		}
+	});
+
 /**
  * This is a hack to silence the DeprecationWarning about url.parse()
  */

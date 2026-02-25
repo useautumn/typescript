@@ -19,9 +19,9 @@ type PlanInput = Omit<Plan, 'description' | 'addOn' | 'autoEnable' | 'group'> & 
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
  *   items: [
- *     item({ feature_id: seats.id, included: 10 }),
+ *     item({ featureId: seats.id, included: 10 }),
  *     item({
- *       feature_id: messages.id,
+ *       featureId: messages.id,
  *       included: 1000,
  *       reset: { interval: 'month' }
  *     })
@@ -76,7 +76,7 @@ export const feature = (params: Feature): Feature => {
  * @example
  * // Simple included usage
  * item({
- *   feature_id: messages.id,
+ *   featureId: messages.id,
  *   included: 1000,
  *   reset: { interval: 'month' }
  * })
@@ -84,7 +84,7 @@ export const feature = (params: Feature): Feature => {
  * @example
  * // Priced feature with tiers
  * item({
- *   feature_id: seats.id,
+ *   featureId: seats.id,
  *   included: 5,
  *   reset: { interval: 'month' },
  *   price: {
@@ -92,8 +92,8 @@ export const feature = (params: Feature): Feature => {
  *       { to: 10, amount: 10 },
  *       { to: 'inf', amount: 8 }
  *     ],
- *     billing_method: 'usage_based',
- *     billing_units: 1
+ *     billingMethod: 'usage_based',
+ *     billingUnits: 1
  *   }
  * })
  */

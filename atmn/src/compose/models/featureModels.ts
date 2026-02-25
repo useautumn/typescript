@@ -14,11 +14,11 @@ export const FeatureSchema = z.object({
     description:
     "Human-readable name displayed in the dashboard and billing UI.",
     }),
-  event_names: z.array(z.string()).optional().meta({
+  eventNames: z.array(z.string()).optional().meta({
     description:
     "Event names that trigger this feature's balance. Allows multiple features to respond to a single event.",
     }),
-  credit_schema: z
+  creditSchema: z
     .array(
     z.object({
     metered_feature_id: z.string().meta({

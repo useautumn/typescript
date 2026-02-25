@@ -568,10 +568,10 @@ export function getAtmnTypeConfigs(
 				targetName: "Plan",
 				sourceFile: planOpModelsFile,
 				targetFile: path.join(modelsDir, "planModels.ts"),
-				sourceType: "zod",
-				keepCase: true, // Keep snake_case
-				replaceEnumsWithStrings: true,
-				skipTypeExport: true, // Override type manually to use PlanFeature union
+			sourceType: "zod",
+			keepCase: false,
+			replaceEnumsWithStrings: true,
+			skipTypeExport: true, // Override type manually to use PlanFeature union
 				omitFields: ["version", "id", "name", "group"],
 				extendFields: {
 					id: {
@@ -597,13 +597,13 @@ export function getAtmnTypeConfigs(
 			targetName: "PlanItem",
 			sourceFile: planItemOpModelsFile,
 			targetFile: path.join(modelsDir, "planModels.ts"),
-			sourceType: "zod",
-			keepCase: true,
-			replaceEnumsWithStrings: true,
-			omitFields: [],
-			extendFields: {},
-			renameFields: {},
-			skipTypeExport: true, // Don't export type - we'll add discriminated union manually
+		sourceType: "zod",
+		keepCase: false,
+		replaceEnumsWithStrings: true,
+		omitFields: [],
+		extendFields: {},
+		renameFields: {},
+		skipTypeExport: true, // Don't export type - we'll add discriminated union manually
 		},
 
 			// ==================
@@ -614,10 +614,10 @@ export function getAtmnTypeConfigs(
 				targetName: "Feature",
 				sourceFile: apiFeatureFile,
 				targetFile: path.join(modelsDir, "featureModels.ts"),
-				sourceType: "zod",
-				keepCase: true,
-				replaceEnumsWithStrings: true,
-				omitFields: ["display", "consumable", "type"],
+			sourceType: "zod",
+			keepCase: false,
+			replaceEnumsWithStrings: true,
+			omitFields: ["display", "consumable", "type"],
 				extendFields: {},
 				skipTypeExport: true, // We'll add discriminated union manually
 			},
@@ -630,10 +630,10 @@ export function getAtmnTypeConfigs(
 				targetName: "FreeTrial",
 				sourceFile: freeTrialParamsFile,
 				targetFile: path.join(modelsDir, "planModels.ts"),
-				sourceType: "zod",
-				keepCase: true,
-				replaceEnumsWithStrings: true,
-				skipTypeExport: true, // Exported in manual unions
+			sourceType: "zod",
+			keepCase: false,
+			replaceEnumsWithStrings: true,
+			skipTypeExport: true, // Exported in manual unions
 				omitFields: [],
 				extendFields: {},
 			},
@@ -666,9 +666,9 @@ export function getAtmnTypeConfigs(
  *   name: 'Pro Plan',
  *   description: 'For growing teams',
  *   items: [
- *     item({ feature_id: seats.id, included: 10 }),
+ *     item({ featureId: seats.id, included: 10 }),
  *     item({
- *       feature_id: messages.id,
+ *       featureId: messages.id,
  *       included: 1000,
  *       reset: { interval: 'month' }
  *     })
@@ -721,7 +721,7 @@ export function getAtmnTypeConfigs(
  * @example
  * // Simple included usage
  * item({
- *   feature_id: messages.id,
+ *   featureId: messages.id,
  *   included: 1000,
  *   reset: { interval: 'month' }
  * })
@@ -729,7 +729,7 @@ export function getAtmnTypeConfigs(
  * @example
  * // Priced feature with tiers
  * item({
- *   feature_id: seats.id,
+ *   featureId: seats.id,
  *   included: 5,
  *   reset: { interval: 'month' },
  *   price: {
@@ -737,8 +737,8 @@ export function getAtmnTypeConfigs(
  *       { to: 10, amount: 10 },
  *       { to: 'inf', amount: 8 }
  *     ],
- *     billing_method: 'usage_based',
- *     billing_units: 1
+ *     billingMethod: 'usage_based',
+ *     billingUnits: 1
  *   }
  * })
  */`,
