@@ -1,6 +1,6 @@
 import type { Feature, Plan } from "../../../compose/models/index.js";
 import { formatValue, planIdToVarName } from "./helpers.js";
-import { buildPlanFeatureCode } from "./planFeature.js";
+import { buildPlanItemCode } from "./planItem.js";
 
 /**
  * Generate TypeScript code for a plan definition
@@ -32,14 +32,14 @@ export function buildPlanCode(
 		lines.push(`\tgroup: '${plan.group}',`);
 	}
 
-	// Add add_on (only if true - false becomes undefined via swapFalse)
-	if (plan.add_on !== undefined) {
-		lines.push(`\tadd_on: ${plan.add_on},`);
+	// Add addOn (only if true - false becomes undefined via swapFalse)
+	if (plan.addOn !== undefined) {
+		lines.push(`\taddOn: ${plan.addOn},`);
 	}
 
-	// Add auto_enable (only if true - false becomes undefined via swapFalse)
-	if (plan.auto_enable !== undefined) {
-		lines.push(`\tauto_enable: ${plan.auto_enable},`);
+	// Add autoEnable (only if true - false becomes undefined via swapFalse)
+	if (plan.autoEnable !== undefined) {
+		lines.push(`\tautoEnable: ${plan.autoEnable},`);
 	}
 
 	// Add price
@@ -53,20 +53,20 @@ export function buildPlanCode(
 	// Add items (always include array for parser detection)
 	lines.push(`\titems: [`);
 	if (plan.items && plan.items.length > 0) {
-		for (const planFeature of plan.items) {
-			const featureCode = buildPlanFeatureCode(
-				planFeature,
+		for (const planItem of plan.items) {
+			const itemCode = buildPlanItemCode(
+				planItem,
 				features,
 				featureVarMap,
 			);
-			lines.push(featureCode);
+			lines.push(itemCode);
 		}
 	}
 	lines.push(`\t],`);
 
-	// Add free_trial
-	if (plan.free_trial) {
-		lines.push(`\tfree_trial: ${formatValue(plan.free_trial)},`);
+	// Add freeTrial
+	if (plan.freeTrial) {
+		lines.push(`\tfreeTrial: ${formatValue(plan.freeTrial)},`);
 	}
 
 	lines.push(`});`);

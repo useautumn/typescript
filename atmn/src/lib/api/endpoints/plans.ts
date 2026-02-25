@@ -142,6 +142,32 @@ export async function getPlanDeletionInfo(options: {
 }
 
 /**
+ * Migrate customers between product versions
+ */
+export async function migrateProduct(options: {
+	secretKey: string;
+	fromProductId: string;
+	fromVersion: number;
+	toProductId: string;
+	toVersion: number;
+}): Promise<void> {
+	const { secretKey, fromProductId, fromVersion, toProductId, toVersion } =
+		options;
+
+	await request<void>({
+		method: "POST",
+		path: "/v1/migrations",
+		secretKey,
+		body: {
+			from_product_id: fromProductId,
+			from_version: fromVersion,
+			to_product_id: toProductId,
+			to_version: toVersion,
+		},
+	});
+}
+
+/**
  * Check if a plan has customers (for versioning check)
  * Sends the plan data to compare against the current version
  */

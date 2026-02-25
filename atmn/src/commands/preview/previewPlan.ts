@@ -1,4 +1,4 @@
-import type { Feature, Plan, PlanFeature } from "../../compose/index.js";
+import type { Feature, Plan, PlanItem } from "../../compose/index.js";
 import {
 	formatAmount,
 	formatInterval,
@@ -11,7 +11,7 @@ import {
 	featureToDisplayFeature,
 	type ProductItemLike,
 	planFeatureToItem,
-} from "./planFeatureToItem.js";
+} from "./planItemToItem.js";
 
 // =============================================================================
 // Types
@@ -130,7 +130,7 @@ const buildPriceString = ({
 // =============================================================================
 
 /**
- * Convert a PlanFeature to display strings.
+ * Convert a PlanItem to display strings.
  *
  * Uses ProductItemLike translation layer to align with @autumn/shared display logic.
  *
@@ -148,7 +148,7 @@ export const getPlanFeatureDisplay = ({
 	feature,
 	currency = "USD",
 }: {
-	planFeature: PlanFeature;
+	planFeature: PlanItem;
 	feature: Feature;
 	currency?: string;
 }): PlanFeatureDisplay => {
@@ -283,14 +283,14 @@ export const getPlanPreview = ({
 		}
 	}
 
-	// 2. Build freeTrial string if plan.free_trial exists
+	// 2. Build freeTrial string if plan.freeTrial exists
 	let freeTrial: string | undefined;
 
-	if (plan.free_trial) {
-		const { duration_length, duration_type } = plan.free_trial;
+	if (plan.freeTrial) {
+		const { durationLength, durationType } = plan.freeTrial;
 		const durationUnit =
-			duration_length === 1 ? duration_type : `${duration_type}s`;
-		freeTrial = `${duration_length} ${durationUnit} free trial`;
+			durationLength === 1 ? durationType : `${durationType}s`;
+		freeTrial = `${durationLength} ${durationUnit} free trial`;
 	}
 
 	// 3. Map plan.items to PlanFeatureDisplay[]
@@ -298,8 +298,8 @@ export const getPlanPreview = ({
 
 	if (plan.items) {
 		for (const planFeature of plan.items) {
-			// Find matching Feature by feature_id
-			const feature = features.find((f) => f.id === planFeature.feature_id);
+			// Find matching Feature by featureId
+			const feature = features.find((f) => f.id === planFeature.featureId);
 
 			if (feature) {
 				const display = getPlanFeatureDisplay({
@@ -309,9 +309,9 @@ export const getPlanPreview = ({
 				});
 				featureDisplays.push(display);
 			} else {
-				// Feature not found, show feature_id as fallback
+				// Feature not found, show featureId as fallback
 				featureDisplays.push({
-					primary_text: planFeature.feature_id,
+					primary_text: planFeature.featureId,
 				});
 			}
 		}
@@ -364,6 +364,7 @@ export const formatPlanPreviewAsText = ({
 
 	for (let i = 0; i < featureCount; i++) {
 		const feature = preview.features[i];
+		if (!feature) continue;
 		const isLastFeature = i === featureCount - 1;
 		const featurePrefix = isLastFeature ? "\u2514\u2500" : "\u251C\u2500"; // "└─" or "├─"
 
@@ -381,7 +382,7 @@ export const formatPlanPreviewAsText = ({
 			const baseIndent = isLastFeature ? "   " : "\u2502  "; // "│  " or "   "
 
 			for (let j = 0; j < tierCount; j++) {
-				const tierDetail = feature.tier_details[j];
+				const tierDetail = feature.tier_details[j]!
 				const isLastTier = j === tierCount - 1;
 				const tierPrefix = isLastTier ? "\u2514\u2500" : "\u251C\u2500"; // "└─" or "├─"
 

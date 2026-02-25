@@ -242,7 +242,7 @@ export function CustomersView({
 
 					// Open sheet
 					if (key.return && customers[state.selectedIndex]) {
-						openSheet(customers[state.selectedIndex]);
+						openSheet(customers[state.selectedIndex]!);
 						return;
 					}
 
@@ -277,7 +277,7 @@ export function CustomersView({
 	// Sync selected customer when customers load
 	useEffect(() => {
 		if (customers.length > 0 && state.selectedIndex < customers.length) {
-			selectCustomer(customers[state.selectedIndex], state.selectedIndex);
+			selectCustomer(customers[state.selectedIndex]!, state.selectedIndex);
 		}
 	}, [customers, state.selectedIndex, selectCustomer]);
 

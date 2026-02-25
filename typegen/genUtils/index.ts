@@ -23,7 +23,7 @@ export {
 	type BuilderConfig,
 } from "./BuilderGenerator.js";
 export {
-	generatePlanFeatureType,
+	generatePlanItemType,
 	generatePlanTypeWithJSDoc,
 	generateTypeWithJSDoc,
 	generateDiscriminatedUnion,

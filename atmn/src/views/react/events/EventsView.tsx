@@ -601,7 +601,8 @@ export function EventsView({
 
 	// Show view mode
 	titleBarItems.push({
-		label: viewMode === "aggregate" ? "Aggregate" : "List",
+		label: "View",
+		value: viewMode === "aggregate" ? "Aggregate" : "List",
 		color: viewMode === "aggregate" ? "yellow" : "white",
 	});
 
@@ -610,7 +611,8 @@ export function EventsView({
 		const binSizeLabel =
 			BIN_SIZE_OPTIONS.find((t) => t.value === binSize)?.label ?? binSize;
 		titleBarItems.push({
-			label: binSizeLabel,
+			label: "Bin",
+			value: binSizeLabel,
 			color: "cyan",
 		});
 	}
@@ -618,7 +620,8 @@ export function EventsView({
 	// Show filter indicator
 	if (hasActiveFilters || cliCustomerId || cliFeatureId) {
 		titleBarItems.push({
-			label: "Filtered",
+			label: "Filter",
+			value: "active",
 			color: "cyan",
 		});
 	}
@@ -626,7 +629,7 @@ export function EventsView({
 	// Determine if side panel should show filter or detail sheet
 	const showFilterPanel = isFilterOpen;
 	const showDetailSheet =
-		state.sheetOpen && state.selectedItem && !isFilterOpen && viewMode === "list";
+		state.sheetOpen && !!state.selectedItem && !isFilterOpen && viewMode === "list";
 	const sideOpen = showFilterPanel || showDetailSheet;
 
 	// Pagination text for aggregate mode
@@ -773,7 +776,7 @@ export function EventsView({
 							</Box>
 						) : showDetailSheet ? (
 							<EventSheet
-								event={state?.selectedItem}
+								event={state.selectedItem as ApiEventsListItem}
 								isFocused={state?.focusTarget === "sheet"}
 								copiedFeedback={showingFeedback}
 							/>

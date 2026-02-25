@@ -1,4 +1,17 @@
 export {
+	type AggregateBinSize,
+	type AggregateFeatureTotal,
+	type AggregateRange,
+	type AggregateTimeBucket,
+	type ApiEventsAggregateResponse,
+	type ApiEventsListItem,
+	type ApiEventsListResponse,
+	type FetchEventsAggregateOptions,
+	type FetchEventsOptions,
+	fetchEvents,
+	fetchEventsAggregate,
+} from "./events.js";
+export {
 	archiveFeature,
 	deleteFeature,
 	type FeatureDeletionInfo,
@@ -23,21 +36,9 @@ export {
 	fetchPlans,
 	getPlanDeletionInfo,
 	getPlanHasCustomers,
+	migrateProduct,
 	type PlanDeletionInfo,
 	type PlanHasCustomersInfo,
 	unarchivePlan,
 	updatePlan,
 } from "./plans.js";
-export {
-	type AggregateBinSize,
-	type AggregateFeatureTotal,
-	type AggregateRange,
-	type AggregateTimeBucket,
-	type ApiEventsAggregateResponse,
-	type ApiEventsListItem,
-	type ApiEventsListResponse,
-	type FetchEventsAggregateOptions,
-	type FetchEventsOptions,
-	fetchEvents,
-	fetchEventsAggregate,
-} from "./events.js";

@@ -281,7 +281,7 @@ export function ProductsView({
 
 					// Open sheet
 					if (key.return && plans[state.selectedIndex]) {
-						openSheet(plans[state.selectedIndex]);
+						openSheet(plans[state.selectedIndex]!);
 						return;
 					}
 
@@ -319,7 +319,7 @@ export function ProductsView({
 	// Sync selected plan when plans load
 	useEffect(() => {
 		if (plans.length > 0 && state.selectedIndex < plans.length) {
-			selectItem(plans[state.selectedIndex], state.selectedIndex);
+			selectItem(plans[state.selectedIndex]!, state.selectedIndex);
 		}
 	}, [plans, state.selectedIndex, selectItem]);
 

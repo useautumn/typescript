@@ -79,7 +79,7 @@ export class CustomersController
 		};
 
 		if (this.searchQuery.trim()) {
-			body.search = this.searchQuery.trim();
+			body['search'] = this.searchQuery.trim();
 		}
 
 		const response = await request<ListCustomersResponse>({
@@ -142,7 +142,7 @@ export class CustomersController
 	selectByIndex(index: number): ApiCustomer | null {
 		if (index >= 0 && index < this.items.length) {
 			this.selectedIndex = index;
-			return this.items[index];
+			return this.items[index] ?? null;
 		}
 		return null;
 	}
@@ -151,7 +151,7 @@ export class CustomersController
 		const index = this.items.findIndex((c) => c.id === id);
 		if (index !== -1) {
 			this.selectedIndex = index;
-			return this.items[index];
+			return this.items[index] ?? null;
 		}
 		return null;
 	}
@@ -159,7 +159,7 @@ export class CustomersController
 	selectPrev(): ApiCustomer | null {
 		if (this.selectedIndex > 0) {
 			this.selectedIndex--;
-			return this.items[this.selectedIndex];
+			return this.items[this.selectedIndex] ?? null;
 		}
 		return null;
 	}
@@ -167,7 +167,7 @@ export class CustomersController
 	selectNext(): ApiCustomer | null {
 		if (this.selectedIndex < this.items.length - 1) {
 			this.selectedIndex++;
-			return this.items[this.selectedIndex];
+			return this.items[this.selectedIndex] ?? null;
 		}
 		return null;
 	}
@@ -273,7 +273,7 @@ export class CustomersController
 		} else {
 			lines.push("Customers:");
 			for (let i = 0; i < this.items.length; i++) {
-				const c = this.items[i];
+				const c = this.items[i]!;
 				const marker = i === this.selectedIndex ? "▸" : " ";
 				const name = c.name ?? "(no name)";
 				const email = c.email ?? "(no email)";

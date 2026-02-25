@@ -60,7 +60,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
 		return (
 			<QueryClientProvider client={queryClient}>
 				<AuthRecoveryBoundary onRetry={handleRetry}>
-					{/* Show recovery UI, children are hidden */}
+					{null}
 				</AuthRecoveryBoundary>
 			</QueryClientProvider>
 		);

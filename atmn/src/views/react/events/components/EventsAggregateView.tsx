@@ -57,7 +57,7 @@ const GROUP_COLORS = ["magenta", "blue", "green", "yellow", "cyan", "red"] as co
  * Get color for a group/feature index
  */
 function getGroupColor(index: number): typeof GROUP_COLORS[number] {
-	return GROUP_COLORS[index % GROUP_COLORS.length];
+	return GROUP_COLORS[index % GROUP_COLORS.length] ?? "blue";
 }
 
 /**
@@ -207,9 +207,10 @@ function StackedChart({
 				let cumulative = 0;
 				let foundColor: typeof GROUP_COLORS[number] | "gray" = "gray";
 				
-				for (let i = 0; i < groupKeys.length; i++) {
-					const groupKey = groupKeys[i];
-					const groupVal = bucket.groupTotals[groupKey] ?? 0;
+			for (let i = 0; i < groupKeys.length; i++) {
+				const groupKey = groupKeys[i];
+				if (!groupKey) continue;
+				const groupVal = bucket.groupTotals[groupKey] ?? 0;
 					const prevCumulative = cumulative;
 					cumulative += groupVal;
 					

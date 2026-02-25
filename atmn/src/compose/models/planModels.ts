@@ -12,71 +12,158 @@ export const UsageTierSchema = z.object({
 const BasePriceParamsSchema = z.object({
   amount: z.number(),
   interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
-  interval_count: z.number().optional(),
+  intervalCount: z.number().optional(),
 });
 
 const idRegex = /^[a-zA-Z0-9_-]+$/;
 
 
-export const PlanFeatureSchema = z.object({
-  feature_id: z.string(),
-    included: z.number().optional(),
-  unlimited: z.boolean().optional(),
+export const PlanItemSchema = z.object({
+  featureId: z.string().meta({
+    description: "The ID of the feature to configure.",
+    }),
+  included: z.number().optional().meta({
+    description:
+    "Number of free units included. Balance resets to this each interval for consumable features.",
+    }),
+  unlimited: z.boolean().optional().meta({
+    description: "If true, customer has unlimited access to this feature.",
+    }),
   reset: z
     .object({
-    interval: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
-    interval_count: z.number().optional(),
+    interval: z.union([z.literal("one_off"), z.literal("minute"), z.literal("hour"), z.literal("day"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]).meta({
+    description:
+    "Interval at which balance resets (e.g. 'month', 'year'). For consumable features only.",
+    }),
+    interval_count: z.number().optional().meta({
+    description: "Number of intervals between resets. Defaults to 1.",
+    }),
     })
-    .optional(),
+    .optional()
+    .meta({
+    description:
+    "Reset configuration for consumable features. Omit for non-consumable features like seats.",
+    }),
   price: z
     .object({
-    amount: z.number().optional(),
-    tiers: z.array(UsageTierSchema).optional(),
+    amount: z.number().optional().meta({
+    description:
+    "Price per billing_units after included usage. Either 'amount' or 'tiers' is required.",
+    }),
+    tiers: z.array(UsageTierSchema).optional().meta({
+    description:
+    "Tiered pricing. Each tier's 'to' does NOT include included amount. Either 'amount' or 'tiers' is required.",
+    }),
+    tier_behaviour: z.union([z.literal("graduated"), z.literal("volume")]).optional(),
     
-    interval: z.union([z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),
-    interval_count: z.number().default(1).optional(),
+    interval: z.union([z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]).meta({
+    description:
+    "Billing interval. For consumable features, should match reset.interval.",
+    }),
+    interval_count: z.number().default(1).optional().meta({
+    description: "Number of intervals per billing cycle. Defaults to 1.",
+    }),
     
-    billing_units: z.number().default(1).optional(),
-    billing_method: z.union([z.literal("prepaid"), z.literal("usage_based")]),
-    max_purchase: z.number().optional(),
+    billing_units: z.number().default(1).optional().meta({
+    description:
+    "Units per price increment. Usage is rounded UP when billed (e.g. billing_units=100 means 101 rounds to 200).",
+    }),
+    billing_method: z.union([z.literal("prepaid"), z.literal("usage_based")]).meta({
+    description:
+    "'prepaid' for upfront payment (seats), 'usage_based' for pay-as-you-go.",
+    }),
+    max_purchase: z.number().optional().meta({
+    description:
+    "Max units purchasable beyond included. E.g. included=100, max_purchase=300 allows 400 total.",
+    }),
     })
-    .optional(),
+    .optional()
+    .meta({
+    description:
+    "Pricing for usage beyond included units. Omit for free features.",
+    }),
   proration: z
     .object({
-    on_increase: z.union([z.literal("prorate"), z.literal("charge_immediately")]),
-    on_decrease: z.union([z.literal("prorate"), z.literal("refund_immediately"), z.literal("no_action")]),
+    on_increase: z.union([z.literal("prorate"), z.literal("charge_immediately")]).meta({
+    description: "Billing behavior when quantity increases mid-cycle.",
+    }),
+    on_decrease: z.union([z.literal("prorate"), z.literal("refund_immediately"), z.literal("no_action")]).meta({
+    description: "Credit behavior when quantity decreases mid-cycle.",
+    }),
     })
-    .optional(),
+    .optional()
+    .meta({
+    description:
+    "Proration settings for prepaid features. Controls mid-cycle quantity change billing.",
+    }),
   rollover: z
     .object({
-    max: z.number().optional(),
-    expiry_duration_type: z.union([z.literal("month"), z.literal("forever")]),
-    expiry_duration_length: z.number().optional(),
+    max: z.number().optional().meta({
+    description: "Max rollover units. Omit for unlimited rollover.",
+    }),
+    expiry_duration_type: z.union([z.literal("month"), z.literal("forever")]).meta({
+    description: "When rolled over units expire.",
+    }),
+    expiry_duration_length: z.number().optional().meta({
+    description: "Number of periods before expiry.",
+    }),
     })
-    .optional(),
-  entity_feature_id: z.string().optional().meta({
+    .optional()
+    .meta({
+    description:
+    "Rollover config for unused units. If set, unused included units carry over.",
+    }),
+  entityFeatureId: z.string().optional().meta({
     internal: true,
     }),
-  entitlement_id: z.string().optional().meta({
+  entitlementId: z.string().optional().meta({
     internal: true,
     }),
-  price_id: z.string().optional().meta({
+  priceId: z.string().optional().meta({
     internal: true,
     })
 });
 
 export const FreeTrialSchema = z.object({
-  duration_length: z.number(),
-    duration_type: z.union([z.literal("day"), z.literal("month"), z.literal("year")]).default("month"),
-  card_required: z.boolean().default(true)
+  durationLength: z.number().meta({
+    description: "Number of duration_type periods the trial lasts.",
+    }),
+  durationType: z
+    .union([z.literal("day"), z.literal("month"), z.literal("year")])
+    .default("month")
+    .meta({
+    description: "Unit of time for the trial ('day', 'month', 'year').",
+    }),
+  cardRequired: z.boolean().default(true).meta({
+    description:
+    "If true, payment method required to start trial. Customer is charged after trial ends.",
+    })
 });
 
 export const PlanSchema = z.object({
-  add_on: z.boolean().default(false),
-    auto_enable: z.boolean().default(false),
-  price: BasePriceParamsSchema.optional(),
-  items: z.array(PlanFeatureSchema).optional(),
-    free_trial: FreeTrialSchema.optional(),
+  description: z.string().nullable().default(null).meta({
+    description: "Optional description of the plan.",
+    }),
+  addOn: z.boolean().default(false).meta({
+    description:
+    "If true, this plan can be attached alongside other plans. Otherwise, attaching replaces existing plans in the same group.",
+    }),
+  autoEnable: z.boolean().default(false).meta({
+    description:
+    "If true, plan is automatically attached when a customer is created. Use for free tiers.",
+    }),
+  price: BasePriceParamsSchema.optional().meta({
+    description:
+    "Base recurring price for the plan. Omit for free or usage-only plans.",
+    }),
+  items: z.array(PlanItemSchema).optional().meta({
+    description:
+    "Feature configurations for this plan. Each item defines included units, pricing, and reset behavior.",
+    }),
+  freeTrial: FreeTrialSchema.optional().meta({
+    description:
+    "Free trial configuration. Customers can try this plan before being charged.",
+    }),
   /** Unique identifier for the plan */
   id: z.string().nonempty().regex(idRegex),
   /** Display name for the plan */
@@ -95,23 +182,23 @@ export type BillingMethod = "prepaid" | "usage_based";
 export type OnIncrease = "prorate" | "charge_immediately";
 export type OnDecrease = "prorate" | "refund_immediately" | "no_action";
 
-// Base type for PlanFeature
-type PlanFeatureBase = z.infer<typeof PlanFeatureSchema>;
+// Base type for PlanItem
+type PlanItemBase = z.infer<typeof PlanItemSchema>;
 
 // Reset configuration object (for top-level reset)
 type ResetConfig = {
   /** How often usage resets (e.g., 'month', 'day') */
   interval: ResetInterval;
   /** Number of intervals between resets (default: 1) */
-  interval_count?: number;
+  intervalCount?: number;
 };
 
 // Proration configuration
 type ProrationConfig = {
   /** Behavior when quantity increases */
-  on_increase: OnIncrease;
+  onIncrease: OnIncrease;
   /** Behavior when quantity decreases */
-  on_decrease: OnDecrease;
+  onDecrease: OnDecrease;
 };
 
 // Rollover configuration
@@ -119,17 +206,17 @@ type RolloverConfig = {
   /** Maximum amount that can roll over (null for unlimited) */
   max: number | null;
   /** How long rollover lasts before expiring */
-  expiry_duration_type: RolloverExpiryDurationType;
+  expiryDurationType: RolloverExpiryDurationType;
   /** Duration length for rollover expiry */
-  expiry_duration_length?: number;
+  expiryDurationLength?: number;
 };
 
-// Base fields shared by all PlanFeature variants
-type PlanFeatureBaseFields = {
+// Base fields shared by all PlanItem variants
+type PlanItemBaseFields = {
   /** Reference to the feature being configured */
-  feature_id: string;
+  featureId: string;
   /** The entity feature ID of the product item if applicable */
-  entity_feature_id?: string | null;
+  entityFeatureId?: string | null;
   /** Amount of usage included in this plan */
   included?: number;
   /** Whether usage is unlimited */
@@ -143,11 +230,11 @@ type PlanFeatureBaseFields = {
 // Shared price fields (common to all price variants)
 type PriceBaseFields = {
   /** Billing method: 'prepaid' or 'usage_based' */
-  billing_method: BillingMethod;
+  billingMethod: BillingMethod;
   /** Number of units per billing cycle */
-  billing_units?: number;
+  billingUnits?: number;
   /** Maximum purchasable quantity */
-  max_purchase?: number;
+  maxPurchase?: number;
 };
 
 // Price with flat amount (no tiers)
@@ -164,6 +251,8 @@ type PriceWithTiers = PriceBaseFields & {
   amount?: never;
   /** Tiered pricing structure based on usage ranges */
   tiers: Array<{ to: number | "inf"; amount: number }>;
+  /** Required when tiers is defined: how tiers are applied */
+  tierBehaviour: "graduated" | "volume";
 };
 
 // Price must have either amount OR tiers (not both, not neither)
@@ -173,7 +262,7 @@ type PriceAmountOrTiers = PriceWithAmount | PriceWithTiers;
 type PriceWithoutInterval = PriceAmountOrTiers & {
   /** Cannot have interval when using top-level reset */
   interval?: never;
-  interval_count?: never;
+  intervalCount?: never;
 };
 
 // Price when reset is NOT defined - interval is required
@@ -181,14 +270,14 @@ type PriceWithInterval = PriceAmountOrTiers & {
   /** Billing interval - required when no top-level reset */
   interval: BillingInterval;
   /** Number of intervals between billing cycles (default: 1) */
-  interval_count?: number;
+  intervalCount?: number;
 };
 
 /**
- * Plan feature with top-level reset configuration.
+ * Plan item with top-level reset configuration.
  * Use this for free allocations or features that reset but aren't priced per-use.
  */
-export type PlanFeatureWithReset = PlanFeatureBaseFields & {
+export type PlanItemWithReset = PlanItemBaseFields & {
   /** Reset configuration for usage limits */
   reset: ResetConfig;
   /** Optional pricing (cannot have price.interval when using top-level reset) */
@@ -196,10 +285,10 @@ export type PlanFeatureWithReset = PlanFeatureBaseFields & {
 };
 
 /**
- * Plan feature with pricing that includes interval configuration.
+ * Plan item with pricing that includes interval configuration.
  * Use this for usage-based pricing where interval determines billing cycle.
  */
-export type PlanFeatureWithPriceInterval = PlanFeatureBaseFields & {
+export type PlanItemWithPriceInterval = PlanItemBaseFields & {
   /** Cannot have top-level reset when using price.interval */
   reset?: never;
   /** Pricing configuration with billing interval */
@@ -207,10 +296,10 @@ export type PlanFeatureWithPriceInterval = PlanFeatureBaseFields & {
 };
 
 /**
- * Plan feature without any reset configuration.
+ * Plan item without any reset configuration.
  * Use this for continuous-use features (like seats) that don't reset.
  */
-export type PlanFeatureNoReset = PlanFeatureBaseFields & {
+export type PlanItemNoReset = PlanItemBaseFields & {
   /** No reset for continuous-use features */
   reset?: never;
   /** Pricing with required interval (since no top-level reset) */
@@ -218,36 +307,36 @@ export type PlanFeatureNoReset = PlanFeatureBaseFields & {
 };
 
 /**
- * Plan feature configuration with mutually exclusive reset patterns:
- * - PlanFeatureWithReset: Top-level reset (for free allocations)
- * - PlanFeatureWithPriceInterval: price.interval (for usage-based pricing billing cycle)
- * - PlanFeatureNoReset: No reset (for continuous-use features like seats)
+ * Plan item configuration with mutually exclusive reset patterns:
+ * - PlanItemWithReset: Top-level reset (for free allocations)
+ * - PlanItemWithPriceInterval: price.interval (for usage-based pricing billing cycle)
+ * - PlanItemNoReset: No reset (for continuous-use features like seats)
  */
-export type PlanFeature = PlanFeatureWithReset | PlanFeatureWithPriceInterval | PlanFeatureNoReset;
+export type PlanItem = PlanItemWithReset | PlanItemWithPriceInterval | PlanItemNoReset;
 
 
-// Override Plan type to use PlanFeature discriminated union
+// Override Plan type to use PlanItem discriminated union
 type PlanBase = z.infer<typeof PlanSchema>;
 export type FreeTrial = z.infer<typeof FreeTrialSchema>;
 
 export type Plan = {
-  /** Unique identifier for the plan */
+  /** Unique identifier for the plan. */
   id: string;
 
-  /** Display name for the plan */
+  /** Display name of the plan. */
   name: string;
 
-  /** Optional description explaining what this plan offers */
+  /** Optional description of the plan. */
   description?: string | null;
 
-  /** Grouping identifier for organizing related plans */
+  /** Group identifier for organizing related plans. Plans in the same group are mutually exclusive. */
   group?: string;
 
-  /** Whether this plan can be purchased alongside other plans */
-  add_on?: boolean;
+  /** If true, this plan can be attached alongside other plans. Otherwise, attaching replaces existing plans in the same group. */
+  addOn?: boolean;
 
-  /** Whether to automatically enable this plan for new customers */
-  auto_enable?: boolean;
+  /** If true, plan is automatically attached when a customer is created. Use for free tiers. */
+  autoEnable?: boolean;
 
   /** Base price for the plan */
   price?: {
@@ -257,10 +346,10 @@ export type Plan = {
     /** Billing frequency */
     interval: PlanPriceInterval;  }
 
-  /** Items included with usage limits and pricing */
-  items?: PlanFeature[];
+  /** Feature configurations for this plan. Each item defines included units, pricing, and reset behavior. */
+  items?: PlanItem[];
 
   /** Free trial period before billing begins */
-  free_trial?: FreeTrial | null;
+  freeTrial?: FreeTrial | null;
 };
 

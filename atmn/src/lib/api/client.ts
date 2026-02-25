@@ -107,7 +107,7 @@ export async function request<T = unknown>(
 	// Make request
 	try {
 		// Debug: log the request URL (can be removed later)
-		if (process.env.ATMN_DEBUG) {
+		if (process.env['ATMN_DEBUG']) {
 			console.log(`[DEBUG] ${method} ${url.toString()}`);
 		}
 		const response = await fetch(url.toString(), requestInit);

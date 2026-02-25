@@ -1,9 +1,9 @@
-import { MultiSelect, Select, TextInput } from "@inkjs/ui";
+import { MultiSelect, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import open from "open";
 import React, { useState } from "react";
 import { useClipboard, useCreateSkills } from "../../../../lib/hooks/index.js";
-import { StatusLine, StepHeader } from "../../components/index.js";
+import { SelectMenu, StatusLine, StepHeader } from "../../components/index.js";
 
 // System prompt for AI integration - will be copied to clipboard
 const SYSTEM_PROMPT = `You are an expert AI assistant that helps users set up Autumn, a billing and entitlements layer over Stripe. The user has already installed Autumn Skills ready for you to use the load skill tool.
@@ -193,7 +193,7 @@ export function HandoffStep({
 						and implement Autumn into your codebase?
 					</Text>
 					<Box marginTop={1}>
-						<Select options={aiChoiceOptions} onChange={handleAiChoice} />
+						<SelectMenu items={aiChoiceOptions} onSelect={(item) => handleAiChoice(item.value)} />
 					</Box>
 				</Box>
 			</Box>
@@ -229,12 +229,12 @@ export function HandoffStep({
 					<Text>Enter the custom path (relative to project root):</Text>
 					<Box marginTop={1}>
 						<Text color="gray">{">"} </Text>
-						<TextInput
-							placeholder={process.cwd()}
-							value={customPath}
-							onChange={setCustomPath}
-							onSubmit={handleCustomPathSubmit}
-						/>
+					<TextInput
+						placeholder={process.cwd()}
+						defaultValue={customPath}
+						onChange={setCustomPath}
+						onSubmit={handleCustomPathSubmit}
+					/>
 					</Box>
 				</Box>
 			</Box>
@@ -284,10 +284,10 @@ export function HandoffStep({
 						</Box>
 					)}
 					<Box marginTop={1}>
-						<Select
-							options={nextStepsOptions}
-							onChange={handleNextStepsChoice}
-						/>
+					<SelectMenu
+						items={nextStepsOptions}
+						onSelect={(item) => handleNextStepsChoice(item.value)}
+					/>
 					</Box>
 				</Box>
 			</Box>

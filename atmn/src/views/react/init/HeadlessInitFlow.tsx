@@ -160,9 +160,9 @@ export function HeadlessInitFlow() {
 		<Box flexDirection="column" paddingLeft={1}>
 			{/* Step 1: Auth - always show */}
 			<Text>Checking authentication...</Text>
-			{authState === "waiting" && (
-				<Text dimColor>Waiting for authentication... (timeout: 5 minutes)</Text>
-			)}
+		{authState === "authenticating" && (
+			<Text dimColor>Waiting for authentication... (timeout: 5 minutes)</Text>
+		)}
 			{authState === "authenticated" && orgInfo && (
 				<Text color="green">
 					{"✓"} Logged in as {orgInfo.name} ({orgInfo.slug})

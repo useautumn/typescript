@@ -25,9 +25,9 @@ export function buildFeatureCode(feature: Feature): string {
 		lines.push(`\tconsumable: ${feature.consumable},`);
 	}
 
-	// Add event_names if present
-	if (feature.event_names && feature.event_names.length > 0) {
-		lines.push(`\tevent_names: ${formatValue(feature.event_names)},`);
+	// Add eventNames if present
+	if (feature.eventNames && feature.eventNames.length > 0) {
+		lines.push(`\teventNames: ${formatValue(feature.eventNames)},`);
 	}
 
 	// Add archived flag only when explicitly true
@@ -35,9 +35,9 @@ export function buildFeatureCode(feature: Feature): string {
 		lines.push(`\tarchived: true,`);
 	}
 
-	// Add credit_schema for credit_system features
-	if (feature.type === "credit_system" && feature.credit_schema) {
-		lines.push(`\tcredit_schema: ${formatValue(feature.credit_schema)},`);
+	// Add creditSchema for credit_system features
+	if (feature.type === "credit_system" && feature.creditSchema) {
+		lines.push(`\tcreditSchema: ${formatValue(feature.creditSchema)},`);
 	}
 
 	lines.push(`});`);

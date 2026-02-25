@@ -283,6 +283,7 @@ ${imports}
       OnIncrease: ['prorate', 'charge_immediately'],
       OnDecrease: ['prorate', 'refund_immediately', 'no_action'],
       FreeTrialDuration: ['day', 'month', 'year'],
+      TierBehaviours: ['graduated', 'volume'],
       ApiFeatureType: ['static', 'boolean', 'single_use', 'continuous_use', 'credit_system'],
       FeatureType: ['boolean', 'metered', 'credit_system'],
     };
@@ -297,8 +298,11 @@ ${imports}
 
     for (const [enumName, values] of Object.entries(enumMap)) {
       const literalUnion = values.map(v => `z.literal("${v}")`).join(', ');
-      const pattern = new RegExp(`z\\.enum\\(${enumName}\\)`, 'g');
-      result = result.replace(pattern, `z.union([${literalUnion}])`);
+      // Match both `z.enum(EnumName)` and chained `.enum(EnumName)`
+      const patternWithZ = new RegExp(`z\\.enum\\(${enumName}\\)`, 'g');
+      result = result.replace(patternWithZ, `z.union([${literalUnion}])`);
+      const patternChained = new RegExp(`\\.enum\\(${enumName}\\)`, 'g');
+      result = result.replace(patternChained, `.union([${literalUnion}])`);
     }
 
     // Replace enum default references with literal defaults after enum conversion.
@@ -329,7 +333,7 @@ ${imports}
       imports.push(`export const UsageTierSchema = z.object({\n  to: z.union([z.number(), z.literal("inf")]),\n  amount: z.number(),\n});`);
     }
     if (schemaCode.includes('BasePriceParamsSchema')) {
-      imports.push(`const BasePriceParamsSchema = z.object({\n  amount: z.number(),\n  interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),\n  interval_count: z.number().optional(),\n});`);
+      imports.push(`const BasePriceParamsSchema = z.object({\n  amount: z.number(),\n  interval: z.union([z.literal("one_off"), z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]),\n  intervalCount: z.number().optional(),\n});`);
     }
     if (schemaCode.includes('idRegex')) {
       imports.push(`const idRegex = /^[a-zA-Z0-9_-]+$/;`);

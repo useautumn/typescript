@@ -61,7 +61,7 @@ export function validateCustomerLimit(
  * Get max customers from environment or use default
  */
 export function getMaxCustomers(): number {
-	const envValue = process.env.ATMN_NUKE_MAX_CUSTOMERS;
+	const envValue = process.env['ATMN_NUKE_MAX_CUSTOMERS'];
 	if (envValue) {
 		const parsed = parseInt(envValue, 10);
 		if (!Number.isNaN(parsed) && parsed > 0) {

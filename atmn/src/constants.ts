@@ -11,7 +11,7 @@ export const DELETE_CONCURRENCY = 5;
 export const DEFAULT_CONFIG = `import {
 	feature,
 	plan,
-	planFeature,
+	item,
 } from 'atmn';
 
 export const seats = feature({
@@ -32,29 +32,29 @@ export const pro = plan({
 	id: 'pro',
 	name: 'Pro',
 	description: 'Professional plan for growing teams',
-	add_on: false,
-	auto_enable: false,
+	addOn: false,
+	autoEnable: false,
 	price: {
 		amount: 50,
 		interval: 'month',
 	},
 	items: [
 		// 500 messages per month
-		planFeature({
-			feature_id: messages.id,
+		item({
+			featureId: messages.id,
 			included: 500,
 			reset: { interval: 'month' },
 		}),
 
 		// $10 per seat per month
-		planFeature({
-			feature_id: seats.id,
+		item({
+			featureId: seats.id,
 			included: 1,
 			price: {
 				amount: 10,
 				interval: 'month',
-				billing_method: 'usage_based',
-				billing_units: 1,
+				billingMethod: 'usage_based',
+				billingUnits: 1,
 			},
 		}),
 	],

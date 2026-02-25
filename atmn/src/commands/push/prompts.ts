@@ -1,4 +1,5 @@
 import type { Feature, Plan } from "../../compose/models/index.js";
+import { AppEnv } from "../../lib/env/index.js";
 import type {
 	FeatureDeleteInfo,
 	PlanDeleteInfo,
@@ -62,7 +63,11 @@ export function createProdConfirmationPrompt(): PushPrompt {
 /**
  * Create plan versioning prompt
  */
-export function createPlanVersioningPrompt(info: PlanUpdateInfo): PushPrompt {
+export function createPlanVersioningPrompt(
+	info: PlanUpdateInfo,
+	env?: AppEnv,
+): PushPrompt {
+	const isSandbox = !env || env === AppEnv.Sandbox;
 	return {
 		id: generatePromptId(),
 		type: "plan_versioning",
@@ -73,10 +78,19 @@ export function createPlanVersioningPrompt(info: PlanUpdateInfo): PushPrompt {
 			planName: info.plan.name,
 		},
 		options: [
+			...(isSandbox
+				? [
+						{
+							label: "Yes, migrate existing customers and create a new version",
+							value: "version_and_migrate",
+							isDefault: true,
+						},
+					]
+				: []),
 			{
-				label: "Yes, create new version",
+				label: "Yes, but create a new version only",
 				value: "version",
-				isDefault: true,
+				isDefault: !isSandbox,
 			},
 			{ label: "No, skip this plan", value: "skip", isDefault: false },
 		],

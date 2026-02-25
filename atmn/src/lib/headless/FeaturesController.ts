@@ -168,7 +168,7 @@ export class FeaturesController
 		const items = this.getCurrentPageItems();
 		if (index >= 0 && index < items.length) {
 			this.selectedIndex = index;
-			return items[index];
+			return items[index] ?? null;
 		}
 		return null;
 	}
@@ -178,7 +178,7 @@ export class FeaturesController
 		const index = items.findIndex((f) => f.id === id);
 		if (index !== -1) {
 			this.selectedIndex = index;
-			return items[index];
+			return items[index] ?? null;
 		}
 		return null;
 	}
@@ -186,7 +186,7 @@ export class FeaturesController
 	selectPrev(): ApiFeature | null {
 		if (this.selectedIndex > 0) {
 			this.selectedIndex--;
-			return this.getCurrentPageItems()[this.selectedIndex];
+			return this.getCurrentPageItems()[this.selectedIndex] ?? null;
 		}
 		return null;
 	}
@@ -195,7 +195,7 @@ export class FeaturesController
 		const items = this.getCurrentPageItems();
 		if (this.selectedIndex < items.length - 1) {
 			this.selectedIndex++;
-			return items[this.selectedIndex];
+			return items[this.selectedIndex] ?? null;
 		}
 		return null;
 	}
@@ -298,7 +298,7 @@ export class FeaturesController
 		} else {
 			lines.push("Features:");
 			for (let i = 0; i < items.length; i++) {
-				const f = items[i];
+				const f = items[i]!;
 				const marker = i === this.selectedIndex ? ">" : " ";
 				const name = f.name ?? "(no name)";
 				const archived = f.archived ? " [archived]" : "";

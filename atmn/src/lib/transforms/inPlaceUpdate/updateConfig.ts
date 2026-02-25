@@ -123,7 +123,7 @@ export async function updateConfigInPlace(
 	let lastImportBlockIndex = -1;
 
 	for (let i = 0; i < parsed.blocks.length; i++) {
-		const block = parsed.blocks[i];
+		const block = parsed.blocks[i]!;
 
 		// Track section comments
 		if (block.type === "comment") {
@@ -234,17 +234,23 @@ export async function updateConfigInPlace(
 		if (lastFeatureBlockIndex >= 0) {
 			// Insert after last feature
 			outputBlocks.splice(lastFeatureBlockIndex + 1, 0, newFeatureCode);
-			lastPlanBlockIndex++; // Adjust plan index since we inserted
+			lastFeatureBlockIndex++;
+			if (lastPlanBlockIndex >= 0) {
+				lastPlanBlockIndex++;
+			}
 		} else if (sawFeaturesComment) {
 			// Find features comment and insert after
 			for (let i = 0; i < outputBlocks.length; i++) {
+				const blk = outputBlocks[i]!;
 				if (
-					outputBlocks[i].toLowerCase().includes("feature") &&
-					(outputBlocks[i].trim().startsWith("//") ||
-						outputBlocks[i].trim().startsWith("/*"))
+					blk.toLowerCase().includes("feature") &&
+					(blk.trim().startsWith("//") || blk.trim().startsWith("/*"))
 				) {
 					outputBlocks.splice(i + 1, 0, newFeatureCode);
-					lastPlanBlockIndex++; // Adjust
+					lastFeatureBlockIndex = i + 1;
+					if (lastPlanBlockIndex >= 0) {
+						lastPlanBlockIndex++;
+					}
 					break;
 				}
 			}
@@ -252,12 +258,15 @@ export async function updateConfigInPlace(
 			// Insert after imports
 			let insertIdx = 0;
 			for (let i = 0; i < outputBlocks.length; i++) {
-				if (outputBlocks[i].trim().startsWith("import ")) {
+				if (outputBlocks[i]!.trim().startsWith("import ")) {
 					insertIdx = i + 1;
 				}
 			}
 			outputBlocks.splice(insertIdx, 0, `\n// Features\n${newFeatureCode}`);
-			lastPlanBlockIndex++; // Adjust
+			lastFeatureBlockIndex = insertIdx;
+			if (lastPlanBlockIndex >= 0) {
+				lastPlanBlockIndex++;
+			}
 		}
 		result.featuresAdded = newFeatures.length;
 	}
@@ -275,15 +284,22 @@ export async function updateConfigInPlace(
 		} else if (sawPlansComment) {
 			// Find plans comment and insert after
 			for (let i = 0; i < outputBlocks.length; i++) {
+				const blk = outputBlocks[i]!;
 				if (
-					outputBlocks[i].toLowerCase().includes("plan") &&
-					(outputBlocks[i].trim().startsWith("//") ||
-						outputBlocks[i].trim().startsWith("/*"))
+					blk.toLowerCase().includes("plan") &&
+					(blk.trim().startsWith("//") || blk.trim().startsWith("/*"))
 				) {
 					outputBlocks.splice(i + 1, 0, newPlanCode);
 					break;
 				}
 			}
+		} else if (lastFeatureBlockIndex >= 0) {
+			// No plan section yet — insert after the last feature block
+			outputBlocks.splice(
+				lastFeatureBlockIndex + 1,
+				0,
+				`\n// Plans\n${newPlanCode}`,
+			);
 		} else {
 			// Append at end with section comment
 			outputBlocks.push(`\n// Plans\n${newPlanCode}`);
@@ -297,7 +313,7 @@ export async function updateConfigInPlace(
 	const outputLines: string[] = [];
 
 	for (let i = 0; i < filteredBlocks.length; i++) {
-		const block = filteredBlocks[i];
+		const block = filteredBlocks[i]!;
 		const nextBlock = filteredBlocks[i + 1];
 
 		outputLines.push(block);

@@ -3,4 +3,4 @@ export {
 	mapFeatureType,
 } from "./helpers.js";
 export { transformApiPlan } from "./plan.js";
-export { transformApiPlanFeature } from "./planFeature.js";
+export { transformApiPlanItem } from "./planItem.js";

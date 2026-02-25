@@ -11,13 +11,13 @@ export const features: Feature[] = [
 		id: "credits",
 		name: "Credits",
 		type: "credit_system",
-		credit_schema: [
-			{ metered_feature_id: "gpt5_mini_input", credit_cost: 0.25 },
-			{ metered_feature_id: "gpt5_mini_output", credit_cost: 2 },
-			{ metered_feature_id: "gpt52_input", credit_cost: 1.75 },
-			{ metered_feature_id: "gpt52_output", credit_cost: 14 },
-			{ metered_feature_id: "gpt52_pro_input", credit_cost: 21 },
-			{ metered_feature_id: "gpt52_pro_output", credit_cost: 168 },
+		creditSchema: [
+			{ meteredFeatureId: "gpt5_mini_input", creditCost: 0.25 },
+			{ meteredFeatureId: "gpt5_mini_output", creditCost: 2 },
+			{ meteredFeatureId: "gpt52_input", creditCost: 1.75 },
+			{ meteredFeatureId: "gpt52_output", creditCost: 14 },
+			{ meteredFeatureId: "gpt52_pro_input", creditCost: 21 },
+			{ meteredFeatureId: "gpt52_pro_output", creditCost: 168 },
 		],
 	},
 	{
@@ -62,23 +62,23 @@ export const plans: Plan[] = [
 	{
 		id: "free",
 		name: "Free",
-		auto_enable: true,
+		autoEnable: true,
 		items: [
-			{ feature_id: "credits", included: 2000, reset: { interval: "one_off" } },
+			{ featureId: "credits", included: 2000, reset: { interval: "one_off" } },
 		],
 	},
 	{
 		id: "credits-top-up",
 		name: "Credits Top-Up",
-		add_on: true,
+		addOn: true,
 		items: [
 			{
-				feature_id: "credits",
+				featureId: "credits",
 				price: {
 					amount: 10,
-					billing_method: "prepaid",
-					billing_units: 10000,
-					interval: "one_off",
+					billingMethod: "prepaid",
+					billingUnits: 10000,
+					interval: "month",
 				},
 			},
 		],
