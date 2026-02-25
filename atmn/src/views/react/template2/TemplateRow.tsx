@@ -159,11 +159,11 @@ export function TemplateRow({
 
 					{/* Credit schema card - only show if template has credit system */}
 					{hasCreditSystem && (
-						<CreditSchemaCard
-							costs={template.creditSystem?.costs}
-							height={tiersHeight}
-							width={creditSchemaWidth}
-						/>
+				<CreditSchemaCard
+						costs={template.creditSystem?.costs ?? []}
+						height={tiersHeight}
+						width={creditSchemaWidth}
+					/>
 					)}
 				</Box>
 

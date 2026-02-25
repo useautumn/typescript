@@ -123,7 +123,7 @@ export async function updateConfigInPlace(
 	let lastImportBlockIndex = -1;
 
 	for (let i = 0; i < parsed.blocks.length; i++) {
-		const block = parsed.blocks[i];
+		const block = parsed.blocks[i]!;
 
 		// Track section comments
 		if (block.type === "comment") {
@@ -241,10 +241,10 @@ export async function updateConfigInPlace(
 		} else if (sawFeaturesComment) {
 			// Find features comment and insert after
 			for (let i = 0; i < outputBlocks.length; i++) {
+				const blk = outputBlocks[i]!;
 				if (
-					outputBlocks[i].toLowerCase().includes("feature") &&
-					(outputBlocks[i].trim().startsWith("//") ||
-						outputBlocks[i].trim().startsWith("/*"))
+					blk.toLowerCase().includes("feature") &&
+					(blk.trim().startsWith("//") || blk.trim().startsWith("/*"))
 				) {
 					outputBlocks.splice(i + 1, 0, newFeatureCode);
 					lastFeatureBlockIndex = i + 1;
@@ -258,7 +258,7 @@ export async function updateConfigInPlace(
 			// Insert after imports
 			let insertIdx = 0;
 			for (let i = 0; i < outputBlocks.length; i++) {
-				if (outputBlocks[i].trim().startsWith("import ")) {
+				if (outputBlocks[i]!.trim().startsWith("import ")) {
 					insertIdx = i + 1;
 				}
 			}
@@ -284,10 +284,10 @@ export async function updateConfigInPlace(
 		} else if (sawPlansComment) {
 			// Find plans comment and insert after
 			for (let i = 0; i < outputBlocks.length; i++) {
+				const blk = outputBlocks[i]!;
 				if (
-					outputBlocks[i].toLowerCase().includes("plan") &&
-					(outputBlocks[i].trim().startsWith("//") ||
-						outputBlocks[i].trim().startsWith("/*"))
+					blk.toLowerCase().includes("plan") &&
+					(blk.trim().startsWith("//") || blk.trim().startsWith("/*"))
 				) {
 					outputBlocks.splice(i + 1, 0, newPlanCode);
 					break;
@@ -313,7 +313,7 @@ export async function updateConfigInPlace(
 	const outputLines: string[] = [];
 
 	for (let i = 0; i < filteredBlocks.length; i++) {
-		const block = filteredBlocks[i];
+		const block = filteredBlocks[i]!;
 		const nextBlock = filteredBlocks[i + 1];
 
 		outputLines.push(block);

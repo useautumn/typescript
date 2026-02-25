@@ -61,7 +61,7 @@ describe("Transformer", () => {
 
 			expect(result.type).toBe("credit_system");
 			expect(result.consumable).toBe(true);
-			expect(result.credit_schema).toHaveLength(1);
+			expect(result.creditSchema).toHaveLength(1);
 		});
 	});
 
@@ -77,7 +77,7 @@ describe("Transformer", () => {
 
 			const result = transformApiPlan(apiPlan);
 
-			expect(result.auto_enable).toBe(true);
+			expect(result.autoEnable).toBe(true);
 			expect(result.id).toBe("pro");
 		});
 

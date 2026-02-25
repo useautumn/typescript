@@ -1,5 +1,5 @@
 import { Text } from "ink";
-import type { PushPrompt } from "../../../../lib/push/prompts.js";
+import type { PushPrompt } from "../../../../commands/push/prompts.js";
 import { PromptCard } from "../../components/index.js";
 
 interface PushPromptCardProps {

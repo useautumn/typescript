@@ -229,12 +229,12 @@ export function HandoffStep({
 					<Text>Enter the custom path (relative to project root):</Text>
 					<Box marginTop={1}>
 						<Text color="gray">{">"} </Text>
-						<TextInput
-							placeholder={process.cwd()}
-							value={customPath}
-							onChange={setCustomPath}
-							onSubmit={handleCustomPathSubmit}
-						/>
+					<TextInput
+						placeholder={process.cwd()}
+						defaultValue={customPath}
+						onChange={setCustomPath}
+						onSubmit={handleCustomPathSubmit}
+					/>
 					</Box>
 				</Box>
 			</Box>

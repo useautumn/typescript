@@ -45,7 +45,7 @@ function extractId(lines: string[]): string | null {
 	const joined = lines.join("\n");
 	// Match id: 'value' or id: "value"
 	const match = joined.match(/id:\s*['"]([^'"]+)['"]/);
-	return match ? match[1] : null;
+	return match ? (match[1] ?? null) : null;
 }
 
 /**
@@ -54,7 +54,7 @@ function extractId(lines: string[]): string | null {
  */
 function extractVarName(line: string): string | null {
 	const match = line.match(/export\s+const\s+(\w+)\s*=/);
-	return match ? match[1] : null;
+	return match ? (match[1] ?? null) : null;
 }
 
 /**
@@ -97,7 +97,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 	let i = 0;
 
 	while (i < lines.length) {
-		const line = lines[i];
+		const line = lines[i]!;
 		const trimmed = line.trim();
 
 		// Skip empty lines - they'll be regenerated as needed
@@ -109,8 +109,8 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 		// Import statement
 		if (trimmed.startsWith("import ")) {
 			const startLine = i;
-			// Import can span multiple lines until semicolon
-			while (i < lines.length && !lines[i].includes(";")) {
+		// Import can span multiple lines until semicolon
+		while (i < lines.length && !lines[i]!.includes(";")) {
 				i++;
 			}
 			const endLine = i;
@@ -139,7 +139,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 		// Multi-line comment
 		if (trimmed.startsWith("/*")) {
 			const startLine = i;
-			while (i < lines.length && !lines[i].includes("*/")) {
+			while (i < lines.length && !lines[i]!.includes("*/")) {
 				i++;
 			}
 			const endLine = i;
@@ -164,7 +164,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 			let foundStart = false;
 
 			while (i < lines.length) {
-				const currentLine = lines[i];
+				const currentLine = lines[i]!;
 
 				for (const char of currentLine) {
 					if (char === "(" || char === "{" || char === "[") {
@@ -176,7 +176,7 @@ export function parseExistingConfig(configPath: string): ParsedConfig {
 				}
 
 				// End when we close all braces and see semicolon
-				if (foundStart && depth === 0 && currentLine.includes(";")) {
+			if (foundStart && depth === 0 && currentLine.includes(";")) {
 					break;
 				}
 				i++;

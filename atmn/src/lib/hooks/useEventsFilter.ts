@@ -98,7 +98,7 @@ export function useEventsFilter(featuresCount: number) {
 		const fields: FilterField[] = ["customer", "timeRange", "groupBy", "features"];
 		const currentIdx = fields.indexOf(activeField);
 		const nextIdx = (currentIdx + 1) % fields.length;
-		setActiveField(fields[nextIdx]);
+		setActiveField(fields[nextIdx]!);
 		setActiveIndex(0);
 	}, [activeField, isEditingCustomer, isEditingGroupBy]);
 
@@ -113,7 +113,7 @@ export function useEventsFilter(featuresCount: number) {
 		const fields: FilterField[] = ["customer", "timeRange", "groupBy", "features"];
 		const currentIdx = fields.indexOf(activeField);
 		const prevIdx = (currentIdx - 1 + fields.length) % fields.length;
-		setActiveField(fields[prevIdx]);
+		setActiveField(fields[prevIdx]!);
 		setActiveIndex(0);
 	}, [activeField, isEditingCustomer, isEditingGroupBy]);
 
@@ -156,12 +156,12 @@ export function useEventsFilter(featuresCount: number) {
 				return;
 			}
 
-			if (activeField === "timeRange") {
-				const presets: TimeRangePreset[] = ["24h", "7d", "30d", "90d", "all"];
-				setDraftFilters((prev) => ({
-					...prev,
-					timeRange: presets[activeIndex],
-				}));
+		if (activeField === "timeRange") {
+			const presets: TimeRangePreset[] = ["24h", "7d", "30d", "90d", "all"];
+			setDraftFilters((prev) => ({
+				...prev,
+				timeRange: presets[activeIndex] ?? "24h",
+			}));
 				return;
 			}
 

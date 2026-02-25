@@ -106,6 +106,7 @@ export function Card({ title, children }: CardProps) {
 			cardWidth.registerWidth(id, contentWidth);
 			return () => cardWidth.unregisterWidth(id);
 		}
+		return undefined;
 	}, [id, contentWidth, cardWidth]);
 
 	// Use shared width from context, or fallback to default

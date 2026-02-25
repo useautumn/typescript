@@ -100,7 +100,7 @@ function transformPlanItem(planItem: PlanItem): ApiPlanItemParams {
 		};
 
 		result.price = {
-			interval,
+			interval: interval!,
 			billing_units: priceWithBilling.billingUnits ?? 1,
 			billing_method: priceWithBilling.billingMethod ?? "prepaid",
 			...(planItem.price.amount !== undefined && {

@@ -166,7 +166,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 		const items = this.getCurrentPageItems();
 		if (index >= 0 && index < items.length) {
 			this.selectedIndex = index;
-			return items[index];
+			return items[index] ?? null;
 		}
 		return null;
 	}
@@ -176,7 +176,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 		const index = items.findIndex((p) => p.id === id);
 		if (index !== -1) {
 			this.selectedIndex = index;
-			return items[index];
+			return items[index] ?? null;
 		}
 		return null;
 	}
@@ -184,7 +184,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 	selectPrev(): ApiPlan | null {
 		if (this.selectedIndex > 0) {
 			this.selectedIndex--;
-			return this.getCurrentPageItems()[this.selectedIndex];
+			return this.getCurrentPageItems()[this.selectedIndex] ?? null;
 		}
 		return null;
 	}
@@ -193,7 +193,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 		const items = this.getCurrentPageItems();
 		if (this.selectedIndex < items.length - 1) {
 			this.selectedIndex++;
-			return items[this.selectedIndex];
+			return items[this.selectedIndex] ?? null;
 		}
 		return null;
 	}
@@ -296,7 +296,7 @@ export class PlansController implements ListController<ApiPlan, ApiPlan> {
 		} else {
 			lines.push("Plans:");
 			for (let i = 0; i < items.length; i++) {
-				const p = items[i];
+				const p = items[i]!;
 				const marker = i === this.selectedIndex ? "▸" : " ";
 				const name = p.name ?? "(no name)";
 				const archived = p.archived ? " [archived]" : "";
