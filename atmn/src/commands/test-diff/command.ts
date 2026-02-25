@@ -50,7 +50,7 @@ function normalizeFeatureForCompare(f: Feature): Rec {
 
 function normalizePlanFeatureForCompare(pf: Rec): Rec {
 	const result: Rec = { featureId: pf.featureId };
-	if (pf.included != null) result.included = pf.included;
+	if (pf.included != null && pf.included !== 0) result.included = pf.included;
 	if (pf.unlimited === true) result.unlimited = true;
 	const reset = pf.reset as Rec | undefined;
 	if (reset != null) {

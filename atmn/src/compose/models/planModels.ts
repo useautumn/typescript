@@ -218,7 +218,7 @@ type PlanItemBaseFields = {
   /** The entity feature ID of the product item if applicable */
   entityFeatureId?: string | null;
   /** Amount of usage included in this plan */
-  included: number;
+  included?: number;
   /** Whether usage is unlimited */
   unlimited?: boolean;
   /** Proration rules for quantity changes */

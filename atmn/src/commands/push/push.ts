@@ -363,7 +363,7 @@ function normalizePlanFeatureForCompare(
 		featureId: pf.featureId,
 	};
 
-	if (f.included != null) result.included = f.included;
+	if (f.included != null && f.included !== 0) result.included = f.included;
 	if (f.unlimited === true) result.unlimited = true;
 
 	const reset = f.reset as Record<string, unknown> | undefined;
