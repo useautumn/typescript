@@ -23,7 +23,7 @@ import {
 	transformApiFeature,
 	transformApiPlan,
 } from "../../lib/transforms/apiToSdk/index.js";
-import { transformPlanToApi } from "../../lib/transforms/sdkToApi/index.js";
+import { transformFeatureToApi, transformPlanToApi } from "../../lib/transforms/sdkToApi/index.js";
 import type {
 	FeatureDeleteInfo,
 	PlanDeleteInfo,
@@ -80,7 +80,7 @@ export async function checkFeatureDeleteInfo(
 	const referencingCreditSystems = localFeatures.filter(
 		(f) =>
 			f.type === "credit_system" &&
-			f.credit_schema?.some((cs) => cs.metered_feature_id === featureId),
+			f.creditSchema?.some((cs) => cs.meteredFeatureId === featureId),
 	);
 
 	if (referencingCreditSystems.length >= 1) {
@@ -441,9 +441,9 @@ function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
 
 	if (plan.freeTrial != null) {
 		result.freeTrial = {
-			duration_type: plan.freeTrial.duration_type,
-			duration_length: plan.freeTrial.duration_length,
-			card_required: plan.freeTrial.card_required,
+			durationLength: plan.freeTrial.durationLength,
+			durationType: plan.freeTrial.durationType,
+			cardRequired: plan.freeTrial.cardRequired,
 		};
 	}
 
@@ -707,10 +707,12 @@ export async function pushFeature(
 ): Promise<{ action: "created" | "updated" }> {
 	const secretKey = getSecretKey();
 
+	const apiFeature = transformFeatureToApi(feature) as Record<string, unknown>;
+
 	try {
 		await upsertFeature({
 			secretKey,
-			feature: feature as Record<string, unknown>,
+			feature: apiFeature,
 		});
 		return { action: "created" };
 	} catch (error: unknown) {
@@ -724,7 +726,7 @@ export async function pushFeature(
 			await updateFeature({
 				secretKey,
 				featureId: feature.id,
-				feature: feature as Record<string, unknown>,
+				feature: apiFeature,
 			});
 			return { action: "updated" };
 		}

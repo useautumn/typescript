@@ -13,7 +13,6 @@ export const planTransformer = createTransformer<ApiPlan, Plan>({
 	rename: {
 		add_on: "addOn",
 		auto_enable: "autoEnable",
-		free_trial: "freeTrial",
 	},
 
 	// Swap null to undefined for these fields (API → SDK direction)
@@ -38,6 +37,16 @@ export const planTransformer = createTransformer<ApiPlan, Plan>({
 		items: (api) =>
 			api.items && api.items.length > 0
 				? api.items.map(transformApiPlanItem)
+				: undefined,
+
+		// Map snake_case inner fields to camelCase
+		freeTrial: (api) =>
+			api.free_trial
+				? {
+						durationLength: api.free_trial.duration_length,
+						durationType: api.free_trial.duration_type,
+						cardRequired: api.free_trial.card_required,
+					}
 				: undefined,
 	},
 });

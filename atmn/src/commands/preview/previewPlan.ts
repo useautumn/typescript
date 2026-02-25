@@ -287,10 +287,10 @@ export const getPlanPreview = ({
 	let freeTrial: string | undefined;
 
 	if (plan.freeTrial) {
-		const { duration_length, duration_type } = plan.freeTrial;
+		const { durationLength, durationType } = plan.freeTrial;
 		const durationUnit =
-			duration_length === 1 ? duration_type : `${duration_type}s`;
-		freeTrial = `${duration_length} ${durationUnit} free trial`;
+			durationLength === 1 ? durationType : `${durationType}s`;
+		freeTrial = `${durationLength} ${durationUnit} free trial`;
 	}
 
 	// 3. Map plan.items to PlanFeatureDisplay[]

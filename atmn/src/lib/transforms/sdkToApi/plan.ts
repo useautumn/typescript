@@ -178,9 +178,9 @@ export function transformPlanToApi(plan: Plan): ApiPlanParams {
 
 	if (plan.freeTrial) {
 		result.free_trial = {
-			duration_type: plan.freeTrial.duration_type,
-			duration_length: plan.freeTrial.duration_length,
-			card_required: plan.freeTrial.card_required,
+			duration_type: plan.freeTrial.durationType,
+			duration_length: plan.freeTrial.durationLength,
+			card_required: plan.freeTrial.cardRequired,
 		};
 	}
 

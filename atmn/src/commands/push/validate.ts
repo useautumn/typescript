@@ -216,7 +216,7 @@ function validatePlan(plan: Plan, features: Feature[]): ValidationError[] {
 
 	// If autoEnable is true and freeTrial.card_required is true, that's invalid
 	// Customers shouldn't be auto-enrolled in a trial that requires card input
-	if (plan.autoEnable === true && plan.freeTrial?.card_required === true) {
+	if (plan.autoEnable === true && plan.freeTrial?.cardRequired === true) {
 		errors.push({
 			path: `plan "${planId}"`,
 			message: `"auto_enable" cannot be true when "free_trial.card_required" is true. Customers cannot be auto-enrolled in a trial that requires card input.`,

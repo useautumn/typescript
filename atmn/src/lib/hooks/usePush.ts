@@ -381,7 +381,7 @@ export function usePush(options?: UsePushOptions) {
 				}
 			}
 
-			// Push all features
+			// Push all features — credit_system features must come after their metered dependencies
 			const allFeatures = [
 				...config.features.filter(
 					(f) => !analysis?.archivedFeatures.some((af) => af.id === f.id),
@@ -389,7 +389,11 @@ export function usePush(options?: UsePushOptions) {
 				...config.features.filter((f) =>
 					analysis?.archivedFeatures.some((af) => af.id === f.id),
 				),
-			];
+			].sort((a, b) => {
+				if (a.type === "credit_system" && b.type !== "credit_system") return 1;
+				if (a.type !== "credit_system" && b.type === "credit_system") return -1;
+				return 0;
+			});
 
 			for (const feature of allFeatures) {
 				// Check if this archived feature was skipped

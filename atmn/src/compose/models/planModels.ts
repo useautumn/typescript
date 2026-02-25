@@ -125,16 +125,16 @@ export const PlanItemSchema = z.object({
 });
 
 export const FreeTrialSchema = z.object({
-  duration_length: z.number().meta({
-    description: "Number of duration_type periods the trial lasts.",
+  durationLength: z.number().meta({
+    description: "Number of durationType periods the trial lasts.",
     }),
-  duration_type: z
+  durationType: z
     .union([z.literal("day"), z.literal("month"), z.literal("year")])
     .default("month")
     .meta({
     description: "Unit of time for the trial ('day', 'month', 'year').",
     }),
-  card_required: z.boolean().default(true).meta({
+  cardRequired: z.boolean().default(true).meta({
     description:
     "If true, payment method required to start trial. Customer is charged after trial ends.",
     })

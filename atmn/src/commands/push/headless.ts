@@ -319,8 +319,12 @@ async function executePushWithDefaults(
 		}
 	}
 
-	// Push features
-	const allFeatures = config.features;
+	// Push features — credit_system features must come after their metered dependencies
+	const allFeatures = [...config.features].sort((a, b) => {
+		if (a.type === "credit_system" && b.type !== "credit_system") return 1;
+		if (a.type !== "credit_system" && b.type === "credit_system") return -1;
+		return 0;
+	});
 	for (const feature of allFeatures) {
 		const isArchived = analysis.archivedFeatures.some(
 			(af) => af.id === feature.id,
@@ -513,8 +517,13 @@ async function executeCleanPush(
 	const remoteData = await fetchRemoteData();
 	const remotePlans = remoteData.plans;
 
-	// Push all features
-	for (const feature of config.features) {
+	// Push all features — credit_system features must come after their metered dependencies
+	const sortedFeatures = [...config.features].sort((a, b) => {
+		if (a.type === "credit_system" && b.type !== "credit_system") return 1;
+		if (a.type !== "credit_system" && b.type === "credit_system") return -1;
+		return 0;
+	});
+	for (const feature of sortedFeatures) {
 		const pushResult = await pushFeature(feature);
 		if (pushResult.action === "created") {
 			result.featuresCreated.push(feature.id);
