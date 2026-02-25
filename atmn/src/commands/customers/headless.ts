@@ -217,12 +217,12 @@ function outputSingleCustomer(
 			const featureName = balance.feature?.name ?? balance.feature_id;
 			if (balance.unlimited) {
 				console.log(`  - ${featureName}: Unlimited`);
-			} else if (balance.balance !== undefined) {
-				const used = balance.used ?? 0;
-				const total = balance.balance;
+			} else if (balance.feature?.type !== "boolean") {
+				const used = balance.usage;
+				const total = balance.current_balance;
 				console.log(`  - ${featureName}: ${used}/${total} used`);
 			} else {
-				console.log(`  - ${featureName}: ${balance.enabled ? "ON" : "OFF"}`);
+				console.log(`  - ${featureName}: ON`);
 			}
 		}
 	}

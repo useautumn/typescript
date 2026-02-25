@@ -214,9 +214,9 @@ function validatePlan(plan: Plan, features: Feature[]): ValidationError[] {
 		}
 	}
 
-	// If auto_enable is true and free_trial.card_required is true, that's invalid
+	// If autoEnable is true and freeTrial.card_required is true, that's invalid
 	// Customers shouldn't be auto-enrolled in a trial that requires card input
-	if (plan.auto_enable === true && plan.free_trial?.card_required === true) {
+	if (plan.autoEnable === true && plan.freeTrial?.card_required === true) {
 		errors.push({
 			path: `plan "${planId}"`,
 			message: `"auto_enable" cannot be true when "free_trial.card_required" is true. Customers cannot be auto-enrolled in a trial that requires card input.`,
@@ -285,12 +285,12 @@ function validateFeature(feature: Feature): ValidationError[] {
 		}
 	}
 
-	// If type is credit_system, credit_schema is required
+	// If type is credit_system, creditSchema is required
 	if (feature.type === "credit_system") {
-		if (!feature.credit_schema || feature.credit_schema.length === 0) {
+		if (!feature.creditSchema || feature.creditSchema.length === 0) {
 			errors.push({
 				path: `feature "${featureId}"`,
-				message: `"credit_schema" is required for credit_system features.`,
+				message: `"creditSchema" is required for credit_system features.`,
 			});
 		}
 	}

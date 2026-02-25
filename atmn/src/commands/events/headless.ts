@@ -526,8 +526,8 @@ function renderSimpleChart(
 
 	// Time labels
 	if (displayBuckets.length > 0) {
-		const firstLabel = formatBucketLabel(displayBuckets[0].period, binSize);
-		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1].period, binSize);
+		const firstLabel = formatBucketLabel(displayBuckets[0]!.period, binSize);
+		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1]!.period, binSize);
 		const padding = chartWidth - firstLabel.length - lastLabel.length;
 		console.log(`        ${firstLabel}${" ".repeat(Math.max(0, padding))}${lastLabel}`);
 	}
@@ -596,9 +596,10 @@ function renderStackedChart(
 				let cumulative = 0;
 				let foundGroup = false;
 				
-				for (let i = 0; i < groupKeys.length; i++) {
-					const groupKey = groupKeys[i];
-					const groupVal = bucket.groupValues[groupKey] ?? 0;
+			for (let i = 0; i < groupKeys.length; i++) {
+				const groupKey = groupKeys[i];
+				if (!groupKey) continue;
+				const groupVal = bucket.groupValues[groupKey] ?? 0;
 					const prevCumulative = cumulative;
 					cumulative += groupVal;
 					
@@ -624,8 +625,8 @@ function renderStackedChart(
 
 	// Time labels
 	if (displayBuckets.length > 0) {
-		const firstLabel = formatBucketLabel(displayBuckets[0].period, binSize);
-		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1].period, binSize);
+		const firstLabel = formatBucketLabel(displayBuckets[0]!.period, binSize);
+		const lastLabel = formatBucketLabel(displayBuckets[displayBuckets.length - 1]!.period, binSize);
 		const padding = chartWidth - firstLabel.length - lastLabel.length;
 		console.log(`        ${firstLabel}${" ".repeat(Math.max(0, padding))}${lastLabel}`);
 	}

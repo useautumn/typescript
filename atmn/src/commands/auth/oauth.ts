@@ -31,6 +31,7 @@ export interface OAuthResult {
 
 export interface StartOAuthOptions {
 	headless?: boolean;
+	onUrl?: (url: string) => void;
 }
 
 type CallbackResult = { html: string; result?: OAuthResult; error?: Error };
@@ -174,6 +175,7 @@ export async function startOAuthFlow(
 				}
 			},
 			() => {
+				options?.onUrl?.(authUrl.toString());
 				if (options?.headless) {
 					console.log(
 						`\nVisit this URL to authenticate:\n\n  ${authUrl.toString()}\n`,

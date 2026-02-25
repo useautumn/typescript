@@ -364,6 +364,7 @@ export const formatPlanPreviewAsText = ({
 
 	for (let i = 0; i < featureCount; i++) {
 		const feature = preview.features[i];
+		if (!feature) continue;
 		const isLastFeature = i === featureCount - 1;
 		const featurePrefix = isLastFeature ? "\u2514\u2500" : "\u251C\u2500"; // "└─" or "├─"
 
@@ -381,7 +382,7 @@ export const formatPlanPreviewAsText = ({
 			const baseIndent = isLastFeature ? "   " : "\u2502  "; // "│  " or "   "
 
 			for (let j = 0; j < tierCount; j++) {
-				const tierDetail = feature.tier_details[j];
+				const tierDetail = feature.tier_details[j]!
 				const isLastTier = j === tierCount - 1;
 				const tierPrefix = isLastTier ? "\u2514\u2500" : "\u251C\u2500"; // "└─" or "├─"
 

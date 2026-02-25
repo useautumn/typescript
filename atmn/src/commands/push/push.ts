@@ -449,7 +449,7 @@ function normalizePlanForCompare(plan: Plan): Record<string, unknown> {
 
 	if (plan.items != null && plan.items.length > 0) {
 		result.items = [...plan.items]
-			.sort((a, b) => a.feature_id.localeCompare(b.feature_id))
+			.sort((a, b) => a.featureId.localeCompare(b.featureId))
 			.map(normalizePlanFeatureForCompare);
 	}
 

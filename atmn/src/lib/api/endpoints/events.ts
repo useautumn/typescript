@@ -111,23 +111,23 @@ export async function fetchEvents(
 	const body: Record<string, unknown> = {};
 
 	if (customerId !== undefined) {
-		body.customer_id = customerId;
+		body['customer_id'] = customerId;
 	}
 
 	if (featureId !== undefined) {
-		body.feature_id = featureId;
+		body['feature_id'] = featureId;
 	}
 
 	if (customRange !== undefined) {
-		body.custom_range = customRange;
+		body['custom_range'] = customRange;
 	}
 
 	if (offset !== undefined) {
-		body.offset = offset;
+		body['offset'] = offset;
 	}
 
 	if (limit !== undefined) {
-		body.limit = limit;
+		body['limit'] = limit;
 	}
 
 	return request<ApiEventsListResponse>({
@@ -162,19 +162,19 @@ export async function fetchEventsAggregate(
 	};
 
 	if (range !== undefined) {
-		body.range = range;
+		body['range'] = range;
 	}
 
 	if (binSize !== undefined) {
-		body.bin_size = binSize;
+		body['bin_size'] = binSize;
 	}
 
 	if (groupBy !== undefined && groupBy !== "") {
-		body.group_by = groupBy;
+		body['group_by'] = groupBy;
 	}
 
 	if (customRange !== undefined) {
-		body.custom_range = customRange;
+		body['custom_range'] = customRange;
 	}
 
 	return request<ApiEventsAggregateResponse>({

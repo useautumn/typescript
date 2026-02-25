@@ -82,7 +82,7 @@ export default async function Nuke(options?: { skipAllPrompts?: boolean }) {
 		process.exit(1);
 	}
 
-	const isSandbox = isSandboxKey(apiKey);
+	const isSandbox = await isSandboxKey(apiKey);
 
 	if (isSandbox) {
 		const secretKey = getKey(AppEnv.Sandbox);
