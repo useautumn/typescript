@@ -54,7 +54,7 @@ export const PlanItemSchema = z.object({
     description:
     "Tiered pricing. Each tier's 'to' does NOT include included amount. Either 'amount' or 'tiers' is required.",
     }),
-    tier_behaviour: z.union([z.literal("graduated"), z.literal("volume")]).optional(),
+    tier_behavior: z.union([z.literal("graduated"), z.literal("volume")]).optional(),
     
     interval: z.union([z.literal("week"), z.literal("month"), z.literal("quarter"), z.literal("semi_annual"), z.literal("year")]).meta({
     description:
@@ -245,15 +245,29 @@ type PriceWithAmount = PriceBaseFields & {
   tiers?: never;
 };
 
-// Price with tiered pricing (no flat amount)
-type PriceWithTiers = PriceBaseFields & {
+// Price with graduated tiered pricing (no flat amount per tier)
+type PriceWithGraduatedTiers = PriceBaseFields & {
   /** Cannot have flat amount when using tiers */
   amount?: never;
-  /** Tiered pricing structure based on usage ranges */
+  /** Graduated tiered pricing: each tier's amount applies only to units within that tier */
   tiers: Array<{ to: number | "inf"; amount: number }>;
-  /** Required when tiers is defined: how tiers are applied */
-  tierBehaviour: "graduated" | "volume";
+  /** Graduated: each tier's rate applies only to usage within that tier */
+  tierBehavior: "graduated";
 };
+
+// Price with volume tiered pricing (flat amount per tier)
+type PriceWithVolumeTiers = Omit<PriceBaseFields, "billingMethod"> & {
+  /** Volume pricing does not support usage_based billing — use 'prepaid' */
+  billingMethod: Exclude<BillingMethod, "usage_based">;
+  /** Cannot have flat amount when using tiers */
+  amount?: never;
+  /** Volume tiered pricing: the tier the total usage falls into applies to all units */
+  tiers: Array<{ to: number | "inf"; amount: number; flatAmount?: number }>;
+  /** Volume: the rate of the tier the total usage falls into applies to all units */
+  tierBehavior: "volume";
+};
+
+type PriceWithTiers = PriceWithGraduatedTiers | PriceWithVolumeTiers;
 
 // Price must have either amount OR tiers (not both, not neither)
 type PriceAmountOrTiers = PriceWithAmount | PriceWithTiers;

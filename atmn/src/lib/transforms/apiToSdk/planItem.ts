@@ -55,11 +55,18 @@ export const planItemTransformer = createTransformer<
 
 			return {
 				amount: api.price.amount,
-				tiers: api.price.tiers,
+				tiers: api.price.tiers?.map((tier) => {
+					const t = tier as { to: number | "inf"; amount: number; flat_amount?: number };
+					return {
+						to: t.to,
+						amount: t.amount,
+						...(t.flat_amount !== undefined && { flatAmount: t.flat_amount }),
+					};
+				}),
 				billingUnits: api.price.billing_units,
 				maxPurchase: api.price.max_purchase ?? undefined,
 				billingMethod: api.price.billing_method,
-				tierBehaviour: api.price.tier_behaviour,
+				tierBehavior: api.price.tier_behavior,
 				// Map API price.interval directly to SDK price.interval
 				interval: api.price.interval,
 				...(api.price.interval_count !== undefined && {
