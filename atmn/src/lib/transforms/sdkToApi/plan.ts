@@ -32,13 +32,13 @@ export interface ApiPlanItemParams {
 	};
 	price?: {
 		amount?: number;
-		tiers?: Array<{ to: number | "inf"; amount: number }>;
+		tiers?: Array<{ to: number | "inf"; amount: number; flat_amount?: number }>;
 		interval: string;
 		interval_count?: number;
 		billing_units?: number;
 		billing_method: string;
 		max_purchase?: number;
-		tier_behaviour?: string;
+		tier_behavior?: string;
 	};
 	proration?: {
 		on_increase: string;
@@ -96,7 +96,7 @@ function transformPlanItem(planItem: PlanItem): ApiPlanItemParams {
 			billingUnits?: number;
 			billingMethod?: string;
 			maxPurchase?: number;
-			tierBehaviour?: string;
+			tierBehavior?: string;
 		};
 
 		result.price = {
@@ -106,15 +106,24 @@ function transformPlanItem(planItem: PlanItem): ApiPlanItemParams {
 			...(planItem.price.amount !== undefined && {
 				amount: planItem.price.amount,
 			}),
-			...(planItem.price.tiers && { tiers: planItem.price.tiers }),
+			...(planItem.price.tiers && {
+				tiers: planItem.price.tiers.map((tier) => {
+					const t = tier as { to: number | "inf"; amount: number; flatAmount?: number };
+					return {
+						to: t.to,
+						amount: t.amount,
+						...(t.flatAmount !== undefined && { flat_amount: t.flatAmount }),
+					};
+				}),
+			}),
 			...(intervalCount !== undefined && {
 				interval_count: intervalCount,
 			}),
 			...(priceWithBilling.maxPurchase !== undefined && {
 				max_purchase: priceWithBilling.maxPurchase,
 			}),
-			...(priceWithBilling.tierBehaviour !== undefined && {
-				tier_behaviour: priceWithBilling.tierBehaviour,
+			...(priceWithBilling.tierBehavior !== undefined && {
+				tier_behavior: priceWithBilling.tierBehavior,
 			}),
 		};
 	}
