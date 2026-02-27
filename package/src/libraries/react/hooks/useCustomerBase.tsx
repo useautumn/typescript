@@ -130,6 +130,8 @@ export interface UseCustomerParams<
 	errorOnNotFound?: boolean;
 	expand?: T;
 	swrConfig?: SWRConfiguration;
+	/** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+	extraQueryKeys?: (string | null | undefined)[];
 }
 
 export const useCustomerBase = <
@@ -158,7 +160,7 @@ export const useCustomerBase = <
 	}
 
 	const baseUrl = client?.backendUrl || "";
-	const queryKey = ["customer", baseUrl, params?.expand];
+	const queryKey = ["customer", baseUrl, params?.expand, ...(params?.extraQueryKeys ?? [])];
 
 	const fetchCustomer = async () => {
 		const { data, error } = await client!.createCustomer<T>({
