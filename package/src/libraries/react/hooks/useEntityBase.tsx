@@ -15,10 +15,13 @@ import { AutumnError, CheckResult, Entity } from "@sdk";
 export const useEntityBase = ({
   entityId,
   params,
+  extraQueryKeys,
   AutumnContext,
 }: {
   entityId: string | null;
   params?: GetEntityParams;
+  /** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+  extraQueryKeys?: (string | null | undefined)[];
   AutumnContext: React.Context<AutumnContextParams>;
 }): {
   entity: Entity | null;
@@ -31,7 +34,7 @@ export const useEntityBase = ({
   track: (params: TrackParams) => void;
 } => {
   const { client } = useContext(AutumnContext);
-  const queryKey = ["entity", entityId, params?.expand];
+  const queryKey = ["entity", entityId, params?.expand, ...(extraQueryKeys ?? [])];
 
   const context = useAutumnContext({
     AutumnContext,
