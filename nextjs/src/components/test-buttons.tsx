@@ -164,8 +164,9 @@ export default function TestButtons() {
 				<Button
 					onClick={async () => {
 						const res = await cancel({
-							productId: "pro",
+							productId: "ultra",
 							cancelImmediately: true,
+							prorate: false,
 						});
 						alert(JSON.stringify(res));
 					}}
@@ -254,7 +255,7 @@ export default function TestButtons() {
 						const res = await redeemReferralCode({
 							code: "XCA1I1",
 						});
-							alert(JSON.stringify(res));
+						alert(JSON.stringify(res));
 					}}
 				>
 					Redeem Referral Code

@@ -16,6 +16,8 @@ export default function Home() {
 
 	const { customer } = useCustomer({ expand: ["invoices"] });
 
+	console.log("Customer: ", customer);
+
 	const { list, total, isLoading } = useAggregateEvents({
 		featureId: "revenue",
 		range: "24h",

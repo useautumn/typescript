@@ -24,7 +24,7 @@ export function CustomerDataViewer({ customer }: { customer: Customer }) {
           {customer.stripe_id ?? "None"}
         </p>
 
-        {customer.products.length > 0 && (
+        {customer.products && customer.products.length > 0 && (
           <div className="mt-3">
             <p className="font-medium">Products:</p>
             <div className="ml-4 space-y-2">
@@ -50,7 +50,7 @@ export function CustomerDataViewer({ customer }: { customer: Customer }) {
                       {new Date(product.started_at).toLocaleDateString()}
                     </p>
                   )}
-                  {product.items.length > 0 && (
+                  {product.items && product.items.length > 0 && (
                     <div className="mt-2">
                       <p className="font-medium text-sm">Items:</p>
                       <div className="ml-2 space-y-1">

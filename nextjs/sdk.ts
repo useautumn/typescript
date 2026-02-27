@@ -1,25 +1,41 @@
 /** biome-ignore-all lint/correctness/useHookAtTopLevel: <expanation> */
 import "dotenv/config";
 import { Autumn } from "autumn-js";
-import { useCustomer } from "autumn-js/react";
 
 const main = async () => {
 	const autumn = new Autumn({
 		secretKey: process.env.AUTUMN_SECRET_KEY,
 	});
 
-	const { customer } = useCustomer({
-		expand: ["entities", "invoices", "rewards", "trials_used", "payment_method"],
+	// Example: v2.billing.attach
+	const attachRes = await autumn.v2.billing.previewMultiAttach({
+		customer_id: "john",
+		plans: [
+			{
+				plan_id: "ultra",
+			},
+			{
+				plan_id: "volume_based_product",
+				feature_quantities: [
+					{
+						feature_id: "chat_messages",
+						quantity: 200,
+					},
+				],
+			},
+		],
 	});
 
-	if (customer) {
-		console.log(customer.entities)
-		console.log(customer.invoices)
-		console.log(customer.referrals)
-		console.log(customer.rewards)
-		console.log(customer.trials_used)
-		console.log(customer.payment_method)
-	}
+	console.log(attachRes);
+
+	// // Example: v2.billing.update
+	// const updateRes = await autumn.v2.billing.update({
+	// 	customer_id: "cus_123",
+	// 	plan_id: "pro_plan",
+	// 	cancel_action: "cancel_end_of_cycle",
+	// });
+
+	// console.log(updateRes);
 };
 
 main();

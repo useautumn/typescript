@@ -5,6 +5,7 @@ export const CancelParamsSchema = z.object({
 	productId: z.string(),
 	entityId: z.string().optional(),
 	cancelImmediately: z.boolean().optional(),
+	prorate: z.boolean().optional(),
 });
 
 export type CancelParams = z.infer<typeof CancelParamsSchema>;
