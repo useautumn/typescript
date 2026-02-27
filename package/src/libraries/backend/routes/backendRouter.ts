@@ -44,17 +44,11 @@ const createCustomerHandler = (options?: RouterOptions) =>
 			customer_data?: CustomerData;
 			body: CreateCustomerParams;
 		}) => {
-			console.log("Body: ", JSON.stringify(body, null, 2));
 			const res = await autumn.customers.create({
 				id: customer_id,
 				...customer_data,
 				...sanitizeCustomerBody(body),
 			});
-
-			console.log(
-				"Fetched customer products: ",
-				JSON.stringify(res?.data?.products, null, 2),
-			);
 			return res;
 		},
 		suppressLogs: options?.suppressLogs,

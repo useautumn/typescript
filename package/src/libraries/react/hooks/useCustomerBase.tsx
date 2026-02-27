@@ -166,11 +166,6 @@ export const useCustomerBase = <
 			expand: params?.expand,
 		});
 
-		console.log(
-			"Fetched customer products: ",
-			JSON.stringify(data?.products, null, 2),
-		);
-
 		if (error) {
 			throw error;
 		}
