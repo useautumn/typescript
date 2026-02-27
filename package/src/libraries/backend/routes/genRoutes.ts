@@ -56,8 +56,6 @@ const attachHandler = (options?: RouterOptions) => withAuth({
 		customer_data?: CustomerData;
 		body: AttachParams;
 	}) => {
-		console.log("Body: ", body);
-		console.log("Customer ID: ", customer_id);
 		return await autumn.attach({
 			...sanitizeBody(body),
 			customer_id,
