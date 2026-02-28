@@ -1,14 +1,16 @@
 import { AutumnContext, useAutumnContext } from "@/AutumnContext";
-import { AutumnClient } from "@/client/ReactAutumnClient";
 import { CheckFeaturePreview } from "@sdk";
 import useSWR from "swr";
 
 export const usePaywall = ({
   featureId,
   entityId,
+  extraQueryKeys,
 }: {
   featureId?: string;
   entityId?: string;
+  /** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+  extraQueryKeys?: (string | null | undefined)[];
 }) => {
   const context = useAutumnContext({
     AutumnContext,
@@ -30,7 +32,7 @@ export const usePaywall = ({
     return data;
   };
 
-  const queryKey = [`check`, featureId, entityId];
+  const queryKey = [`check`, featureId, entityId, ...(extraQueryKeys ?? [])];
 
   const { data, error, isLoading } = useSWR(queryKey, fetcher, {
     refreshInterval: 0,

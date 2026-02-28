@@ -1,10 +1,10 @@
-import { usePricingTableBase } from "../../../libraries/react/hooks/usePricingTableBase";
+import {
+  type UsePricingTableParams,
+  usePricingTableBase,
+} from "../../../libraries/react/hooks/usePricingTableBase";
 import { AutumnContext, useAutumnContext } from "../../../libraries/react/AutumnContext";
-import { ProductDetails } from "../../../libraries/react/client/types/clientPricingTableTypes";
 
-export const usePricingTable = (params?: {
-  productDetails?: ProductDetails[];
-}) => {
+export const usePricingTable = (params?: UsePricingTableParams) => {
   const context = useAutumnContext({
     AutumnContext,
     name: "usePricingTable",
@@ -12,4 +12,3 @@ export const usePricingTable = (params?: {
 
   return usePricingTableBase({ client: context.client, params });
 };
-
