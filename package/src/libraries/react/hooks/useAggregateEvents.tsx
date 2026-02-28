@@ -6,9 +6,15 @@ import type {
 	EventAggregationResponse,
 } from "@/client/types/clientAnalyticsTypes";
 
-export const useAggregateEvents = (
-	params: EventAggregationParams & { swrConfig?: SWRConfiguration },
-) => {
+export const useAggregateEvents = ({
+	swrConfig,
+	extraQueryKeys,
+	...params
+}: EventAggregationParams & {
+	swrConfig?: SWRConfiguration;
+	/** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+	extraQueryKeys?: (string | null | undefined)[];
+}) => {
 	const context = useAutumnContext({
 		AutumnContext,
 		name: "useAggregateEvents",
@@ -37,7 +43,10 @@ export const useAggregateEvents = (
 		? new Date(params.customRange.end).toISOString().slice(0, 13)
 		: undefined;
 
-	const { data, error, mutate } = useSWR<EventAggregationResponse, AutumnError>(
+	const { data, error, mutate } = useSWR<
+		EventAggregationResponse,
+		AutumnError
+	>(
 		[
 			"eventAggregate",
 			params.featureId,
@@ -46,6 +55,7 @@ export const useAggregateEvents = (
 			startDate,
 			endDate,
 			params.binSize,
+			...(extraQueryKeys ?? []),
 		],
 		fetcher,
 		{
@@ -56,7 +66,7 @@ export const useAggregateEvents = (
 				(error as AutumnErrorWithStatus).statusCode === 429,
 			errorRetryCount: 3,
 			refreshInterval: 0,
-			...params.swrConfig,
+			...swrConfig,
 		},
 	);
 

@@ -188,14 +188,18 @@ const defaultSWRConfig: SWRConfiguration = {
   refreshInterval: 0,
 };
 
+export interface UsePricingTableParams {
+  productDetails?: ProductDetails[];
+  /** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+  extraQueryKeys?: (string | null | undefined)[];
+}
+
 export const usePricingTableBase = ({
   client,
   params,
 }: {
   client: AutumnClient | ConvexAutumnClient;
-  params?: {
-    productDetails?: ProductDetails[];
-  };
+  params?: UsePricingTableParams;
 }): { products: Product[] | null; isLoading: boolean; error: AutumnError | undefined; refetch: () => void } => {
   const fetcher = async () => {
     try {
@@ -212,7 +216,7 @@ export const usePricingTableBase = ({
   };
 
   const { data, error, mutate } = useSWR<Product[], AutumnError>(
-    ["pricing-table", client.backendUrl],
+    ["pricing-table", client.backendUrl, ...(params?.extraQueryKeys ?? [])],
     fetcher,
     { ...defaultSWRConfig }
   );

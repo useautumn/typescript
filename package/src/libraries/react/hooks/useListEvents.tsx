@@ -1,3 +1,5 @@
+import { AutumnContext, useAutumnContext } from "@/AutumnContext";
+import type { EventsListParams } from "@/client/types/clientAnalyticsTypes";
 import {
 	AutumnError,
 	type AutumnErrorWithStatus,
@@ -5,12 +7,16 @@ import {
 } from "@sdk";
 import { useCallback, useState } from "react";
 import useSWR, { type SWRConfiguration } from "swr";
-import { AutumnContext, useAutumnContext } from "@/AutumnContext";
-import type { EventsListParams } from "@/client/types/clientAnalyticsTypes";
 
-export const useListEvents = (
-	params: EventsListParams & { swrConfig?: SWRConfiguration },
-) => {
+export const useListEvents = ({
+	swrConfig,
+	extraQueryKeys,
+	...params
+}: EventsListParams & {
+	swrConfig?: SWRConfiguration;
+	/** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+	extraQueryKeys?: (string | null | undefined)[];
+}) => {
 	const context = useAutumnContext({
 		AutumnContext,
 		name: "useListEvents",
@@ -52,7 +58,15 @@ export const useListEvents = (
 		EventsListResponse,
 		AutumnError
 	>(
-		["eventList", params.featureId, startDate, endDate, offset, limit],
+		[
+			"eventList",
+			params.featureId,
+			startDate,
+			endDate,
+			offset,
+			limit,
+			...(extraQueryKeys ?? []),
+		],
 		fetcher,
 		{
 			dedupingInterval: 2000,
@@ -62,7 +76,7 @@ export const useListEvents = (
 				(error as AutumnErrorWithStatus).statusCode === 429,
 			errorRetryCount: 3,
 			refreshInterval: 0,
-			...params.swrConfig,
+			...swrConfig,
 		},
 	);
 

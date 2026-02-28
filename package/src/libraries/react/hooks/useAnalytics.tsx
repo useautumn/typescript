@@ -10,7 +10,13 @@ import type { QueryParams } from "@/client/types/clientGenTypes";
 /**
  * @deprecated Use useAggregateEvents or useListEvents instead
  */
-export const useAnalytics = (params: QueryParams) => {
+export const useAnalytics = ({
+	extraQueryKeys,
+	...params
+}: QueryParams & {
+	/** Extra key(s) appended to the SWR query key that trigger a refetch when any value changes. */
+	extraQueryKeys?: (string | null | undefined)[];
+}) => {
 	const context = useAutumnContext({
 		AutumnContext,
 		name: "useAnalytics",
@@ -32,7 +38,12 @@ export const useAnalytics = (params: QueryParams) => {
 	};
 
 	const { data, error, mutate } = useSWR<QueryResult, AutumnError>(
-		["analytics", params.featureId, params.range],
+		[
+			"analytics",
+			params.featureId,
+			params.range,
+			...(extraQueryKeys ?? []),
+		],
 		fetcher,
 		{
 			refreshInterval: 0,
