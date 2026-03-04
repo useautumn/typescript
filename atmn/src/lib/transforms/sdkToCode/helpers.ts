@@ -46,6 +46,43 @@ export function featureIdToVarName(id: string): string {
 }
 
 /**
+ * Resolve variable names for all features and plans, disambiguating any collisions.
+ *
+ * When a plan and feature share the same sanitized ID (e.g. both have id "free"),
+ * the plan's variable name gets a "_plan" suffix to avoid "Cannot redeclare
+ * block-scoped variable" errors.
+ *
+ * Features are declared first in the file so they keep the clean name.
+ */
+export function resolveVarNames(
+	featureIds: string[],
+	planIds: string[],
+): {
+	featureVarMap: Map<string, string>;
+	planVarMap: Map<string, string>;
+} {
+	const featureVarMap = new Map<string, string>();
+	const planVarMap = new Map<string, string>();
+
+	for (const id of featureIds) {
+		featureVarMap.set(id, featureIdToVarName(id));
+	}
+
+	const usedNames = new Set(featureVarMap.values());
+
+	for (const id of planIds) {
+		let varName = planIdToVarName(id);
+		if (usedNames.has(varName)) {
+			varName = `${varName}_plan`;
+		}
+		planVarMap.set(id, varName);
+		usedNames.add(varName);
+	}
+
+	return { featureVarMap, planVarMap };
+}
+
+/**
  * Escape string for TypeScript string literal
  */
 export function escapeString(str: string): string {

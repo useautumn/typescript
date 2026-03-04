@@ -8,6 +8,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import type { Feature, Plan } from "../../../compose/models/index.js";
 import { resolveConfigPath } from "../../env/index.js";
 import { buildFeatureCode } from "../sdkToCode/feature.js";
+import { planIdToVarName, resolveVarNames } from "../sdkToCode/helpers.js";
 import { buildImports } from "../sdkToCode/imports.js";
 import { buildPlanCode } from "../sdkToCode/plan.js";
 import { parseExistingConfig } from "./parseConfig.js";
@@ -34,12 +35,7 @@ function generateFeatureCode(
 	feature: Feature,
 	existingVarName?: string,
 ): string {
-	const code = buildFeatureCode(feature);
-	if (existingVarName) {
-		// Replace the generated variable name with the existing one
-		return code.replace(/export const \w+/, `export const ${existingVarName}`);
-	}
-	return code;
+	return buildFeatureCode(feature, existingVarName);
 }
 
 /**
@@ -53,12 +49,7 @@ function generatePlanCode(
 	existingVarName?: string,
 	featureVarMap?: Map<string, string>,
 ): string {
-	const code = buildPlanCode(plan, features, featureVarMap);
-	if (existingVarName) {
-		// Replace the generated variable name with the existing one
-		return code.replace(/export const \w+/, `export const ${existingVarName}`);
-	}
-	return code;
+	return buildPlanCode(plan, features, featureVarMap, existingVarName);
 }
 
 /**
@@ -103,6 +94,51 @@ export async function updateConfigInPlace(
 		if (entity.type === "feature") {
 			featureVarMap.set(entity.id, entity.varName);
 		}
+	}
+
+	// For new features/plans (not yet in the file), resolve var names with
+	// collision detection. Seed "used names" with all existing var names so
+	// newly generated names never clash with anything already in the file.
+	const existingVarNames = new Set(parsed.entities.map((e) => e.varName));
+
+	const newFeatureIds = features
+		.filter((f) => !featureVarMap.has(f.id))
+		.map((f) => f.id);
+
+	// Resolve new feature var names first (they take the clean name on collision)
+	const newFeatureVarMap = new Map<string, string>();
+	for (const id of newFeatureIds) {
+		const { featureVarMap: resolved } = resolveVarNames([id], []);
+		let varName = resolved.get(id)!;
+		if (existingVarNames.has(varName)) {
+			// Shouldn't normally happen (IDs are unique), but guard anyway
+			varName = `${varName}_feature`;
+		}
+		newFeatureVarMap.set(id, varName);
+		existingVarNames.add(varName);
+		// Also add to featureVarMap so plan items can reference these new features
+		featureVarMap.set(id, varName);
+	}
+
+	// Resolve new plan var names, avoiding all names already in use.
+	// "New" means the plan ID is not present in any parsed entity.
+	const existingPlanIds = new Set(
+		parsed.entities
+			.filter((e) => e.type === "plan")
+			.map((e) => e.id),
+	);
+	const newPlanIds = plans
+		.filter((p) => !existingPlanIds.has(p.id))
+		.map((p) => p.id);
+
+	const newPlanVarMap = new Map<string, string>();
+	for (const id of newPlanIds) {
+		let varName = planIdToVarName(id);
+		if (existingVarNames.has(varName)) {
+			varName = `${varName}_plan`;
+		}
+		newPlanVarMap.set(id, varName);
+		existingVarNames.add(varName);
 	}
 
 	// Track which API entities have been matched
@@ -228,7 +264,7 @@ export async function updateConfigInPlace(
 	const newFeatures = features.filter((f) => !matchedFeatureIds.has(f.id));
 	if (newFeatures.length > 0) {
 		const newFeatureCode = newFeatures
-			.map((f) => generateFeatureCode(f))
+			.map((f) => generateFeatureCode(f, newFeatureVarMap.get(f.id)))
 			.join("\n\n");
 
 		if (lastFeatureBlockIndex >= 0) {
@@ -275,7 +311,7 @@ export async function updateConfigInPlace(
 	const newPlans = plans.filter((p) => !matchedPlanIds.has(p.id));
 	if (newPlans.length > 0) {
 		const newPlanCode = newPlans
-			.map((p) => generatePlanCode(p, features, undefined, featureVarMap))
+			.map((p) => generatePlanCode(p, features, featureVarMap, newPlanVarMap.get(p.id)))
 			.join("\n\n");
 
 		if (lastPlanBlockIndex >= 0) {

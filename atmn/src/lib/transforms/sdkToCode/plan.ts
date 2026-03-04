@@ -8,13 +8,15 @@ import { buildPlanItemCode } from "./planItem.js";
  * @param plan The plan to generate code for
  * @param features List of features
  * @param featureVarMap Optional map of feature ID -> variable name for preserving local names
+ * @param varNameOverride Optional variable name override (used for collision disambiguation)
  */
 export function buildPlanCode(
 	plan: Plan,
 	features: Feature[],
 	featureVarMap?: Map<string, string>,
+	varNameOverride?: string,
 ): string {
-	const varName = planIdToVarName(plan.id);
+	const varName = varNameOverride ?? planIdToVarName(plan.id);
 	const lines: string[] = [];
 
 	lines.push(`export const ${varName} = plan({`);

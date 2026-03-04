@@ -8,9 +8,11 @@ import { featureIdToVarName, formatValue } from "./helpers.js";
  * - Boolean features: No consumable field
  * - Metered features: MUST output consumable: true or false explicitly
  * - Credit system features: Don't output consumable (implied true)
+ *
+ * @param varNameOverride Optional variable name override (used for collision disambiguation)
  */
-export function buildFeatureCode(feature: Feature): string {
-	const varName = featureIdToVarName(feature.id);
+export function buildFeatureCode(feature: Feature, varNameOverride?: string): string {
+	const varName = varNameOverride ?? featureIdToVarName(feature.id);
 	const lines: string[] = [];
 
 	lines.push(`export const ${varName} = feature({`);
