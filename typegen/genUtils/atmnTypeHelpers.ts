@@ -234,15 +234,34 @@ type PriceWithAmount = PriceBaseFields & {
   tiers?: never;
 };
 
-// Price with tiered pricing (no flat amount)
-type PriceWithTiers = PriceBaseFields & {
+// Price with graduated tiered pricing (each tier's rate applies only to units within that tier)
+type PriceWithGraduatedTiers = PriceBaseFields & {
   /** Cannot have flat amount when using tiers */
   amount?: never;
-  /** Tiered pricing structure based on usage ranges */
+  /** Graduated tiered pricing: each tier's amount applies only to units within that tier */
   tiers: Array<{ to: number | "inf"; amount: number }>;
-  /** Required when tiers is defined: how tiers are applied */
-  tierBehaviour: "graduated" | "volume";
+  /** Graduated: each tier's rate applies only to usage within that tier */
+  tierBehavior: "graduated";
 };
+
+// Volume tier: at least one of amount or flatAmount must be present
+type VolumeTier =
+  | { to: number | "inf"; amount: number; flatAmount?: number }
+  | { to: number | "inf"; amount?: number; flatAmount: number };
+
+// Price with volume tiered pricing (the tier the total usage falls into applies to all units)
+type PriceWithVolumeTiers = Omit<PriceBaseFields, "billingMethod"> & {
+  /** Volume pricing does not support usage_based billing — use 'prepaid' */
+  billingMethod: Exclude<BillingMethod, "usage_based">;
+  /** Cannot have flat amount when using tiers */
+  amount?: never;
+  /** Volume tiered pricing: the tier the total usage falls into applies to all units */
+  tiers: Array<VolumeTier>;
+  /** Volume: the rate of the tier the total usage falls into applies to all units */
+  tierBehavior: "volume";
+};
+
+type PriceWithTiers = PriceWithGraduatedTiers | PriceWithVolumeTiers;
 
 // Price must have either amount OR tiers (not both, not neither)
 type PriceAmountOrTiers = PriceWithAmount | PriceWithTiers;

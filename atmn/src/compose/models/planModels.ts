@@ -52,7 +52,7 @@ export const PlanItemSchema = z.object({
     }),
     tiers: z.array(UsageTierSchema).optional().meta({
     description:
-    "Tiered pricing. Each tier's 'to' does NOT include included amount. Either 'amount' or 'tiers' is required.",
+    "Tiered pricing.  Either 'amount' or 'tiers' is required.",
     }),
     tier_behavior: z.union([z.literal("graduated"), z.literal("volume")]).optional(),
     
@@ -245,7 +245,7 @@ type PriceWithAmount = PriceBaseFields & {
   tiers?: never;
 };
 
-// Price with graduated tiered pricing (no flat amount per tier)
+// Price with graduated tiered pricing (each tier's rate applies only to units within that tier)
 type PriceWithGraduatedTiers = PriceBaseFields & {
   /** Cannot have flat amount when using tiers */
   amount?: never;
@@ -255,14 +255,19 @@ type PriceWithGraduatedTiers = PriceBaseFields & {
   tierBehavior: "graduated";
 };
 
-// Price with volume tiered pricing (flat amount per tier)
+// Volume tier: at least one of amount or flatAmount must be present
+type VolumeTier =
+  | { to: number | "inf"; amount: number; flatAmount?: number }
+  | { to: number | "inf"; amount?: number; flatAmount: number };
+
+// Price with volume tiered pricing (the tier the total usage falls into applies to all units)
 type PriceWithVolumeTiers = Omit<PriceBaseFields, "billingMethod"> & {
   /** Volume pricing does not support usage_based billing — use 'prepaid' */
   billingMethod: Exclude<BillingMethod, "usage_based">;
   /** Cannot have flat amount when using tiers */
   amount?: never;
   /** Volume tiered pricing: the tier the total usage falls into applies to all units */
-  tiers: Array<{ to: number | "inf"; amount: number; flatAmount?: number }>;
+  tiers: Array<VolumeTier>;
   /** Volume: the rate of the tier the total usage falls into applies to all units */
   tierBehavior: "volume";
 };
