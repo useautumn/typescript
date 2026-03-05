@@ -38,7 +38,7 @@ export interface FetchCustomersResponse {
 }
 
 /**
- * Fetch all customers using V1 endpoint (GET with query params)
+ * Fetch a single page of customers
  */
 export async function fetchCustomers(
 	options: FetchCustomersOptions,
@@ -56,6 +56,36 @@ export async function fetchCustomers(
 	});
 
 	return response.list;
+}
+
+/**
+ * Fetch all customers across all pages
+ */
+export async function fetchAllCustomers({
+	secretKey,
+}: {
+	secretKey: string;
+}): Promise<ApiCustomer[]> {
+	const all: ApiCustomer[] = [];
+	const limit = 100;
+	let offset = 0;
+
+	while (true) {
+		const response = await request<FetchCustomersResponse>({
+			method: "GET",
+			path: "/v1/customers",
+			secretKey,
+			queryParams: { limit, offset },
+		});
+
+		all.push(...response.list);
+
+		if (response.list.length < limit) break;
+
+		offset += limit;
+	}
+
+	return all;
 }
 
 /**

@@ -3,7 +3,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchCustomers } from "../api/endpoints/customers.js";
+import { fetchAllCustomers } from "../api/endpoints/customers.js";
 import { fetchFeatures } from "../api/endpoints/features.js";
 import { fetchOrganizationMe } from "../api/endpoints/index.js";
 import { fetchPlans } from "../api/endpoints/plans.js";
@@ -30,7 +30,7 @@ export function useNukeData() {
 			// Fetch all data in parallel
 			const [org, customers, plans, features] = await Promise.all([
 				fetchOrganizationMe({ secretKey }),
-				fetchCustomers({ secretKey }),
+				fetchAllCustomers({ secretKey }),
 				fetchPlans({ secretKey, includeArchived: true }),
 				fetchFeatures({ secretKey }),
 			]);

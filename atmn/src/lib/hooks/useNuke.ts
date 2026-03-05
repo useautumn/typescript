@@ -16,7 +16,7 @@ import type {
 import {
 	type ApiCustomer,
 	deleteCustomer,
-	fetchCustomers,
+	fetchAllCustomers,
 } from "../api/endpoints/customers.js";
 import { deleteFeature, fetchFeatures } from "../api/endpoints/features.js";
 import { deletePlan, fetchPlans } from "../api/endpoints/plans.js";
@@ -102,7 +102,7 @@ export function useNuke(options?: UseNukeOptions): UseNukeReturn {
 			const customersPhaseStart = Date.now();
 			setActivePhase("customers");
 
-			const customers = await fetchCustomers({ secretKey });
+			const customers = await fetchAllCustomers({ secretKey });
 			setPhases((prev) =>
 				prev.map((p) =>
 					p.phase === "customers" ? { ...p, total: customers.length } : p,
