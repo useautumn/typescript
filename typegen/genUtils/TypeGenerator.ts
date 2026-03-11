@@ -284,6 +284,7 @@ ${imports}
       OnDecrease: ['prorate', 'refund_immediately', 'no_action'],
       FreeTrialDuration: ['day', 'month', 'year'],
       TierBehaviours: ['graduated', 'volume'],
+      TierBehavior: ['graduated', 'volume'],
       ApiFeatureType: ['static', 'boolean', 'single_use', 'continuous_use', 'credit_system'],
       FeatureType: ['boolean', 'metered', 'credit_system'],
     };
