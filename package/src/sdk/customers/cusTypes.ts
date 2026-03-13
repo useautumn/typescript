@@ -9,6 +9,38 @@ import {
 } from "./cusEnums";
 import type { Entity } from "./entities/entTypes";
 
+// Billing Controls
+export const PurchaseLimitInterval = ["hour", "day", "week", "month"] as const;
+export const PurchaseLimitIntervalEnum = z.enum(PurchaseLimitInterval);
+export type PurchaseLimitInterval =
+	(typeof PurchaseLimitInterval)[number];
+
+export const AutoTopupPurchaseLimitSchema = z.object({
+	interval: PurchaseLimitIntervalEnum,
+	interval_count: z.number().min(1).default(1),
+	limit: z.number().min(1),
+});
+
+export const AutoTopupSchema = z.object({
+	feature_id: z.string(),
+	enabled: z.boolean().default(false),
+	threshold: z.number().min(0),
+	quantity: z.number().min(1),
+	purchase_limit: AutoTopupPurchaseLimitSchema.optional(),
+});
+
+export const CustomerBillingControlsSchema = z.object({
+	auto_topups: z.array(AutoTopupSchema).optional(),
+});
+
+export type AutoTopupPurchaseLimit = z.infer<
+	typeof AutoTopupPurchaseLimitSchema
+>;
+export type AutoTopup = z.infer<typeof AutoTopupSchema>;
+export type CustomerBillingControls = z.infer<
+	typeof CustomerBillingControlsSchema
+>;
+
 export const CoreCusFeatureSchema = z.object({
 	unlimited: z.boolean().optional(),
 	interval: z.enum(ProductItemInterval).optional(),
@@ -99,6 +131,8 @@ export interface Customer {
 	stripe_id: string | null;
 	env: AppEnv;
 	metadata: Record<string, any>;
+	send_email_receipts: boolean;
+	billing_controls: CustomerBillingControls;
 
 	products: CustomerProduct[];
 	features: Record<string, CustomerFeature>;
@@ -163,6 +197,7 @@ export const CreateCustomerParamsSchema = z.object({
 	expand: z.array(CustomerExpandEnum).optional(),
 	stripe_id: z.string().nullish(),
 	auto_enable_plan_id: z.string().optional(),
+	billing_controls: CustomerBillingControlsSchema.optional(),
 });
 
 export type CreateCustomerParamsBase = z.infer<
@@ -186,6 +221,7 @@ export interface UpdateCustomerParams {
 	fingerprint?: string | null;
 	metadata?: Record<string, any>;
 	stripe_id?: string;
+	billing_controls?: CustomerBillingControls;
 }
 
 export const BillingPortalParamsSchema = z.object({

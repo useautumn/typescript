@@ -203,18 +203,28 @@ export const CustomizePlanSchema = z.object({
 export type CustomizePlan = z.infer<typeof CustomizePlanSchema>;
 
 // ============================================
+// Custom line item (for custom invoices)
+// ============================================
+
+export const CustomLineItemSchema = z.object({
+  amount: z.number(),
+  description: z.string(),
+});
+export type CustomLineItem = z.infer<typeof CustomLineItemSchema>;
+
+// ============================================
 // Base billing params shared between attach and update
 // ============================================
 
 const BillingParamsBaseSchema = z.object({
   customer_id: z.string(),
-  plan_id: z.string(),
   entity_id: z.string().optional(),
   feature_quantities: z.array(FeatureQuantityParamsSchema).optional(),
   version: z.number().optional(),
   customize: CustomizePlanSchema.optional(),
   invoice_mode: InvoiceModeParamsSchema.optional(),
   proration_behavior: ProrationBehaviorSchema.optional(),
+  subscription_id: z.string().optional(),
 });
 
 // ============================================
@@ -222,11 +232,14 @@ const BillingParamsBaseSchema = z.object({
 // ============================================
 
 export const BillingAttachParamsSchema = BillingParamsBaseSchema.extend({
+  plan_id: z.string(),
   discounts: z.array(AttachDiscountSchema).optional(),
   success_url: z.string().optional(),
   redirect_mode: RedirectModeSchema.optional(),
   new_billing_subscription: z.boolean().optional(),
   plan_schedule: PlanScheduleSchema.optional(),
+  checkout_session_params: z.record(z.string(), z.unknown()).optional(),
+  custom_line_items: z.array(CustomLineItemSchema).optional(),
 });
 export type BillingAttachParams = z.infer<typeof BillingAttachParamsSchema>;
 
@@ -235,6 +248,7 @@ export type BillingAttachParams = z.infer<typeof BillingAttachParamsSchema>;
 // ============================================
 
 export const BillingUpdateParamsSchema = BillingParamsBaseSchema.extend({
+  plan_id: z.string().optional(),
   cancel_action: CancelActionSchema.optional(),
 });
 export type BillingUpdateParams = z.infer<typeof BillingUpdateParamsSchema>;
@@ -292,6 +306,7 @@ export const MultiAttachPlanSchema = z.object({
   customize: MultiAttachCustomizePlanSchema.optional(),
   feature_quantities: z.array(FeatureQuantityParamsSchema).optional(),
   version: z.number().optional(),
+  subscription_id: z.string().optional(),
 });
 export type MultiAttachPlan = z.infer<typeof MultiAttachPlanSchema>;
 

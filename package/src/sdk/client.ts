@@ -28,6 +28,7 @@ import { productMethods } from "./products/prodMethods";
 import { referralMethods } from "./referrals/referralMethods";
 import { toContainerResult } from "./response";
 import { staticWrapper } from "./utils";
+import { v2BalancesMethods } from "./v2/balancesMethods";
 import { v2BillingMethods } from "./v2/billingMethods";
 
 const LATEST_API_VERSION = "1.2";
@@ -133,6 +134,7 @@ export class Autumn {
 	static balances = balanceMethods();
 	static v2 = {
 		billing: v2BillingMethods(),
+		balances: v2BalancesMethods(),
 	};
 
 	customers = customerMethods(this);
@@ -144,6 +146,7 @@ export class Autumn {
 	balances = balanceMethods(this);
 	v2 = {
 		billing: v2BillingMethods(this),
+		balances: v2BalancesMethods(this),
 	};
 
 	/**

@@ -9,6 +9,11 @@ export {
 	CreateCustomerParamsSchema,
 	CustomerDataSchema,
 	UpdateBalancesParamsSchema,
+	// Billing controls
+	PurchaseLimitIntervalEnum,
+	AutoTopupPurchaseLimitSchema,
+	AutoTopupSchema,
+	CustomerBillingControlsSchema,
 } from "./customers/cusTypes";
 export * from "./customers/entities/entEnums";
 export * from "./customers/entities/entTypes";
@@ -76,6 +81,7 @@ export {
   OnIncreaseSchema,
   OnDecreaseSchema,
   RolloverExpiryDurationTypeSchema,
+  CustomLineItemSchema,
   // Multi-attach schemas
   MultiAttachParamsSchema,
   MultiAttachPlanSchema,
@@ -109,6 +115,7 @@ export {
   type OnIncrease,
   type OnDecrease,
   type RolloverExpiryDurationType,
+  type CustomLineItem,
   // Multi-attach types
   type MultiAttachParams,
   type MultiAttachPlan,
@@ -121,3 +128,20 @@ export {
   type PreviewLineItem,
 } from "./v2/billingTypes";
 export { v2BillingMethods } from "./v2/billingMethods";
+
+// V2 Balances API exports
+export {
+  V2UpdateBalanceParamsSchema,
+  V2UpdateBalanceResponseSchema,
+  V2ResetIntervalSchema,
+  V2FinalizeLockParamsSchema,
+  V2FinalizeLockResponseSchema,
+  V2FinalizeLockActionSchema,
+  type V2UpdateBalanceParams,
+  type V2UpdateBalanceResponse,
+  type V2ResetInterval,
+  type V2FinalizeLockParams,
+  type V2FinalizeLockResponse,
+  type V2FinalizeLockAction,
+} from "./v2/balancesTypes";
+export { v2BalancesMethods } from "./v2/balancesMethods";

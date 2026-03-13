@@ -3,6 +3,14 @@ import { EntityDataSchema } from "../customers/entities/entTypes";
 import type { CheckFeatureResult, CheckProductResult } from "./checkTypes";
 import { z } from "zod/v4";
 
+// Lock params for reserve-and-confirm pattern
+export const LockParamsSchema = z.object({
+  lock_id: z.string().max(256),
+  enabled: z.literal(true),
+  expires_at: z.number().optional(),
+});
+export type LockParams = z.infer<typeof LockParamsSchema>;
+
 export const CancelParamsSchema = z.object({
   customer_id: z.string(),
   product_id: z.string(),
@@ -32,6 +40,7 @@ export const TrackParamsSchema = z.object({
   idempotency_key: z.string().optional(),
   entity_data: z.any().optional(),
   properties: z.record(z.string(), z.any()).optional(),
+  lock: LockParamsSchema.optional(),
 });
 
 export type TrackParams = z.infer<typeof TrackParamsSchema>;
@@ -56,6 +65,7 @@ export const CheckParamsSchema = z.object({
   send_event: z.boolean().optional(),
   with_preview: z.boolean().optional(),
   entity_data: EntityDataSchema.optional(),
+  lock: LockParamsSchema.optional(),
 });
 
 export type CheckParams = z.infer<typeof CheckParamsSchema>;

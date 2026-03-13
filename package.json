@@ -8,9 +8,16 @@
   "workspaces": [
     "package",
     "frameworks/*",
-    "ui",
+    "nextjs",
+    "compose",
+    "cli",
     "atmn",
-    "nextjs"
+    "ui",
+    "test-worker",
+    "next15",
+    "next-bug",
+    "vite-spa",
+    "convex"
   ],
   "dependencies": {
     "@types/better-sqlite3": "^7.6.13",
