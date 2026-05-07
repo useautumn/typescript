@@ -150,8 +150,8 @@ export function generatePlanItemType(
 		ResetInterval:
 			'"one_off" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "semi_annual" | "year"',
 		RolloverExpiryDurationType: '"month" | "forever"',
-		// Recurring-only interval for plan item prices (`items[].price.interval`).
-		BillingInterval: '"week" | "month" | "quarter" | "semi_annual" | "year"',
+		// Billing interval for plan item prices (`items[].price.interval`).
+		BillingInterval: '"one_off" | "week" | "month" | "quarter" | "semi_annual" | "year"',
 		// Base plan price interval (`plan.price.interval`) can also be one_off.
 		PlanPriceInterval:
 			'"one_off" | "week" | "month" | "quarter" | "semi_annual" | "year"',
@@ -247,61 +247,54 @@ type PriceWithTiers = PriceBaseFields & {
 // Price must have either amount OR tiers (not both, not neither)
 type PriceAmountOrTiers = PriceWithAmount | PriceWithTiers;
 
-// Price when reset IS defined - interval is forbidden
-type PriceWithoutInterval = PriceAmountOrTiers & {
-  /** Cannot have interval when using top-level reset */
-  interval?: never;
-  intervalCount?: never;
-};
-
-// Price when reset is NOT defined - interval is required
-type PriceWithInterval = PriceAmountOrTiers & {
-  /** Billing interval - required when no top-level reset */
-  interval: BillingInterval;
+// Price type - interval is optional (omit for one-off/non-recurring)
+type Price = PriceAmountOrTiers & {
+  /** Billing interval - omit for one-off pricing */
+  interval?: BillingInterval;
   /** Number of intervals between billing cycles (default: 1) */
   intervalCount?: number;
 };
 
 /**
- * Plan item with top-level reset configuration.
- * Use this for free allocations or features that reset but aren't priced per-use.
+ * Plan item with a reset cycle (e.g. 100 messages per month).
+ * Cannot have price — reset and price are mutually exclusive.
  */
 export type PlanItemWithReset = PlanItemBaseFields & {
-  /** Reset configuration for usage limits */
+  /** Reset configuration for the included allowance */
   reset: ResetConfig;
-  /** Optional pricing (cannot have price.interval when using top-level reset) */
-  price?: PriceWithoutInterval;
+  /** Cannot have price when using reset — use price.interval instead */
+  price?: never;
 };
 
 /**
- * Plan item with pricing that includes interval configuration.
- * Use this for usage-based pricing where interval determines billing cycle.
+ * Plan item with usage-based pricing (e.g. $0.10/message, billed monthly).
+ * price.interval encodes the billing cycle, so reset is not allowed.
  */
-export type PlanItemWithPriceInterval = PlanItemBaseFields & {
-  /** Cannot have top-level reset when using price.interval */
+export type PlanItemWithPrice = PlanItemBaseFields & {
+  /** Cannot have reset when using price — price.interval encodes the billing cycle */
   reset?: never;
-  /** Pricing configuration with billing interval */
-  price: PriceWithInterval;
+  /** Pricing configuration */
+  price: Price;
 };
 
 /**
- * Plan item without any reset configuration.
- * Use this for continuous-use features (like seats) that don't reset.
+ * Plan item with no reset and no price.
+ * Use for continuous-use or boolean features (e.g. seats, feature flags).
  */
 export type PlanItemNoReset = PlanItemBaseFields & {
   /** No reset for continuous-use features */
   reset?: never;
-  /** Pricing with required interval (since no top-level reset) */
-  price?: PriceWithInterval;
+  /** No price for free/boolean features */
+  price?: never;
 };
 
 /**
- * Plan item configuration with mutually exclusive reset patterns:
- * - PlanItemWithReset: Top-level reset (for free allocations)
- * - PlanItemWithPriceInterval: price.interval (for usage-based pricing billing cycle)
- * - PlanItemNoReset: No reset (for continuous-use features like seats)
+ * Plan item configuration. reset and price are mutually exclusive:
+ * - PlanItemWithReset: included allowance that resets on an interval (e.g. 100/month free)
+ * - PlanItemWithPrice: usage-based pricing with its own billing cycle
+ * - PlanItemNoReset: no reset, no price (continuous-use or boolean features)
  */
-export type PlanItem = PlanItemWithReset | PlanItemWithPriceInterval | PlanItemNoReset;
+export type PlanItem = PlanItemWithReset | PlanItemWithPrice | PlanItemNoReset;
 `;
 
 	return result;

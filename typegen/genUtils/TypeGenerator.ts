@@ -273,9 +273,7 @@ ${imports}
    */
   private getEnumValuesMap(): Record<string, string[]> {
     return {
-      // For plan items, `price.interval` is recurring-only.
-      // Base plan price is handled separately via BasePriceParamsSchema below.
-      BillingInterval: ['week', 'month', 'quarter', 'semi_annual', 'year'],
+      BillingInterval: ['one_off', 'week', 'month', 'quarter', 'semi_annual', 'year'],
       ResetInterval: ['one_off', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'semi_annual', 'year'],
       RolloverExpiryDurationType: ['month', 'forever'],
       UsageModel: ['prepaid', 'pay_per_use'], // Legacy - maps to BillingMethod in SDK
@@ -284,6 +282,7 @@ ${imports}
       OnDecrease: ['prorate', 'refund_immediately', 'no_action'],
       FreeTrialDuration: ['day', 'month', 'year'],
       TierBehaviours: ['graduated', 'volume'],
+      TierBehavior: ['graduated', 'volume'],
       ApiFeatureType: ['static', 'boolean', 'single_use', 'continuous_use', 'credit_system'],
       FeatureType: ['boolean', 'metered', 'credit_system'],
     };

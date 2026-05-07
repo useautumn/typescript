@@ -34,12 +34,17 @@ async function main() {
 		if (!serverPath) {
 			throw new Error(
 				'AUTUMN_SERVER_PATH env var not set.\n' +
-				'Copy typegen/.env.example to typegen/.env and set the path to your Autumn server shared directory'
+				'Copy typegen/.env.example to typegen/.env and set the path to your sirtenzin-autumn/shared directory'
 			);
 		}
 
-		// Define paths
-		const atmnPath = path.resolve(__dirname, "../atmn");
+		const atmnPath = process.env.AUTUMN_ATMN_PATH;
+		if (!atmnPath) {
+			throw new Error(
+				'AUTUMN_ATMN_PATH env var not set.\n' +
+				'Copy typegen/.env.example to typegen/.env and set the path to your sirtenzin-autumn/packages/atmn directory'
+			);
+		}
 
 		// Validate all required paths exist
 		TypeGeneratorUtils.validatePaths([
