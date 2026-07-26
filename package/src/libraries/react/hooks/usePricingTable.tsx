@@ -4,6 +4,7 @@ import { AutumnContext, useAutumnContext } from "@/AutumnContext";
 
 export const usePricingTable = (params?: {
   productDetails?: ProductDetails[];
+  group?: string;
 }) => {
   const context = useAutumnContext({
     AutumnContext,

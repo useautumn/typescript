@@ -8,12 +8,17 @@ const listProductsHandler = (options?: RouterOptions) => withAuth({
   fn: async ({
     autumn,
     customer_id,
+    searchParams,
   }: {
     autumn: Autumn;
     customer_id: string;
+    searchParams?: Record<string, string>;
   }) => {
+    const group = searchParams?.group || undefined;
+
     return await autumn.products.list({
       customer_id,
+      group,
     });
   },
   requireCustomer: false,

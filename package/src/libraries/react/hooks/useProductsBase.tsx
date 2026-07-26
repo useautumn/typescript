@@ -2,14 +2,14 @@ import { AutumnClient } from "@/client/ReactAutumnClient";
 import { AutumnContext, useAutumnContext } from "../AutumnContext";
 import useSWR from "swr";
 
-export const useProductsBase = ({ client }: { client: AutumnClient }) => {
+export const useProductsBase = ({ client, group }: { client: AutumnClient, group?: string }) => {
   const fetcher = async () => {
-    const { data, error } = await client.products.list();
+    const { data, error } = await client.products.list({ group });
     if (error) throw error;
     return data?.list || [];
   };
 
-  const queryKey = [`products`];
+  const queryKey = [`products`, group];
 
   const { data, error, isLoading } = useSWR(queryKey, fetcher, {
     refreshInterval: 0,
