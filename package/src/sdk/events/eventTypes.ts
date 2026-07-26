@@ -63,7 +63,7 @@ export const EventsListItemSchema = z.object({
 	feature_id: z.string().describe("Name of the event"),
 	customer_id: z.string().describe("Customer identifier"),
 	value: z.number().describe("Event value/count"),
-	properties: z.object({}).describe("Event properties (JSONB)"),
+	properties: z.record(z.string(), z.unknown()).describe("Event properties (JSONB)"),
 });
 
 export type EventsListItem = z.infer<typeof EventsListItemSchema>;
