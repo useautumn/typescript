@@ -48,6 +48,10 @@ const VALID_BALANCE_UPDATES: Array<
   [string, BalanceUpdateFields, Record<string, unknown>]
 > = [
   ["identity only", {}, {}],
+  ["remaining only", { remaining: 100 }, { remaining: 100 }],
+  ["zero remaining", { remaining: 0 }, { remaining: 0 }],
+  ["usage only", { usage: 100 }, { usage: 100 }],
+  ["zero usage", { usage: 0 }, { usage: 0 }],
   ["grant only", { includedGrant: 100 }, { included_grant: 100 }],
   [
     "reset only",
@@ -80,8 +84,14 @@ const VALID_BALANCE_UPDATES: Array<
 
 const INVALID_BALANCE_UPDATES: Array<[string, BalanceUpdateFields]> = [
   ["remaining and addToBalance", { remaining: 1, addToBalance: 1 }],
+  ["zero remaining and addToBalance", { remaining: 0, addToBalance: 1 }],
+  ["remaining and zero addToBalance", { remaining: 1, addToBalance: 0 }],
   ["remaining and usage", { remaining: 1, usage: 1 }],
+  ["zero remaining and usage", { remaining: 0, usage: 1 }],
+  ["remaining and zero usage", { remaining: 1, usage: 0 }],
   ["addToBalance and usage", { addToBalance: 1, usage: 1 }],
+  ["zero addToBalance and usage", { addToBalance: 0, usage: 1 }],
+  ["addToBalance and zero usage", { addToBalance: 1, usage: 0 }],
 ];
 
 function trackResponse(value = 1) {
