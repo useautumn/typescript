@@ -107,12 +107,11 @@ export const TrackArgs = v.object({
 });
 export type TrackArgs = Infer<typeof TrackArgs>;
 
-const attachFields = {
+const publicPreviewAttachFields = {
   planId: v.string(),
   entityId: v.optional(v.string()),
   featureQuantities: v.optional(v.array(featureQuantity)),
   version: v.optional(v.number()),
-  invoiceMode: v.optional(invoiceMode),
   prorationBehavior: v.optional(prorationBehavior),
   redirectMode: v.optional(redirectMode),
   subscriptionId: v.optional(v.string()),
@@ -123,12 +122,20 @@ const attachFields = {
   checkoutSessionParams: v.optional(stringMap),
   longLivedCheckout: v.optional(v.boolean()),
   metadata: v.optional(stringStringMap),
-  noBillingChanges: v.optional(v.boolean()),
-  enablePlanImmediately: v.optional(v.boolean()),
   currency: v.optional(v.string()),
   removePlanIds: v.optional(v.array(v.string())),
 };
+const attachOperatorFields = {
+  invoiceMode: v.optional(invoiceMode),
+  noBillingChanges: v.optional(v.boolean()),
+  enablePlanImmediately: v.optional(v.boolean()),
+};
+const attachFields = {
+  ...publicPreviewAttachFields,
+  ...attachOperatorFields,
+};
 
+export const PublicPreviewAttachArgs = v.object(publicPreviewAttachFields);
 export const PreviewAttachArgs = v.object(attachFields);
 export type PreviewAttachArgs = Infer<typeof PreviewAttachArgs>;
 export const AttachArgs = v.object({ ...attachFields, operationId });
@@ -141,37 +148,48 @@ const multiAttachPlan = v.object({
   subscriptionId: v.optional(v.string()),
   entityId: v.optional(v.union(v.string(), v.null())),
 });
-const multiAttachFields = {
+const publicPreviewMultiAttachFields = {
   entityId: v.optional(v.string()),
   plans: v.array(multiAttachPlan),
   startsAt: v.optional(v.number()),
   currency: v.optional(v.string()),
-  invoiceMode: v.optional(invoiceMode),
   billingBehavior: v.optional(prorationBehavior),
   billingCycleAnchor: v.optional(v.literal("now")),
   successUrl: v.optional(v.string()),
   checkoutSessionParams: v.optional(stringMap),
   redirectMode: v.optional(redirectMode),
   newBillingSubscription: v.optional(v.boolean()),
+};
+const multiAttachOperatorFields = {
+  invoiceMode: v.optional(invoiceMode),
   enablePlanImmediately: v.optional(v.boolean()),
 };
+const multiAttachFields = {
+  ...publicPreviewMultiAttachFields,
+  ...multiAttachOperatorFields,
+};
 
+export const PublicPreviewMultiAttachArgs = v.object(
+  publicPreviewMultiAttachFields
+);
 export const PreviewMultiAttachArgs = v.object(multiAttachFields);
 export type PreviewMultiAttachArgs = Infer<typeof PreviewMultiAttachArgs>;
 export const MultiAttachArgs = v.object({ ...multiAttachFields, operationId });
 export type MultiAttachArgs = Infer<typeof MultiAttachArgs>;
 
-const updateFields = {
+const publicPreviewUpdateFields = {
   entityId: v.optional(v.string()),
   planId: v.optional(v.string()),
   featureQuantities: v.optional(v.array(featureQuantity)),
   version: v.optional(v.number()),
-  invoiceMode: v.optional(invoiceMode),
   prorationBehavior: v.optional(prorationBehavior),
   redirectMode: v.optional(redirectMode),
   subscriptionId: v.optional(v.string()),
   cancelAction: v.optional(cancelAction),
   billingCycleAnchor: v.optional(v.union(v.string(), v.number())),
+};
+const updateOperatorFields = {
+  invoiceMode: v.optional(invoiceMode),
   noBillingChanges: v.optional(v.boolean()),
   refundLastPayment: v.optional(refundLastPayment),
   subscriptionParams: v.optional(stringMap),
@@ -183,7 +201,12 @@ const updateFields = {
     })
   ),
 };
+const updateFields = {
+  ...publicPreviewUpdateFields,
+  ...updateOperatorFields,
+};
 
+export const PublicPreviewUpdateArgs = v.object(publicPreviewUpdateFields);
 export const PreviewUpdateArgs = v.object(updateFields);
 export type PreviewUpdateArgs = Infer<typeof PreviewUpdateArgs>;
 export const UpdateSubscriptionArgs = v.object({
@@ -199,13 +222,22 @@ const multiUpdateItem = v.object({
   cancelAction,
   prorationBehavior: v.optional(prorationBehavior),
 });
-const multiUpdateFields = {
+const publicPreviewMultiUpdateFields = {
   entityId: v.optional(v.string()),
-  refundLastPayment: v.optional(refundLastPayment),
-  subscriptionParams: v.optional(stringMap),
   updates: v.array(multiUpdateItem),
 };
+const multiUpdateOperatorFields = {
+  refundLastPayment: v.optional(refundLastPayment),
+  subscriptionParams: v.optional(stringMap),
+};
+const multiUpdateFields = {
+  ...publicPreviewMultiUpdateFields,
+  ...multiUpdateOperatorFields,
+};
 
+export const PublicPreviewMultiUpdateArgs = v.object(
+  publicPreviewMultiUpdateFields
+);
 export const PreviewMultiUpdateArgs = v.object(multiUpdateFields);
 export type PreviewMultiUpdateArgs = Infer<typeof PreviewMultiUpdateArgs>;
 export const MultiUpdateArgs = v.object({ ...multiUpdateFields, operationId });

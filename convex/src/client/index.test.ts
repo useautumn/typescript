@@ -330,6 +330,7 @@ describe("Autumn native transport", () => {
           customer_id: "customer-1",
           plan_id: "p",
           feature_quantities: [{ feature_id: "seats", quantity: 3 }],
+          redirect_mode: "if_required",
         },
       },
       {
@@ -345,6 +346,7 @@ describe("Autumn native transport", () => {
           customer_id: "customer-1",
           plan_id: "p",
           long_lived_checkout: true,
+          redirect_mode: "if_required",
         },
       },
       {
@@ -367,6 +369,7 @@ describe("Autumn native transport", () => {
               feature_quantities: [{ feature_id: "seats", quantity: 4 }],
             },
           ],
+          redirect_mode: "if_required",
         },
       },
       {
@@ -377,20 +380,61 @@ describe("Autumn native transport", () => {
             plans: [{ planId: "p" }],
             operationId: "op",
           }),
-        expected: { customer_id: "customer-1", plans: [{ plan_id: "p" }] },
+        expected: {
+          customer_id: "customer-1",
+          plans: [{ plan_id: "p" }],
+          redirect_mode: "if_required",
+        },
       },
       {
         name: "previewUpdate",
         path: "/v1/billing.preview_update",
-        execute: (a) => a.billing.previewUpdate(null, { planId: "p" }),
-        expected: { customer_id: "customer-1", plan_id: "p" },
+        execute: (a) =>
+          a.billing.previewUpdate(null, {
+            planId: "p",
+            invoiceMode: { enabled: true, enablePlanImmediately: true },
+            noBillingChanges: true,
+            refundLastPayment: "full",
+            subscriptionParams: {
+              payment_behavior: "pending_if_incomplete",
+            },
+            recalculateBalances: { enabled: false },
+            carryOverUsages: {
+              enabled: true,
+              featureIds: ["messages"],
+            },
+          }),
+        expected: {
+          customer_id: "customer-1",
+          plan_id: "p",
+          invoice_mode: {
+            enabled: true,
+            enable_plan_immediately: true,
+            finalize: true,
+          },
+          redirect_mode: "if_required",
+          no_billing_changes: true,
+          refund_last_payment: "full",
+          subscription_params: {
+            payment_behavior: "pending_if_incomplete",
+          },
+          recalculate_balances: { enabled: false },
+          carry_over_usages: {
+            enabled: true,
+            feature_ids: ["messages"],
+          },
+        },
       },
       {
         name: "update",
         path: "/v1/billing.update",
         execute: (a) =>
           a.billing.update(null, { planId: "p", operationId: "op" }),
-        expected: { customer_id: "customer-1", plan_id: "p" },
+        expected: {
+          customer_id: "customer-1",
+          plan_id: "p",
+          redirect_mode: "if_required",
+        },
       },
       {
         name: "previewMultiUpdate",
@@ -490,6 +534,7 @@ describe("Autumn native transport", () => {
         expected: {
           customer_id: "customer-1",
           start_cursor: "cursor",
+          limit: 50,
           plans: [{ id: "p", versions: [2] }],
         },
       },
@@ -554,6 +599,7 @@ describe("Autumn native transport", () => {
         expected: {
           customer_id: "customer-1",
           start_cursor: "cursor",
+          limit: 50,
           feature_id: ["f"],
         },
       },
@@ -569,6 +615,7 @@ describe("Autumn native transport", () => {
           customer_id: "customer-1",
           feature_id: "f",
           custom_range: { start: 1, end: 2 },
+          bin_size: "day",
         },
       },
       {
@@ -591,7 +638,7 @@ describe("Autumn native transport", () => {
       const request = await capture(item.execute);
       expect(request.method, item.name).toBe("POST");
       expect(request.path, item.name).toBe(item.path);
-      expect(request.body, item.name).toMatchObject(item.expected);
+      expect(request.body, item.name).toEqual(item.expected);
     }
   });
 

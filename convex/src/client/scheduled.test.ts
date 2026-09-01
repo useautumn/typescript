@@ -98,6 +98,34 @@ describe("customer identity without an auth context", () => {
     expect(requests).toHaveLength(0);
   });
 
+  test.each([
+    ["empty", ""],
+    ["overlong", "x".repeat(257)],
+    ["lone high surrogate", "\ud800"],
+    ["lone low surrogate", "\udc00"],
+  ])(
+    "rejects the %s operation ID as local validation",
+    async (_name, operationId) => {
+      const requests = captureRequests();
+      const t = initConvexTest(defineSchema({}));
+
+      const caught = await t
+        .action(track, {
+          customerId: SCHEDULED_CUSTOMER_ID,
+          featureId: "messages",
+          value: 1,
+          operationId,
+        })
+        .catch((error) => error);
+
+      expect(errorData(caught)).toMatchObject({
+        code: "AUTUMN_VALIDATION_ERROR",
+        operation: "track",
+      });
+      expect(requests).toHaveLength(0);
+    }
+  );
+
   test("a public read action still fails without an identity to derive", async () => {
     const requests = captureRequests();
     const t = initConvexTest(defineSchema({}));

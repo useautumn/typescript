@@ -43,14 +43,16 @@ Every internal action now requires a `customerId` argument. Convex does not
 propagate the caller's auth into a scheduled or internal call, so `identify(ctx)`
 cannot resolve a customer there and is not consulted. Authorize the request in
 the mutation or action that still has an identity, resolve the subject there, and
-pass it to the internal action. Public validators are unchanged and still accept
-no customer ID.
+pass it to the internal action. Public validators accept no customer ID, and
+generated billing previews omit operator controls. Use direct server methods
+when an authorized flow needs those controls.
 
 A client that previously started checkout by calling `api.autumn.attach` now
 calls your own authorized action, which runs `internal.autumn.attach`. That
 action owns the decision, because the billing arguments include operator
 controls such as `noBillingChanges`, `enablePlanImmediately`,
-`refundLastPayment`, `recalculateBalances` and `carryOverUsages`.
+`refundLastPayment`, `subscriptionParams`, `recalculateBalances` and
+`carryOverUsages`.
 
 `check` no longer takes `sendEvent` or `operationId`. A balance-consuming check
 is the separate `consumeCheck` internal action and `autumn.consumeCheck` direct

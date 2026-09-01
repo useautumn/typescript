@@ -49,6 +49,46 @@ const READ_ONLY_ACTIONS: Array<[string, Record<string, unknown>, string]> = [
  * Every internal action, with arguments that reach transport. The trusted
  * `customerId` every one of them requires is added at the call site.
  */
+const PUBLIC_OPERATOR_CONTROLS: Array<[string, Record<string, unknown>]> = [
+  [
+    "previewAttach",
+    {
+      planId: "pro",
+      invoiceMode: { enabled: true, enablePlanImmediately: true },
+      noBillingChanges: true,
+      enablePlanImmediately: true,
+    },
+  ],
+  [
+    "previewMultiAttach",
+    {
+      plans: [{ planId: "pro" }],
+      invoiceMode: { enabled: true, enablePlanImmediately: true },
+      enablePlanImmediately: true,
+    },
+  ],
+  [
+    "previewUpdate",
+    {
+      planId: "pro",
+      invoiceMode: { enabled: true, enablePlanImmediately: true },
+      noBillingChanges: true,
+      refundLastPayment: "full",
+      subscriptionParams: { payment_behavior: "pending_if_incomplete" },
+      recalculateBalances: { enabled: false },
+      carryOverUsages: { enabled: true, featureIds: ["messages"] },
+    },
+  ],
+  [
+    "previewMultiUpdate",
+    {
+      updates: [{ planId: "pro", cancelAction: "cancel_immediately" }],
+      refundLastPayment: "full",
+      subscriptionParams: { payment_behavior: "pending_if_incomplete" },
+    },
+  ],
+];
+
 const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
   ["consumeCheck", { featureId: "messages" }],
   ["track", { featureId: "messages" }],
@@ -168,6 +208,48 @@ type RequiresCustomerId<Args> = Args extends unknown
     : false
   : never;
 
+type _PublicAttachRejectsOperatorControls = Assert<
+  Equal<
+    Extract<
+      keyof ActionArgs<PublicApi["previewAttach"]>,
+      "invoiceMode" | "noBillingChanges" | "enablePlanImmediately"
+    >,
+    never
+  >
+>;
+type _PublicMultiAttachRejectsOperatorControls = Assert<
+  Equal<
+    Extract<
+      keyof ActionArgs<PublicApi["previewMultiAttach"]>,
+      "invoiceMode" | "enablePlanImmediately"
+    >,
+    never
+  >
+>;
+type _PublicUpdateRejectsOperatorControls = Assert<
+  Equal<
+    Extract<
+      keyof ActionArgs<PublicApi["previewUpdate"]>,
+      | "invoiceMode"
+      | "noBillingChanges"
+      | "refundLastPayment"
+      | "subscriptionParams"
+      | "recalculateBalances"
+      | "carryOverUsages"
+    >,
+    never
+  >
+>;
+type _PublicMultiUpdateRejectsOperatorControls = Assert<
+  Equal<
+    Extract<
+      keyof ActionArgs<PublicApi["previewMultiUpdate"]>,
+      "refundLastPayment" | "subscriptionParams"
+    >,
+    never
+  >
+>;
+
 type _PublicActionsRejectCustomerId = Assert<
   Equal<AcceptsCustomerId<ActionArgs<PublicApi[keyof PublicApi]>>, false>
 >;
@@ -279,6 +361,21 @@ describe("public actions cannot change provider state", () => {
       // `send_event` is the one field that turns the shared check route into a
       // balance-consuming call.
       expect(await request.clone().text()).not.toContain("send_event");
+    }
+  );
+
+  test.each(PUBLIC_OPERATOR_CONTROLS)(
+    "%s rejects billing operator controls before transport",
+    async (name, args) => {
+      const fetcher = vi.fn();
+      vi.stubGlobal("fetch", fetcher);
+      const t = initConvexTest(defineSchema({}));
+      const action = makeFunctionReference<"action", Record<string, unknown>>(
+        `actions.fixture:${name}`
+      );
+
+      await expect(t.action(action, args)).rejects.toThrow();
+      expect(fetcher).not.toHaveBeenCalled();
     }
   );
 

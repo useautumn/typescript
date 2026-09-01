@@ -1,4 +1,4 @@
-import { AutumnConfigurationError } from "./errors.js";
+import { AutumnConfigurationError, AutumnValidationError } from "./errors.js";
 
 const KEY_FORMAT_VERSION = "1";
 const OPERATION_ID_MAX_LENGTH = 256;
@@ -31,6 +31,21 @@ function canonicalIdentity(parts: string[]): string {
   return parts.map((part) => `${part.length}\0${part}`).join("\0");
 }
 
+function isWellFormedUnicode(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      if (index + 1 >= value.length) return false;
+      const nextCodeUnit = value.charCodeAt(index + 1);
+      if (nextCodeUnit < 0xdc00 || nextCodeUnit > 0xdfff) return false;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function validateOperationNamespace(operationNamespace: string): void {
   if (
     operationNamespace.length === 0 ||
@@ -38,6 +53,11 @@ export function validateOperationNamespace(operationNamespace: string): void {
   ) {
     throw new AutumnConfigurationError(
       `Autumn operationNamespace must be between 1 and ${OPERATION_NAMESPACE_MAX_LENGTH} characters.`
+    );
+  }
+  if (!isWellFormedUnicode(operationNamespace)) {
+    throw new AutumnConfigurationError(
+      "Autumn operationNamespace must contain well-formed Unicode."
     );
   }
 }
@@ -50,8 +70,15 @@ export function validateOperationId(
     operationId.length === 0 ||
     operationId.length > OPERATION_ID_MAX_LENGTH
   ) {
-    throw new TypeError(
+    throw new AutumnValidationError(
+      operation,
       `${operation} operationId must be between 1 and ${OPERATION_ID_MAX_LENGTH} characters.`
+    );
+  }
+  if (!isWellFormedUnicode(operationId)) {
+    throw new AutumnValidationError(
+      operation,
+      `${operation} operationId must contain well-formed Unicode.`
     );
   }
 }

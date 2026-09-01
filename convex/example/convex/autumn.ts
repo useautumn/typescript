@@ -78,6 +78,7 @@ export const recordMessages = mutation({
   args: { count: v.number() },
   returns: v.null(),
   handler: async (ctx, args) => {
+    if (args.count < 0) throw new Error("Message count cannot be negative.");
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Sign in to record messages.");
     const messageId = await ctx.db.insert("messages", { count: args.count });

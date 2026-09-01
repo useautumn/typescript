@@ -47,13 +47,13 @@ import {
   type ListPlansArgs as ListPlansArgsType,
   type MultiAttachArgs as MultiAttachArgsType,
   type MultiUpdateArgs as MultiUpdateArgsType,
-  PreviewAttachArgs,
+  PublicPreviewAttachArgs,
   type PreviewAttachArgs as PreviewAttachArgsType,
-  PreviewMultiAttachArgs,
+  PublicPreviewMultiAttachArgs,
   type PreviewMultiAttachArgs as PreviewMultiAttachArgsType,
-  PreviewMultiUpdateArgs,
+  PublicPreviewMultiUpdateArgs,
+  PublicPreviewUpdateArgs,
   type PreviewMultiUpdateArgs as PreviewMultiUpdateArgsType,
-  PreviewUpdateArgs,
   type PreviewUpdateArgs as PreviewUpdateArgsType,
   type RedeemReferralCodeArgs as RedeemReferralCodeArgsType,
   type SetupPaymentArgs as SetupPaymentArgsType,
@@ -780,7 +780,8 @@ export class Autumn<Context = unknown> {
    * Every provider mutation, including a balance-consuming check, lives in
    * {@link Autumn.internalApi}. Billing arguments carry operator controls such
    * as `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
-   * `recalculateBalances` and `carryOverUsages`, so no client may reach them.
+   * `subscriptionParams`, `recalculateBalances` and `carryOverUsages`, so no
+   * client may reach them.
    */
   api() {
     return {
@@ -793,7 +794,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       previewAttach: actionGeneric({
-        args: PreviewAttachArgs,
+        args: PublicPreviewAttachArgs,
         handler: async (ctx, args) =>
           await this.actionResult(
             "billing.previewAttach",
@@ -801,7 +802,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       previewMultiAttach: actionGeneric({
-        args: PreviewMultiAttachArgs,
+        args: PublicPreviewMultiAttachArgs,
         handler: async (ctx, args) =>
           await this.actionResult(
             "billing.previewMultiAttach",
@@ -810,7 +811,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       previewUpdate: actionGeneric({
-        args: PreviewUpdateArgs,
+        args: PublicPreviewUpdateArgs,
         handler: async (ctx, args) =>
           await this.actionResult(
             "billing.previewUpdate",
@@ -818,7 +819,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       previewMultiUpdate: actionGeneric({
-        args: PreviewMultiUpdateArgs,
+        args: PublicPreviewMultiUpdateArgs,
         handler: async (ctx, args) =>
           await this.actionResult(
             "billing.previewMultiUpdate",

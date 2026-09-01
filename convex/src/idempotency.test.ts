@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { AutumnConfigurationError, AutumnValidationError } from "./errors.js";
 import { deriveProviderKey } from "./idempotency.js";
 
 const base = {
@@ -21,6 +22,34 @@ describe("provider key derivation", () => {
     expect(await deriveProviderKey({ ...base, ...difference })).not.toBe(
       await deriveProviderKey(base)
     );
+  });
+
+  test.each(["\ud800", "\udc00"])(
+    "rejects malformed operation ID Unicode %j",
+    async (operationId) => {
+      await expect(
+        deriveProviderKey({ ...base, operationId })
+      ).rejects.toBeInstanceOf(AutumnValidationError);
+    }
+  );
+
+  test.each(["\ud800", "\udc00"])(
+    "rejects malformed namespace Unicode %j",
+    async (operationNamespace) => {
+      await expect(
+        deriveProviderKey({ ...base, operationNamespace })
+      ).rejects.toBeInstanceOf(AutumnConfigurationError);
+    }
+  );
+
+  test("accepts paired surrogate sequences", async () => {
+    await expect(
+      deriveProviderKey({
+        ...base,
+        operationNamespace: "namespace-😀",
+        operationId: "operation-😀",
+      })
+    ).resolves.toMatch(/^autumn-1-[\w-]+$/);
   });
 
   test("keeps no identity part readable in the key", async () => {

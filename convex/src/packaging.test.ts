@@ -2,14 +2,16 @@
 import { execFileSync } from "node:child_process";
 import { gunzipSync } from "node:zlib";
 import {
+  cpSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
@@ -25,11 +27,31 @@ const staleOutput = [
   "dist/client/legacy-helper.js",
 ];
 
-function run(...args: string[]): void {
+function run(cwd: string, ...args: string[]): void {
   const [command, commandArgs] = packageManager
     ? [process.execPath, [packageManager, ...args]]
     : ["pnpm", args];
-  execFileSync(command, commandArgs, { cwd: packageRoot, stdio: "pipe" });
+  execFileSync(command, commandArgs, { cwd, stdio: "pipe" });
+}
+
+function copyPackage(destination: string): void {
+  cpSync(packageRoot, destination, {
+    recursive: true,
+    filter: (source) => {
+      const path = relative(packageRoot, source);
+      const topLevel = path.split(sep)[0];
+      return (
+        topLevel !== "node_modules" &&
+        topLevel !== "dist" &&
+        !path.endsWith(".tsbuildinfo")
+      );
+    },
+  });
+  symlinkSync(
+    join(packageRoot, "node_modules"),
+    join(destination, "node_modules"),
+    process.platform === "win32" ? "junction" : "dir"
+  );
 }
 
 /**
@@ -55,28 +77,30 @@ function tarballEntries(archive: string): string[] {
 }
 
 describe("release packaging", () => {
-  let destination: string;
+  let workspace: string;
+  let isolatedPackageRoot: string;
   let entries: string[];
 
   beforeAll(() => {
-    destination = mkdtempSync(join(tmpdir(), "autumn-convex-pack-"));
+    workspace = mkdtempSync(join(tmpdir(), "autumn-convex-pack-"));
+    isolatedPackageRoot = join(workspace, "package");
+    const destination = join(workspace, "packed");
+    copyPackage(isolatedPackageRoot);
+    mkdirSync(destination);
+
     for (const relativePath of staleOutput) {
-      const absolutePath = join(packageRoot, relativePath);
+      const absolutePath = join(isolatedPackageRoot, relativePath);
       mkdirSync(dirname(absolutePath), { recursive: true });
       writeFileSync(absolutePath, "export const removedHelper = true;\n");
     }
 
-    run("run", "build");
-    run("pack", "--pack-destination", destination);
+    run(isolatedPackageRoot, "run", "build");
+    run(isolatedPackageRoot, "pack", "--pack-destination", destination);
     entries = tarballEntries(join(destination, tarball));
   }, 300_000);
 
   afterAll(() => {
-    rmSync(destination, { recursive: true, force: true });
-    // A failed build leaves the seeded files behind for the next `pnpm pack`.
-    for (const relativePath of staleOutput) {
-      rmSync(join(packageRoot, relativePath), { force: true });
-    }
+    rmSync(workspace, { recursive: true, force: true });
   });
 
   test("emits the declared entry points", () => {
@@ -91,7 +115,9 @@ describe("release packaging", () => {
       []
     );
     for (const relativePath of staleOutput) {
-      expect(() => readFileSync(join(packageRoot, relativePath))).toThrow();
+      expect(() =>
+        readFileSync(join(isolatedPackageRoot, relativePath))
+      ).toThrow();
     }
   });
 });
