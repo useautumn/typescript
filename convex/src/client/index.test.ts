@@ -203,7 +203,7 @@ describe("Autumn native transport", () => {
     expect(new Set(keys).size).toBe(2);
   });
 
-  test("binds operation keys to route, not customer or payload", async () => {
+  test("fences reused operation IDs across customers and payloads", async () => {
     const keys: string[] = [];
     const fetcher = async (input: RequestInfo | URL) => {
       const request = new Request(input);
@@ -245,9 +245,9 @@ describe("Autumn native transport", () => {
       string,
       string,
     ];
-    // The namespace and operation ID name one logical operation even if a
-    // caller changes its customer or payload. The route remains part of the key
-    // so the same operation ID can safely name a different mutation action.
+    // Within one namespace and mutation action, an operation ID is unique across
+    // all customers. Changing the customer or payload deliberately keeps the
+    // same key, while another mutation action has its own operation identity.
     expect(changedTrack).toBe(firstTrack);
     expect(otherCustomer).toBe(firstTrack);
     expect(otherRoute).not.toBe(firstTrack);
@@ -809,6 +809,29 @@ describe("Autumn native transport", () => {
       })
     ).rejects.toMatchObject({ name: "RequestAbortedError" });
     expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test("allows only read-only fields from structurally compatible check args", async () => {
+    const args = {
+      featureId: "messages",
+      entityId: "workspace-1",
+      requiredBalance: 2,
+      properties: { source: "runtime" },
+      withPreview: true,
+      sendEvent: true,
+    };
+
+    const request = await capture((autumn) => autumn.check(null, args));
+
+    expect(request.body).toEqual({
+      customer_id: "customer-1",
+      feature_id: "messages",
+      entity_id: "workspace-1",
+      required_balance: 2,
+      properties: { source: "runtime" },
+      with_preview: true,
+    });
+    expect(request.body).not.toHaveProperty("send_event");
   });
 
   test("separates the read-only check from the consuming one", async () => {

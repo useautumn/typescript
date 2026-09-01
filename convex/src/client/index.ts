@@ -245,6 +245,20 @@ function validateListEvents(args: ListEventsArgsType): void {
   }
 }
 
+function readOnlyCheckRequest(
+  identifier: Identifier,
+  args: CheckArgsType
+): CheckArgsType & { customerId: string } {
+  return {
+    customerId: identifier.customerId,
+    featureId: args.featureId,
+    entityId: args.entityId,
+    requiredBalance: args.requiredBalance,
+    properties: args.properties,
+    withPreview: args.withPreview,
+  };
+}
+
 function mergeCustomerData(
   identifier: Identifier,
   request: Omit<GetOrCreateCustomerArgsType, "operationId">
@@ -438,7 +452,7 @@ export class Autumn<Context = unknown> {
     return await this.read(
       ctx,
       "check",
-      (identifier) => ({ ...args, customerId: identifier.customerId }),
+      (identifier) => readOnlyCheckRequest(identifier, args),
       (request) => (sdk, options) => sdk.check(request, options)
     );
   }

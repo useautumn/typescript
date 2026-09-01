@@ -119,11 +119,12 @@ block would publish it under `api.<module>.<name>` and let any client call it.
 
 Direct billing methods accept operator controls such as `invoiceMode`,
 `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
-`subscriptionParams`, `recalculateBalances` and `carryOverUsages`. Generated public preview actions
-omit those fields. Provider mutations including `attach`, `multiAttach`,
-`updateSubscription`, `multiUpdate` and `setupPayment` are internal. `track` is
-internal for the same reason: a negative `value` returns balance to the customer,
-the grant `updateBalance` performs directly.
+`subscriptionParams`, `recalculateBalances` and `carryOverUsages`. Generated
+public preview actions omit those fields. Provider mutations including `attach`,
+`multiAttach`, `updateSubscription`, `multiUpdate` and `setupPayment` are
+internal. `track` is internal because a negative `value` can return balance to
+the customer. `updateBalance` is separately internal because it directly
+changes a balance or its grant configuration.
 
 Public `check` is read-only by construction. Its validator has no `sendEvent`
 and no `operationId`, so it cannot consume balance. Use the internal
@@ -183,9 +184,11 @@ if (result.balance) {
 
 The package hashes the operation namespace, mutation action and `operationId`
 into the provider `Idempotency-Key`. None of those values appears in that header
-in readable form. The request payload and customer ID are not part
-of the key, so reusing an `operationId` with different arguments reaches the same
-key and Autumn rejects it as a duplicate instead of performing a second mutation.
+in readable form. An `operationId` must be unique within its
+`operationNamespace` and mutation action across all customers. The request
+payload and customer ID are not part of the key, so changing the customer or
+arguments does not create a new key. Autumn rejects the reused key as a duplicate
+instead of performing a second mutation.
 
 `autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
 records the usage event and requires one. HTTP 202 and malformed success JSON

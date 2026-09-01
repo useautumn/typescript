@@ -92,10 +92,11 @@ export function validateOperationId(
  * and the action name keeps one operation ID from meaning two different
  * mutations.
  *
- * The request payload is deliberately not part of the key. A caller that reuses
- * an operation ID with different arguments must reach the same key, so that
- * Autumn rejects the second request as a duplicate rather than performing a
- * second mutation nobody asked for.
+ * The customer ID and request payload are deliberately not part of the key. An
+ * operation ID is therefore unique within its namespace and mutation action
+ * across all customers. Reusing it with another customer or different arguments
+ * must reach the same key, so Autumn rejects the second request as a duplicate
+ * rather than performing a second mutation nobody asked for.
  *
  * None of the inputs travels in readable form: the key is a digest of the
  * versioned canonical identity, and only the format version stays legible.
