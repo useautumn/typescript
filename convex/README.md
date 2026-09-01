@@ -26,6 +26,9 @@ app.use(autumn);
 export default app;
 ```
 
+The component holds no tables and no functions. Autumn owns the state of every
+operation, and this package keeps no copy of it.
+
 Create the client in `convex/autumn.ts`:
 
 ```ts
@@ -92,15 +95,15 @@ their arguments never accept a customer ID.
 
 `operationNamespace` is required and names the Autumn organization and
 environment this client operates on. Choose it deliberately and keep it stable:
-operation identity is derived from it, so changing it orphans every operation
-recorded under the previous value, and deriving it from the secret key would
-orphan them all on the next key rotation.
+the provider idempotency key is derived from it, so changing it gives every
+in-flight operation a new key, and deriving it from the secret key would do that
+on the next key rotation.
 
 Two clients that share one installed component must not share a namespace. The
-namespace separates their ledger entries and their provider idempotency keys, so
-neither replays the other's stored result and neither reports a conflict against
-the other. The namespace, the customer ID and the operation ID are hashed into
-both keys, so none of them is stored or sent in readable form.
+namespace separates their provider idempotency keys, so one application's
+operation ID can never suppress another's mutation at Autumn. The namespace,
+mutation action and operation ID are hashed into the key, so none of them is sent
+in readable form.
 
 ## Public and internal actions
 
@@ -152,16 +155,18 @@ export const recordMessages = mutation({
 });
 ```
 
-The `customerId` identifies the operation and is stripped before the Autumn
-request is built. It is the one place a customer ID may be supplied, and it is
-reachable only from server code that has already decided the operation is
-allowed.
+The internal action's `customerId` and `operationId` metadata are stripped
+before its Autumn request shape is assembled. The trusted customer value is then
+added only as the request's subject. This is the one place a customer ID may be
+supplied, and it is reachable only from server code that has already decided the
+operation is allowed.
 
 ## Direct methods
 
 Direct methods return the native `autumn-js` result and throw native SDK errors.
-They are intended for trusted server code. State-changing calls require a durable
-caller-generated `operationId`:
+They are intended for trusted server code. State-changing calls require a
+caller-generated `operationId` that is stable across repeated attempts at the
+same logical operation, such as the ID of the document the work belongs to:
 
 ```ts
 const result = await autumn.track(ctx, {
@@ -175,37 +180,41 @@ if (result.balance) {
 }
 ```
 
-The package hashes the operation namespace, operation name, server-derived
-customer ID, canonical request fingerprint and `operationId` into the provider
-`Idempotency-Key`. None of those values appears in that header in readable form.
-Reusing an `operationId` with different arguments is unsafe for direct methods
-because they cannot access Convex storage. The derived provider key still
-changes with the payload.
+The package hashes the operation namespace, mutation action and `operationId`
+into the provider `Idempotency-Key`. None of those values appears in that header
+in readable form. The request payload and customer ID are not part
+of the key, so reusing an `operationId` with different arguments reaches the same
+key and Autumn rejects it as a duplicate instead of performing a second mutation.
 
 `autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
-records the usage event and requires one. HTTP 202 throws
-`AutumnIndeterminateError` instead of returning a fail-open response.
+records the usage event and requires one. HTTP 202 and malformed success JSON
+throw `AutumnIndeterminateError` instead of returning a fail-open response.
 
-## Generated action behavior
+## Duplicate suppression and its limits
 
-Generated mutation actions use the component-owned operation ledger. They claim
-the operation before transport, record submission, and persist a serializable
-terminal result or safe terminal error. A replay returns only a stored terminal
-result. Submitted and indeterminate operations are never sent again.
+This package stores nothing. Every mutation is one shot: it sends its request
+once per invocation and reports what it saw. Duplicate suppression is entirely
+Autumn's, through the `Idempotency-Key` header, and it is time-bounded. Autumn
+[currently rejects a key it has already seen within 24 hours with HTTP 409](https://docs.useautumn.com/documentation/customers/edge-cases)
+and does not return the original operation's result with it. Past that window
+the same key is a new operation.
 
-A claim carries a lease and an attempt token. While the lease is live, another
-invocation of the same operation reports an indeterminate outcome rather than
-sending it, so two callers never race the same operation to Autumn. A process
-that dies between claiming an operation and submitting it never sent it, and its
-claim is recoverable: once the lease expires, the next invocation takes the claim
-over with a token of its own. Submitting requires that token and a live lease, so
-the attempt that was displaced cannot dispatch afterwards. The lease length is
-the `CLAIM_LEASE_MS` constant in the component, and recovery waits for it to
-expire. Nothing is retried automatically: a recovered claim is a new attempt
-that has established the operation was never sent.
+Read that as duplicate suppression, never as durable recovery or exactly-once
+execution:
 
-HTTP 202, HTTP 409, HTTP 5xx, network failures, timeouts and aborts are stored as
-indeterminate. Generated errors are `ConvexError` values whose data contains only:
+- An outcome the package cannot read is reported as `AUTUMN_INDETERMINATE` and
+  left there. HTTP 202, HTTP 409, HTTP 5xx, malformed success responses, network
+  failures, timeouts and aborts all land here.
+- Nothing is retried, in place or on a schedule. HTTP 429 also fails closed
+  without an automatic retry. Whether an ambiguous operation took effect is
+  knowable only from Autumn, so the decision belongs to the caller.
+- A retried invocation is a new request under the same key. Inside the duplicate
+  window it is rejected rather than replayed, so a caller that repeats a
+  mutation to obtain its result gets an error, not the result.
+- Reconcile an indeterminate operation by reading the customer's state back from
+  Autumn before deciding to send it again.
+
+Generated errors are `ConvexError` values whose data contains only:
 
 ```ts
 {
@@ -220,12 +229,11 @@ Native `Response`, `Request`, `Headers` and raw response bodies never cross an
 action boundary.
 
 Every generated action resolves to the same native camelCase type as its direct
-method, including a replayed terminal result, so callers read result fields
-without an assertion. A result is validated with Convex's own value encoder
-before it is stored or returned. One Convex refuses to encode, such as a
-provider-supplied map key that starts with `$`, becomes an
-`AUTUMN_RESULT_UNSERIALIZABLE` error and leaves the operation indeterminate
-rather than failing at the outer action boundary.
+method, so callers read result fields without an assertion. A result is validated
+with Convex's own value encoder before it is returned. One Convex refuses to
+encode, such as a provider-supplied map key that starts with `$`, becomes an
+`AUTUMN_RESULT_UNSERIALIZABLE` error rather than an opaque failure at the outer
+action boundary. The operation itself already reached Autumn in that case.
 
 ## Supported methods
 

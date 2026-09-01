@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { defineSchema, makeFunctionReference } from "convex/server";
 import type { InternalTrackArgs } from "../types.js";
-import { errorData, initConvexTest, response } from "./setup.test.js";
+import { initConvexTest, response } from "./setup.test.js";
 
 const trackTenantA = makeFunctionReference<
   "action",
@@ -43,10 +43,10 @@ afterEach(() => {
 /**
  * Two clients addressing the same installed component. Everything they share
  * (customer, operation, operation ID) is identical here, so the namespace is
- * the only thing keeping their operations apart.
+ * the only thing keeping their operations apart at Autumn.
  */
-describe("operation namespaces on one component ledger", () => {
-  test("neither namespace replays the other's terminal result", async () => {
+describe("operation namespaces", () => {
+  test("two namespaces derive two provider keys", async () => {
     const keys = captureKeys();
     const t = initConvexTest(defineSchema({}));
     const args = {
@@ -56,27 +56,45 @@ describe("operation namespaces on one component ledger", () => {
       operationId: OPERATION_ID,
     };
 
-    const firstA = await t.action(trackTenantA, args);
-    const firstB = await t.action(trackTenantB, args);
-    const replayA = await t.action(trackTenantA, args);
-    const replayB = await t.action(trackTenantB, args);
-
-    expect(firstA).toEqual({
+    await expect(t.action(trackTenantA, args)).resolves.toEqual({
       customerId: CUSTOMER_ID,
       value: 1,
       balance: null,
     });
-    expect(firstB).toEqual(firstA);
-    expect(replayA).toEqual(firstA);
-    expect(replayB).toEqual(firstA);
-    // Two dispatches for four invocations: each namespace sent its own
-    // operation once and then replayed only its own stored result.
+    await expect(t.action(trackTenantB, args)).resolves.toEqual({
+      customerId: CUSTOMER_ID,
+      value: 1,
+      balance: null,
+    });
+
+    // Each namespace sent its own operation, and neither can suppress the
+    // other's at Autumn, because their keys differ.
     expect(keys).toHaveLength(2);
     expect(new Set(keys).size).toBe(2);
   });
 
-  test("neither namespace reports a conflict against the other", async () => {
-    captureKeys();
+  test("one namespace repeats its key instead of replaying a stored result", async () => {
+    const keys = captureKeys();
+    const t = initConvexTest(defineSchema({}));
+    const args = {
+      customerId: CUSTOMER_ID,
+      featureId: "messages",
+      value: 1,
+      operationId: OPERATION_ID,
+    };
+
+    await t.action(trackTenantA, args);
+    await t.action(trackTenantA, args);
+
+    // The package stores nothing, so a second invocation is a second request.
+    // Suppressing it is Autumn's job, and the key it needs for that is the one
+    // both requests carry.
+    expect(keys).toHaveLength(2);
+    expect(new Set(keys).size).toBe(1);
+  });
+
+  test("a reused operation ID keeps its key when the payload changes", async () => {
+    const keys = captureKeys();
     const t = initConvexTest(defineSchema({}));
     const base = {
       customerId: CUSTOMER_ID,
@@ -85,14 +103,11 @@ describe("operation namespaces on one component ledger", () => {
     };
 
     await t.action(trackTenantA, { ...base, value: 1 });
-    await expect(
-      t.action(trackTenantB, { ...base, value: 2 })
-    ).resolves.toMatchObject({ value: 2 });
+    await t.action(trackTenantA, { ...base, value: 2 });
 
-    const conflict = await t
-      .action(trackTenantA, { ...base, value: 2 })
-      .catch((caught) => caught);
-
-    expect(errorData(conflict).code).toBe("AUTUMN_OPERATION_CONFLICT");
+    // The payload is not part of the key. A caller that reuses an operation ID
+    // with different arguments reaches Autumn's duplicate rejection rather than
+    // a second, differently keyed mutation.
+    expect(new Set(keys).size).toBe(1);
   });
 });

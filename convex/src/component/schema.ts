@@ -1,32 +1,12 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema } from "convex/server";
 
-const state = v.union(
-  v.literal("claimed"),
-  v.literal("submitted"),
-  v.literal("succeeded"),
-  v.literal("failed"),
-  v.literal("indeterminate")
-);
-
-export default defineSchema({
-  operations: defineTable({
-    ledgerKey: v.string(),
-    operation: v.string(),
-    requestFingerprint: v.string(),
-    state,
-    /** The attempt that currently owns the operation. */
-    attemptToken: v.string(),
-    /** When the owning attempt loses a `claimed` operation. */
-    leaseExpiresAt: v.number(),
-    result: v.optional(v.any()),
-    error: v.optional(
-      v.object({
-        code: v.string(),
-        operation: v.string(),
-        statusCode: v.optional(v.number()),
-        message: v.string(),
-      })
-    ),
-  }).index("ledgerKey", ["ledgerKey"]),
-});
+/**
+ * The component stores nothing.
+ *
+ * Autumn owns the state of every operation this package performs, and the
+ * package keeps no copy of it: a mutation is dispatched once per invocation and
+ * carries a provider idempotency key instead of a local record. The component
+ * exists so the client is installed under a Convex component namespace of its
+ * own.
+ */
+export default defineSchema({});

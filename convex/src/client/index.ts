@@ -1,10 +1,5 @@
 import { ConvexError } from "convex/values";
-import {
-  actionGeneric,
-  type GenericActionCtx,
-  type GenericDataModel,
-  internalActionGeneric,
-} from "convex/server";
+import { actionGeneric, internalActionGeneric } from "convex/server";
 import type { Autumn as AutumnSDK } from "autumn-js";
 import type { ComponentApi } from "../component/_generated/component.js";
 import {
@@ -75,7 +70,7 @@ import {
   AutumnValidationError,
 } from "../errors.js";
 import {
-  deriveOperationKeys,
+  deriveProviderKey,
   validateOperationNamespace,
 } from "../idempotency.js";
 import {
@@ -96,18 +91,16 @@ export type AutumnOptions<Context> = AutumnTransportOptions & {
   /**
    * The Autumn organization and environment this client operates on.
    *
-   * Operation identity is derived from it, so two clients that share one
-   * component instance never replay each other's results and never report a
-   * conflict against each other. Choose a deliberate, stable value such as
-   * `"acme-production"`: it has to survive a secret-key rotation, because a
-   * value derived from the key would orphan every operation the previous key
-   * recorded.
+   * Provider idempotency keys are derived from it, so two clients that share
+   * one component instance never address each other's operations at Autumn.
+   * Choose a deliberate, stable value such as `"acme-production"`: it has to
+   * survive a secret-key rotation, because a value derived from the key would
+   * change the key of every operation still inside Autumn's duplicate window.
    */
   operationNamespace: string;
   identify: (ctx: Context) => Identifier | null | Promise<Identifier | null>;
 };
 
-type ActionContext = GenericActionCtx<GenericDataModel>;
 type NativeCall<T> = (
   sdk: AutumnSDK,
   options: { retries: { strategy: "none" }; headers?: Record<string, string> }
@@ -126,9 +119,9 @@ function withoutOperationId<T extends MutationArgs>(
  * Drop the fields that identify the operation rather than describe the request.
  *
  * An internal action carries the customer ID that its trusted caller resolved.
- * That ID and the operation ID are operation identity, so both are stripped
- * before the Autumn request is built and the customer is re-added from the
- * identifier the operation runs under.
+ * It and the operation ID are action metadata, so both are stripped before the
+ * Autumn request is built and the customer is re-added from the trusted
+ * identifier.
  */
 function withoutIdentity<T extends InternalMutationArgs>(
   args: T
@@ -308,6 +301,11 @@ function safeError(
 export class Autumn<Context = unknown> {
   private readonly transport: AutumnTransport;
 
+  /**
+   * @param component The installed Autumn component. It holds no tables and no
+   * functions: Autumn owns the state of every operation, and this package keeps
+   * no copy of it.
+   */
   constructor(
     public readonly component: AutumnComponent,
     public readonly options: AutumnOptions<Context>
@@ -358,6 +356,28 @@ export class Autumn<Context = unknown> {
     return await invokeNative(operation, call, invoke(nativeRequest));
   }
 
+  /**
+   * The single call a mutation is allowed to make.
+   *
+   * Its `Idempotency-Key` is the only duplicate suppression a mutation has, and
+   * it belongs to Autumn: it is time-bounded, it rejects a repeat rather than
+   * replaying the original result, and it therefore says nothing about an
+   * outcome this package could not read. A mutation dispatches once for that
+   * reason, and neither retries nor schedules a second attempt.
+   */
+  private async keyedCall(
+    operation: string,
+    args: MutationArgs
+  ): Promise<AutumnCall> {
+    return this.transport.createCall(
+      await deriveProviderKey({
+        operation,
+        operationNamespace: this.options.operationNamespace,
+        operationId: args.operationId,
+      })
+    );
+  }
+
   private async mutate<Request extends object, T>(
     ctx: Context,
     operation: string,
@@ -367,14 +387,7 @@ export class Autumn<Context = unknown> {
   ): Promise<T> {
     const identifier = await this.identify(ctx);
     const nativeRequest = request(identifier);
-    const { providerKey } = await deriveOperationKeys({
-      operation,
-      operationNamespace: this.options.operationNamespace,
-      customerId: identifier.customerId,
-      operationId: args.operationId,
-      request: nativeRequest,
-    });
-    const call = this.transport.createCall(providerKey);
+    const call = await this.keyedCall(operation, args);
     return await invokeNative(operation, call, invoke(nativeRequest));
   }
 
@@ -390,111 +403,34 @@ export class Autumn<Context = unknown> {
     }
   }
 
+  /**
+   * Run one provider mutation as an internal Convex action.
+   *
+   * The action is one shot. It sends the request once and reports what it saw;
+   * an ambiguous outcome such as HTTP 202, HTTP 409, an HTTP 5xx, a timeout or a
+   * dropped connection becomes an `AUTUMN_INDETERMINATE` error and stays there.
+   * Deciding what to do about it needs the state Autumn holds, which is why
+   * nothing here retries, schedules or records an attempt of its own.
+   */
   private async generated<Request extends object, T>(
-    ctx: ActionContext,
     operation: string,
     args: InternalMutationArgs,
     request: (identifier: Identifier) => Request,
     invoke: (request: Request) => NativeCall<T>
   ): Promise<T> {
+    let call: AutumnCall | undefined;
     try {
       const identifier = this.trustedIdentifier(operation, args);
       const nativeRequest = request(identifier);
-      const keys = await deriveOperationKeys({
-        operation,
-        operationNamespace: this.options.operationNamespace,
-        customerId: identifier.customerId,
-        operationId: args.operationId,
-        request: nativeRequest,
-      });
-      // The token names this one attempt. It is minted in the action runtime
-      // because Convex may re-execute the claiming mutation, and a token minted
-      // inside that transaction would not distinguish one attempt from another.
-      const attemptToken = crypto.randomUUID();
-      const claim = await ctx.runMutation(this.component.lib.claimOperation, {
-        ledgerKey: keys.ledgerKey,
-        operation,
-        requestFingerprint: keys.requestFingerprint,
-        attemptToken,
-      });
-
-      if (claim.state === "succeeded") return claim.result as T;
-      if (claim.state === "failed") throw new ConvexError(claim.error);
-      if (claim.state === "conflict") {
-        throw new ConvexError({
-          code: "AUTUMN_OPERATION_CONFLICT",
-          operation,
-          message: "operationId was already used with different arguments.",
-        } satisfies AutumnErrorData);
-      }
-      if (claim.state === "pending" || claim.state === "indeterminate") {
-        throw new ConvexError({
-          code: "AUTUMN_INDETERMINATE",
-          operation,
-          message: "The Autumn operation has an indeterminate outcome.",
-        } satisfies AutumnErrorData);
-      }
-
-      try {
-        await ctx.runMutation(this.component.lib.markSubmitted, {
-          ledgerKey: keys.ledgerKey,
-          requestFingerprint: keys.requestFingerprint,
-          attemptToken,
-        });
-      } catch {
-        throw new ConvexError({
-          code: "AUTUMN_INDETERMINATE",
-          operation,
-          message: "The Autumn operation has an indeterminate outcome.",
-        } satisfies AutumnErrorData);
-      }
-
-      let call: AutumnCall | undefined;
-      try {
-        call = this.transport.createCall(keys.providerKey);
-        const nativeResult = await invokeNative(
-          operation,
-          call,
-          invoke(nativeRequest)
-        );
-        let result: T;
-        try {
-          result = toConvexSerializable(nativeResult);
-        } catch (error) {
-          const terminalError = safeError(operation, error);
-          await ctx.runMutation(this.component.lib.completeOperation, {
-            ledgerKey: keys.ledgerKey,
-            requestFingerprint: keys.requestFingerprint,
-            attemptToken,
-            terminal: { state: "indeterminate" },
-          });
-          throw new ConvexError(terminalError);
-        }
-        await ctx.runMutation(this.component.lib.completeOperation, {
-          ledgerKey: keys.ledgerKey,
-          requestFingerprint: keys.requestFingerprint,
-          attemptToken,
-          terminal: { state: "succeeded", result },
-        });
-        return result;
-      } catch (error) {
-        if (error instanceof ConvexError) throw error;
-        const statusCode = call?.status() ?? sdkStatus(error);
-        const terminalError = safeError(operation, error, statusCode);
-        const indeterminate = isTransportIndeterminate(error, statusCode);
-        await ctx.runMutation(this.component.lib.completeOperation, {
-          ledgerKey: keys.ledgerKey,
-          requestFingerprint: keys.requestFingerprint,
-          attemptToken,
-          terminal: indeterminate
-            ? { state: "indeterminate" }
-            : { state: "failed", error: terminalError },
-        });
-        throw new ConvexError(terminalError);
-      }
+      call = await this.keyedCall(operation, args);
+      return toConvexSerializable(
+        await invokeNative(operation, call, invoke(nativeRequest))
+      );
     } catch (error) {
       if (error instanceof ConvexError) throw error;
-      throw new ConvexError(safeError(operation, error, sdkStatus(error)));
+      throw new ConvexError(
+        safeError(operation, error, call?.status() ?? sdkStatus(error))
+      );
     }
   }
 
@@ -837,10 +773,9 @@ export class Autumn<Context = unknown> {
    *
    * The public surface fails closed: an operation belongs here only when it
    * cannot change provider state. Every one of these reaches Autumn through
-   * {@link Autumn.read}, which never derives a provider idempotency key and
-   * never touches the operation ledger, and every route it can reach is a
-   * preview, a portal session, or a read of the identified customer, its
-   * entities, its events, or the plan catalog.
+   * {@link Autumn.read}, which never derives a provider idempotency key, and
+   * every route it can reach is a preview, a portal session, or a read of the
+   * identified customer, its entities, its events, or the plan catalog.
    *
    * Every provider mutation, including a balance-consuming check, lives in
    * {@link Autumn.internalApi}. Billing arguments carry operator controls such
@@ -972,14 +907,17 @@ export class Autumn<Context = unknown> {
    * `identify(ctx)` has nothing to resolve there and is never consulted. The
    * calling server code owns that decision and passes the subject it
    * authorized; the field never reaches Autumn as a request field of its own.
+   *
+   * Each of them is one shot: it dispatches its request once and never retries.
+   * A caller that sees an indeterminate outcome owns the decision to reconcile
+   * it, because only Autumn knows whether the operation took effect.
    */
   internalApi() {
     return {
       consumeCheck: internalActionGeneric({
         args: InternalConsumeCheckArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "check",
             args,
             (identifier) => ({
@@ -992,9 +930,8 @@ export class Autumn<Context = unknown> {
       }),
       track: internalActionGeneric({
         args: InternalTrackArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "track",
             args,
             (identifier) => {
@@ -1009,9 +946,8 @@ export class Autumn<Context = unknown> {
       }),
       attach: internalActionGeneric({
         args: InternalAttachArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "billing.attach",
             args,
             (identifier) => {
@@ -1026,9 +962,8 @@ export class Autumn<Context = unknown> {
       }),
       multiAttach: internalActionGeneric({
         args: InternalMultiAttachArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "billing.multiAttach",
             args,
             (identifier) => {
@@ -1044,9 +979,8 @@ export class Autumn<Context = unknown> {
       }),
       updateSubscription: internalActionGeneric({
         args: InternalUpdateSubscriptionArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "billing.update",
             args,
             (identifier) => {
@@ -1064,9 +998,8 @@ export class Autumn<Context = unknown> {
       }),
       multiUpdate: internalActionGeneric({
         args: InternalMultiUpdateArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "billing.multiUpdate",
             args,
             (identifier) => {
@@ -1082,9 +1015,8 @@ export class Autumn<Context = unknown> {
       }),
       setupPayment: internalActionGeneric({
         args: InternalSetupPaymentArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "billing.setupPayment",
             args,
             (identifier) => {
@@ -1103,9 +1035,8 @@ export class Autumn<Context = unknown> {
       }),
       getOrCreateCustomer: internalActionGeneric({
         args: InternalGetOrCreateCustomerArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "customers.getOrCreate",
             args,
             (identifier) =>
@@ -1116,9 +1047,8 @@ export class Autumn<Context = unknown> {
       }),
       updateCustomer: internalActionGeneric({
         args: InternalUpdateCustomerArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "customers.update",
             args,
             (identifier) => ({
@@ -1131,9 +1061,8 @@ export class Autumn<Context = unknown> {
       }),
       deleteCustomer: internalActionGeneric({
         args: InternalDeleteCustomerArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "customers.delete",
             args,
             (identifier) => ({
@@ -1146,9 +1075,8 @@ export class Autumn<Context = unknown> {
       }),
       createEntity: internalActionGeneric({
         args: InternalCreateEntityArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "entities.create",
             args,
             (identifier) => ({
@@ -1160,9 +1088,8 @@ export class Autumn<Context = unknown> {
       }),
       updateEntity: internalActionGeneric({
         args: InternalUpdateEntityArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "entities.update",
             args,
             (identifier) => ({
@@ -1174,9 +1101,8 @@ export class Autumn<Context = unknown> {
       }),
       deleteEntity: internalActionGeneric({
         args: InternalDeleteEntityArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "entities.delete",
             args,
             (identifier) => ({
@@ -1188,9 +1114,8 @@ export class Autumn<Context = unknown> {
       }),
       updateBalance: internalActionGeneric({
         args: InternalUpdateBalanceArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "balances.update",
             args,
             (identifier) => {
@@ -1205,9 +1130,8 @@ export class Autumn<Context = unknown> {
       }),
       createReferralCode: internalActionGeneric({
         args: InternalCreateReferralCodeArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "referrals.create",
             args,
             (identifier) => ({
@@ -1220,9 +1144,8 @@ export class Autumn<Context = unknown> {
       }),
       redeemReferralCode: internalActionGeneric({
         args: InternalRedeemReferralCodeArgs,
-        handler: async (ctx, args) =>
+        handler: async (_ctx, args) =>
           await this.generated(
-            ctx,
             "referrals.redeem",
             args,
             (identifier) => ({

@@ -11,16 +11,17 @@ contract.
 | `url`                              | `serverURL`                                 |
 | SDK version range or workspace SDK | exact runtime dependency `autumn-js@1.2.55` |
 | caller-provided customer fields    | customer ID from `identify(ctx)`            |
-| optional provider idempotency key  | required durable `operationId` on mutations |
+| optional provider idempotency key  | required stable `operationId` on mutations  |
 | implicit single-tenant identity    | required deliberate `operationNamespace`    |
 
 Header overrides for `Authorization`, `Content-Type`, `X-API-Version` and
 `Idempotency-Key` now fail during client construction.
 
 `operationNamespace` names the Autumn organization and environment the client
-operates on, and operation identity is derived from it. Pick a stable value that
-survives a secret-key rotation. Two clients that share one installed component
-need different namespaces, or they read each other's ledger entries.
+operates on, and the provider idempotency key is derived from it. Pick a stable
+value that survives a secret-key rotation. Two clients that share one installed
+component need different namespaces, or one application's operation ID can
+suppress the other's mutation at Autumn.
 
 ## Generated action visibility
 
@@ -53,19 +54,23 @@ controls such as `noBillingChanges`, `enablePlanImmediately`,
 
 `check` no longer takes `sendEvent` or `operationId`. A balance-consuming check
 is the separate `consumeCheck` internal action and `autumn.consumeCheck` direct
-method, which requires a durable `operationId`.
+method, which requires an `operationId`.
 
 ## Results and errors
 
 Legacy `{ data, error, statusCode }` envelopes are gone. Direct methods resolve to
-native camelCase SDK values and throw native SDK errors. HTTP 202 throws
-`AutumnIndeterminateError`.
+native camelCase SDK values and throw native SDK errors. HTTP 202 and malformed
+success JSON throw `AutumnIndeterminateError`.
 
-Generated actions return serializable native values. They throw safe
-`ConvexError` data and use the component ledger to prevent an automatic retry
-after a submitted operation has an unknown outcome. A claim taken by a process
-that then died is recoverable once its lease expires, because such an operation
-provably never reached Autumn.
+Generated actions return serializable native values and throw safe `ConvexError`
+data. Each of them is one shot: it dispatches its request once and never retries
+an ambiguous outcome such as HTTP 202, HTTP 409, an HTTP 5xx, a malformed
+success response, a timeout or a dropped connection. HTTP 429 also fails closed
+without an automatic retry. Duplicate suppression is Autumn's, through the
+derived `Idempotency-Key`, and it is time-bounded and does not replay the original
+result. A caller that repeats a mutation after an unknown outcome must reconcile
+it against Autumn first. See the README section on duplicate suppression and its
+limits.
 
 ## Method mapping
 

@@ -149,7 +149,7 @@ describe("Autumn native transport", () => {
     expect(new Set(keys).size).toBe(2);
   });
 
-  test("separates operation keys by route, customer and payload", async () => {
+  test("binds operation keys to route, not customer or payload", async () => {
     const keys: string[] = [];
     const fetcher = async (input: RequestInfo | URL) => {
       const request = new Request(input);
@@ -185,7 +185,18 @@ describe("Autumn native transport", () => {
       })
       .catch(() => undefined);
 
-    expect(new Set(keys).size).toBe(4);
+    const [firstTrack, changedTrack, otherCustomer, otherRoute] = keys as [
+      string,
+      string,
+      string,
+      string,
+    ];
+    // The namespace and operation ID name one logical operation even if a
+    // caller changes its customer or payload. The route remains part of the key
+    // so the same operation ID can safely name a different mutation action.
+    expect(changedTrack).toBe(firstTrack);
+    expect(otherCustomer).toBe(firstTrack);
+    expect(otherRoute).not.toBe(firstTrack);
   });
 
   test("derives stable keys and bounds operation IDs", async () => {
@@ -584,7 +595,24 @@ describe("Autumn native transport", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
-  test.each([409, 500, 503])("does not retry HTTP %s", async (status) => {
+  test("makes a malformed success response observable without retrying", async () => {
+    const fetcher = vi.fn(
+      async () =>
+        new Response("{", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+    );
+    await expect(
+      client(fetcher).track(null, {
+        featureId: "messages",
+        operationId: "malformed",
+      })
+    ).rejects.toBeInstanceOf(AutumnIndeterminateError);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test.each([409, 429, 500, 503])("does not retry HTTP %s", async (status) => {
     const fetcher = vi.fn(async () => response({ message: "failure" }, status));
     await expect(
       client(fetcher).track(null, {

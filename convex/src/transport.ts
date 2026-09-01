@@ -41,6 +41,17 @@ function validatedHeaders(input?: HeadersInit): Headers {
   return headers;
 }
 
+class AutumnMalformedResponseError extends Error {}
+
+async function requireJsonSuccess(response: Response): Promise<void> {
+  if (response.status < 200 || response.status >= 300) return;
+  try {
+    await response.clone().json();
+  } catch {
+    throw new AutumnMalformedResponseError();
+  }
+}
+
 export class AutumnTransport {
   private readonly customHeaders: Headers;
 
@@ -59,6 +70,7 @@ export class AutumnTransport {
         customHeaders.forEach((value, name) => headers.set(name, value));
         const response = await fetcher(new Request(request, { headers }));
         responseStatus = response.status;
+        await requireJsonSuccess(response);
         return response;
       },
     });
@@ -101,8 +113,9 @@ export async function invokeNative<T>(
     return result;
   } catch (error) {
     if (error instanceof AutumnIndeterminateError) throw error;
-    if (call.status() === 202) {
-      throw new AutumnIndeterminateError(operation, 202);
+    const statusCode = call.status();
+    if (statusCode !== undefined && statusCode >= 200 && statusCode < 300) {
+      throw new AutumnIndeterminateError(operation, statusCode);
     }
     throw error;
   }

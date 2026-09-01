@@ -83,6 +83,7 @@ describe("release packaging", () => {
     expect(entries).toContain("package/dist/client/index.js");
     expect(entries).toContain("package/dist/client/index.d.ts");
     expect(entries).toContain("package/dist/component/convex.config.js");
+    expect(entries).toContain("package/scripts/clean.js");
   });
 
   test("removes output for source files that no longer exist", () => {

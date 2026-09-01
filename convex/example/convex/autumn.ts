@@ -5,8 +5,8 @@ import { action, type ActionCtx, mutation } from "./_generated/server.js";
 
 export const autumn = new Autumn<ActionCtx>(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY,
-  // Deliberate, stable, and independent of the secret key: operation identity
-  // is derived from it, so rotating the key must not change it.
+  // Deliberate, stable, and independent of the secret key: the provider
+  // idempotency key is derived from it, so rotating the key must not change it.
   operationNamespace: "example-app-production",
   identify: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -70,7 +70,9 @@ export const messagesAllowed = action({
  * Convex runs a scheduled function without the caller's auth, so this mutation
  * authorizes the request and resolves the subject while it still has one, then
  * hands that customer to the internal action. The document it just wrote is the
- * durable operation ID, so a retry of the schedule cannot record usage twice.
+ * operation ID: it is stable across attempts, so a repeated schedule reaches
+ * Autumn under the same idempotency key and is rejected there rather than
+ * recording usage a second time.
  */
 export const recordMessages = mutation({
   args: { count: v.number() },

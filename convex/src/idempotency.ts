@@ -4,39 +4,6 @@ const KEY_FORMAT_VERSION = "1";
 const OPERATION_ID_MAX_LENGTH = 256;
 const OPERATION_NAMESPACE_MAX_LENGTH = 256;
 
-function canonicalize(value: unknown): string {
-  if (value === null) return "null";
-
-  switch (typeof value) {
-    case "string":
-      return JSON.stringify(value);
-    case "boolean":
-      return value ? "true" : "false";
-    case "number":
-      if (!Number.isFinite(value)) {
-        throw new TypeError("Operation arguments must contain finite numbers.");
-      }
-      return Object.is(value, -0) ? "0" : JSON.stringify(value);
-    case "bigint":
-      return `{"$bigint":${JSON.stringify(value.toString())}}`;
-    case "undefined":
-      return "undefined";
-    case "object": {
-      if (Array.isArray(value)) {
-        return `[${value.map(canonicalize).join(",")}]`;
-      }
-      const entries = Object.entries(value as Record<string, unknown>)
-        .filter(([, child]) => child !== undefined)
-        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
-      return `{${entries
-        .map(([key, child]) => `${JSON.stringify(key)}:${canonicalize(child)}`)
-        .join(",")}}`;
-    }
-    default:
-      throw new TypeError("Operation arguments must be serializable.");
-  }
-}
-
 function base64Url(bytes: ArrayBuffer): string {
   let binary = "";
   for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
@@ -57,7 +24,7 @@ async function digest(value: string): Promise<string> {
  *
  * Every part carries its own length, so a value that contains the separator
  * cannot move the boundary between two parts. Operation identity mixes an
- * operator-chosen namespace with a customer ID and an operation ID, and a plain
+ * operator-chosen namespace with an action name and operation ID, and a plain
  * separator would let one of them impersonate a prefix of the next.
  */
 function canonicalIdentity(parts: string[]): string {
@@ -90,50 +57,41 @@ export function validateOperationId(
 }
 
 /**
- * Derive the durable operation identity for one call.
+ * Derive the provider idempotency key for one mutation.
  *
- * The namespace is part of both the ledger key and the provider key, so two
- * clients that share one component instance address disjoint ledger entries and
- * disjoint provider operations. Neither it nor the customer ID nor the
- * operation ID reaches the ledger or the `Idempotency-Key` header in readable
- * form: both keys are digests of the versioned canonical inputs, and only the
- * format version stays legible.
+ * The key is the only duplicate suppression this package has, so it is derived
+ * from operation identity alone: the namespace, the mutation action and the
+ * caller's operation ID. The namespace keeps tenants and environments apart,
+ * and the action name keeps one operation ID from meaning two different
+ * mutations.
+ *
+ * The request payload is deliberately not part of the key. A caller that reuses
+ * an operation ID with different arguments must reach the same key, so that
+ * Autumn rejects the second request as a duplicate rather than performing a
+ * second mutation nobody asked for.
+ *
+ * None of the inputs travels in readable form: the key is a digest of the
+ * versioned canonical identity, and only the format version stays legible.
  */
-export async function deriveOperationKeys({
+export async function deriveProviderKey({
   operation,
   operationNamespace,
-  customerId,
   operationId,
-  request,
 }: {
   operation: string;
   operationNamespace: string;
-  customerId: string;
   operationId: string;
-  request: unknown;
-}): Promise<{
-  ledgerKey: string;
-  requestFingerprint: string;
-  providerKey: string;
-}> {
+}): Promise<string> {
   validateOperationNamespace(operationNamespace);
   validateOperationId(operation, operationId);
-  const requestFingerprint = await digest(canonicalize(request));
-  const identity = canonicalIdentity([
-    KEY_FORMAT_VERSION,
-    operationNamespace,
-    operation,
-    customerId,
-    operationId,
-  ]);
-  const ledgerKey = await digest(canonicalIdentity(["ledger", identity]));
-  const providerDigest = await digest(
-    canonicalIdentity(["provider", identity, requestFingerprint])
+  const identity = await digest(
+    canonicalIdentity([
+      KEY_FORMAT_VERSION,
+      operationNamespace,
+      operation,
+      operationId,
+    ])
   );
 
-  return {
-    ledgerKey,
-    requestFingerprint,
-    providerKey: `autumn-${KEY_FORMAT_VERSION}-${providerDigest}`,
-  };
+  return `autumn-${KEY_FORMAT_VERSION}-${identity}`;
 }

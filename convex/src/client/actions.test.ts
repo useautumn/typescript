@@ -54,11 +54,20 @@ function checkResponse(balances: Record<string, null>) {
   };
 }
 
+/** Everything Convex would run later on the action's behalf. */
+async function scheduledFunctions(
+  t: ReturnType<typeof initConvexTest>
+): Promise<unknown[]> {
+  return await t.run(
+    async (ctx) => await ctx.db.system.query("_scheduled_functions").collect()
+  );
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("generated action ledger", () => {
+describe("generated mutation actions", () => {
   test("enforces generated action validators before transport", async () => {
     const fetcher = vi.fn();
     vi.stubGlobal("fetch", fetcher);
@@ -73,8 +82,12 @@ describe("generated action ledger", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  test("round-trips a native result and replays the stored terminal value", async () => {
-    const fetcher = vi.fn(async () => response(trackResponse(3)));
+  test("makes one keyed provider call and round-trips the native result", async () => {
+    const keys: string[] = [];
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      keys.push(new Request(input).headers.get("idempotency-key")!);
+      return response(trackResponse(3));
+    });
     vi.stubGlobal("fetch", fetcher);
     const t = initConvexTest(defineSchema({}));
     const args = {
@@ -84,49 +97,46 @@ describe("generated action ledger", () => {
       operationId: "success-1",
     };
 
-    const first = await t.action(track, args);
-    const second = await t.action(track, args);
+    const result = await t.action(track, args);
 
-    expect(first).toEqual({
+    expect(result).toEqual({
       customerId: "customer-1",
       value: 3,
       balance: null,
     });
-    expect(second).toEqual(first);
+    expect(JSON.parse(JSON.stringify(result))).toEqual(result);
     expect(fetcher).toHaveBeenCalledOnce();
-    expect(JSON.parse(JSON.stringify(second))).toEqual(second);
+    expect(keys[0]).toMatch(/^autumn-1-/);
+    expect(await scheduledFunctions(t)).toEqual([]);
   });
 
-  test("conflicts when an operationId is reused with changed payload", async () => {
-    const fetcher = vi.fn(async () => response(trackResponse()));
+  test("sends the same operation under the same key on every invocation", async () => {
+    const keys: string[] = [];
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      keys.push(new Request(input).headers.get("idempotency-key")!);
+      return response(trackResponse());
+    });
     vi.stubGlobal("fetch", fetcher);
     const t = initConvexTest(defineSchema({}));
-
-    await t.action(track, {
+    const args = {
       customerId: CUSTOMER_ID,
       featureId: "messages",
       value: 1,
-      operationId: "conflict-1",
-    });
-    const error = await t
-      .action(track, {
-        customerId: CUSTOMER_ID,
-        featureId: "messages",
-        value: 2,
-        operationId: "conflict-1",
-      })
-      .catch((caught) => caught);
+      operationId: "stable-key-1",
+    };
 
-    expect(errorData(error)).toEqual({
-      code: "AUTUMN_OPERATION_CONFLICT",
-      operation: "track",
-      message: "operationId was already used with different arguments.",
-    });
-    expect(fetcher).toHaveBeenCalledOnce();
+    await t.action(track, args);
+    await t.action(track, { ...args, value: 2 });
+
+    // Nothing is stored here, so a caller that invokes the action twice sends
+    // two requests. Both carry the key Autumn needs to reject the second one,
+    // and a changed payload does not move it.
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(new Set(keys).size).toBe(1);
   });
 
   test.each([202, 409, 500])(
-    "persists HTTP %s as indeterminate and never retries",
+    "reports HTTP %s as indeterminate without a second attempt",
     async (status) => {
       const fetcher = vi.fn(async () =>
         response(
@@ -136,60 +146,134 @@ describe("generated action ledger", () => {
       );
       vi.stubGlobal("fetch", fetcher);
       const t = initConvexTest(defineSchema({}));
-      const args = {
-        customerId: CUSTOMER_ID,
-        featureId: "messages",
-        operationId: `indeterminate-${status}`,
-      };
 
-      const first = await t.action(track, args).catch((caught) => caught);
-      const replay = await t.action(track, args).catch((caught) => caught);
+      const caught = await t
+        .action(track, {
+          customerId: CUSTOMER_ID,
+          featureId: "messages",
+          operationId: `indeterminate-${status}`,
+        })
+        .catch((error) => error);
 
-      expect(errorData(first)).toMatchObject({
+      expect(errorData(caught)).toMatchObject({
         code: "AUTUMN_INDETERMINATE",
         operation: "track",
         statusCode: status,
       });
-      expect(errorData(replay)).toMatchObject({
-        code: "AUTUMN_INDETERMINATE",
-        operation: "track",
-      });
       expect(fetcher).toHaveBeenCalledOnce();
+      // Reconciling an unknown outcome needs the state Autumn holds, so the
+      // action neither retries in place nor leaves work behind to retry later.
+      expect(await scheduledFunctions(t)).toEqual([]);
     }
   );
+
+  test("fails closed on HTTP 429 without a second attempt", async () => {
+    const fetcher = vi.fn(async () =>
+      response({ message: "rate limited" }, 429)
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: "rate-limit-1",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toMatchObject({
+      code: "AUTUMN_REQUEST_FAILED",
+      operation: "track",
+      statusCode: 429,
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
+
+  test("reports a malformed success response without resending", async () => {
+    const fetcher = vi.fn(
+      async () =>
+        new Response("{", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: "malformed-1",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toMatchObject({
+      code: "AUTUMN_INDETERMINATE",
+      operation: "track",
+      statusCode: 200,
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
 
   test.each([
     ["network", () => new TypeError("socket closed")],
     ["timeout", () => new DOMException("timed out", "TimeoutError")],
     ["abort", () => new DOMException("aborted", "AbortError")],
   ])(
-    "persists %s failure as indeterminate and never retries",
+    "reports a %s failure as indeterminate without a second attempt",
     async (kind, createError) => {
       const fetcher = vi.fn(async () => {
         throw createError();
       });
       vi.stubGlobal("fetch", fetcher);
       const t = initConvexTest(defineSchema({}));
-      const args = {
-        customerId: CUSTOMER_ID,
-        featureId: "messages",
-        operationId: `${kind}-1`,
-      };
 
-      const first = await t.action(track, args).catch((caught) => caught);
-      const replay = await t.action(track, args).catch((caught) => caught);
+      const caught = await t
+        .action(track, {
+          customerId: CUSTOMER_ID,
+          featureId: "messages",
+          operationId: `${kind}-1`,
+        })
+        .catch((error) => error);
 
-      expect(errorData(first)).toMatchObject({
-        code: "AUTUMN_INDETERMINATE",
-        operation: "track",
-      });
-      expect(errorData(replay)).toMatchObject({
+      expect(errorData(caught)).toMatchObject({
         code: "AUTUMN_INDETERMINATE",
         operation: "track",
       });
       expect(fetcher).toHaveBeenCalledOnce();
+      expect(await scheduledFunctions(t)).toEqual([]);
     }
   );
+
+  test("reports definitive failures with safe ConvexError data", async () => {
+    const fetcher = vi.fn(async () =>
+      response({ private: "provider body" }, 422)
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: "failure-1",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_REQUEST_FAILED",
+      operation: "track",
+      statusCode: 422,
+      message: "Autumn rejected the request.",
+    });
+    expect(JSON.stringify(errorData(caught))).not.toContain("provider body");
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
 
   test("sanitizes errors from generated read actions", async () => {
     const fetcher = vi.fn(async () =>
@@ -264,56 +348,29 @@ describe("generated action ledger", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
-  test("stores an unserializable terminal result as indeterminate", async () => {
+  test("reports a mutation result Convex cannot encode without resending it", async () => {
     const fetcher = vi.fn(async () =>
       response(checkResponse({ $reserved: null }))
     );
     vi.stubGlobal("fetch", fetcher);
     const t = initConvexTest(defineSchema({}));
-    const args = {
-      customerId: CUSTOMER_ID,
-      featureId: "messages",
-      operationId: "unserializable-1",
-    };
 
-    const first = await t.action(consumeCheck, args).catch((caught) => caught);
-    const replay = await t.action(consumeCheck, args).catch((caught) => caught);
+    const caught = await t
+      .action(consumeCheck, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: "unserializable-1",
+      })
+      .catch((error) => error);
 
-    expect(errorData(first)).toEqual({
+    // The operation reached Autumn and only its result is unusable, so the
+    // action reports that and stops.
+    expect(errorData(caught)).toEqual({
       code: "AUTUMN_RESULT_UNSERIALIZABLE",
       operation: "check",
       message: "The Autumn response cannot be serialized by Convex.",
     });
-    expect(errorData(replay)).toMatchObject({
-      code: "AUTUMN_INDETERMINATE",
-      operation: "check",
-    });
     expect(fetcher).toHaveBeenCalledOnce();
-  });
-
-  test("stores definitive failures with safe ConvexError data", async () => {
-    const fetcher = vi.fn(async () =>
-      response({ private: "provider body" }, 422)
-    );
-    vi.stubGlobal("fetch", fetcher);
-    const t = initConvexTest(defineSchema({}));
-    const args = {
-      customerId: CUSTOMER_ID,
-      featureId: "messages",
-      operationId: "failure-1",
-    };
-
-    const first = await t.action(track, args).catch((caught) => caught);
-    const replay = await t.action(track, args).catch((caught) => caught);
-
-    expect(errorData(first)).toEqual({
-      code: "AUTUMN_REQUEST_FAILED",
-      operation: "track",
-      statusCode: 422,
-      message: "Autumn rejected the request.",
-    });
-    expect(errorData(replay)).toEqual(errorData(first));
-    expect(JSON.stringify(errorData(first))).not.toContain("provider body");
-    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
   });
 });

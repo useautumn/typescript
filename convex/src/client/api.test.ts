@@ -273,9 +273,8 @@ describe("public actions cannot change provider state", () => {
       const request = await captureRequest(name, args);
 
       expect(new URL(request.url).pathname).toBe(path);
-      // `mutate` and `generated` are the only paths that derive a provider
-      // idempotency key, and `generated` is the only writer of the operation
-      // ledger. A public action that reached either would carry this header.
+      // A provider idempotency key is derived only for a mutation, so a public
+      // action that reached one would carry this header.
       expect(request.headers.get("idempotency-key")).toBeNull();
       // `send_event` is the one field that turns the shared check route into a
       // balance-consuming call.
@@ -293,6 +292,27 @@ describe("public actions cannot change provider state", () => {
       });
 
       expect(request.headers.get("idempotency-key")).toMatch(/^autumn-1-/);
+    }
+  );
+
+  test.each(PROVIDER_MUTATIONS)(
+    "%s keeps operation identity out of the Autumn request",
+    async (name, args) => {
+      const operationId = `identity-${name}`;
+      const request = await captureRequest(name, {
+        ...args,
+        customerId: CUSTOMER_ID,
+        operationId,
+      });
+      const body = await request.clone().text();
+
+      // The operation ID identifies the operation and never describes it, and
+      // the trusted customer reaches Autumn only as the request's subject.
+      expect(body).not.toContain(operationId);
+      expect(body).not.toContain("operation_id");
+      expect(body).not.toContain("operationId");
+      expect(JSON.parse(body)).toMatchObject({ customer_id: CUSTOMER_ID });
+      expect(request.headers.get("idempotency-key")).not.toContain(operationId);
     }
   );
 
