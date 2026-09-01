@@ -5,7 +5,17 @@
 - Replace the legacy wrapper with an explicit native-shape `autumn-js@1.2.55`
   subset.
 - Add durable generated mutation actions with request conflict detection,
-  terminal replay and indeterminate outcome handling.
+  terminal replay and indeterminate outcome handling. Every generated action
+  resolves to the native camelCase result type of its operation.
+- Register every provider mutation as a Convex internal action through
+  `autumn.internalApi()`, leaving only previews, the portal session and reads of
+  the identified customer, its entities, its events and the plan catalog on the
+  public `autumn.api()` surface.
+- Split `check` into a read-only operation with no `sendEvent` or `operationId`
+  and a balance-consuming `consumeCheck`.
+- Validate every terminal result with Convex's own value encoder before it is
+  stored or returned, and preserve the Convex value rather than its transport
+  encoding.
 - Pin Autumn API version 2.3.0, disable retries and fail-open behavior, and
   derive bounded provider idempotency keys from durable operation IDs.
 - Add explicit billing preview, attach, multi-update, customer, entity, plan,

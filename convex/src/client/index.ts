@@ -3,6 +3,7 @@ import {
   actionGeneric,
   type GenericActionCtx,
   type GenericDataModel,
+  internalActionGeneric,
 } from "convex/server";
 import type { Autumn as AutumnSDK } from "autumn-js";
 import type { ComponentApi } from "../component/_generated/component.js";
@@ -15,6 +16,8 @@ import {
   type BillingPortalArgs as BillingPortalArgsType,
   CheckArgs,
   type CheckArgs as CheckArgsType,
+  ConsumeCheckArgs,
+  type ConsumeCheckArgs as ConsumeCheckArgsType,
   CreateEntityArgs,
   type CreateEntityArgs as CreateEntityArgsType,
   CreateReferralCodeArgs,
@@ -110,18 +113,6 @@ function requireCondition(
   message: string
 ): asserts condition {
   if (!condition) throw new AutumnValidationError(operation, message);
-}
-
-function validateCheck(args: CheckArgsType): void {
-  requireCondition(
-    "check",
-    args.sendEvent === true
-      ? args.operationId !== undefined
-      : args.operationId === undefined,
-    args.sendEvent === true
-      ? "check requires operationId when sendEvent is true."
-      : "Read-only check does not accept operationId."
-  );
 }
 
 function validateTrack(args: TrackArgsType): void {
@@ -332,10 +323,10 @@ export class Autumn<Context = unknown> {
     return await invokeNative(operation, call, invoke(nativeRequest));
   }
 
-  private async actionResult(
+  private async actionResult<T>(
     operation: string,
-    execute: () => Promise<unknown>
-  ): Promise<unknown> {
+    execute: () => Promise<T>
+  ): Promise<T> {
     try {
       return toConvexSerializable(await execute());
     } catch (error) {
@@ -350,7 +341,7 @@ export class Autumn<Context = unknown> {
     args: MutationArgs,
     request: (identifier: Identifier) => Request,
     invoke: (request: Request) => NativeCall<T>
-  ): Promise<unknown> {
+  ): Promise<T> {
     try {
       const identifier = await this.identify(ctx as Context);
       const nativeRequest = request(identifier);
@@ -366,7 +357,7 @@ export class Autumn<Context = unknown> {
         requestFingerprint: keys.requestFingerprint,
       });
 
-      if (claim.state === "succeeded") return claim.result;
+      if (claim.state === "succeeded") return claim.result as T;
       if (claim.state === "failed") throw new ConvexError(claim.error);
       if (claim.state === "conflict") {
         throw new ConvexError({
@@ -404,7 +395,7 @@ export class Autumn<Context = unknown> {
           call,
           invoke(nativeRequest)
         );
-        let result: unknown;
+        let result: T;
         try {
           result = toConvexSerializable(nativeResult);
         } catch (error) {
@@ -443,25 +434,25 @@ export class Autumn<Context = unknown> {
   }
 
   async check(ctx: Context, args: CheckArgsType) {
-    validateCheck(args);
-    const request = (identifier: Identifier) => ({
-      ...withoutOperationId({ ...args, operationId: args.operationId ?? "" }),
-      customerId: identifier.customerId,
-    });
-    if (args.sendEvent) {
-      return await this.mutate(
-        ctx,
-        "check",
-        { operationId: args.operationId! },
-        request,
-        (nativeRequest) => (sdk, options) => sdk.check(nativeRequest, options)
-      );
-    }
     return await this.read(
       ctx,
       "check",
-      request,
-      (nativeRequest) => (sdk, options) => sdk.check(nativeRequest, options)
+      (identifier) => ({ ...args, customerId: identifier.customerId }),
+      (request) => (sdk, options) => sdk.check(request, options)
+    );
+  }
+
+  async consumeCheck(ctx: Context, args: ConsumeCheckArgsType) {
+    return await this.mutate(
+      ctx,
+      "check",
+      args,
+      (identifier) => ({
+        ...withoutOperationId(args),
+        customerId: identifier.customerId,
+        sendEvent: true as const,
+      }),
+      (request) => (sdk, options) => sdk.check(request, options)
     );
   }
 
@@ -776,201 +767,64 @@ export class Autumn<Context = unknown> {
       ),
   };
 
+  /**
+   * Read-only generated actions, registered as public Convex actions.
+   *
+   * The public surface fails closed: an operation belongs here only when it
+   * cannot change provider state. Every one of these reaches Autumn through
+   * {@link Autumn.read}, which never derives a provider idempotency key and
+   * never touches the operation ledger, and every route it can reach is a
+   * preview, a portal session, or a read of the identified customer, its
+   * entities, its events, or the plan catalog.
+   *
+   * Every provider mutation, including a balance-consuming check, lives in
+   * {@link Autumn.internalApi}. Billing arguments carry operator controls such
+   * as `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
+   * `recalculateBalances` and `carryOverUsages`, so no client may reach them.
+   */
   api() {
     return {
       check: actionGeneric({
         args: CheckArgs,
         handler: async (ctx, args) =>
-          await this.actionResult("check", async () => {
-            validateCheck(args);
-            const request = (identifier: Identifier) => ({
-              ...withoutOperationId({
-                ...args,
-                operationId: args.operationId ?? "",
-              }),
-              customerId: identifier.customerId,
-            });
-            if (args.sendEvent) {
-              return await this.generated(
-                ctx,
-                "check",
-                { operationId: args.operationId! },
-                request,
-                (nativeRequest) => (sdk, options) =>
-                  sdk.check(nativeRequest, options)
-              );
-            }
-            try {
-              return toConvexSerializable(
-                await this.read(
-                  ctx as Context,
-                  "check",
-                  request,
-                  (nativeRequest) => (sdk, options) =>
-                    sdk.check(nativeRequest, options)
-                )
-              );
-            } catch (error) {
-              throw new ConvexError(
-                safeError("check", error, sdkStatus(error))
-              );
-            }
-          }),
-      }),
-      track: actionGeneric({
-        args: TrackArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
-            ctx,
-            "track",
-            args,
-            (identifier) => {
-              validateTrack(args);
-              return {
-                ...withoutOperationId(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.track(request, options)
-          );
-        },
+          await this.actionResult(
+            "check",
+            async () => await this.check(ctx as Context, args)
+          ),
       }),
       previewAttach: actionGeneric({
         args: PreviewAttachArgs,
-        handler: async (ctx, args) => {
-          return await this.actionResult(
+        handler: async (ctx, args) =>
+          await this.actionResult(
             "billing.previewAttach",
             async () => await this.billing.previewAttach(ctx as Context, args)
-          );
-        },
-      }),
-      attach: actionGeneric({
-        args: AttachArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
-            ctx,
-            "billing.attach",
-            args,
-            (identifier) => {
-              validateAttach("billing.attach", args);
-              return {
-                ...withoutOperationId(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.billing.attach(request, options)
-          );
-        },
+          ),
       }),
       previewMultiAttach: actionGeneric({
         args: PreviewMultiAttachArgs,
-        handler: async (ctx, args) => {
-          return await this.actionResult(
+        handler: async (ctx, args) =>
+          await this.actionResult(
             "billing.previewMultiAttach",
             async () =>
               await this.billing.previewMultiAttach(ctx as Context, args)
-          );
-        },
-      }),
-      multiAttach: actionGeneric({
-        args: MultiAttachArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
-            ctx,
-            "billing.multiAttach",
-            args,
-            (identifier) => {
-              validateMultiAttach("billing.multiAttach", args);
-              return {
-                ...withoutOperationId(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) =>
-              sdk.billing.multiAttach(request, options)
-          );
-        },
+          ),
       }),
       previewUpdate: actionGeneric({
         args: PreviewUpdateArgs,
-        handler: async (ctx, args) => {
-          return await this.actionResult(
+        handler: async (ctx, args) =>
+          await this.actionResult(
             "billing.previewUpdate",
             async () => await this.billing.previewUpdate(ctx as Context, args)
-          );
-        },
-      }),
-      updateSubscription: actionGeneric({
-        args: UpdateSubscriptionArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
-            ctx,
-            "billing.update",
-            args,
-            (identifier) => {
-              validateFeatureQuantities(
-                "billing.update",
-                args.featureQuantities
-              );
-              return {
-                ...withoutOperationId(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.billing.update(request, options)
-          );
-        },
+          ),
       }),
       previewMultiUpdate: actionGeneric({
         args: PreviewMultiUpdateArgs,
-        handler: async (ctx, args) => {
-          return await this.actionResult(
+        handler: async (ctx, args) =>
+          await this.actionResult(
             "billing.previewMultiUpdate",
             async () =>
               await this.billing.previewMultiUpdate(ctx as Context, args)
-          );
-        },
-      }),
-      multiUpdate: actionGeneric({
-        args: MultiUpdateArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
-            ctx,
-            "billing.multiUpdate",
-            args,
-            (identifier) => {
-              validateMultiUpdate("billing.multiUpdate", args);
-              return {
-                ...withoutOperationId(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) =>
-              sdk.billing.multiUpdate(request, options)
-          );
-        },
-      }),
-      setupPayment: actionGeneric({
-        args: SetupPaymentArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
-            ctx,
-            "billing.setupPayment",
-            args,
-            (identifier) => {
-              validateFeatureQuantities(
-                "billing.setupPayment",
-                args.featureQuantities
-              );
-              return {
-                ...withoutOperationId(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) =>
-              sdk.billing.setupPayment(request, options)
-          );
-        },
+          ),
       }),
       billingPortal: actionGeneric({
         args: BillingPortalArgs,
@@ -986,62 +840,6 @@ export class Autumn<Context = unknown> {
           await this.actionResult(
             "customers.get",
             async () => await this.customers.get(ctx as Context, args)
-          ),
-      }),
-      getOrCreateCustomer: actionGeneric({
-        args: GetOrCreateCustomerArgs,
-        handler: async (ctx, args) =>
-          await this.generated(
-            ctx,
-            "customers.getOrCreate",
-            args,
-            (identifier) => mergeCustomerData(identifier, args),
-            (request) => (sdk, options) =>
-              sdk.customers.getOrCreate(request, options)
-          ),
-      }),
-      updateCustomer: actionGeneric({
-        args: UpdateCustomerArgs,
-        handler: async (ctx, args) =>
-          await this.generated(
-            ctx,
-            "customers.update",
-            args,
-            (identifier) => ({
-              ...withoutOperationId(args),
-              customerId: identifier.customerId,
-            }),
-            (request) => (sdk, options) =>
-              sdk.customers.update(request, options)
-          ),
-      }),
-      deleteCustomer: actionGeneric({
-        args: DeleteCustomerArgs,
-        handler: async (ctx, args) =>
-          await this.generated(
-            ctx,
-            "customers.delete",
-            args,
-            (identifier) => ({
-              ...withoutOperationId(args),
-              customerId: identifier.customerId,
-            }),
-            (request) => (sdk, options) =>
-              sdk.customers.delete(request, options)
-          ),
-      }),
-      createEntity: actionGeneric({
-        args: CreateEntityArgs,
-        handler: async (ctx, args) =>
-          await this.generated(
-            ctx,
-            "entities.create",
-            args,
-            (identifier) => ({
-              ...withoutOperationId(args),
-              customerId: identifier.customerId,
-            }),
-            (request) => (sdk, options) => sdk.entities.create(request, options)
           ),
       }),
       getEntity: actionGeneric({
@@ -1060,34 +858,6 @@ export class Autumn<Context = unknown> {
             async () => await this.entities.list(ctx as Context, args)
           ),
       }),
-      updateEntity: actionGeneric({
-        args: UpdateEntityArgs,
-        handler: async (ctx, args) =>
-          await this.generated(
-            ctx,
-            "entities.update",
-            args,
-            (identifier) => ({
-              ...withoutOperationId(args),
-              customerId: identifier.customerId,
-            }),
-            (request) => (sdk, options) => sdk.entities.update(request, options)
-          ),
-      }),
-      deleteEntity: actionGeneric({
-        args: DeleteEntityArgs,
-        handler: async (ctx, args) =>
-          await this.generated(
-            ctx,
-            "entities.delete",
-            args,
-            (identifier) => ({
-              ...withoutOperationId(args),
-              customerId: identifier.customerId,
-            }),
-            (request) => (sdk, options) => sdk.entities.delete(request, options)
-          ),
-      }),
       getPlan: actionGeneric({
         args: GetPlanArgs,
         handler: async (ctx, args) =>
@@ -1104,10 +874,250 @@ export class Autumn<Context = unknown> {
             async () => await this.plans.list(ctx as Context, args)
           ),
       }),
-      updateBalance: actionGeneric({
+      listEvents: actionGeneric({
+        args: ListEventsArgs,
+        handler: async (ctx, args) =>
+          await this.actionResult(
+            "events.list",
+            async () => await this.events.list(ctx as Context, args)
+          ),
+      }),
+      aggregateEvents: actionGeneric({
+        args: AggregateEventsArgs,
+        handler: async (ctx, args) =>
+          await this.actionResult(
+            "events.aggregate",
+            async () => await this.events.aggregate(ctx as Context, args)
+          ),
+      }),
+    };
+  }
+
+  /**
+   * Provider mutations, registered as Convex internal actions.
+   *
+   * Each of these changes state Autumn bills on, so none of them may be
+   * reachable from a Convex client. Exporting them from a Convex module
+   * publishes them under `internal.<module>.<name>`, where only server code can
+   * call them through `ctx.runAction` after it has made its own authorization
+   * decision.
+   */
+  internalApi() {
+    return {
+      consumeCheck: internalActionGeneric({
+        args: ConsumeCheckArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "check",
+            args,
+            (identifier) => ({
+              ...withoutOperationId(args),
+              customerId: identifier.customerId,
+              sendEvent: true as const,
+            }),
+            (request) => (sdk, options) => sdk.check(request, options)
+          ),
+      }),
+      track: internalActionGeneric({
+        args: TrackArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "track",
+            args,
+            (identifier) => {
+              validateTrack(args);
+              return {
+                ...withoutOperationId(args),
+                customerId: identifier.customerId,
+              };
+            },
+            (request) => (sdk, options) => sdk.track(request, options)
+          ),
+      }),
+      attach: internalActionGeneric({
+        args: AttachArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "billing.attach",
+            args,
+            (identifier) => {
+              validateAttach("billing.attach", args);
+              return {
+                ...withoutOperationId(args),
+                customerId: identifier.customerId,
+              };
+            },
+            (request) => (sdk, options) => sdk.billing.attach(request, options)
+          ),
+      }),
+      multiAttach: internalActionGeneric({
+        args: MultiAttachArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "billing.multiAttach",
+            args,
+            (identifier) => {
+              validateMultiAttach("billing.multiAttach", args);
+              return {
+                ...withoutOperationId(args),
+                customerId: identifier.customerId,
+              };
+            },
+            (request) => (sdk, options) =>
+              sdk.billing.multiAttach(request, options)
+          ),
+      }),
+      updateSubscription: internalActionGeneric({
+        args: UpdateSubscriptionArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "billing.update",
+            args,
+            (identifier) => {
+              validateFeatureQuantities(
+                "billing.update",
+                args.featureQuantities
+              );
+              return {
+                ...withoutOperationId(args),
+                customerId: identifier.customerId,
+              };
+            },
+            (request) => (sdk, options) => sdk.billing.update(request, options)
+          ),
+      }),
+      multiUpdate: internalActionGeneric({
+        args: MultiUpdateArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "billing.multiUpdate",
+            args,
+            (identifier) => {
+              validateMultiUpdate("billing.multiUpdate", args);
+              return {
+                ...withoutOperationId(args),
+                customerId: identifier.customerId,
+              };
+            },
+            (request) => (sdk, options) =>
+              sdk.billing.multiUpdate(request, options)
+          ),
+      }),
+      setupPayment: internalActionGeneric({
+        args: SetupPaymentArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "billing.setupPayment",
+            args,
+            (identifier) => {
+              validateFeatureQuantities(
+                "billing.setupPayment",
+                args.featureQuantities
+              );
+              return {
+                ...withoutOperationId(args),
+                customerId: identifier.customerId,
+              };
+            },
+            (request) => (sdk, options) =>
+              sdk.billing.setupPayment(request, options)
+          ),
+      }),
+      getOrCreateCustomer: internalActionGeneric({
+        args: GetOrCreateCustomerArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "customers.getOrCreate",
+            args,
+            (identifier) => mergeCustomerData(identifier, args),
+            (request) => (sdk, options) =>
+              sdk.customers.getOrCreate(request, options)
+          ),
+      }),
+      updateCustomer: internalActionGeneric({
+        args: UpdateCustomerArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "customers.update",
+            args,
+            (identifier) => ({
+              ...withoutOperationId(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) =>
+              sdk.customers.update(request, options)
+          ),
+      }),
+      deleteCustomer: internalActionGeneric({
+        args: DeleteCustomerArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "customers.delete",
+            args,
+            (identifier) => ({
+              ...withoutOperationId(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) =>
+              sdk.customers.delete(request, options)
+          ),
+      }),
+      createEntity: internalActionGeneric({
+        args: CreateEntityArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "entities.create",
+            args,
+            (identifier) => ({
+              ...withoutOperationId(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) => sdk.entities.create(request, options)
+          ),
+      }),
+      updateEntity: internalActionGeneric({
+        args: UpdateEntityArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "entities.update",
+            args,
+            (identifier) => ({
+              ...withoutOperationId(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) => sdk.entities.update(request, options)
+          ),
+      }),
+      deleteEntity: internalActionGeneric({
+        args: DeleteEntityArgs,
+        handler: async (ctx, args) =>
+          await this.generated(
+            ctx,
+            "entities.delete",
+            args,
+            (identifier) => ({
+              ...withoutOperationId(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) => sdk.entities.delete(request, options)
+          ),
+      }),
+      updateBalance: internalActionGeneric({
         args: UpdateBalanceArgs,
-        handler: async (ctx, args) => {
-          return await this.generated(
+        handler: async (ctx, args) =>
+          await this.generated(
             ctx,
             "balances.update",
             args,
@@ -1119,28 +1129,9 @@ export class Autumn<Context = unknown> {
               };
             },
             (request) => (sdk, options) => sdk.balances.update(request, options)
-          );
-        },
+          ),
       }),
-      listEvents: actionGeneric({
-        args: ListEventsArgs,
-        handler: async (ctx, args) => {
-          return await this.actionResult(
-            "events.list",
-            async () => await this.events.list(ctx as Context, args)
-          );
-        },
-      }),
-      aggregateEvents: actionGeneric({
-        args: AggregateEventsArgs,
-        handler: async (ctx, args) => {
-          return await this.actionResult(
-            "events.aggregate",
-            async () => await this.events.aggregate(ctx as Context, args)
-          );
-        },
-      }),
-      createReferralCode: actionGeneric({
+      createReferralCode: internalActionGeneric({
         args: CreateReferralCodeArgs,
         handler: async (ctx, args) =>
           await this.generated(
@@ -1155,7 +1146,7 @@ export class Autumn<Context = unknown> {
               sdk.referrals.createCode(request, options)
           ),
       }),
-      redeemReferralCode: actionGeneric({
+      redeemReferralCode: internalActionGeneric({
         args: RedeemReferralCodeArgs,
         handler: async (ctx, args) =>
           await this.generated(

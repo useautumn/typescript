@@ -16,6 +16,32 @@ contract.
 Header overrides for `Authorization`, `Content-Type`, `X-API-Version` and
 `Idempotency-Key` now fail during client construction.
 
+## Generated action visibility
+
+The generated surface fails closed. `autumn.api()` now returns only actions that
+cannot change provider state: `check`, the four previews, `billingPortal`,
+`getCustomer`, `getEntity`, `listEntities`, `getPlan`, `listPlans`, `listEvents`
+and `aggregateEvents`. Every provider mutation moved to `autumn.internalApi()`,
+which registers it as a Convex internal action: `consumeCheck`, `track`,
+`attach`, `multiAttach`, `updateSubscription`, `multiUpdate`, `setupPayment`,
+`getOrCreateCustomer`, `updateCustomer`, `deleteCustomer`, `createEntity`,
+`updateEntity`, `deleteEntity`, `updateBalance`, `createReferralCode` and
+`redeemReferralCode`.
+
+Export both blocks from the same module, keep each name in the block it came
+from, and call the mutations from server code through
+`internal.<module>.<name>`.
+
+A client that previously started checkout by calling `api.autumn.attach` now
+calls your own authorized action, which runs `internal.autumn.attach`. That
+action owns the decision, because the billing arguments include operator
+controls such as `noBillingChanges`, `enablePlanImmediately`,
+`refundLastPayment`, `recalculateBalances` and `carryOverUsages`.
+
+`check` no longer takes `sendEvent` or `operationId`. A balance-consuming check
+is the separate `consumeCheck` internal action and `autumn.consumeCheck` direct
+method, which requires a durable `operationId`.
+
 ## Results and errors
 
 Legacy `{ data, error, statusCode }` envelopes are gone. Direct methods resolve to

@@ -3,9 +3,20 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ConvexError } from "convex/values";
 import { defineSchema, makeFunctionReference } from "convex/server";
-import type { GetCustomerArgs, TrackArgs } from "../types.js";
+import type {
+  CheckArgs,
+  ConsumeCheckArgs,
+  GetCustomerArgs,
+  TrackArgs,
+} from "../types.js";
 import { initConvexTest } from "./setup.test.js";
 
+const check = makeFunctionReference<"action", CheckArgs, unknown>(
+  "actions.fixture:check"
+);
+const consumeCheck = makeFunctionReference<"action", ConsumeCheckArgs, unknown>(
+  "actions.fixture:consumeCheck"
+);
 const track = makeFunctionReference<"action", TrackArgs, unknown>(
   "actions.fixture:track"
 );
@@ -30,6 +41,20 @@ function trackResponse(value = 1) {
     customer_id: "customer-1",
     value,
     balance: null,
+  };
+}
+
+/**
+ * `balances` is keyed by provider-supplied feature IDs, so it is the one
+ * response field that can carry a field name Convex refuses to encode.
+ */
+function checkResponse(balances: Record<string, null>) {
+  return {
+    allowed: true,
+    customer_id: "customer-1",
+    balance: null,
+    flag: null,
+    balances,
   };
 }
 
@@ -188,6 +213,85 @@ describe("generated action ledger", () => {
       message: "Autumn rejected the request.",
     });
     expect(JSON.stringify(errorData(caught))).not.toContain("provider body");
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test.each([
+    ["sendEvent", true],
+    ["operationId", "consume-1"],
+  ])("rejects %s on the public check action", async (field, value) => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    await expect(
+      t.action(check, {
+        featureId: "messages",
+        [field]: value,
+      } as CheckArgs)
+    ).rejects.toThrow(field);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  test("keeps a valid provider field map in the returned result", async () => {
+    const fetcher = vi.fn(async () =>
+      response(checkResponse({ messages: null }))
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    await expect(t.action(check, { featureId: "messages" })).resolves.toEqual({
+      allowed: true,
+      customerId: "customer-1",
+      balance: null,
+      flag: null,
+      balances: { messages: null },
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test("rejects a Convex-invalid field before the action response boundary", async () => {
+    const fetcher = vi.fn(async () =>
+      response(checkResponse({ $reserved: null }))
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(check, { featureId: "messages" })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_RESULT_UNSERIALIZABLE",
+      operation: "check",
+      message: "The Autumn response cannot be serialized by Convex.",
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test("stores an unserializable terminal result as indeterminate", async () => {
+    const fetcher = vi.fn(async () =>
+      response(checkResponse({ $reserved: null }))
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+    const args = {
+      featureId: "messages",
+      operationId: "unserializable-1",
+    };
+
+    const first = await t.action(consumeCheck, args).catch((caught) => caught);
+    const replay = await t.action(consumeCheck, args).catch((caught) => caught);
+
+    expect(errorData(first)).toEqual({
+      code: "AUTUMN_RESULT_UNSERIALIZABLE",
+      operation: "check",
+      message: "The Autumn response cannot be serialized by Convex.",
+    });
+    expect(errorData(replay)).toMatchObject({
+      code: "AUTUMN_INDETERMINATE",
+      operation: "check",
+    });
     expect(fetcher).toHaveBeenCalledOnce();
   });
 

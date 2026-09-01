@@ -1,3 +1,5 @@
+import { convexToJson, jsonToConvex, type Value } from "convex/values";
+
 export class AutumnSerializationError extends Error {
   constructor() {
     super("The Autumn response cannot be serialized by Convex.");
@@ -5,59 +7,26 @@ export class AutumnSerializationError extends Error {
   }
 }
 
-export function toConvexSerializable(value: unknown): unknown {
-  return clone(value, new Set());
-}
-
-function clone(value: unknown, seen: Set<object>): unknown {
-  if (
-    value === null ||
-    typeof value === "string" ||
-    typeof value === "boolean" ||
-    typeof value === "bigint"
-  ) {
-    return value;
-  }
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) throw new AutumnSerializationError();
-    return value;
-  }
-  if (typeof value === "undefined") return undefined;
-  if (typeof value !== "object") throw new AutumnSerializationError();
-  if (
-    value instanceof Response ||
-    value instanceof Request ||
-    value instanceof Headers ||
-    value instanceof Blob ||
-    value instanceof FormData ||
-    value instanceof URL ||
-    value instanceof Date ||
-    value instanceof RegExp ||
-    value instanceof Error ||
-    ArrayBuffer.isView(value)
-  ) {
-    throw new AutumnSerializationError();
-  }
-  if (value instanceof ArrayBuffer) return value.slice(0);
-  if (seen.has(value)) throw new AutumnSerializationError();
-  seen.add(value);
-
+/**
+ * Round-trip a native SDK result through Convex's own value encoder.
+ *
+ * `convexToJson` is the encoder Convex applies at the outer action response
+ * boundary, so it is the only complete source of the invalid-value grammar:
+ * reserved `$` field names, control and non-ASCII field names, field names past
+ * the maximum identifier length, unsupported object types, `undefined` and
+ * out-of-range integers. Validating here rejects a bad result before it is
+ * returned or written to the operation ledger, where a later Convex failure
+ * would leave the operation stuck.
+ *
+ * `jsonToConvex` restores the Convex value itself, so callers keep `ArrayBuffer`
+ * and `bigint` values instead of their `$bytes` and `$integer` transport
+ * encoding. Convex embeds the offending value in its error messages, so those
+ * messages are replaced with a fixed one that cannot leak a provider response.
+ */
+export function toConvexSerializable<T>(value: T): T {
   try {
-    if (Array.isArray(value)) {
-      return value.map((entry) => {
-        const serialized = clone(entry, seen);
-        if (serialized === undefined) throw new AutumnSerializationError();
-        return serialized;
-      });
-    }
-
-    const result: Record<string, unknown> = {};
-    for (const [key, entry] of Object.entries(value)) {
-      const serialized = clone(entry, seen);
-      if (serialized !== undefined) result[key] = serialized;
-    }
-    return result;
-  } finally {
-    seen.delete(value);
+    return jsonToConvex(convexToJson(value as Value)) as T;
+  } catch {
+    throw new AutumnSerializationError();
   }
 }

@@ -79,16 +79,21 @@ export const Identifier = v.object({
 });
 export type Identifier = Infer<typeof Identifier>;
 
-export const CheckArgs = v.object({
+const checkFields = {
   featureId: v.string(),
   entityId: v.optional(v.string()),
   requiredBalance: v.optional(v.number()),
   properties: v.optional(stringMap),
-  sendEvent: v.optional(v.boolean()),
   withPreview: v.optional(v.boolean()),
-  operationId: v.optional(operationId),
-});
+};
+
+/** Read-only check. It has no field that can consume balance. */
+export const CheckArgs = v.object(checkFields);
 export type CheckArgs = Infer<typeof CheckArgs>;
+
+/** Balance-consuming check. It always sends the usage event. */
+export const ConsumeCheckArgs = v.object({ ...checkFields, operationId });
+export type ConsumeCheckArgs = Infer<typeof ConsumeCheckArgs>;
 
 export const TrackArgs = v.object({
   featureId: v.optional(v.string()),
@@ -424,6 +429,12 @@ type Assert<T extends true> = T;
 
 type _CheckParams = Assert<
   ExactSubset<WithCustomer<CheckArgs>, Param<SDK["check"]>>
+>;
+type _ConsumeCheckParams = Assert<
+  ExactSubset<
+    WithCustomer<ConsumeCheckArgs> & { sendEvent: true },
+    Param<SDK["check"]>
+  >
 >;
 type _TrackParams = Assert<
   ExactSubset<WithCustomer<TrackArgs>, Param<SDK["track"]>>

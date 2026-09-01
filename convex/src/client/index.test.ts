@@ -192,6 +192,17 @@ describe("Autumn native transport", () => {
         expected: { customer_id: "customer-1", feature_id: "f" },
       },
       {
+        name: "consumeCheck",
+        path: "/v1/balances.check",
+        execute: (a) =>
+          a.consumeCheck(null, { featureId: "f", operationId: "op" }),
+        expected: {
+          customer_id: "customer-1",
+          feature_id: "f",
+          send_event: true,
+        },
+      },
+      {
         name: "track",
         path: "/v1/balances.track",
         execute: (a) => a.track(null, { featureId: "f", operationId: "op" }),
@@ -624,6 +635,26 @@ describe("Autumn native transport", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
+  test("separates the read-only check from the consuming one", async () => {
+    const requests: Request[] = [];
+    const fetcher = async (input: RequestInfo | URL) => {
+      requests.push(new Request(input));
+      return response({ message: "rejected" }, 400);
+    };
+    const autumn = client(fetcher);
+
+    await autumn.check(null, { featureId: "messages" }).catch(() => undefined);
+    await autumn
+      .consumeCheck(null, { featureId: "messages", operationId: "consume" })
+      .catch(() => undefined);
+
+    const [read, consume] = requests as [Request, Request];
+    expect(read.headers.get("idempotency-key")).toBeNull();
+    expect(await read.text()).not.toContain("send_event");
+    expect(consume.headers.get("idempotency-key")).toMatch(/^autumn-1-/);
+    expect(await consume.text()).toContain('"send_event":true');
+  });
+
   test("enforces relational constraints before transport", async () => {
     const fetcher = vi.fn();
     const autumn = client(fetcher);
@@ -634,12 +665,6 @@ describe("Autumn native transport", () => {
         operationId: "invalid-track",
       })
     ).rejects.toThrow("exactly one");
-    await expect(
-      autumn.check(null, {
-        featureId: "messages",
-        operationId: "invalid-check",
-      })
-    ).rejects.toThrow("does not accept operationId");
     await expect(
       autumn.balances.update(null, {
         featureId: "messages",

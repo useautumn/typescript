@@ -31,8 +31,9 @@ Create the client in `convex/autumn.ts`:
 ```ts
 import { Autumn } from "@useautumn/convex";
 import { components } from "./_generated/api";
+import type { ActionCtx } from "./_generated/server";
 
-export const autumn = new Autumn(components.autumn, {
+export const autumn = new Autumn<ActionCtx>(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY,
   identify: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -49,38 +50,86 @@ export const autumn = new Autumn(components.autumn, {
 
 export const {
   check,
-  track,
   previewAttach,
-  attach,
   previewMultiAttach,
-  multiAttach,
   previewUpdate,
-  updateSubscription,
   previewMultiUpdate,
-  multiUpdate,
-  setupPayment,
   billingPortal,
   getCustomer,
+  getEntity,
+  listEntities,
+  getPlan,
+  listPlans,
+  listEvents,
+  aggregateEvents,
+} = autumn.api();
+
+export const {
+  consumeCheck,
+  track,
+  attach,
+  multiAttach,
+  updateSubscription,
+  multiUpdate,
+  setupPayment,
   getOrCreateCustomer,
   updateCustomer,
   deleteCustomer,
   createEntity,
-  getEntity,
-  listEntities,
   updateEntity,
   deleteEntity,
-  getPlan,
-  listPlans,
   updateBalance,
-  listEvents,
-  aggregateEvents,
   createReferralCode,
   redeemReferralCode,
-} = autumn.api();
+} = autumn.internalApi();
 ```
 
 Every customer ID comes from `identify(ctx)`. Public arguments never accept a
 customer ID.
+
+## Public and internal actions
+
+The generated surface fails closed. `autumn.api()` returns public Convex actions
+and contains only operations that cannot change provider state: previews, the
+billing portal session, reads scoped to the customer that `identify(ctx)`
+resolved, and plan catalog reads. Every provider mutation is in
+`autumn.internalApi()`, which registers it with Convex `internalActionGeneric`.
+
+Never move a name between the two export blocks. Visibility is decided by the
+builder that registered the action, so exporting a mutation from the public
+block would publish it under `api.<module>.<name>` and let any client call it.
+
+Billing arguments carry operator controls such as `invoiceMode`,
+`noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
+`recalculateBalances` and `carryOverUsages`. Any one of them changes what the
+customer is billed without a payment, which is why `attach`, `multiAttach`,
+`updateSubscription`, `multiUpdate` and `setupPayment` are internal rather than
+client-callable. `track` is internal for the same reason: a negative `value`
+returns balance to the customer, the grant `updateBalance` performs directly.
+
+Public `check` is read-only by construction. Its validator has no `sendEvent`
+and no `operationId`, so it cannot consume balance. Use the internal
+`consumeCheck` action or the `autumn.consumeCheck` direct method when a check
+should record usage.
+
+Internal actions are published under `internal.<module>.<name>` and only server
+code can reach them:
+
+```ts
+export const recordMessage = mutation({
+  args: { count: v.number() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const jobId = await ctx.db.insert("jobs", { count: args.count });
+    await ctx.scheduler.runAfter(0, internal.autumn.track, {
+      featureId: "messages",
+      value: args.count,
+      operationId: jobId,
+    });
+    return null;
+  },
+});
+```
 
 ## Direct methods
 
@@ -107,8 +156,8 @@ customer IDs and operation IDs are never placed in that header. Reusing an
 cannot access Convex storage. The derived provider key still changes with the
 payload.
 
-`check` is read-only by default and rejects `operationId`. Set `sendEvent: true`
-with an `operationId` when the check should consume balance. HTTP 202 throws
+`autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
+records the usage event and requires one. HTTP 202 throws
 `AutumnIndeterminateError` instead of returning a fail-open response.
 
 ## Generated action behavior
@@ -133,38 +182,47 @@ indeterminate. Generated errors are `ConvexError` values whose data contains onl
 Native `Response`, `Request`, `Headers` and raw response bodies never cross an
 action boundary.
 
+Every generated action resolves to the same native camelCase type as its direct
+method, including a replayed terminal result, so callers read result fields
+without an assertion. A result is validated with Convex's own value encoder
+before it is stored or returned. One Convex refuses to encode, such as a
+provider-supplied map key that starts with `$`, becomes an
+`AUTUMN_RESULT_UNSERIALIZABLE` error and leaves the operation indeterminate
+rather than failing at the outer action boundary.
+
 ## Supported methods
 
-| Direct method                | Generated action      | Mutates               | Supported request fields                                                                                                             |
-| ---------------------------- | --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `check`                      | `check`               | only with `sendEvent` | feature, entity, required balance, properties, preview                                                                               |
-| `track`                      | `track`               | yes                   | feature or event name, entity, value, properties, timestamp, overage behavior                                                        |
-| `billing.previewAttach`      | `previewAttach`       | no                    | plan, entity, feature quantities, version, invoice and redirect settings, checkout settings, `longLivedCheckout`, metadata, currency |
-| `billing.attach`             | `attach`              | yes                   | same supported shape as preview attach                                                                                               |
-| `billing.previewMultiAttach` | `previewMultiAttach`  | no                    | plans with per-plan feature quantities, entity, invoice and redirect settings, currency                                              |
-| `billing.multiAttach`        | `multiAttach`         | yes                   | same supported shape as preview multi-attach                                                                                         |
-| `billing.previewUpdate`      | `previewUpdate`       | no                    | plan or subscription target, feature quantities, cancellation and proration settings                                                 |
-| `billing.update`             | `updateSubscription`  | yes                   | same supported shape as preview update                                                                                               |
-| `billing.previewMultiUpdate` | `previewMultiUpdate`  | no                    | plan-aware subscription cancellation updates                                                                                         |
-| `billing.multiUpdate`        | `multiUpdate`         | yes                   | same supported shape as preview multi-update                                                                                         |
-| `billing.setupPayment`       | `setupPayment`        | yes                   | plan, entity, feature quantities, checkout settings, currency                                                                        |
-| `billing.portal`             | `billingPortal`       | no                    | configuration ID and return URL                                                                                                      |
-| `customers.get`              | `getCustomer`         | no                    | expand                                                                                                                               |
-| `customers.getOrCreate`      | `getOrCreateCustomer` | yes                   | identity fields, metadata, processor ID, currency, expand                                                                            |
-| `customers.update`           | `updateCustomer`      | yes                   | identity fields, metadata, processor ID, currency                                                                                    |
-| `customers.delete`           | `deleteCustomer`      | yes                   | processor deletion flag                                                                                                              |
-| `entities.create`            | `createEntity`        | yes                   | entity ID, feature ID, name, supported billing controls                                                                              |
-| `entities.get`               | `getEntity`           | no                    | entity ID                                                                                                                            |
-| `entities.list`              | `listEntities`        | no                    | cursor, limit, plan filters, status, search, processors                                                                              |
-| `entities.update`            | `updateEntity`        | yes                   | entity ID and supported billing controls                                                                                             |
-| `entities.delete`            | `deleteEntity`        | yes                   | entity ID                                                                                                                            |
-| `plans.get`                  | `getPlan`             | no                    | plan ID and version                                                                                                                  |
-| `plans.list`                 | `listPlans`           | no                    | entity, archived and version filters                                                                                                 |
-| `balances.update`            | `updateBalance`       | yes                   | one balance mutation plus target and reset fields                                                                                    |
-| `events.list`                | `listEvents`          | no                    | cursor, limit, entity, features and custom range                                                                                     |
-| `events.aggregate`           | `aggregateEvents`     | no                    | features, range, binning, grouping and filters                                                                                       |
-| `referrals.create`           | `createReferralCode`  | yes                   | program ID                                                                                                                           |
-| `referrals.redeem`           | `redeemReferralCode`  | yes                   | referral code                                                                                                                        |
+| Direct method                | Generated action      | Visibility | Supported request fields                                                                                                             |
+| ---------------------------- | --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `check`                      | `check`               | public     | feature, entity, required balance, properties, preview                                                                               |
+| `consumeCheck`               | `consumeCheck`        | internal   | same fields as check, plus the required operation ID                                                                                 |
+| `track`                      | `track`               | internal   | feature or event name, entity, value, properties, timestamp, overage behavior                                                        |
+| `billing.previewAttach`      | `previewAttach`       | public     | plan, entity, feature quantities, version, invoice and redirect settings, checkout settings, `longLivedCheckout`, metadata, currency |
+| `billing.attach`             | `attach`              | internal   | same supported shape as preview attach                                                                                               |
+| `billing.previewMultiAttach` | `previewMultiAttach`  | public     | plans with per-plan feature quantities, entity, invoice and redirect settings, currency                                              |
+| `billing.multiAttach`        | `multiAttach`         | internal   | same supported shape as preview multi-attach                                                                                         |
+| `billing.previewUpdate`      | `previewUpdate`       | public     | plan or subscription target, feature quantities, cancellation and proration settings                                                 |
+| `billing.update`             | `updateSubscription`  | internal   | same supported shape as preview update                                                                                               |
+| `billing.previewMultiUpdate` | `previewMultiUpdate`  | public     | plan-aware subscription cancellation updates                                                                                         |
+| `billing.multiUpdate`        | `multiUpdate`         | internal   | same supported shape as preview multi-update                                                                                         |
+| `billing.setupPayment`       | `setupPayment`        | internal   | plan, entity, feature quantities, checkout settings, currency                                                                        |
+| `billing.portal`             | `billingPortal`       | public     | configuration ID and return URL                                                                                                      |
+| `customers.get`              | `getCustomer`         | public     | expand                                                                                                                               |
+| `customers.getOrCreate`      | `getOrCreateCustomer` | internal   | identity fields, metadata, processor ID, currency, expand                                                                            |
+| `customers.update`           | `updateCustomer`      | internal   | identity fields, metadata, processor ID, currency                                                                                    |
+| `customers.delete`           | `deleteCustomer`      | internal   | processor deletion flag                                                                                                              |
+| `entities.create`            | `createEntity`        | internal   | entity ID, feature ID, name, supported billing controls                                                                              |
+| `entities.get`               | `getEntity`           | public     | entity ID                                                                                                                            |
+| `entities.list`              | `listEntities`        | public     | cursor, limit, plan filters, status, search, processors                                                                              |
+| `entities.update`            | `updateEntity`        | internal   | entity ID and supported billing controls                                                                                             |
+| `entities.delete`            | `deleteEntity`        | internal   | entity ID                                                                                                                            |
+| `plans.get`                  | `getPlan`             | public     | plan ID and version                                                                                                                  |
+| `plans.list`                 | `listPlans`           | public     | entity, archived and version filters                                                                                                 |
+| `balances.update`            | `updateBalance`       | internal   | one balance mutation plus target and reset fields                                                                                    |
+| `events.list`                | `listEvents`          | public     | cursor, limit, entity, features and custom range                                                                                     |
+| `events.aggregate`           | `aggregateEvents`     | public     | features, range, binning, grouping and filters                                                                                       |
+| `referrals.create`           | `createReferralCode`  | internal   | program ID                                                                                                                           |
+| `referrals.redeem`           | `redeemReferralCode`  | internal   | referral code                                                                                                                        |
 
 `longLivedCheckout` is passed through unchanged to the native attach endpoint.
 Its lifecycle and durability follow the configured billing provider's behavior.

@@ -10,7 +10,6 @@ pnpm dev
 ## Testing
 
 ```sh
-pnpm clean
 pnpm install --frozen-lockfile
 pnpm build
 pnpm typecheck
@@ -18,10 +17,13 @@ pnpm test
 pnpm lint
 ```
 
+`pnpm build` removes `dist` first, so output for a deleted source file can never
+reach a tarball. Run it before `pnpm typecheck`, which also compiles the example
+Convex app in `example/convex` against the built package types.
+
 ## Building a package
 
 ```sh
-pnpm clean
 pnpm build
 pnpm pack
 ```
