@@ -266,7 +266,7 @@ above.
 | `entities.delete`            | `deleteEntity`        | internal   | entity ID                                                                                                                            |
 | `plans.get`                  | `getPlan`             | public     | plan ID and version                                                                                                                  |
 | `plans.list`                 | `listPlans`           | public     | entity, archived and version filters                                                                                                 |
-| `balances.update`            | `updateBalance`       | internal   | one balance mutation plus target and reset fields                                                                                    |
+| `balances.update`            | `updateBalance`       | internal   | optional balance, grant, target, reset and expiry changes                                                                            |
 | `events.list`                | `listEvents`          | public     | cursor, limit, entity, features and custom range                                                                                     |
 | `events.aggregate`           | `aggregateEvents`     | public     | features, range, binning, grouping and filters                                                                                       |
 | `referrals.create`           | `createReferralCode`  | internal   | program ID                                                                                                                           |

@@ -205,8 +205,8 @@ function validateBalance(args: UpdateBalanceArgsType): void {
   );
   requireCondition(
     "balances.update",
-    changes.length === 1,
-    "balances.update requires exactly one of remaining, addToBalance or usage."
+    changes.length <= 1,
+    "balances.update accepts at most one of remaining, addToBalance or usage."
   );
 }
 

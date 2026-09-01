@@ -7,7 +7,9 @@ import type {
   GetCustomerArgs,
   InternalConsumeCheckArgs,
   InternalTrackArgs,
+  InternalUpdateBalanceArgs,
 } from "../types.js";
+import { deriveProviderKey } from "../idempotency.js";
 import { errorData, initConvexTest, response } from "./setup.test.js";
 
 const CUSTOMER_ID = "customer-1";
@@ -23,6 +25,11 @@ const consumeCheck = makeFunctionReference<
 const track = makeFunctionReference<"action", InternalTrackArgs, unknown>(
   "actions.fixture:track"
 );
+const updateBalance = makeFunctionReference<
+  "action",
+  InternalUpdateBalanceArgs,
+  unknown
+>("actions.fixture:updateBalance");
 const getCustomer = makeFunctionReference<"action", GetCustomerArgs, unknown>(
   "actions.fixture:getCustomer"
 );
@@ -31,6 +38,51 @@ const trackWithoutOperationId = makeFunctionReference<
   { customerId: string; featureId: string },
   unknown
 >("actions.fixture:track");
+
+type BalanceUpdateFields = Omit<
+  InternalUpdateBalanceArgs,
+  "customerId" | "featureId" | "operationId"
+>;
+
+const VALID_BALANCE_UPDATES: Array<
+  [string, BalanceUpdateFields, Record<string, unknown>]
+> = [
+  ["identity only", {}, {}],
+  ["grant only", { includedGrant: 100 }, { included_grant: 100 }],
+  [
+    "reset only",
+    { nextResetAt: 1_750_000_000_000 },
+    { next_reset_at: 1_750_000_000_000 },
+  ],
+  [
+    "expiry only",
+    { expiresAt: 1_760_000_000_000 },
+    { expires_at: 1_760_000_000_000 },
+  ],
+  [
+    "combined grant and timing",
+    {
+      interval: "month",
+      includedGrant: 100,
+      balanceId: "balance-1",
+      nextResetAt: 1_750_000_000_000,
+      expiresAt: 1_760_000_000_000,
+    },
+    {
+      interval: "month",
+      included_grant: 100,
+      balance_id: "balance-1",
+      next_reset_at: 1_750_000_000_000,
+      expires_at: 1_760_000_000_000,
+    },
+  ],
+];
+
+const INVALID_BALANCE_UPDATES: Array<[string, BalanceUpdateFields]> = [
+  ["remaining and addToBalance", { remaining: 1, addToBalance: 1 }],
+  ["remaining and usage", { remaining: 1, usage: 1 }],
+  ["addToBalance and usage", { addToBalance: 1, usage: 1 }],
+];
 
 function trackResponse(value = 1) {
   return {
@@ -109,6 +161,65 @@ describe("generated mutation actions", () => {
     expect(keys[0]).toMatch(/^autumn-1-/);
     expect(await scheduledFunctions(t)).toEqual([]);
   });
+
+  test.each(VALID_BALANCE_UPDATES)(
+    "sends the %s update once without scheduled work",
+    async (name, fields, expectedFields) => {
+      const requests: Request[] = [];
+      const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+        requests.push(new Request(input));
+        return response({ success: true });
+      });
+      vi.stubGlobal("fetch", fetcher);
+      const t = initConvexTest(defineSchema({}));
+
+      const operationId = `balance-${name.replaceAll(" ", "-")}`;
+      await expect(
+        t.action(updateBalance, {
+          customerId: CUSTOMER_ID,
+          featureId: "api_calls",
+          ...fields,
+          operationId,
+        })
+      ).resolves.toEqual({ success: true });
+
+      expect(fetcher).toHaveBeenCalledOnce();
+      const request = requests[0]!;
+      expect(request.headers.get("idempotency-key")).toBe(
+        await deriveProviderKey({
+          operation: "balances.update",
+          operationNamespace: "actions-fixture",
+          operationId,
+        })
+      );
+      expect(await request.json()).toEqual({
+        customer_id: CUSTOMER_ID,
+        feature_id: "api_calls",
+        ...expectedFields,
+      });
+      expect(await scheduledFunctions(t)).toEqual([]);
+    }
+  );
+
+  test.each(INVALID_BALANCE_UPDATES)(
+    "rejects %s before the generated balance update runs",
+    async (name, fields) => {
+      const fetcher = vi.fn();
+      vi.stubGlobal("fetch", fetcher);
+      const t = initConvexTest(defineSchema({}));
+
+      await expect(
+        t.action(updateBalance, {
+          customerId: CUSTOMER_ID,
+          featureId: "api_calls",
+          ...fields,
+          operationId: `invalid-${name.replaceAll(" ", "-")}`,
+        })
+      ).rejects.toThrow("at most one");
+      expect(fetcher).not.toHaveBeenCalled();
+      expect(await scheduledFunctions(t)).toEqual([]);
+    }
+  );
 
   test("sends the same operation under the same key on every invocation", async () => {
     const keys: string[] = [];

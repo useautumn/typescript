@@ -1,5 +1,7 @@
 import { AutumnError } from "autumn-js";
 import { describe, expect, test, vi } from "vitest";
+import { deriveProviderKey } from "../idempotency.js";
+import type { UpdateBalanceArgs } from "../types.js";
 import { Autumn, AutumnIndeterminateError } from "./index.js";
 
 type CapturedRequest = {
@@ -8,6 +10,48 @@ type CapturedRequest = {
   headers: Headers;
   body: Record<string, unknown>;
 };
+
+type BalanceUpdateFields = Omit<UpdateBalanceArgs, "featureId" | "operationId">;
+
+const VALID_BALANCE_UPDATES: Array<
+  [string, BalanceUpdateFields, Record<string, unknown>]
+> = [
+  ["identity only", {}, {}],
+  ["grant only", { includedGrant: 100 }, { included_grant: 100 }],
+  [
+    "reset only",
+    { nextResetAt: 1_750_000_000_000 },
+    { next_reset_at: 1_750_000_000_000 },
+  ],
+  [
+    "expiry only",
+    { expiresAt: 1_760_000_000_000 },
+    { expires_at: 1_760_000_000_000 },
+  ],
+  [
+    "combined grant and timing",
+    {
+      interval: "month",
+      includedGrant: 100,
+      balanceId: "balance-1",
+      nextResetAt: 1_750_000_000_000,
+      expiresAt: 1_760_000_000_000,
+    },
+    {
+      interval: "month",
+      included_grant: 100,
+      balance_id: "balance-1",
+      next_reset_at: 1_750_000_000_000,
+      expires_at: 1_760_000_000_000,
+    },
+  ],
+];
+
+const INVALID_BALANCE_UPDATES: Array<[string, BalanceUpdateFields]> = [
+  ["remaining and addToBalance", { remaining: 1, addToBalance: 1 }],
+  ["remaining and usage", { remaining: 1, usage: 1 }],
+  ["addToBalance and usage", { addToBalance: 1, usage: 1 }],
+];
 
 function response(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -730,6 +774,57 @@ describe("Autumn native transport", () => {
     expect(await consume.text()).toContain('"send_event":true');
   });
 
+  test.each(VALID_BALANCE_UPDATES)(
+    "sends the %s update once in the provider shape",
+    async (name, fields, expectedFields) => {
+      const requests: Request[] = [];
+      const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+        requests.push(new Request(input));
+        return response({ success: true });
+      });
+
+      const operationId = `balance-${name.replaceAll(" ", "-")}`;
+      await expect(
+        client(fetcher).balances.update(null, {
+          featureId: "api_calls",
+          ...fields,
+          operationId,
+        })
+      ).resolves.toEqual({ success: true });
+
+      expect(fetcher).toHaveBeenCalledOnce();
+      const request = requests[0]!;
+      expect(request.headers.get("idempotency-key")).toBe(
+        await deriveProviderKey({
+          operation: "balances.update",
+          operationNamespace: "namespace-1",
+          operationId,
+        })
+      );
+      expect(await request.json()).toEqual({
+        customer_id: "customer-1",
+        feature_id: "api_calls",
+        ...expectedFields,
+      });
+    }
+  );
+
+  test.each(INVALID_BALANCE_UPDATES)(
+    "rejects %s before balance update transport",
+    async (name, fields) => {
+      const fetcher = vi.fn();
+
+      await expect(
+        client(fetcher).balances.update(null, {
+          featureId: "api_calls",
+          ...fields,
+          operationId: `invalid-${name.replaceAll(" ", "-")}`,
+        })
+      ).rejects.toThrow("at most one");
+      expect(fetcher).not.toHaveBeenCalled();
+    }
+  );
+
   test("enforces relational constraints before transport", async () => {
     const fetcher = vi.fn();
     const autumn = client(fetcher);
@@ -738,14 +833,6 @@ describe("Autumn native transport", () => {
         featureId: "messages",
         eventName: "message.sent",
         operationId: "invalid-track",
-      })
-    ).rejects.toThrow("exactly one");
-    await expect(
-      autumn.balances.update(null, {
-        featureId: "messages",
-        remaining: 1,
-        usage: 1,
-        operationId: "invalid-balance",
       })
     ).rejects.toThrow("exactly one");
     expect(fetcher).not.toHaveBeenCalled();
