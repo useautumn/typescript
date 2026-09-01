@@ -10,40 +10,47 @@ import type { ComponentApi } from "../component/_generated/component.js";
 import {
   AggregateEventsArgs,
   type AggregateEventsArgs as AggregateEventsArgsType,
-  AttachArgs,
   type AttachArgs as AttachArgsType,
   BillingPortalArgs,
   type BillingPortalArgs as BillingPortalArgsType,
   CheckArgs,
   type CheckArgs as CheckArgsType,
-  ConsumeCheckArgs,
   type ConsumeCheckArgs as ConsumeCheckArgsType,
-  CreateEntityArgs,
   type CreateEntityArgs as CreateEntityArgsType,
-  CreateReferralCodeArgs,
   type CreateReferralCodeArgs as CreateReferralCodeArgsType,
-  DeleteCustomerArgs,
   type DeleteCustomerArgs as DeleteCustomerArgsType,
-  DeleteEntityArgs,
   type DeleteEntityArgs as DeleteEntityArgsType,
   GetCustomerArgs,
   type GetCustomerArgs as GetCustomerArgsType,
   GetEntityArgs,
   type GetEntityArgs as GetEntityArgsType,
-  GetOrCreateCustomerArgs,
   type GetOrCreateCustomerArgs as GetOrCreateCustomerArgsType,
   GetPlanArgs,
   type GetPlanArgs as GetPlanArgsType,
   type Identifier,
+  InternalAttachArgs,
+  InternalConsumeCheckArgs,
+  InternalCreateEntityArgs,
+  InternalCreateReferralCodeArgs,
+  InternalDeleteCustomerArgs,
+  InternalDeleteEntityArgs,
+  InternalGetOrCreateCustomerArgs,
+  InternalMultiAttachArgs,
+  InternalMultiUpdateArgs,
+  InternalRedeemReferralCodeArgs,
+  InternalSetupPaymentArgs,
+  InternalTrackArgs,
+  InternalUpdateBalanceArgs,
+  InternalUpdateCustomerArgs,
+  InternalUpdateEntityArgs,
+  InternalUpdateSubscriptionArgs,
   ListEntitiesArgs,
   type ListEntitiesArgs as ListEntitiesArgsType,
   ListEventsArgs,
   type ListEventsArgs as ListEventsArgsType,
   ListPlansArgs,
   type ListPlansArgs as ListPlansArgsType,
-  MultiAttachArgs,
   type MultiAttachArgs as MultiAttachArgsType,
-  MultiUpdateArgs,
   type MultiUpdateArgs as MultiUpdateArgsType,
   PreviewAttachArgs,
   type PreviewAttachArgs as PreviewAttachArgsType,
@@ -53,19 +60,12 @@ import {
   type PreviewMultiUpdateArgs as PreviewMultiUpdateArgsType,
   PreviewUpdateArgs,
   type PreviewUpdateArgs as PreviewUpdateArgsType,
-  RedeemReferralCodeArgs,
   type RedeemReferralCodeArgs as RedeemReferralCodeArgsType,
-  SetupPaymentArgs,
   type SetupPaymentArgs as SetupPaymentArgsType,
-  TrackArgs,
   type TrackArgs as TrackArgsType,
-  UpdateBalanceArgs,
   type UpdateBalanceArgs as UpdateBalanceArgsType,
-  UpdateCustomerArgs,
   type UpdateCustomerArgs as UpdateCustomerArgsType,
-  UpdateEntityArgs,
   type UpdateEntityArgs as UpdateEntityArgsType,
-  UpdateSubscriptionArgs,
   type UpdateSubscriptionArgs as UpdateSubscriptionArgsType,
 } from "../types.js";
 import {
@@ -74,7 +74,10 @@ import {
   AutumnIndeterminateError,
   AutumnValidationError,
 } from "../errors.js";
-import { deriveOperationKeys } from "../idempotency.js";
+import {
+  deriveOperationKeys,
+  validateOperationNamespace,
+} from "../idempotency.js";
 import {
   AutumnSerializationError,
   toConvexSerializable,
@@ -90,6 +93,17 @@ import {
 
 export type AutumnComponent = ComponentApi;
 export type AutumnOptions<Context> = AutumnTransportOptions & {
+  /**
+   * The Autumn organization and environment this client operates on.
+   *
+   * Operation identity is derived from it, so two clients that share one
+   * component instance never replay each other's results and never report a
+   * conflict against each other. Choose a deliberate, stable value such as
+   * `"acme-production"`: it has to survive a secret-key rotation, because a
+   * value derived from the key would orphan every operation the previous key
+   * recorded.
+   */
+  operationNamespace: string;
   identify: (ctx: Context) => Identifier | null | Promise<Identifier | null>;
 };
 
@@ -99,11 +113,31 @@ type NativeCall<T> = (
   options: { retries: { strategy: "none" }; headers?: Record<string, string> }
 ) => Promise<T>;
 type MutationArgs = { operationId: string };
+type InternalMutationArgs = MutationArgs & { customerId: string };
 
 function withoutOperationId<T extends MutationArgs>(
   args: T
 ): Omit<T, "operationId"> {
   const { operationId: _operationId, ...request } = args;
+  return request;
+}
+
+/**
+ * Drop the fields that identify the operation rather than describe the request.
+ *
+ * An internal action carries the customer ID that its trusted caller resolved.
+ * That ID and the operation ID are operation identity, so both are stripped
+ * before the Autumn request is built and the customer is re-added from the
+ * identifier the operation runs under.
+ */
+function withoutIdentity<T extends InternalMutationArgs>(
+  args: T
+): Omit<T, "operationId" | "customerId"> {
+  const {
+    operationId: _operationId,
+    customerId: _customerId,
+    ...request
+  } = args;
   return request;
 }
 
@@ -220,9 +254,8 @@ function validateListEvents(args: ListEventsArgsType): void {
 
 function mergeCustomerData(
   identifier: Identifier,
-  args: GetOrCreateCustomerArgsType
+  request: Omit<GetOrCreateCustomerArgsType, "operationId">
 ): Omit<GetOrCreateCustomerArgsType, "operationId"> & { customerId: string } {
-  const request = withoutOperationId(args);
   return {
     ...identifier.customerData,
     ...request,
@@ -279,6 +312,7 @@ export class Autumn<Context = unknown> {
     public readonly component: AutumnComponent,
     public readonly options: AutumnOptions<Context>
   ) {
+    validateOperationNamespace(options.operationNamespace);
     this.transport = new AutumnTransport(options);
   }
 
@@ -290,6 +324,26 @@ export class Autumn<Context = unknown> {
       );
     }
     return identifier;
+  }
+
+  /**
+   * The customer an internal action runs for.
+   *
+   * Convex runs a scheduled or internal function without the original caller's
+   * auth, so there is no identity to derive here. The customer ID comes from
+   * the server code that invoked the action and has already decided that the
+   * operation is allowed.
+   */
+  private trustedIdentifier(
+    operation: string,
+    args: InternalMutationArgs
+  ): Identifier {
+    requireCondition(
+      operation,
+      args.customerId.length > 0,
+      `${operation} requires a customerId from its caller.`
+    );
+    return { customerId: args.customerId };
   }
 
   private async read<Request extends object, T>(
@@ -315,6 +369,7 @@ export class Autumn<Context = unknown> {
     const nativeRequest = request(identifier);
     const { providerKey } = await deriveOperationKeys({
       operation,
+      operationNamespace: this.options.operationNamespace,
       customerId: identifier.customerId,
       operationId: args.operationId,
       request: nativeRequest,
@@ -338,23 +393,29 @@ export class Autumn<Context = unknown> {
   private async generated<Request extends object, T>(
     ctx: ActionContext,
     operation: string,
-    args: MutationArgs,
+    args: InternalMutationArgs,
     request: (identifier: Identifier) => Request,
     invoke: (request: Request) => NativeCall<T>
   ): Promise<T> {
     try {
-      const identifier = await this.identify(ctx as Context);
+      const identifier = this.trustedIdentifier(operation, args);
       const nativeRequest = request(identifier);
       const keys = await deriveOperationKeys({
         operation,
+        operationNamespace: this.options.operationNamespace,
         customerId: identifier.customerId,
         operationId: args.operationId,
         request: nativeRequest,
       });
+      // The token names this one attempt. It is minted in the action runtime
+      // because Convex may re-execute the claiming mutation, and a token minted
+      // inside that transaction would not distinguish one attempt from another.
+      const attemptToken = crypto.randomUUID();
       const claim = await ctx.runMutation(this.component.lib.claimOperation, {
         ledgerKey: keys.ledgerKey,
         operation,
         requestFingerprint: keys.requestFingerprint,
+        attemptToken,
       });
 
       if (claim.state === "succeeded") return claim.result as T;
@@ -378,6 +439,7 @@ export class Autumn<Context = unknown> {
         await ctx.runMutation(this.component.lib.markSubmitted, {
           ledgerKey: keys.ledgerKey,
           requestFingerprint: keys.requestFingerprint,
+          attemptToken,
         });
       } catch {
         throw new ConvexError({
@@ -403,6 +465,7 @@ export class Autumn<Context = unknown> {
           await ctx.runMutation(this.component.lib.completeOperation, {
             ledgerKey: keys.ledgerKey,
             requestFingerprint: keys.requestFingerprint,
+            attemptToken,
             terminal: { state: "indeterminate" },
           });
           throw new ConvexError(terminalError);
@@ -410,6 +473,7 @@ export class Autumn<Context = unknown> {
         await ctx.runMutation(this.component.lib.completeOperation, {
           ledgerKey: keys.ledgerKey,
           requestFingerprint: keys.requestFingerprint,
+          attemptToken,
           terminal: { state: "succeeded", result },
         });
         return result;
@@ -421,6 +485,7 @@ export class Autumn<Context = unknown> {
         await ctx.runMutation(this.component.lib.completeOperation, {
           ledgerKey: keys.ledgerKey,
           requestFingerprint: keys.requestFingerprint,
+          attemptToken,
           terminal: indeterminate
             ? { state: "indeterminate" }
             : { state: "failed", error: terminalError },
@@ -609,7 +674,7 @@ export class Autumn<Context = unknown> {
         ctx,
         "customers.getOrCreate",
         args,
-        (identifier) => mergeCustomerData(identifier, args),
+        (identifier) => mergeCustomerData(identifier, withoutOperationId(args)),
         (request) => (sdk, options) =>
           sdk.customers.getOrCreate(request, options)
       ),
@@ -899,20 +964,26 @@ export class Autumn<Context = unknown> {
    * Each of these changes state Autumn bills on, so none of them may be
    * reachable from a Convex client. Exporting them from a Convex module
    * publishes them under `internal.<module>.<name>`, where only server code can
-   * call them through `ctx.runAction` after it has made its own authorization
-   * decision.
+   * call them through `ctx.runAction` or `ctx.scheduler` after it has made its
+   * own authorization decision.
+   *
+   * Every one of them requires a `customerId`. Convex does not propagate the
+   * original caller's auth into a scheduled or internal function, so
+   * `identify(ctx)` has nothing to resolve there and is never consulted. The
+   * calling server code owns that decision and passes the subject it
+   * authorized; the field never reaches Autumn as a request field of its own.
    */
   internalApi() {
     return {
       consumeCheck: internalActionGeneric({
-        args: ConsumeCheckArgs,
+        args: InternalConsumeCheckArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "check",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
               sendEvent: true as const,
             }),
@@ -920,7 +991,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       track: internalActionGeneric({
-        args: TrackArgs,
+        args: InternalTrackArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -929,7 +1000,7 @@ export class Autumn<Context = unknown> {
             (identifier) => {
               validateTrack(args);
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -937,7 +1008,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       attach: internalActionGeneric({
-        args: AttachArgs,
+        args: InternalAttachArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -946,7 +1017,7 @@ export class Autumn<Context = unknown> {
             (identifier) => {
               validateAttach("billing.attach", args);
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -954,7 +1025,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       multiAttach: internalActionGeneric({
-        args: MultiAttachArgs,
+        args: InternalMultiAttachArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -963,7 +1034,7 @@ export class Autumn<Context = unknown> {
             (identifier) => {
               validateMultiAttach("billing.multiAttach", args);
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -972,7 +1043,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       updateSubscription: internalActionGeneric({
-        args: UpdateSubscriptionArgs,
+        args: InternalUpdateSubscriptionArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -984,7 +1055,7 @@ export class Autumn<Context = unknown> {
                 args.featureQuantities
               );
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -992,7 +1063,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       multiUpdate: internalActionGeneric({
-        args: MultiUpdateArgs,
+        args: InternalMultiUpdateArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -1001,7 +1072,7 @@ export class Autumn<Context = unknown> {
             (identifier) => {
               validateMultiUpdate("billing.multiUpdate", args);
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -1010,7 +1081,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       setupPayment: internalActionGeneric({
-        args: SetupPaymentArgs,
+        args: InternalSetupPaymentArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -1022,7 +1093,7 @@ export class Autumn<Context = unknown> {
                 args.featureQuantities
               );
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -1031,26 +1102,27 @@ export class Autumn<Context = unknown> {
           ),
       }),
       getOrCreateCustomer: internalActionGeneric({
-        args: GetOrCreateCustomerArgs,
+        args: InternalGetOrCreateCustomerArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "customers.getOrCreate",
             args,
-            (identifier) => mergeCustomerData(identifier, args),
+            (identifier) =>
+              mergeCustomerData(identifier, withoutIdentity(args)),
             (request) => (sdk, options) =>
               sdk.customers.getOrCreate(request, options)
           ),
       }),
       updateCustomer: internalActionGeneric({
-        args: UpdateCustomerArgs,
+        args: InternalUpdateCustomerArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "customers.update",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) =>
@@ -1058,14 +1130,14 @@ export class Autumn<Context = unknown> {
           ),
       }),
       deleteCustomer: internalActionGeneric({
-        args: DeleteCustomerArgs,
+        args: InternalDeleteCustomerArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "customers.delete",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) =>
@@ -1073,49 +1145,49 @@ export class Autumn<Context = unknown> {
           ),
       }),
       createEntity: internalActionGeneric({
-        args: CreateEntityArgs,
+        args: InternalCreateEntityArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "entities.create",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) => sdk.entities.create(request, options)
           ),
       }),
       updateEntity: internalActionGeneric({
-        args: UpdateEntityArgs,
+        args: InternalUpdateEntityArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "entities.update",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) => sdk.entities.update(request, options)
           ),
       }),
       deleteEntity: internalActionGeneric({
-        args: DeleteEntityArgs,
+        args: InternalDeleteEntityArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "entities.delete",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) => sdk.entities.delete(request, options)
           ),
       }),
       updateBalance: internalActionGeneric({
-        args: UpdateBalanceArgs,
+        args: InternalUpdateBalanceArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
@@ -1124,7 +1196,7 @@ export class Autumn<Context = unknown> {
             (identifier) => {
               validateBalance(args);
               return {
-                ...withoutOperationId(args),
+                ...withoutIdentity(args),
                 customerId: identifier.customerId,
               };
             },
@@ -1132,14 +1204,14 @@ export class Autumn<Context = unknown> {
           ),
       }),
       createReferralCode: internalActionGeneric({
-        args: CreateReferralCodeArgs,
+        args: InternalCreateReferralCodeArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "referrals.create",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) =>
@@ -1147,14 +1219,14 @@ export class Autumn<Context = unknown> {
           ),
       }),
       redeemReferralCode: internalActionGeneric({
-        args: RedeemReferralCodeArgs,
+        args: InternalRedeemReferralCodeArgs,
         handler: async (ctx, args) =>
           await this.generated(
             ctx,
             "referrals.redeem",
             args,
             (identifier) => ({
-              ...withoutOperationId(args),
+              ...withoutIdentity(args),
               customerId: identifier.customerId,
             }),
             (request) => (sdk, options) =>

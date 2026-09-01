@@ -10,7 +10,7 @@ import type {
 } from "convex/server";
 import type { Autumn as AutumnSDK } from "autumn-js";
 import * as autumnActions from "./actions.fixture.js";
-import { initConvexTest } from "./setup.test.js";
+import { initConvexTest, response } from "./setup.test.js";
 
 /**
  * Every public action, with arguments that reach transport, and the single
@@ -45,7 +45,10 @@ const READ_ONLY_ACTIONS: Array<[string, Record<string, unknown>, string]> = [
   ],
 ];
 
-/** Every internal action, with arguments that reach transport. */
+/**
+ * Every internal action, with arguments that reach transport. The trusted
+ * `customerId` every one of them requires is added at the call site.
+ */
 const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
   ["consumeCheck", { featureId: "messages" }],
   ["track", { featureId: "messages" }],
@@ -70,6 +73,7 @@ const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
 
 const readOnlyNames = READ_ONLY_ACTIONS.map(([name]) => name);
 const mutationNames = PROVIDER_MUTATIONS.map(([name]) => name);
+const CUSTOMER_ID = "customer-1";
 
 type Registration = {
   isAction?: boolean;
@@ -145,6 +149,32 @@ type _PublicCheckRejectsSendEvent = Assert<
   Equal<Extract<keyof PublicCheckArgs, "sendEvent" | "operationId">, never>
 >;
 
+/**
+ * A public action resolves its customer through `identify(ctx)`, so none of
+ * them accepts a customer ID from the client. Every internal action requires
+ * one, because Convex gives a scheduled or internal call no auth to derive it
+ * from and its trusted caller supplies it instead.
+ */
+type ActionArgs<Reference> =
+  Reference extends FunctionReference<"action", any, infer Args> ? Args : never;
+type AcceptsCustomerId<Args> = Args extends unknown
+  ? "customerId" extends keyof Args
+    ? true
+    : false
+  : never;
+type RequiresCustomerId<Args> = Args extends unknown
+  ? Args extends { customerId: string }
+    ? true
+    : false
+  : never;
+
+type _PublicActionsRejectCustomerId = Assert<
+  Equal<AcceptsCustomerId<ActionArgs<PublicApi[keyof PublicApi]>>, false>
+>;
+type _InternalActionsRequireCustomerId = Assert<
+  Equal<RequiresCustomerId<ActionArgs<InternalApi[ProviderMutation]>>, true>
+>;
+
 type _CheckResult = Assert<
   Equal<
     FunctionReturnType<AutumnApi["check"]>,
@@ -176,13 +206,6 @@ function readCheckResult(result: FunctionReturnType<AutumnApi["check"]>): {
   customerId: string;
 } {
   return { allowed: result.allowed, customerId: result.customerId };
-}
-
-function response(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
 }
 
 async function captureRequest(
@@ -265,10 +288,28 @@ describe("public actions cannot change provider state", () => {
     async (name, args) => {
       const request = await captureRequest(name, {
         ...args,
+        customerId: CUSTOMER_ID,
         operationId: `classification-${name}`,
       });
 
       expect(request.headers.get("idempotency-key")).toMatch(/^autumn-1-/);
+    }
+  );
+
+  test.each(PROVIDER_MUTATIONS)(
+    "%s refuses to run without a customer from its caller",
+    async (name, args) => {
+      const fetcher = vi.fn();
+      vi.stubGlobal("fetch", fetcher);
+      const t = initConvexTest(defineSchema({}));
+      const action = makeFunctionReference<"action", Record<string, unknown>>(
+        `actions.fixture:${name}`
+      );
+
+      await expect(
+        t.action(action, { ...args, operationId: `identity-${name}` })
+      ).rejects.toThrow("customerId");
+      expect(fetcher).not.toHaveBeenCalled();
     }
   );
 
@@ -279,6 +320,7 @@ describe("public actions cannot change provider state", () => {
     vi.unstubAllGlobals();
     const internalBody = await (
       await captureRequest("consumeCheck", {
+        customerId: CUSTOMER_ID,
         featureId: "messages",
         operationId: "consume-1",
       })

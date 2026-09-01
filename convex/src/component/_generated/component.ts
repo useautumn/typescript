@@ -20,6 +20,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           ledgerKey: string;
           operation: string;
           requestFingerprint: string;
+          attemptToken: string;
         },
         | { state: "claimed" }
         | { state: "conflict" }
@@ -40,7 +41,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       markSubmitted: FunctionReference<
         "mutation",
         "internal",
-        { ledgerKey: string; requestFingerprint: string },
+        {
+          ledgerKey: string;
+          requestFingerprint: string;
+          attemptToken: string;
+        },
         null,
         Name
       >;
@@ -50,6 +55,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           ledgerKey: string;
           requestFingerprint: string;
+          attemptToken: string;
           terminal:
             | { state: "succeeded"; result: any }
             | {

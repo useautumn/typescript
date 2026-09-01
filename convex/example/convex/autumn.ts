@@ -1,10 +1,13 @@
 import { Autumn } from "@useautumn/convex";
 import { v } from "convex/values";
-import { components } from "./_generated/api.js";
-import { action, type ActionCtx } from "./_generated/server.js";
+import { components, internal } from "./_generated/api.js";
+import { action, type ActionCtx, mutation } from "./_generated/server.js";
 
 export const autumn = new Autumn<ActionCtx>(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY,
+  // Deliberate, stable, and independent of the secret key: operation identity
+  // is derived from it, so rotating the key must not change it.
+  operationNamespace: "example-app-production",
   identify: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
@@ -60,5 +63,28 @@ export const messagesAllowed = action({
   handler: async (ctx) => {
     const result = await autumn.check(ctx, { featureId: "messages" });
     return result.allowed;
+  },
+});
+
+/**
+ * Convex runs a scheduled function without the caller's auth, so this mutation
+ * authorizes the request and resolves the subject while it still has one, then
+ * hands that customer to the internal action. The document it just wrote is the
+ * durable operation ID, so a retry of the schedule cannot record usage twice.
+ */
+export const recordMessages = mutation({
+  args: { count: v.number() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Sign in to record messages.");
+    const messageId = await ctx.db.insert("messages", { count: args.count });
+    await ctx.scheduler.runAfter(0, internal.autumn.track, {
+      customerId: identity.subject,
+      featureId: "messages",
+      value: args.count,
+      operationId: messageId,
+    });
+    return null;
   },
 });

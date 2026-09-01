@@ -1,5 +1,8 @@
+import { AutumnConfigurationError } from "./errors.js";
+
 const KEY_FORMAT_VERSION = "1";
 const OPERATION_ID_MAX_LENGTH = 256;
+const OPERATION_NAMESPACE_MAX_LENGTH = 256;
 
 function canonicalize(value: unknown): string {
   if (value === null) return "null";
@@ -49,6 +52,29 @@ async function digest(value: string): Promise<string> {
   );
 }
 
+/**
+ * Join identity parts so that no part can be read as a different one.
+ *
+ * Every part carries its own length, so a value that contains the separator
+ * cannot move the boundary between two parts. Operation identity mixes an
+ * operator-chosen namespace with a customer ID and an operation ID, and a plain
+ * separator would let one of them impersonate a prefix of the next.
+ */
+function canonicalIdentity(parts: string[]): string {
+  return parts.map((part) => `${part.length}\0${part}`).join("\0");
+}
+
+export function validateOperationNamespace(operationNamespace: string): void {
+  if (
+    operationNamespace.length === 0 ||
+    operationNamespace.length > OPERATION_NAMESPACE_MAX_LENGTH
+  ) {
+    throw new AutumnConfigurationError(
+      `Autumn operationNamespace must be between 1 and ${OPERATION_NAMESPACE_MAX_LENGTH} characters.`
+    );
+  }
+}
+
 export function validateOperationId(
   operation: string,
   operationId: string
@@ -63,13 +89,25 @@ export function validateOperationId(
   }
 }
 
+/**
+ * Derive the durable operation identity for one call.
+ *
+ * The namespace is part of both the ledger key and the provider key, so two
+ * clients that share one component instance address disjoint ledger entries and
+ * disjoint provider operations. Neither it nor the customer ID nor the
+ * operation ID reaches the ledger or the `Idempotency-Key` header in readable
+ * form: both keys are digests of the versioned canonical inputs, and only the
+ * format version stays legible.
+ */
 export async function deriveOperationKeys({
   operation,
+  operationNamespace,
   customerId,
   operationId,
   request,
 }: {
   operation: string;
+  operationNamespace: string;
   customerId: string;
   operationId: string;
   request: unknown;
@@ -78,17 +116,19 @@ export async function deriveOperationKeys({
   requestFingerprint: string;
   providerKey: string;
 }> {
+  validateOperationNamespace(operationNamespace);
   validateOperationId(operation, operationId);
   const requestFingerprint = await digest(canonicalize(request));
-  const namespace = [
+  const identity = canonicalIdentity([
     KEY_FORMAT_VERSION,
+    operationNamespace,
     operation,
     customerId,
     operationId,
-  ].join("\0");
-  const ledgerKey = await digest(`ledger\0${namespace}`);
+  ]);
+  const ledgerKey = await digest(canonicalIdentity(["ledger", identity]));
   const providerDigest = await digest(
-    ["provider", namespace, requestFingerprint].join("\0")
+    canonicalIdentity(["provider", identity, requestFingerprint])
   );
 
   return {

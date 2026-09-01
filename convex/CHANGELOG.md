@@ -18,6 +18,15 @@
   encoding.
 - Pin Autumn API version 2.3.0, disable retries and fail-open behavior, and
   derive bounded provider idempotency keys from durable operation IDs.
+- Require a deliberate `operationNamespace` and derive both the ledger key and
+  the provider key from it, so clients that share one installed component never
+  replay or conflict with each other.
+- Lease every operation claim to the attempt that took it. A claim left behind
+  by a process that died before submitting is reclaimed once its lease expires,
+  and the displaced attempt can no longer dispatch the operation.
+- Require a trusted `customerId` on every internal generated action, because
+  Convex propagates no auth into a scheduled or internal call. It identifies the
+  operation and is stripped before the Autumn request is built.
 - Add explicit billing preview, attach, multi-update, customer, entity, plan,
   balance, event and referral methods.
 - Remove root checkout, compatibility helpers, implicit provisioning and legacy

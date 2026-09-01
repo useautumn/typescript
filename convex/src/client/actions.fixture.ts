@@ -8,6 +8,7 @@ const components = componentsGeneric() as unknown as {
 const autumn = new Autumn(components.autumn, {
   secretKey: "test-secret-key",
   serverURL: "https://example.test",
+  operationNamespace: "actions-fixture",
   identify: async () => ({ customerId: "customer-1" }),
 });
 

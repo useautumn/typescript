@@ -15,6 +15,10 @@ export default defineSchema({
     operation: v.string(),
     requestFingerprint: v.string(),
     state,
+    /** The attempt that currently owns the operation. */
+    attemptToken: v.string(),
+    /** When the owning attempt loses a `claimed` operation. */
+    leaseExpiresAt: v.number(),
     result: v.optional(v.any()),
     error: v.optional(
       v.object({

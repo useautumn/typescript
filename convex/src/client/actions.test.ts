@@ -1,23 +1,26 @@
 /// <reference types="vite/client" />
 
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { ConvexError } from "convex/values";
 import { defineSchema, makeFunctionReference } from "convex/server";
 import type {
   CheckArgs,
-  ConsumeCheckArgs,
   GetCustomerArgs,
-  TrackArgs,
+  InternalConsumeCheckArgs,
+  InternalTrackArgs,
 } from "../types.js";
-import { initConvexTest } from "./setup.test.js";
+import { errorData, initConvexTest, response } from "./setup.test.js";
+
+const CUSTOMER_ID = "customer-1";
 
 const check = makeFunctionReference<"action", CheckArgs, unknown>(
   "actions.fixture:check"
 );
-const consumeCheck = makeFunctionReference<"action", ConsumeCheckArgs, unknown>(
-  "actions.fixture:consumeCheck"
-);
-const track = makeFunctionReference<"action", TrackArgs, unknown>(
+const consumeCheck = makeFunctionReference<
+  "action",
+  InternalConsumeCheckArgs,
+  unknown
+>("actions.fixture:consumeCheck");
+const track = makeFunctionReference<"action", InternalTrackArgs, unknown>(
   "actions.fixture:track"
 );
 const getCustomer = makeFunctionReference<"action", GetCustomerArgs, unknown>(
@@ -25,16 +28,9 @@ const getCustomer = makeFunctionReference<"action", GetCustomerArgs, unknown>(
 );
 const trackWithoutOperationId = makeFunctionReference<
   "action",
-  { featureId: string },
+  { customerId: string; featureId: string },
   unknown
 >("actions.fixture:track");
-
-function response(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-}
 
 function trackResponse(value = 1) {
   return {
@@ -58,19 +54,6 @@ function checkResponse(balances: Record<string, null>) {
   };
 }
 
-type ErrorData = {
-  code: string;
-  operation: string;
-  statusCode?: number;
-  message: string;
-};
-
-function errorData(error: unknown): ErrorData {
-  expect(error).toBeInstanceOf(ConvexError);
-  const data = (error as ConvexError<ErrorData | string>).data;
-  return typeof data === "string" ? (JSON.parse(data) as ErrorData) : data;
-}
-
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -82,7 +65,10 @@ describe("generated action ledger", () => {
     const t = initConvexTest(defineSchema({}));
 
     await expect(
-      t.action(trackWithoutOperationId, { featureId: "messages" })
+      t.action(trackWithoutOperationId, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+      })
     ).rejects.toThrow("operationId");
     expect(fetcher).not.toHaveBeenCalled();
   });
@@ -92,6 +78,7 @@ describe("generated action ledger", () => {
     vi.stubGlobal("fetch", fetcher);
     const t = initConvexTest(defineSchema({}));
     const args = {
+      customerId: CUSTOMER_ID,
       featureId: "messages",
       value: 3,
       operationId: "success-1",
@@ -116,12 +103,14 @@ describe("generated action ledger", () => {
     const t = initConvexTest(defineSchema({}));
 
     await t.action(track, {
+      customerId: CUSTOMER_ID,
       featureId: "messages",
       value: 1,
       operationId: "conflict-1",
     });
     const error = await t
       .action(track, {
+        customerId: CUSTOMER_ID,
         featureId: "messages",
         value: 2,
         operationId: "conflict-1",
@@ -148,6 +137,7 @@ describe("generated action ledger", () => {
       vi.stubGlobal("fetch", fetcher);
       const t = initConvexTest(defineSchema({}));
       const args = {
+        customerId: CUSTOMER_ID,
         featureId: "messages",
         operationId: `indeterminate-${status}`,
       };
@@ -180,7 +170,11 @@ describe("generated action ledger", () => {
       });
       vi.stubGlobal("fetch", fetcher);
       const t = initConvexTest(defineSchema({}));
-      const args = { featureId: "messages", operationId: `${kind}-1` };
+      const args = {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: `${kind}-1`,
+      };
 
       const first = await t.action(track, args).catch((caught) => caught);
       const replay = await t.action(track, args).catch((caught) => caught);
@@ -219,6 +213,7 @@ describe("generated action ledger", () => {
   test.each([
     ["sendEvent", true],
     ["operationId", "consume-1"],
+    ["customerId", "customer-2"],
   ])("rejects %s on the public check action", async (field, value) => {
     const fetcher = vi.fn();
     vi.stubGlobal("fetch", fetcher);
@@ -276,6 +271,7 @@ describe("generated action ledger", () => {
     vi.stubGlobal("fetch", fetcher);
     const t = initConvexTest(defineSchema({}));
     const args = {
+      customerId: CUSTOMER_ID,
       featureId: "messages",
       operationId: "unserializable-1",
     };
@@ -301,7 +297,11 @@ describe("generated action ledger", () => {
     );
     vi.stubGlobal("fetch", fetcher);
     const t = initConvexTest(defineSchema({}));
-    const args = { featureId: "messages", operationId: "failure-1" };
+    const args = {
+      customerId: CUSTOMER_ID,
+      featureId: "messages",
+      operationId: "failure-1",
+    };
 
     const first = await t.action(track, args).catch((caught) => caught);
     const replay = await t.action(track, args).catch((caught) => caught);

@@ -12,9 +12,15 @@ contract.
 | SDK version range or workspace SDK | exact runtime dependency `autumn-js@1.2.55` |
 | caller-provided customer fields    | customer ID from `identify(ctx)`            |
 | optional provider idempotency key  | required durable `operationId` on mutations |
+| implicit single-tenant identity    | required deliberate `operationNamespace`    |
 
 Header overrides for `Authorization`, `Content-Type`, `X-API-Version` and
 `Idempotency-Key` now fail during client construction.
+
+`operationNamespace` names the Autumn organization and environment the client
+operates on, and operation identity is derived from it. Pick a stable value that
+survives a secret-key rotation. Two clients that share one installed component
+need different namespaces, or they read each other's ledger entries.
 
 ## Generated action visibility
 
@@ -31,6 +37,13 @@ which registers it as a Convex internal action: `consumeCheck`, `track`,
 Export both blocks from the same module, keep each name in the block it came
 from, and call the mutations from server code through
 `internal.<module>.<name>`.
+
+Every internal action now requires a `customerId` argument. Convex does not
+propagate the caller's auth into a scheduled or internal call, so `identify(ctx)`
+cannot resolve a customer there and is not consulted. Authorize the request in
+the mutation or action that still has an identity, resolve the subject there, and
+pass it to the internal action. Public validators are unchanged and still accept
+no customer ID.
 
 A client that previously started checkout by calling `api.autumn.attach` now
 calls your own authorized action, which runs `internal.autumn.attach`. That
@@ -50,7 +63,9 @@ native camelCase SDK values and throw native SDK errors. HTTP 202 throws
 
 Generated actions return serializable native values. They throw safe
 `ConvexError` data and use the component ledger to prevent an automatic retry
-after a submitted operation has an unknown outcome.
+after a submitted operation has an unknown outcome. A claim taken by a process
+that then died is recoverable once its lease expires, because such an operation
+provably never reached Autumn.
 
 ## Method mapping
 

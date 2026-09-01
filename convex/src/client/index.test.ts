@@ -16,10 +16,15 @@ function response(body: unknown, status = 200): Response {
   });
 }
 
-function client(fetcher: typeof fetch, customerId = "customer-1") {
+function client(
+  fetcher: typeof fetch,
+  customerId = "customer-1",
+  operationNamespace = "namespace-1"
+) {
   return new Autumn({} as never, {
     secretKey: "test-secret-key",
     serverURL: "https://example.test",
+    operationNamespace,
     identify: async () => ({ customerId }),
     fetcher,
   });
@@ -63,6 +68,7 @@ describe("Autumn native transport", () => {
       "caller-operation-id"
     );
     expect(request.headers.get("idempotency-key")).not.toContain("customer-1");
+    expect(request.headers.get("idempotency-key")).not.toContain("namespace-1");
   });
 
   test("merges caller headers without replacing managed headers", async () => {
@@ -77,6 +83,7 @@ describe("Autumn native transport", () => {
     const autumn = new Autumn({} as never, {
       secretKey: "test-secret-key",
       serverURL: "https://example.test",
+      operationNamespace: "namespace-1",
       identify: async () => ({ customerId: "customer-1" }),
       headers: { "X-Autumn-Tenant": "tenant-1" },
       fetcher,
@@ -98,13 +105,51 @@ describe("Autumn native transport", () => {
       () =>
         new Autumn({} as never, {
           secretKey: "test-secret-key",
+          operationNamespace: "namespace-1",
           identify: async () => ({ customerId: "customer-1" }),
           headers: { [header]: "override" },
         })
     ).toThrow("managed by @useautumn/convex");
   });
 
-  test("namespaces operation keys by route, customer and payload", async () => {
+  test.each([
+    ["empty", ""],
+    ["over-long", "n".repeat(257)],
+  ])("rejects an %s operationNamespace", (_name, operationNamespace) => {
+    expect(
+      () =>
+        new Autumn({} as never, {
+          secretKey: "test-secret-key",
+          operationNamespace,
+          identify: async () => ({ customerId: "customer-1" }),
+        })
+    ).toThrow("operationNamespace must be between 1 and 256 characters");
+  });
+
+  test("separates keys of clients that share a customer and operation ID", async () => {
+    const keys: string[] = [];
+    const fetcher = async (input: RequestInfo | URL) => {
+      const request = new Request(input);
+      keys.push(request.headers.get("idempotency-key")!);
+      return response({ message: "rejected" }, 400);
+    };
+    const args = {
+      featureId: "messages",
+      value: 1,
+      operationId: "same",
+    } as const;
+
+    await client(fetcher, "customer-1", "namespace-1")
+      .track(null, args)
+      .catch(() => undefined);
+    await client(fetcher, "customer-1", "namespace-2")
+      .track(null, args)
+      .catch(() => undefined);
+
+    expect(new Set(keys).size).toBe(2);
+  });
+
+  test("separates operation keys by route, customer and payload", async () => {
     const keys: string[] = [];
     const fetcher = async (input: RequestInfo | URL) => {
       const request = new Request(input);
@@ -570,6 +615,7 @@ describe("Autumn native transport", () => {
     const autumn = new Autumn({} as never, {
       secretKey: "test-secret-key",
       serverURL: "https://example.test",
+      operationNamespace: "namespace-1",
       identify: async () => {
         throw identificationError;
       },
@@ -612,6 +658,7 @@ describe("Autumn native transport", () => {
     const autumn = new Autumn({} as never, {
       secretKey: "test-secret-key",
       serverURL: "https://example.test",
+      operationNamespace: "namespace-1",
       timeoutMs: 5,
       identify: async () => ({ customerId: "customer-1" }),
       fetcher,

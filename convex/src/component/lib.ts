@@ -1,6 +1,18 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server.js";
 
+/**
+ * How long a claimed operation stays reserved for the attempt that took it.
+ *
+ * An attempt claims the operation and then marks it submitted, and only the
+ * holder of the live lease may take that second step. The window has to outlast
+ * the gap between those two mutations so that a healthy attempt is never fenced
+ * out by a competitor, and it is also how long a caller waits for an operation
+ * whose attempt died in that gap, because nothing may take the claim over until
+ * the lease runs out.
+ */
+export const CLAIM_LEASE_MS = 60_000;
+
 const errorData = v.object({
   code: v.string(),
   operation: v.string(),
@@ -21,9 +33,13 @@ export const claimOperation = mutation({
     ledgerKey: v.string(),
     operation: v.string(),
     requestFingerprint: v.string(),
+    attemptToken: v.string(),
   },
   returns: claimResult,
   handler: async (ctx, args) => {
+    // Leases are written and compared against the transaction's own clock,
+    // never against a timestamp the calling process supplied.
+    const now = Date.now();
     const existing = await ctx.db
       .query("operations")
       .withIndex("ledgerKey", (query) => query.eq("ledgerKey", args.ledgerKey))
@@ -35,6 +51,8 @@ export const claimOperation = mutation({
         operation: args.operation,
         requestFingerprint: args.requestFingerprint,
         state: "claimed",
+        attemptToken: args.attemptToken,
+        leaseExpiresAt: now + CLAIM_LEASE_MS,
       });
       return { state: "claimed" as const };
     }
@@ -53,14 +71,29 @@ export const claimOperation = mutation({
     if (existing.state === "indeterminate") {
       return { state: "indeterminate" as const };
     }
+    if (existing.state === "claimed" && existing.leaseExpiresAt <= now) {
+      // The attempt that held this claim never reached `markSubmitted`, so the
+      // operation cannot have been sent. Taking the claim over replaces the
+      // token, which is what stops that earlier attempt from submitting later.
+      await ctx.db.patch(existing._id, {
+        attemptToken: args.attemptToken,
+        leaseExpiresAt: now + CLAIM_LEASE_MS,
+      });
+      return { state: "claimed" as const };
+    }
     return { state: "pending" as const };
   },
 });
 
 export const markSubmitted = mutation({
-  args: { ledgerKey: v.string(), requestFingerprint: v.string() },
+  args: {
+    ledgerKey: v.string(),
+    requestFingerprint: v.string(),
+    attemptToken: v.string(),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
+    const now = Date.now();
     const operation = await ctx.db
       .query("operations")
       .withIndex("ledgerKey", (query) => query.eq("ledgerKey", args.ledgerKey))
@@ -68,7 +101,9 @@ export const markSubmitted = mutation({
     if (
       !operation ||
       operation.requestFingerprint !== args.requestFingerprint ||
-      operation.state !== "claimed"
+      operation.state !== "claimed" ||
+      operation.attemptToken !== args.attemptToken ||
+      operation.leaseExpiresAt <= now
     ) {
       throw new Error("Operation claim is no longer available.");
     }
@@ -81,6 +116,7 @@ export const completeOperation = mutation({
   args: {
     ledgerKey: v.string(),
     requestFingerprint: v.string(),
+    attemptToken: v.string(),
     terminal: v.union(
       v.object({ state: v.literal("succeeded"), result: v.any() }),
       v.object({ state: v.literal("failed"), error: errorData }),
@@ -95,7 +131,8 @@ export const completeOperation = mutation({
       .unique();
     if (
       !operation ||
-      operation.requestFingerprint !== args.requestFingerprint
+      operation.requestFingerprint !== args.requestFingerprint ||
+      operation.attemptToken !== args.attemptToken
     ) {
       throw new Error("Operation claim was not found.");
     }

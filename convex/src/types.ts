@@ -413,6 +413,108 @@ export const RedeemReferralCodeArgs = v.object({
 });
 export type RedeemReferralCodeArgs = Infer<typeof RedeemReferralCodeArgs>;
 
+/**
+ * The customer an internal generated action operates on.
+ *
+ * Convex does not propagate the caller's auth into a scheduled or internal
+ * call, so `identify(ctx)` cannot resolve a customer there. Each internal
+ * action is reachable only from server code that has already made its own
+ * authorization decision, and it takes the customer ID from that caller. The
+ * field is stripped before the Autumn request is built, and it never appears on
+ * a public validator.
+ */
+const customerId = v.string();
+
+export const InternalConsumeCheckArgs = v.object({
+  ...ConsumeCheckArgs.fields,
+  customerId,
+});
+export type InternalConsumeCheckArgs = Infer<typeof InternalConsumeCheckArgs>;
+export const InternalTrackArgs = v.object({ ...TrackArgs.fields, customerId });
+export type InternalTrackArgs = Infer<typeof InternalTrackArgs>;
+export const InternalAttachArgs = v.object({
+  ...AttachArgs.fields,
+  customerId,
+});
+export type InternalAttachArgs = Infer<typeof InternalAttachArgs>;
+export const InternalMultiAttachArgs = v.object({
+  ...MultiAttachArgs.fields,
+  customerId,
+});
+export type InternalMultiAttachArgs = Infer<typeof InternalMultiAttachArgs>;
+export const InternalUpdateSubscriptionArgs = v.object({
+  ...UpdateSubscriptionArgs.fields,
+  customerId,
+});
+export type InternalUpdateSubscriptionArgs = Infer<
+  typeof InternalUpdateSubscriptionArgs
+>;
+export const InternalMultiUpdateArgs = v.object({
+  ...MultiUpdateArgs.fields,
+  customerId,
+});
+export type InternalMultiUpdateArgs = Infer<typeof InternalMultiUpdateArgs>;
+export const InternalSetupPaymentArgs = v.object({
+  ...SetupPaymentArgs.fields,
+  customerId,
+});
+export type InternalSetupPaymentArgs = Infer<typeof InternalSetupPaymentArgs>;
+export const InternalGetOrCreateCustomerArgs = v.object({
+  ...GetOrCreateCustomerArgs.fields,
+  customerId,
+});
+export type InternalGetOrCreateCustomerArgs = Infer<
+  typeof InternalGetOrCreateCustomerArgs
+>;
+export const InternalUpdateCustomerArgs = v.object({
+  ...UpdateCustomerArgs.fields,
+  customerId,
+});
+export type InternalUpdateCustomerArgs = Infer<
+  typeof InternalUpdateCustomerArgs
+>;
+export const InternalDeleteCustomerArgs = v.object({
+  ...DeleteCustomerArgs.fields,
+  customerId,
+});
+export type InternalDeleteCustomerArgs = Infer<
+  typeof InternalDeleteCustomerArgs
+>;
+export const InternalCreateEntityArgs = v.object({
+  ...CreateEntityArgs.fields,
+  customerId,
+});
+export type InternalCreateEntityArgs = Infer<typeof InternalCreateEntityArgs>;
+export const InternalUpdateEntityArgs = v.object({
+  ...UpdateEntityArgs.fields,
+  customerId,
+});
+export type InternalUpdateEntityArgs = Infer<typeof InternalUpdateEntityArgs>;
+export const InternalDeleteEntityArgs = v.object({
+  ...DeleteEntityArgs.fields,
+  customerId,
+});
+export type InternalDeleteEntityArgs = Infer<typeof InternalDeleteEntityArgs>;
+export const InternalUpdateBalanceArgs = v.object({
+  ...UpdateBalanceArgs.fields,
+  customerId,
+});
+export type InternalUpdateBalanceArgs = Infer<typeof InternalUpdateBalanceArgs>;
+export const InternalCreateReferralCodeArgs = v.object({
+  ...CreateReferralCodeArgs.fields,
+  customerId,
+});
+export type InternalCreateReferralCodeArgs = Infer<
+  typeof InternalCreateReferralCodeArgs
+>;
+export const InternalRedeemReferralCodeArgs = v.object({
+  ...RedeemReferralCodeArgs.fields,
+  customerId,
+});
+export type InternalRedeemReferralCodeArgs = Infer<
+  typeof InternalRedeemReferralCodeArgs
+>;
+
 type SDK = AutumnSDK;
 type Param<T> = T extends (request: infer P, ...args: never[]) => unknown
   ? NonNullable<P>

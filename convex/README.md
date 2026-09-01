@@ -35,6 +35,7 @@ import type { ActionCtx } from "./_generated/server";
 
 export const autumn = new Autumn<ActionCtx>(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY,
+  operationNamespace: "acme-production",
   identify: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
@@ -84,8 +85,22 @@ export const {
 } = autumn.internalApi();
 ```
 
-Every customer ID comes from `identify(ctx)`. Public arguments never accept a
-customer ID.
+Public actions and direct methods take their customer from `identify(ctx)`, and
+their arguments never accept a customer ID.
+
+## Operation namespace
+
+`operationNamespace` is required and names the Autumn organization and
+environment this client operates on. Choose it deliberately and keep it stable:
+operation identity is derived from it, so changing it orphans every operation
+recorded under the previous value, and deriving it from the secret key would
+orphan them all on the next key rotation.
+
+Two clients that share one installed component must not share a namespace. The
+namespace separates their ledger entries and their provider idempotency keys, so
+neither replays the other's stored result and neither reports a conflict against
+the other. The namespace, the customer ID and the operation ID are hashed into
+both keys, so none of them is stored or sent in readable form.
 
 ## Public and internal actions
 
@@ -113,23 +128,34 @@ and no `operationId`, so it cannot consume balance. Use the internal
 should record usage.
 
 Internal actions are published under `internal.<module>.<name>` and only server
-code can reach them:
+code can reach them. Every one of them requires a `customerId`, because Convex
+does not propagate the caller's auth into a scheduled or internal call and
+`identify(ctx)` has nothing to resolve there. Authorize the request and resolve
+the subject in the function that still has an identity, then pass it on:
 
 ```ts
-export const recordMessage = mutation({
+export const recordMessages = mutation({
   args: { count: v.number() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const jobId = await ctx.db.insert("jobs", { count: args.count });
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Sign in to record messages.");
+    const messageId = await ctx.db.insert("messages", { count: args.count });
     await ctx.scheduler.runAfter(0, internal.autumn.track, {
+      customerId: identity.subject,
       featureId: "messages",
       value: args.count,
-      operationId: jobId,
+      operationId: messageId,
     });
     return null;
   },
 });
 ```
+
+The `customerId` identifies the operation and is stripped before the Autumn
+request is built. It is the one place a customer ID may be supplied, and it is
+reachable only from server code that has already decided the operation is
+allowed.
 
 ## Direct methods
 
@@ -149,12 +175,12 @@ if (result.balance) {
 }
 ```
 
-The package hashes the operation name, server-derived customer ID, canonical
-request fingerprint and `operationId` into the provider `Idempotency-Key`. Raw
-customer IDs and operation IDs are never placed in that header. Reusing an
-`operationId` with different arguments is unsafe for direct methods because they
-cannot access Convex storage. The derived provider key still changes with the
-payload.
+The package hashes the operation namespace, operation name, server-derived
+customer ID, canonical request fingerprint and `operationId` into the provider
+`Idempotency-Key`. None of those values appears in that header in readable form.
+Reusing an `operationId` with different arguments is unsafe for direct methods
+because they cannot access Convex storage. The derived provider key still
+changes with the payload.
 
 `autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
 records the usage event and requires one. HTTP 202 throws
@@ -165,7 +191,18 @@ records the usage event and requires one. HTTP 202 throws
 Generated mutation actions use the component-owned operation ledger. They claim
 the operation before transport, record submission, and persist a serializable
 terminal result or safe terminal error. A replay returns only a stored terminal
-result. Claimed, submitted or indeterminate operations are never sent again.
+result. Submitted and indeterminate operations are never sent again.
+
+A claim carries a lease and an attempt token. While the lease is live, another
+invocation of the same operation reports an indeterminate outcome rather than
+sending it, so two callers never race the same operation to Autumn. A process
+that dies between claiming an operation and submitting it never sent it, and its
+claim is recoverable: once the lease expires, the next invocation takes the claim
+over with a token of its own. Submitting requires that token and a live lease, so
+the attempt that was displaced cannot dispatch afterwards. The lease length is
+the `CLAIM_LEASE_MS` constant in the component, and recovery waits for it to
+expire. Nothing is retried automatically: a recovered claim is a new attempt
+that has established the operation was never sent.
 
 HTTP 202, HTTP 409, HTTP 5xx, network failures, timeouts and aborts are stored as
 indeterminate. Generated errors are `ConvexError` values whose data contains only:
@@ -191,6 +228,9 @@ provider-supplied map key that starts with `$`, becomes an
 rather than failing at the outer action boundary.
 
 ## Supported methods
+
+Every internal action additionally requires the trusted `customerId` described
+above.
 
 | Direct method                | Generated action      | Visibility | Supported request fields                                                                                                             |
 | ---------------------------- | --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
@@ -241,6 +281,7 @@ attach are separate operations.
 
 ## Transport options
 
-The constructor accepts `serverURL`, optional additional headers, a custom
-`fetcher` and `timeoutMs`. `Authorization`, `Content-Type`, `X-API-Version` and
-`Idempotency-Key` header overrides are rejected case-insensitively.
+The constructor requires `operationNamespace` and `identify`, and accepts
+`serverURL`, optional additional headers, a custom `fetcher` and `timeoutMs`.
+`Authorization`, `Content-Type`, `X-API-Version` and `Idempotency-Key` header
+overrides are rejected case-insensitively.
