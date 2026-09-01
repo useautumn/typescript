@@ -99,12 +99,9 @@ importers:
 
   convex:
     dependencies:
-      convex-helpers:
-        specifier: ^0.1.104
-        version: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.1.1))(react@19.1.1))(react@19.1.1))(hono@4.9.1)(react@19.1.1)(typescript@5.5.4)(zod@4.1.5)
-      react:
-        specifier: ^18.3.1 || ^19.0.0
-        version: 19.1.1
+      autumn-js:
+        specifier: 1.2.55
+        version: 1.2.55(better-call@1.0.19)(hono@4.9.1)(next@15.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
     devDependencies:
       '@edge-runtime/vm':
         specifier: 5.0.0
@@ -115,18 +112,15 @@ importers:
       '@types/node':
         specifier: 18.17.0
         version: 18.17.0
-      autumn-js:
-        specifier: workspace:*
-        version: link:../package
       chokidar-cli:
         specifier: 3.0.0
         version: 3.0.0
       convex:
         specifier: 1.29.3
-        version: 1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.1.1))(react@19.1.1))(react@19.1.1)
+        version: 1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       convex-test:
         specifier: 0.0.37
-        version: 0.0.37(convex@1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.1.1))(react@19.1.1))(react@19.1.1))
+        version: 0.0.37(convex@1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3))
       eslint:
         specifier: 9.29.0
         version: 9.29.0(jiti@2.6.1)
@@ -14051,6 +14045,29 @@ packages:
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+
+  autumn-js@1.2.55:
+    resolution: {integrity: sha512-p/kKhsCWt//Id1yw0dzVO04r+ZhF+t6AXXo/oYiRA7tKBe7yMFYZb/I1CWFvE5z329PjUqGp8Bldf+jJUEcKrw==}
+    peerDependencies:
+      better-auth: ^1.6.0
+      better-call: ^1.0.12
+      express: ^5.2.1
+      hono: ^4.0.0
+      next: ^14.0.0 || ^15.0.0 || ^16.0.0
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      better-auth:
+        optional: true
+      better-call:
+        optional: true
+      express:
+        optional: true
+      hono:
+        optional: true
+      next:
+        optional: true
+      react:
+        optional: true
 
 snapshots:
 
@@ -31269,3 +31286,48 @@ snapshots:
   zod@4.1.5: {}
 
   zwitch@2.0.4: {}
+  autumn-js@1.2.55(better-call@1.0.19)(hono@4.9.1)(next@15.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3):
+    dependencies:
+      query-string: 9.2.2
+      rou3: 0.6.3
+      zod: 4.1.5
+    optionalDependencies:
+      better-call: 1.0.19
+      hono: 4.9.1
+      next: 15.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react: 19.2.3
+
+  convex-test@0.0.37(convex@1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)):
+    dependencies:
+      convex: 1.29.3(@clerk/clerk-react@5.59.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
+
+  next@15.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@next/env': 15.4.1
+      '@swc/helpers': 0.5.15
+      caniuse-lite: 1.0.30001736
+      postcss: 8.4.31
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      styled-jsx: 5.1.6(@babel/core@7.28.6)(react@19.2.3)
+    optionalDependencies:
+      '@next/swc-darwin-arm64': 15.4.1
+      '@next/swc-darwin-x64': 15.4.1
+      '@next/swc-linux-arm64-gnu': 15.4.1
+      '@next/swc-linux-arm64-musl': 15.4.1
+      '@next/swc-linux-x64-gnu': 15.4.1
+      '@next/swc-linux-x64-musl': 15.4.1
+      '@next/swc-win32-arm64-msvc': 15.4.1
+      '@next/swc-win32-x64-msvc': 15.4.1
+      sharp: 0.34.5
+    transitivePeerDependencies:
+      - '@babel/core'
+      - babel-plugin-macros
+    optional: true
+
+  styled-jsx@5.1.6(@babel/core@7.28.6)(react@19.2.3):
+    dependencies:
+      client-only: 0.0.1
+      react: 19.2.3
+    optionalDependencies:
+      '@babel/core': 7.28.6

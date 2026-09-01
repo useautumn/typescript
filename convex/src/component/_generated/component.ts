@@ -10,16 +10,61 @@
 
 import type { FunctionReference } from "convex/server";
 
-/**
- * A utility for referencing a Convex component's exposed API.
- *
- * Useful when expecting a parameter like `components.myComponent`.
- * Usage:
- * ```ts
- * async function myFunction(ctx: QueryCtx, component: ComponentApi) {
- *   return ctx.runQuery(component.someFile.someQuery, { ...args });
- * }
- * ```
- */
 export type ComponentApi<Name extends string | undefined = string | undefined> =
-  {};
+  {
+    lib: {
+      claimOperation: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          ledgerKey: string;
+          operation: string;
+          requestFingerprint: string;
+        },
+        | { state: "claimed" }
+        | { state: "conflict" }
+        | { state: "pending" }
+        | { state: "indeterminate" }
+        | { state: "succeeded"; result: any }
+        | {
+            state: "failed";
+            error: {
+              code: string;
+              operation: string;
+              statusCode?: number;
+              message: string;
+            };
+          },
+        Name
+      >;
+      markSubmitted: FunctionReference<
+        "mutation",
+        "internal",
+        { ledgerKey: string; requestFingerprint: string },
+        null,
+        Name
+      >;
+      completeOperation: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          ledgerKey: string;
+          requestFingerprint: string;
+          terminal:
+            | { state: "succeeded"; result: any }
+            | {
+                state: "failed";
+                error: {
+                  code: string;
+                  operation: string;
+                  statusCode?: number;
+                  message: string;
+                };
+              }
+            | { state: "indeterminate" };
+        },
+        null,
+        Name
+      >;
+    };
+  };

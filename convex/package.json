@@ -1,92 +1,94 @@
 {
-	"name": "@useautumn/convex",
-	"description": "A autumn component for Convex.",
-	"repository": "github:useautumn/autumn-js",
-	"homepage": "https://docs.useautumn.com/setup/convex",
-	"bugs": {
-		"email": "hey@useautumn.com",
-		"url": "https://github.com/useautumn/autumn-js/issues"
-	},
-	"version": "0.0.23",
-	"license": "Apache-2.0",
-	"keywords": [
-		"convex",
-		"component"
-	],
-	"type": "module",
-	"scripts": {
-		"dev": "run-p -r 'dev:*'",
-		"predev": "path-exists .env.local || (npm run build && convex dev --until-success)",
-		"dev:backend": "convex dev --typecheck-components",
-		"dev:build": "cd src && npx chokidar '../tsconfig.json' '*.ts' 'react/**/*.ts' 'component/**/*.ts' 'client/**/*.ts' -c 'npm run codegen && npm run build' --initial",
-		"codegen": "convex codegen --component-dir ./src/component",
-		"build": "tsc --project ./tsconfig.build.json",
-		"typecheck": "tsc --noEmit",
-		"clean": "rm -rf dist *.tsbuildinfo",
-		"test": "vitest run --typecheck",
-		"test:watch": "vitest --typecheck",
-		"test:debug": "vitest --inspect-brk --no-file-parallelism",
-		"test:coverage": "vitest run --coverage --coverage.reporter=text",
-		"lint": "eslint src",
-		"version": "vim -c 'normal o' -c 'normal o## '$npm_package_version CHANGELOG.md && prettier -w CHANGELOG.md && git add CHANGELOG.md"
-	},
-	"files": [
-		"dist",
-		"src"
-	],
-	"exports": {
-		"./package.json": "./package.json",
-		".": {
-			"types": "./dist/client/index.d.ts",
-			"default": "./dist/client/index.js"
-		},
-		"./test": "./src/test.ts",
-		"./_generated/component.js": {
-			"types": "./dist/component/_generated/component.d.ts"
-		},
-		"./convex.config.js": {
-			"types": "./dist/component/convex.config.d.ts",
-			"default": "./dist/component/convex.config.js"
-		},
-		"./convex.config": {
-			"types": "./dist/component/convex.config.d.ts",
-			"default": "./dist/component/convex.config.js"
-		}
-	},
-	"peerDependencies": {
-		"convex": "^1.25.0",
-		"react": "^18.3.1 || ^19.0.0",
-		"autumn-js": "^0.1.24"
-	},
-	"devDependencies": {
-		"autumn-js": "workspace:*",
-		"@edge-runtime/vm": "5.0.0",
-		"@eslint/js": "9.29.0",
-		"@types/node": "18.17.0",
-		"chokidar-cli": "3.0.0",
-		"convex": "1.29.3",
-		"convex-test": "0.0.37",
-		"eslint": "9.29.0",
-		"eslint-plugin-react": "^7.37.5",
-		"eslint-plugin-react-hooks": "^5.2.0",
-		"globals": "^15.9.0",
-		"npm-run-all2": "7.0.2",
-		"path-exists-cli": "2.0.0",
-		"prettier": "3.2.5",
-		"tsc-alias": "^1.8.16",
-		"typescript": "5.5.4",
-		"typescript-eslint": "8.34.1",
-		"vite": "7.1.5",
-		"vitest": "3.2.4"
-	},
-	"peerDependenciesMeta": {
-		"autumn-js": {
-			"optional": false
-		}
-	},
-	"types": "./dist/client/index.d.ts",
-	"module": "./dist/client/index.js",
-	"dependencies": {
-		"convex-helpers": "^0.1.104"
-	}
+  "name": "@useautumn/convex",
+  "description": "Native Autumn SDK bindings and durable generated actions for Convex.",
+  "repository": "github:useautumn/typescript",
+  "homepage": "https://docs.useautumn.com/setup/convex",
+  "bugs": {
+    "url": "https://github.com/useautumn/typescript/issues"
+  },
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "keywords": [
+    "convex",
+    "component"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "run-p -r 'dev:*'",
+    "predev": "path-exists .env.local || (pnpm build && pnpm exec convex dev --until-success)",
+    "dev:backend": "convex dev --typecheck-components",
+    "dev:build": "cd src && pnpm exec chokidar '../tsconfig.json' '*.ts' 'component/**/*.ts' 'client/**/*.ts' -c 'pnpm codegen && pnpm build' --initial",
+    "codegen": "convex codegen --component-dir ./src/component",
+    "build": "tsc --project ./tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "test": "vitest run --typecheck",
+    "test:watch": "vitest --typecheck",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:coverage": "vitest run --coverage --coverage.reporter=text",
+    "lint": "eslint src"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "MIGRATION.md",
+    "dist",
+    "src/client/index.ts",
+    "src/component/_generated",
+    "src/component/convex.config.ts",
+    "src/component/lib.ts",
+    "src/component/schema.ts",
+    "src/errors.ts",
+    "src/idempotency.ts",
+    "src/serialization.ts",
+    "src/test.ts",
+    "src/transport.ts",
+    "src/types.ts"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    },
+    "./test": "./src/test.ts",
+    "./_generated/component.js": {
+      "types": "./dist/component/_generated/component.d.ts"
+    },
+    "./convex.config.js": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    },
+    "./convex.config": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    }
+  },
+  "peerDependencies": {
+    "convex": "^1.25.0"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "5.0.0",
+    "@eslint/js": "9.29.0",
+    "@types/node": "18.17.0",
+    "chokidar-cli": "3.0.0",
+    "convex": "1.29.3",
+    "convex-test": "0.0.37",
+    "eslint": "9.29.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^15.9.0",
+    "npm-run-all2": "7.0.2",
+    "path-exists-cli": "2.0.0",
+    "prettier": "3.2.5",
+    "tsc-alias": "^1.8.16",
+    "typescript": "5.5.4",
+    "typescript-eslint": "8.34.1",
+    "vite": "7.1.5",
+    "vitest": "3.2.4"
+  },
+  "types": "./dist/client/index.d.ts",
+  "module": "./dist/client/index.js",
+  "dependencies": {
+    "autumn-js": "1.2.55"
+  }
 }
