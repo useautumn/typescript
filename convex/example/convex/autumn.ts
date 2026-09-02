@@ -70,9 +70,11 @@ export const messagesAllowed = action({
  * Convex runs a scheduled function without the caller's auth, so this mutation
  * authorizes the request and resolves the subject while it still has one, then
  * hands that customer to the internal action. The document it just wrote is the
- * operation ID: it is stable across attempts, so a repeated schedule reaches
- * Autumn under the same idempotency key and is rejected there rather than
- * recording usage a second time.
+ * operation ID: it is stable across attempts, so a repeated schedule inside
+ * Autumn's duplicate window reaches it under the same idempotency key and is
+ * rejected there rather than recording usage a second time. That window is
+ * time-bounded, so it suppresses duplicates and is no durable exactly-once
+ * guarantee; the README describes the limits.
  *
  * The tracked value is a client argument here only to keep the example short. A
  * production handler derives it from the work the server actually performed, so
