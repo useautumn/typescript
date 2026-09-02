@@ -264,10 +264,16 @@ export const SetupPaymentArgs = v.object({
 });
 export type SetupPaymentArgs = Infer<typeof SetupPaymentArgs>;
 
-export const BillingPortalArgs = v.object({
-  configurationId: v.optional(v.string()),
+const publicBillingPortalFields = {
   returnUrl: v.optional(v.string()),
-});
+};
+const billingPortalFields = {
+  ...publicBillingPortalFields,
+  configurationId: v.optional(v.string()),
+};
+
+export const PublicBillingPortalArgs = v.object(publicBillingPortalFields);
+export const BillingPortalArgs = v.object(billingPortalFields);
 export type BillingPortalArgs = Infer<typeof BillingPortalArgs>;
 
 export const GetCustomerArgs = v.object({

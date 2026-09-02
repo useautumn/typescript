@@ -42,10 +42,11 @@ from, and call the mutations from server code through
 Every internal action now requires a `customerId` argument. Convex does not
 propagate the caller's auth into a scheduled or internal call, so `identify(ctx)`
 cannot resolve a customer there and is not consulted. Authorize the request in
-the mutation or action that still has an identity, resolve the subject there, and
-pass it to the internal action. Public validators accept no customer ID, and
-generated billing previews omit operator controls. Use direct server methods
-when an authorized flow needs those controls.
+the mutation or action that still has an identity, resolve the customer there,
+and pass it to the internal action. Public validators accept no customer ID, and
+generated billing actions omit operator controls, including the portal
+configuration ID. Use direct server methods when an authorized flow needs those
+controls.
 
 A client that previously started checkout by calling `api.autumn.attach` now
 calls your own authorized action, which runs `internal.autumn.attach`. That
@@ -81,7 +82,7 @@ limits.
 | `checkout`                                  | choose `previewAttach`, `attach`, `previewMultiAttach` or `multiAttach` |
 | `attach`                                    | `billing.attach` direct method or `attach` action                       |
 | `setupPayment`                              | `billing.setupPayment` direct method or `setupPayment` action           |
-| `billingPortal` / `customers.billingPortal` | `billing.portal` direct method or `billingPortal` action                |
+| `billingPortal` / `customers.billingPortal` | `billing.portal`; public `billingPortal` omits `configurationId`        |
 | `createCustomer`                            | `customers.getOrCreate` direct method or `getOrCreateCustomer` action   |
 | `listProducts` / `products.list`            | `plans.list` direct method or `listPlans` action                        |
 | `products.get`                              | `plans.get` direct method or `getPlan` action                           |

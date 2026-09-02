@@ -12,7 +12,7 @@ export const autumn = new Autumn<ActionCtx>(components.autumn, {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     return {
-      customerId: identity.subject,
+      customerId: identity.tokenIdentifier,
       customerData: {
         name: identity.name,
         email: identity.email,
@@ -83,7 +83,7 @@ export const recordMessages = mutation({
     if (!identity) throw new Error("Sign in to record messages.");
     const messageId = await ctx.db.insert("messages", { count: args.count });
     await ctx.scheduler.runAfter(0, internal.autumn.track, {
-      customerId: identity.subject,
+      customerId: identity.tokenIdentifier,
       featureId: "messages",
       value: args.count,
       operationId: messageId,

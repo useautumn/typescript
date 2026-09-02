@@ -6,7 +6,6 @@ import {
   AggregateEventsArgs,
   type AggregateEventsArgs as AggregateEventsArgsType,
   type AttachArgs as AttachArgsType,
-  BillingPortalArgs,
   type BillingPortalArgs as BillingPortalArgsType,
   CheckArgs,
   type CheckArgs as CheckArgsType,
@@ -47,6 +46,7 @@ import {
   type ListPlansArgs as ListPlansArgsType,
   type MultiAttachArgs as MultiAttachArgsType,
   type MultiUpdateArgs as MultiUpdateArgsType,
+  PublicBillingPortalArgs,
   PublicPreviewAttachArgs,
   type PreviewAttachArgs as PreviewAttachArgsType,
   PublicPreviewMultiAttachArgs,
@@ -794,8 +794,8 @@ export class Autumn<Context = unknown> {
    * Every provider mutation, including a balance-consuming check, lives in
    * {@link Autumn.internalApi}. Billing arguments carry operator controls such
    * as `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
-   * `subscriptionParams`, `recalculateBalances` and `carryOverUsages`, so no
-   * client may reach them.
+   * `subscriptionParams`, `recalculateBalances`, `carryOverUsages` and the portal
+   * `configurationId`, so no client may reach them.
    */
   api() {
     return {
@@ -842,7 +842,7 @@ export class Autumn<Context = unknown> {
           ),
       }),
       billingPortal: actionGeneric({
-        args: BillingPortalArgs,
+        args: PublicBillingPortalArgs,
         handler: async (ctx, args) =>
           await this.actionResult(
             "billing.portal",

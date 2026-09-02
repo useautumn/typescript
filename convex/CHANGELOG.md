@@ -10,8 +10,9 @@
 - Register every provider mutation as a Convex internal action through
   `autumn.internalApi()`, leaving only restricted previews, the portal session
   and reads of the identified customer, its entities, its events and the plan
-  catalog on the public `autumn.api()` surface. Generated public previews omit
-  billing operator controls retained by direct server methods.
+  catalog on the public `autumn.api()` surface. Generated public actions omit
+  billing operator controls retained by direct server methods, including the
+  billing portal configuration ID.
 - Split `check` into a read-only operation with no `sendEvent` or `operationId`
   and a balance-consuming `consumeCheck`.
 - Validate every result with Convex's own value encoder before it is returned,

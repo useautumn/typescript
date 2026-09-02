@@ -472,8 +472,15 @@ describe("Autumn native transport", () => {
         name: "portal",
         path: "/v1/billing.open_customer_portal",
         execute: (a) =>
-          a.billing.portal(null, { returnUrl: "https://app.test" }),
-        expected: { customer_id: "customer-1", return_url: "https://app.test" },
+          a.billing.portal(null, {
+            configurationId: "bpc_operator",
+            returnUrl: "https://app.test",
+          }),
+        expected: {
+          customer_id: "customer-1",
+          configuration_id: "bpc_operator",
+          return_url: "https://app.test",
+        },
       },
       {
         name: "customers.get",

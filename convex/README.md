@@ -43,7 +43,7 @@ export const autumn = new Autumn<ActionCtx>(components.autumn, {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     return {
-      customerId: identity.subject,
+      customerId: identity.tokenIdentifier,
       customerData: {
         name: identity.name,
         email: identity.email,
@@ -89,7 +89,8 @@ export const {
 ```
 
 Public actions and direct methods take their customer from `identify(ctx)`, and
-their arguments never accept a customer ID.
+their arguments never accept a customer ID. The customer ID must be globally
+unique across every configured identity provider, which `subject` is not.
 
 ## Operation namespace
 
@@ -119,12 +120,12 @@ block would publish it under `api.<module>.<name>` and let any client call it.
 
 Direct billing methods accept operator controls such as `invoiceMode`,
 `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
-`subscriptionParams`, `recalculateBalances` and `carryOverUsages`. Generated
-public preview actions omit those fields. Provider mutations including `attach`,
-`multiAttach`, `updateSubscription`, `multiUpdate` and `setupPayment` are
-internal. `track` is internal because a negative `value` can return balance to
-the customer. `updateBalance` is separately internal because it directly
-changes a balance or its grant configuration.
+`subscriptionParams`, `recalculateBalances`, `carryOverUsages` and the portal
+`configurationId`. Generated public actions omit those fields. Provider
+mutations including `attach`, `multiAttach`, `updateSubscription`, `multiUpdate`
+and `setupPayment` are internal. `track` is internal because a negative `value`
+can return balance to the customer. `updateBalance` is separately internal
+because it directly changes a balance or its grant configuration.
 
 Public `check` is read-only by construction. Its validator has no `sendEvent`
 and no `operationId`, so it cannot consume balance. Use the internal
@@ -147,7 +148,7 @@ export const recordMessages = mutation({
     if (!identity) throw new Error("Sign in to record messages.");
     const messageId = await ctx.db.insert("messages", { count: args.count });
     await ctx.scheduler.runAfter(0, internal.autumn.track, {
-      customerId: identity.subject,
+      customerId: identity.tokenIdentifier,
       featureId: "messages",
       value: args.count,
       operationId: messageId,
@@ -242,8 +243,8 @@ action boundary. The operation itself already reached Autumn in that case.
 ## Supported methods
 
 Every internal action additionally requires the trusted `customerId` described
-above. Direct preview methods accept the complete supported SDK subset, while
-the generated public preview actions omit billing operator controls.
+above. Direct billing methods accept the complete supported SDK subset, while
+the generated public actions omit billing operator controls.
 
 | Direct method                | Generated action      | Visibility | Supported request fields                                                                                           |
 | ---------------------------- | --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -259,7 +260,7 @@ the generated public preview actions omit billing operator controls.
 | `billing.previewMultiUpdate` | `previewMultiUpdate`  | public     | plan-aware subscription cancellation updates                                                                       |
 | `billing.multiUpdate`        | `multiUpdate`         | internal   | same supported shape as preview multi-update                                                                       |
 | `billing.setupPayment`       | `setupPayment`        | internal   | plan, entity, feature quantities, checkout settings, currency                                                      |
-| `billing.portal`             | `billingPortal`       | public     | configuration ID and return URL                                                                                    |
+| `billing.portal`             | `billingPortal`       | public     | return URL; direct method also accepts configuration ID                                                            |
 | `customers.get`              | `getCustomer`         | public     | expand                                                                                                             |
 | `customers.getOrCreate`      | `getOrCreateCustomer` | internal   | identity fields, metadata, processor ID, currency, expand                                                          |
 | `customers.update`           | `updateCustomer`      | internal   | identity fields, metadata, processor ID, currency                                                                  |

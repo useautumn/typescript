@@ -87,6 +87,7 @@ const PUBLIC_OPERATOR_CONTROLS: Array<[string, Record<string, unknown>]> = [
       subscriptionParams: { payment_behavior: "pending_if_incomplete" },
     },
   ],
+  ["billingPortal", { configurationId: "bpc_operator" }],
 ];
 
 const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
@@ -246,6 +247,12 @@ type _PublicMultiUpdateRejectsOperatorControls = Assert<
       keyof ActionArgs<PublicApi["previewMultiUpdate"]>,
       "refundLastPayment" | "subscriptionParams"
     >,
+    never
+  >
+>;
+type _PublicBillingPortalRejectsConfigurationId = Assert<
+  Equal<
+    Extract<keyof ActionArgs<PublicApi["billingPortal"]>, "configurationId">,
     never
   >
 >;
