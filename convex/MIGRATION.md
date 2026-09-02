@@ -25,12 +25,17 @@ suppress the other's mutation at Autumn.
 
 ## Generated action visibility
 
-The generated surface fails closed. `autumn.api()` now returns only actions that
-cannot change provider state: `check`, the four previews, `billingPortal`,
-`getCustomer`, `getEntity`, `listEntities`, `getPlan`, `listPlans`, `listEvents`
-and `aggregateEvents`. Every provider mutation moved to `autumn.internalApi()`,
-which registers it as a Convex internal action: `consumeCheck`, `track`,
-`attach`, `multiAttach`, `updateSubscription`, `multiUpdate`, `setupPayment`,
+The generated surface fails closed. `autumn.api()` now returns actions restricted
+to their allowlisted public routes. `check`, the four previews, `getCustomer`,
+`getEntity`, `listEntities`, `listEvents` and `aggregateEvents` use the customer
+resolved by `identify(ctx)`. `getPlan` and `listPlans` read the global plan
+catalog. `billingPortal` also uses the resolved customer and is the explicit
+provider-session-creation exception to read-only behavior: it sends
+`POST /v1/billing.open_customer_portal` to create the session, without itself
+mutating subscriptions, balances, usage, entities, or customer records. Every
+provider billing or data mutation moved to `autumn.internalApi()`, which
+registers it as a Convex internal action: `consumeCheck`, `track`, `attach`,
+`multiAttach`, `updateSubscription`, `multiUpdate`, `setupPayment`,
 `getOrCreateCustomer`, `updateCustomer`, `deleteCustomer`, `createEntity`,
 `updateEntity`, `deleteEntity`, `updateBalance`, `createReferralCode` and
 `redeemReferralCode`.

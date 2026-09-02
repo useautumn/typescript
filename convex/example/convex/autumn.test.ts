@@ -51,7 +51,7 @@ vi.mock("./_generated/api.js", () => ({
 type ExampleMutation = {
   _handler: (
     ctx: {
-      auth: { getUserIdentity: () => Promise<{ subject: string }> };
+      auth: { getUserIdentity: () => Promise<{ subject: string } | null> };
       db: { insert: (table: string, value: unknown) => Promise<string> };
       scheduler: {
         runAfter: (
@@ -117,6 +117,40 @@ describe("scheduled usage example", () => {
       value: 3,
       operationId: messageId,
     });
+  });
+
+  test("returns no Autumn identity for an anonymous caller", async () => {
+    await import("./autumn.js");
+    const options = autumnMock.constructorOptions;
+    if (!options)
+      throw new Error("Autumn constructor options were not captured.");
+
+    await expect(
+      options.identify({
+        auth: { getUserIdentity: async () => null },
+      })
+    ).resolves.toBeNull();
+  });
+
+  test("rejects an anonymous caller before writing or scheduling", async () => {
+    const { recordMessages } = await import("./autumn.js");
+    const insert = vi.fn(async () => "messages:example-id");
+    const runAfter = vi.fn(async () => undefined);
+    const mutation = recordMessages as unknown as ExampleMutation;
+
+    await expect(
+      mutation._handler(
+        {
+          auth: { getUserIdentity: async () => null },
+          db: { insert },
+          scheduler: { runAfter },
+        },
+        { count: 3 }
+      )
+    ).rejects.toThrow(/^Sign in to record messages\.$/);
+
+    expect(insert).not.toHaveBeenCalled();
+    expect(runAfter).not.toHaveBeenCalled();
   });
 
   test("rejects a negative count before writing or scheduling", async () => {

@@ -14,10 +14,12 @@ import { initConvexTest, response } from "./setup.test.js";
 
 /**
  * Every public action, with arguments that reach transport, and the single
- * Autumn route it is allowed to call. A public action missing from this table
- * fails the coverage test below.
+ * Autumn route it is allowed to call. `billingPortal` creates a provider-side
+ * session, but remains bounded to its allowlisted route.
  */
-const READ_ONLY_ACTIONS: Array<[string, Record<string, unknown>, string]> = [
+const ALLOWLISTED_PUBLIC_ROUTES: Array<
+  [string, Record<string, unknown>, string]
+> = [
   ["check", { featureId: "messages" }, "/v1/balances.check"],
   ["previewAttach", { planId: "pro" }, "/v1/billing.preview_attach"],
   [
@@ -45,10 +47,7 @@ const READ_ONLY_ACTIONS: Array<[string, Record<string, unknown>, string]> = [
   ],
 ];
 
-/**
- * Every internal action, with arguments that reach transport. The trusted
- * `customerId` every one of them requires is added at the call site.
- */
+/** Billing controls that public validators must reject before transport. */
 const PUBLIC_OPERATOR_CONTROLS: Array<[string, Record<string, unknown>]> = [
   [
     "previewAttach",
@@ -90,6 +89,10 @@ const PUBLIC_OPERATOR_CONTROLS: Array<[string, Record<string, unknown>]> = [
   ["billingPortal", { configurationId: "bpc_operator" }],
 ];
 
+/**
+ * Every internal provider mutation, with arguments that reach transport. The
+ * trusted `customerId` each requires is added at the call site.
+ */
 const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
   ["consumeCheck", { featureId: "messages" }],
   ["track", { featureId: "messages" }],
@@ -112,8 +115,8 @@ const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
   ["redeemReferralCode", { code: "code-1" }],
 ];
 
-const readOnlyNames = READ_ONLY_ACTIONS.map(([name]) => name);
-const mutationNames = PROVIDER_MUTATIONS.map(([name]) => name);
+const publicActionNames = ALLOWLISTED_PUBLIC_ROUTES.map(([name]) => name);
+const internalMutationNames = PROVIDER_MUTATIONS.map(([name]) => name);
 const CUSTOMER_ID = "customer-1";
 
 type Registration = {
@@ -162,7 +165,7 @@ type _MutationsAreInternal = Assert<
 type _MutationsAreNotPublic = Assert<
   Equal<Extract<keyof PublicApi, ProviderMutation>, never>
 >;
-type _PublicApiIsReadOnly = Assert<
+type _PublicApiContainsOnlyAllowlistedActions = Assert<
   Equal<
     keyof PublicApi,
     | "check"
@@ -324,11 +327,11 @@ afterEach(() => {
 describe("generated action surface", () => {
   test("classifies every generated action exactly once", () => {
     expect(new Set(Object.keys(autumnActions))).toEqual(
-      new Set([...readOnlyNames, ...mutationNames])
+      new Set([...publicActionNames, ...internalMutationNames])
     );
   });
 
-  test.each(mutationNames)(
+  test.each(internalMutationNames)(
     "registers %s so a Convex client cannot call it",
     (name) => {
       expect(registration(name).isAction).toBe(true);
@@ -337,7 +340,7 @@ describe("generated action surface", () => {
     }
   );
 
-  test.each(readOnlyNames)("registers %s as a public action", (name) => {
+  test.each(publicActionNames)("registers %s as a public action", (name) => {
     expect(registration(name).isAction).toBe(true);
     expect(registration(name).isPublic).toBe(true);
     expect(registration(name).isInternal).toBeUndefined();
@@ -355,19 +358,16 @@ describe("generated action surface", () => {
   });
 });
 
-describe("public actions cannot change provider state", () => {
-  test.each(READ_ONLY_ACTIONS)(
-    "%s reaches only its read-only Autumn route",
+describe("public action security boundary", () => {
+  test.each(ALLOWLISTED_PUBLIC_ROUTES)(
+    "%s reaches only its allowlisted public Autumn route",
     async (name, args, path) => {
       const request = await captureRequest(name, args);
 
       expect(new URL(request.url).pathname).toBe(path);
-      // A provider idempotency key is derived only for a mutation, so a public
-      // action that reached one would carry this header.
+      // Provider mutation routes are reserved for keyed internal actions. The
+      // public allowlist cannot select one.
       expect(request.headers.get("idempotency-key")).toBeNull();
-      // `send_event` is the one field that turns the shared check route into a
-      // balance-consuming call.
-      expect(await request.clone().text()).not.toContain("send_event");
     }
   );
 
@@ -387,7 +387,7 @@ describe("public actions cannot change provider state", () => {
   );
 
   test.each(PROVIDER_MUTATIONS)(
-    "%s is a keyed operation, which no public action produces",
+    "%s reaches a keyed provider mutation route reserved for internal actions",
     async (name, args) => {
       const request = await captureRequest(name, {
         ...args,
@@ -437,7 +437,7 @@ describe("public actions cannot change provider state", () => {
     }
   );
 
-  test("the shared check route only consumes balance from the internal action", async () => {
+  test("public check cannot send_event and internal consumeCheck can", async () => {
     const publicBody = await (
       await captureRequest("check", { featureId: "messages" })
     ).text();
