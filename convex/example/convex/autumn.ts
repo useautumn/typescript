@@ -73,6 +73,10 @@ export const messagesAllowed = action({
  * operation ID: it is stable across attempts, so a repeated schedule reaches
  * Autumn under the same idempotency key and is rejected there rather than
  * recording usage a second time.
+ *
+ * The tracked value is a client argument here only to keep the example short. A
+ * production handler derives it from the work the server actually performed, so
+ * that a caller cannot report a usage figure of its own choosing.
  */
 export const recordMessages = mutation({
   args: { count: v.number() },

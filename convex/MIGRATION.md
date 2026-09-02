@@ -44,9 +44,9 @@ propagate the caller's auth into a scheduled or internal call, so `identify(ctx)
 cannot resolve a customer there and is not consulted. Authorize the request in
 the mutation or action that still has an identity, resolve the customer there,
 and pass it to the internal action. Public validators accept no customer ID, and
-generated billing actions omit operator controls, including the portal
-configuration ID. Use direct server methods when an authorized flow needs those
-controls.
+generated public billing actions omit operator controls, including the portal
+configuration ID. Internal generated actions keep them, because only server code
+that has already authorized the request can reach one.
 
 A client that previously started checkout by calling `api.autumn.attach` now
 calls your own authorized action, which runs `internal.autumn.attach`. That
@@ -62,8 +62,11 @@ method, which requires an `operationId`.
 ## Results and errors
 
 Legacy `{ data, error, statusCode }` envelopes are gone. Direct methods resolve to
-native camelCase SDK values and throw native SDK errors. HTTP 202 and malformed
-success JSON throw `AutumnIndeterminateError`.
+native camelCase SDK values and throw native SDK errors once a request reaches
+Autumn. A failure this package detects first keeps its own class:
+`AutumnValidationError` for a rejected argument, `AutumnConfigurationError` for an
+unusable client or identity, and `AutumnIndeterminateError` for HTTP 202 and
+malformed success JSON.
 
 Generated actions return serializable native values and throw safe `ConvexError`
 data. Each of them is one shot: it dispatches its request once and never retries
