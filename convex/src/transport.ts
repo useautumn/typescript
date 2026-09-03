@@ -60,6 +60,13 @@ export class AutumnTransport {
   }
 
   createCall(providerKey?: string): AutumnCall {
+    const secretKey = this.options.secretKey ?? process.env.AUTUMN_SECRET_KEY;
+    if (!secretKey) {
+      throw new AutumnConfigurationError(
+        "Set secretKey or AUTUMN_SECRET_KEY before calling Autumn."
+      );
+    }
+
     let responseStatus: number | undefined;
     const fetcher = this.options.fetcher ?? fetch;
     const customHeaders = this.customHeaders;
@@ -74,12 +81,6 @@ export class AutumnTransport {
         return response;
       },
     });
-    const secretKey = this.options.secretKey ?? process.env.AUTUMN_SECRET_KEY;
-    if (!secretKey) {
-      throw new AutumnConfigurationError(
-        "Set secretKey or AUTUMN_SECRET_KEY before calling Autumn."
-      );
-    }
 
     return {
       sdk: new AutumnSDK({

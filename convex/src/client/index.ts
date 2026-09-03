@@ -312,6 +312,11 @@ function safeError(
   };
 }
 
+function convexActionError(operation: string, error: unknown) {
+  if (error instanceof ConvexError) return error;
+  return new ConvexError(safeError(operation, error, sdkStatus(error)));
+}
+
 export class Autumn<Context = unknown> {
   private readonly transport: AutumnTransport;
 
@@ -412,8 +417,7 @@ export class Autumn<Context = unknown> {
     try {
       return toConvexSerializable(await execute());
     } catch (error) {
-      if (error instanceof ConvexError) throw error;
-      throw new ConvexError(safeError(operation, error, sdkStatus(error)));
+      throw convexActionError(operation, error);
     }
   }
 
@@ -426,25 +430,27 @@ export class Autumn<Context = unknown> {
    * Deciding what to do about it needs the state Autumn holds, which is why
    * nothing here retries, schedules or records an attempt of its own.
    */
-  private async generated<Request extends object, T>(
+  private async generated<
+    Args extends InternalMutationArgs,
+    Request extends object,
+    T,
+  >(
     operation: string,
-    args: InternalMutationArgs,
+    args: Args,
     request: (identifier: Identifier) => Request,
-    invoke: (request: Request) => NativeCall<T>
+    invoke: (request: Request) => NativeCall<T>,
+    validate?: (args: Args) => void
   ): Promise<T> {
-    let call: AutumnCall | undefined;
     try {
+      validate?.(args);
       const identifier = this.trustedIdentifier(operation, args);
       const nativeRequest = request(identifier);
-      call = await this.keyedCall(operation, args);
+      const call = await this.keyedCall(operation, args);
       return toConvexSerializable(
         await invokeNative(operation, call, invoke(nativeRequest))
       );
     } catch (error) {
-      if (error instanceof ConvexError) throw error;
-      throw new ConvexError(
-        safeError(operation, error, call?.status() ?? sdkStatus(error))
-      );
+      throw convexActionError(operation, error);
     }
   }
 
@@ -703,7 +709,7 @@ export class Autumn<Context = unknown> {
   };
 
   plans = {
-    get: async (ctx: Context, args: GetPlanArgsType) => {
+    get: async (_ctx: Context, args: GetPlanArgsType) => {
       const call = this.transport.createCall();
       return await invokeNative("plans.get", call, (sdk, options) =>
         sdk.plans.get(args, options)
@@ -949,14 +955,12 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "track",
             args,
-            (identifier) => {
-              validateTrack(args);
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.track(request, options)
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) => sdk.track(request, options),
+            validateTrack
           ),
       }),
       attach: internalActionGeneric({
@@ -965,14 +969,12 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.attach",
             args,
-            (identifier) => {
-              validateAttach("billing.attach", args);
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.billing.attach(request, options)
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) => sdk.billing.attach(request, options),
+            (args) => validateAttach("billing.attach", args)
           ),
       }),
       multiAttach: internalActionGeneric({
@@ -981,15 +983,13 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.multiAttach",
             args,
-            (identifier) => {
-              validateMultiAttach("billing.multiAttach", args);
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
             (request) => (sdk, options) =>
-              sdk.billing.multiAttach(request, options)
+              sdk.billing.multiAttach(request, options),
+            (args) => validateMultiAttach("billing.multiAttach", args)
           ),
       }),
       updateSubscription: internalActionGeneric({
@@ -998,17 +998,16 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.update",
             args,
-            (identifier) => {
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) => sdk.billing.update(request, options),
+            (args) =>
               validateFeatureQuantities(
                 "billing.update",
                 args.featureQuantities
-              );
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.billing.update(request, options)
+              )
           ),
       }),
       multiUpdate: internalActionGeneric({
@@ -1017,15 +1016,13 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.multiUpdate",
             args,
-            (identifier) => {
-              validateMultiUpdate("billing.multiUpdate", args);
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
             (request) => (sdk, options) =>
-              sdk.billing.multiUpdate(request, options)
+              sdk.billing.multiUpdate(request, options),
+            (args) => validateMultiUpdate("billing.multiUpdate", args)
           ),
       }),
       setupPayment: internalActionGeneric({
@@ -1034,18 +1031,17 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.setupPayment",
             args,
-            (identifier) => {
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) =>
+              sdk.billing.setupPayment(request, options),
+            (args) =>
               validateFeatureQuantities(
                 "billing.setupPayment",
                 args.featureQuantities
-              );
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) =>
-              sdk.billing.setupPayment(request, options)
+              )
           ),
       }),
       getOrCreateCustomer: internalActionGeneric({
@@ -1133,14 +1129,13 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "balances.update",
             args,
-            (identifier) => {
-              validateBalance(args);
-              return {
-                ...withoutIdentity(args),
-                customerId: identifier.customerId,
-              };
-            },
-            (request) => (sdk, options) => sdk.balances.update(request, options)
+            (identifier) => ({
+              ...withoutIdentity(args),
+              customerId: identifier.customerId,
+            }),
+            (request) => (sdk, options) =>
+              sdk.balances.update(request, options),
+            validateBalance
           ),
       }),
       createReferralCode: internalActionGeneric({
