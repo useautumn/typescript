@@ -78,7 +78,7 @@ data. Each of them is one shot: it dispatches its request once and never retries
 an ambiguous outcome such as HTTP 202, HTTP 409, an HTTP 5xx, a malformed
 success response, a timeout or a dropped connection. HTTP 429 also fails closed
 without an automatic retry. Duplicate suppression is Autumn's, through the
-derived `Idempotency-Key`, and it is time-bounded and does not replay the original
+derived `Idempotency-Key`, and it is time-bounded (Autumn rejects a key it has already seen within 24 hours with HTTP 409) and does not replay the original
 result. A caller that repeats a mutation after an unknown outcome must reconcile
 it against Autumn first. See the README section on duplicate suppression and its
 limits.
