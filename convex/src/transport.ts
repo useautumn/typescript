@@ -3,6 +3,7 @@ import {
   AutumnConfigurationError,
   AutumnIndeterminateError,
 } from "./errors.js";
+import { validateJsonRequest } from "./serialization.js";
 
 const API_VERSION = "2.3.0";
 const PROTECTED_HEADERS = new Set([
@@ -104,8 +105,10 @@ export class AutumnTransport {
 export async function invokeNative<T>(
   operation: string,
   call: AutumnCall,
+  request: unknown,
   invoke: (sdk: AutumnSDK, options: AutumnCall["requestOptions"]) => Promise<T>
 ): Promise<T> {
+  validateJsonRequest(operation, request);
   try {
     const result = await invoke(call.sdk, call.requestOptions);
     if (call.status() === 202) {

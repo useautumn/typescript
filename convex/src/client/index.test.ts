@@ -288,6 +288,48 @@ describe("Autumn native transport", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  test("preserves supported native direct-method values", async () => {
+    class PropertyValue {
+      x = 1;
+    }
+
+    const at = new Date("2026-01-01T00:00:00.000Z");
+    const blob = new Uint8Array(100_000);
+    blob.set([1, 2, 3]);
+    blob[blob.length - 1] = 4;
+    const delta = 0 * -1;
+    expect(Object.is(delta, -0)).toBe(true);
+
+    const request = await capture((autumn) =>
+      autumn.track(null, {
+        featureId: "messages",
+        properties: { at, blob, delta, object: new PropertyValue() },
+        operationId: "native-values",
+      })
+    );
+
+    expect(request.body.properties).toEqual({
+      at: "2026-01-01T00:00:00.000Z",
+      blob: Buffer.from(blob).toString("base64"),
+      delta: 0,
+      object: { x: 1 },
+    });
+  });
+
+  test("omits undefined direct-method request values", async () => {
+    const request = await capture((autumn) =>
+      autumn.track(null, {
+        featureId: "messages",
+        entityId: undefined,
+        properties: { kept: true, omitted: undefined },
+        operationId: "undefined-values",
+      })
+    );
+
+    expect(request.body).not.toHaveProperty("entity_id");
+    expect(request.body.properties).toEqual({ kept: true });
+  });
+
   test("exposes every supported SDK route with native request casing", async () => {
     const cases: Array<{
       name: string;

@@ -1,9 +1,35 @@
 import { convexToJson, jsonToConvex, type Value } from "convex/values";
+import { AutumnValidationError } from "./errors.js";
 
 export class AutumnSerializationError extends Error {
   constructor() {
     super("The Autumn response cannot be serialized by Convex.");
     this.name = "AutumnSerializationError";
+  }
+}
+
+function isPlainObject(value: object): value is Record<string, unknown> {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function containsUnfaithfulValue(value: unknown): boolean {
+  if (typeof value === "bigint") return true;
+  if (typeof value === "number" && !Number.isFinite(value)) return true;
+  if (value instanceof ArrayBuffer) return true;
+  if (Array.isArray(value)) return value.some(containsUnfaithfulValue);
+  if (typeof value === "object" && value !== null && isPlainObject(value)) {
+    return Object.values(value).some(containsUnfaithfulValue);
+  }
+  return false;
+}
+
+export function validateJsonRequest(operation: string, value: unknown): void {
+  if (containsUnfaithfulValue(value)) {
+    throw new AutumnValidationError(
+      operation,
+      "The Autumn request contains a value Autumn cannot receive faithfully."
+    );
   }
 }
 

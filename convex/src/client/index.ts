@@ -372,7 +372,12 @@ export class Autumn<Context = unknown> {
     const identifier = await this.identify(ctx);
     const nativeRequest = request(identifier);
     const call = this.transport.createCall();
-    return await invokeNative(operation, call, invoke(nativeRequest));
+    return await invokeNative(
+      operation,
+      call,
+      nativeRequest,
+      invoke(nativeRequest)
+    );
   }
 
   /**
@@ -407,7 +412,12 @@ export class Autumn<Context = unknown> {
     const identifier = await this.identify(ctx);
     const nativeRequest = request(identifier);
     const call = await this.keyedCall(operation, args);
-    return await invokeNative(operation, call, invoke(nativeRequest));
+    return await invokeNative(
+      operation,
+      call,
+      nativeRequest,
+      invoke(nativeRequest)
+    );
   }
 
   private async actionResult<T>(
@@ -447,7 +457,12 @@ export class Autumn<Context = unknown> {
       const nativeRequest = request(identifier);
       const call = await this.keyedCall(operation, args);
       return toConvexSerializable(
-        await invokeNative(operation, call, invoke(nativeRequest))
+        await invokeNative(
+          operation,
+          call,
+          nativeRequest,
+          invoke(nativeRequest)
+        )
       );
     } catch (error) {
       throw convexActionError(operation, error);
@@ -711,7 +726,7 @@ export class Autumn<Context = unknown> {
   plans = {
     get: async (_ctx: Context, args: GetPlanArgsType) => {
       const call = this.transport.createCall();
-      return await invokeNative("plans.get", call, (sdk, options) =>
+      return await invokeNative("plans.get", call, args, (sdk, options) =>
         sdk.plans.get(args, options)
       );
     },

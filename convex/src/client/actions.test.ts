@@ -144,6 +144,61 @@ describe("generated mutation actions", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  test.each([
+    ["bigint", 1n],
+    ["ArrayBuffer", new ArrayBuffer(4)],
+    ["NaN", Number.NaN],
+    ["positive infinity", Number.POSITIVE_INFINITY],
+    ["negative infinity", Number.NEGATIVE_INFINITY],
+  ])("rejects a %s request value before transport", async (_name, value) => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        properties: { value },
+        operationId: `invalid-${_name}`,
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_VALIDATION_ERROR",
+      operation: "track",
+      message:
+        "The Autumn request contains a value Autumn cannot receive faithfully.",
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  test("passes nested JSON request values through unchanged", async () => {
+    const requests: Request[] = [];
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      requests.push(new Request(input));
+      return response(trackResponse());
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+    const properties = {
+      nested: {
+        items: [null, true, 2, "message"],
+      },
+    };
+
+    await t.action(track, {
+      customerId: CUSTOMER_ID,
+      featureId: "messages",
+      properties,
+      operationId: "json-properties-1",
+    });
+
+    expect(fetcher).toHaveBeenCalledOnce();
+    const body = (await requests[0]!.json()) as Record<string, unknown>;
+    expect(body.properties).toEqual(properties);
+  });
+
   test("makes one keyed provider call and round-trips the native result", async () => {
     const keys: string[] = [];
     const fetcher = vi.fn(async (input: RequestInfo | URL) => {
