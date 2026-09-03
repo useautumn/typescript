@@ -111,9 +111,11 @@ in readable form.
 The generated surface fails closed. `autumn.api()` returns public Convex actions
 that reach only their allowlisted public routes. `check`, previews, and customer,
 entity, and event reads use the customer resolved by `identify(ctx)`. `getPlan`
-and `listPlans` read the global plan catalog. `billingPortal` also uses the
-resolved customer and is the explicit provider-session-creation exception to
-read-only behavior. It sends `POST /v1/billing.open_customer_portal` to create
+reads the global plan catalog without a customer. `listPlans` sends the customer
+resolved by `identify(ctx)`, so its response carries that customer's eligibility
+and the call fails when no customer resolves. `billingPortal` also uses the
+resolved customer and is the explicit provider-session-creation exception
+to read-only behavior. It sends `POST /v1/billing.open_customer_portal` to create
 the session, but does not itself mutate subscriptions, balances, usage, entities,
 or customer records. Every provider billing or data mutation is in
 `autumn.internalApi()`, which registers it with Convex `internalActionGeneric`.
