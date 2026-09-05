@@ -875,6 +875,14 @@ describe("Autumn native transport", () => {
     const fetcher = vi.fn(async (input: RequestInfo | URL) => {
       const request = new Request(input);
       return await new Promise<Response>((_resolve, reject) => {
+        // The deadline starts when the SDK builds the request, several awaits
+        // before this fetcher runs. A loaded machine can cross it in between,
+        // and the `abort` event is then already dispatched: a listener attached
+        // afterwards never fires and this promise would never settle.
+        if (request.signal.aborted) {
+          reject(request.signal.reason);
+          return;
+        }
         request.signal.addEventListener(
           "abort",
           () => reject(request.signal.reason),
