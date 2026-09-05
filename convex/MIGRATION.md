@@ -46,10 +46,12 @@ Export both blocks from the same module, keep each name in the block it came
 from, and call the mutations from server code through
 `internal.<module>.<name>`.
 
-Every internal action now requires a `customerId` argument. Convex does not
-propagate the caller's auth into a scheduled or internal call, so `identify(ctx)`
-cannot resolve a customer there and is not consulted. Authorize the request in
-the mutation or action that still has an identity, resolve the customer there,
+Every internal action now requires a `customerId` argument and never consults
+`identify(ctx)`. A scheduled function runs without the original user's auth, so
+no identity survives for it to resolve; an ordinary `ctx.runAction` call does
+carry it, and taking the customer from the caller in both cases keeps one
+internal action usable for scheduled and request-time work. Authorize the request
+in the mutation or action that owns that decision, resolve the customer there,
 and pass it to the internal action. Public validators accept no customer ID, and
 generated public billing actions omit operator controls, including the portal
 configuration ID. Internal generated actions keep them, because only server code

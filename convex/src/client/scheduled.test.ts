@@ -37,8 +37,8 @@ afterEach(() => {
 
 /**
  * The fixture client resolves its customer from `ctx.auth`, which is what an
- * application does. A scheduled or internal call runs without that auth, so
- * these tests invoke the actions with no identity at all.
+ * application does. Scheduled work runs without that auth, so these tests invoke
+ * the actions with no identity at all.
  */
 describe("customer identity without an auth context", () => {
   test("an internal action runs with the customer its caller passed", async () => {

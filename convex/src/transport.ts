@@ -42,14 +42,48 @@ function validatedHeaders(input?: HeadersInit): Headers {
   return headers;
 }
 
-class AutumnMalformedResponseError extends Error {}
+/**
+ * A response body this package could not read, carrying the status the server
+ * had already sent.
+ *
+ * The status line arrives before the body, so a truncated body never erases what
+ * the server decided. The SDK wraps this error in a native `UnexpectedClientError`
+ * and keeps it as that error's `cause`, which is where {@link sdkStatus} reads
+ * the status back from.
+ */
+class AutumnResponseReadError extends Error {
+  readonly statusCode: number;
 
-async function requireJsonSuccess(response: Response): Promise<void> {
+  constructor(statusCode: number) {
+    super("The Autumn response body could not be read.");
+    this.name = "AutumnResponseReadError";
+    this.statusCode = statusCode;
+  }
+}
+
+/**
+ * Read the response body here, before the SDK's own matcher reads it.
+ *
+ * The SDK reads the body of a failed response unguarded, so a server that sends
+ * its headers and then truncates the body makes that read throw where nothing
+ * catches it: the observed status is lost, and the SDK's secondary result promise
+ * rejects with no handler attached. Reading a clone keeps that failure inside the
+ * guarded fetcher path for every status and leaves the original body for the SDK.
+ * Only a success body has to be JSON, because no result is decoded from a failure
+ * body.
+ */
+async function requireReadableBody(response: Response): Promise<void> {
+  let body: string;
+  try {
+    body = await response.clone().text();
+  } catch {
+    throw new AutumnResponseReadError(response.status);
+  }
   if (response.status < 200 || response.status >= 300) return;
   try {
-    await response.clone().json();
+    JSON.parse(body);
   } catch {
-    throw new AutumnMalformedResponseError();
+    throw new AutumnResponseReadError(response.status);
   }
 }
 
@@ -78,7 +112,7 @@ export class AutumnTransport {
         customHeaders.forEach((value, name) => headers.set(name, value));
         const response = await fetcher(new Request(request, { headers }));
         responseStatus = response.status;
-        await requireJsonSuccess(response);
+        await requireReadableBody(response);
         return response;
       },
     });
@@ -133,6 +167,17 @@ export function sdkStatus(error: unknown): number | undefined {
     typeof error.statusCode === "number"
   ) {
     return error.statusCode;
+  }
+  // An unreadable body reaches the SDK as a client error with no status of its
+  // own. Only this package's own error is unwrapped, and only one level deep,
+  // so no status is ever inferred from an error this package did not create.
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "cause" in error &&
+    error.cause instanceof AutumnResponseReadError
+  ) {
+    return error.cause.statusCode;
   }
   return undefined;
 }

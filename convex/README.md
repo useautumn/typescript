@@ -139,10 +139,13 @@ and no `operationId`, so it cannot consume balance. Use the internal
 should record usage.
 
 Internal actions are published under `internal.<module>.<name>` and only server
-code can reach them. Every one of them requires a `customerId`, because Convex
-does not propagate the caller's auth into a scheduled or internal call and
-`identify(ctx)` has nothing to resolve there. Authorize the request and resolve
-the subject in the function that still has an identity, then pass it on:
+code can reach them. Every one of them requires a `customerId` and never consults
+`identify(ctx)`. A scheduled function runs without the original user's auth, so
+no identity survives for it to resolve. An ordinary `ctx.runAction` call does
+propagate the caller's auth, and taking the customer from the caller in both
+cases is what lets one internal action serve scheduled and request-time work.
+Authorize the request and resolve the subject in the function that owns that
+decision, then pass it on:
 
 ```ts
 export const recordMessages = mutation({
@@ -243,8 +246,10 @@ Generated action errors are `ConvexError` values whose data contains only:
 }
 ```
 
-A `ConvexError` thrown by consumer code, including `identify(ctx)` or a custom
-`fetcher`, passes through unchanged.
+A `ConvexError` thrown by `identify(ctx)` passes through unchanged. One thrown by
+a custom `fetcher` does not: the SDK wraps anything the fetcher throws in a
+client error of its own, so it arrives here as a transport failure and is
+reported as `AUTUMN_INDETERMINATE` like any other unreadable outcome.
 
 Native `Response`, `Request`, `Headers` and raw response bodies never cross an
 action boundary.

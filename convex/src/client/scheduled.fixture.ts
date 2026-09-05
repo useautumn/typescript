@@ -13,9 +13,9 @@ const components = componentsGeneric() as unknown as {
  * A client configured the way an application configures one: identity comes
  * from the request's auth context.
  *
- * Convex does not propagate auth into a scheduled or internal call, so
- * `identify(ctx)` resolves nothing there. The internal actions still run,
- * because they take the customer from the server code that invoked them.
+ * A scheduled call carries no original user auth, so `identify(ctx)` resolves
+ * nothing there. The internal actions still run, because they take the customer
+ * from the server code that invoked them.
  */
 const autumn = new Autumn<GenericActionCtx<GenericDataModel>>(
   components.autumn,

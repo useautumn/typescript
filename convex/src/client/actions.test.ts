@@ -2,6 +2,7 @@
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { defineSchema, makeFunctionReference } from "convex/server";
+import { ConvexError } from "convex/values";
 import type {
   CheckArgs,
   GetCustomerArgs,
@@ -449,6 +450,40 @@ describe("generated mutation actions", () => {
     expect(JSON.stringify(errorData(caught))).not.toContain("provider body");
     expect(fetcher).toHaveBeenCalledOnce();
     expect(await scheduledFunctions(t)).toEqual([]);
+  });
+
+  /**
+   * A `ConvexError` from `identify(ctx)` reaches the caller as itself, but one
+   * thrown by the fetcher does not. The SDK wraps whatever the fetcher throws in
+   * a client error of its own, so the action never sees the original and reports
+   * an unreadable outcome instead.
+   */
+  test("does not pass a fetcher ConvexError through unchanged", async () => {
+    const supplied = new ConvexError({
+      code: "CONSUMER_ERROR",
+      message: "consumer-defined",
+    });
+    const fetcher = vi.fn(async () => {
+      throw supplied;
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: "consumer-error-1",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_INDETERMINATE",
+      operation: "track",
+      message: "The Autumn operation has an indeterminate outcome.",
+    });
+    expect(JSON.stringify(errorData(caught))).not.toContain("consumer-defined");
+    expect(fetcher).toHaveBeenCalledOnce();
   });
 
   test("sanitizes errors from generated read actions", async () => {

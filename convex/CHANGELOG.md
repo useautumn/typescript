@@ -27,9 +27,10 @@
   identities before hashing, and derive the provider key from the namespace so
   clients that share one installed component never address each other's
   operations.
-- Require a trusted `customerId` on every internal generated action, because
-  Convex propagates no auth into a scheduled or internal call. Strip the action's
-  identity metadata before assembling the Autumn request.
+- Require a trusted `customerId` on every internal generated action, so one
+  action serves both scheduled work, which carries no original user auth, and
+  calls that still carry it. Strip the action's identity metadata before
+  assembling the Autumn request.
 - Add explicit billing preview, attach, multi-update, customer, entity, plan,
   balance, event and referral methods.
 - Remove root checkout, compatibility helpers, implicit provisioning and legacy

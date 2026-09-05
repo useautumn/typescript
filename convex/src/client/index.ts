@@ -346,10 +346,10 @@ export class Autumn<Context = unknown> {
   /**
    * The customer an internal action runs for.
    *
-   * Convex runs a scheduled or internal function without the original caller's
-   * auth, so there is no identity to derive here. The customer ID comes from
-   * the server code that invoked the action and has already decided that the
-   * operation is allowed.
+   * Scheduled work carries no original user auth, so an identity cannot be
+   * derived here at all. The customer ID comes from the server code that invoked
+   * the action and has already decided that the operation is allowed, which
+   * holds whether or not that caller still had an identity of its own.
    */
   private trustedIdentifier(
     operation: string,
@@ -938,11 +938,11 @@ export class Autumn<Context = unknown> {
    * call them through `ctx.runAction` or `ctx.scheduler` after it has made its
    * own authorization decision.
    *
-   * Every one of them requires a `customerId`. Convex does not propagate the
-   * original caller's auth into a scheduled or internal function, so
-   * `identify(ctx)` has nothing to resolve there and is never consulted. The
-   * calling server code owns that decision and passes the subject it
-   * authorized; the field never reaches Autumn as a request field of its own.
+   * Every one of them requires a `customerId` and never consults
+   * `identify(ctx)`. A scheduled function has no original user auth left to
+   * resolve, and a caller that still has one has already authorized the
+   * operation, so the subject comes from the calling server code either way; the
+   * field never reaches Autumn as a request field of its own.
    *
    * Each of them is one shot: it dispatches its request once and never retries.
    * A caller that sees an indeterminate outcome owns the decision to reconcile

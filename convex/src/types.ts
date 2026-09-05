@@ -454,12 +454,11 @@ export type RedeemReferralCodeArgs = Infer<typeof RedeemReferralCodeArgs>;
 /**
  * The customer an internal generated action operates on.
  *
- * Convex does not propagate the caller's auth into a scheduled or internal
- * call, so `identify(ctx)` cannot resolve a customer there. Each internal
- * action is reachable only from server code that has already made its own
- * authorization decision, and it takes the customer ID from that caller. The
- * field is stripped before the Autumn request is built, and it never appears on
- * a public validator.
+ * Scheduled work carries no original user auth for `identify(ctx)` to resolve.
+ * Each internal action is reachable only from server code that has already made
+ * its own authorization decision, and it takes the customer ID from that caller
+ * whether or not the caller still has an identity. The field is stripped before
+ * the Autumn request is built, and it never appears on a public validator.
  */
 const customerId = v.string();
 

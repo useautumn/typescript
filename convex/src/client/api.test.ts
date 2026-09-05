@@ -196,8 +196,8 @@ type _PublicCheckRejectsSendEvent = Assert<
 /**
  * A public action resolves its customer through `identify(ctx)`, so none of
  * them accepts a customer ID from the client. Every internal action requires
- * one, because Convex gives a scheduled or internal call no auth to derive it
- * from and its trusted caller supplies it instead.
+ * one instead, because scheduled work has no original user auth to derive it
+ * from and its trusted caller supplies it in every case.
  */
 type ActionArgs<Reference> =
   Reference extends FunctionReference<"action", any, infer Args> ? Args : never;
