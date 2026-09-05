@@ -1,6 +1,7 @@
-import { AutumnError } from "autumn-js";
+import { AutumnError, ConnectionError } from "autumn-js";
 import { describe, expect, test, vi } from "vitest";
 import { deriveProviderKey } from "../idempotency.js";
+import { isTransportIndeterminate } from "../transport.js";
 import type { UpdateBalanceArgs } from "../types.js";
 import { Autumn, AutumnIndeterminateError } from "./index.js";
 
@@ -809,7 +810,29 @@ describe("Autumn native transport", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  test("does not retry network failures", async () => {
+  /**
+   * A real Node connection failure is `TypeError("fetch failed")`, and the SDK
+   * recognizes it by that message prefix. Only this shape becomes a genuine
+   * `ConnectionError`, so it is what the indeterminate classifier's
+   * `ConnectionError` branch has to be exercised with.
+   */
+  test("raises the SDK's ConnectionError for a real connection failure", async () => {
+    const fetcher = vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    });
+    const caught = await client(fetcher)
+      .track(null, { featureId: "messages", operationId: "connection" })
+      .catch((error: unknown) => error);
+
+    expect(caught).toBeInstanceOf(ConnectionError);
+    expect(isTransportIndeterminate(caught, undefined)).toBe(true);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  // A fetcher failure the SDK does not recognize as a connection error is a
+  // different, equally real shape: it carries no status and stays a single
+  // attempt.
+  test("does not retry an unrecognized fetcher failure", async () => {
     const fetcher = vi.fn(async () => {
       throw new TypeError("network unavailable");
     });

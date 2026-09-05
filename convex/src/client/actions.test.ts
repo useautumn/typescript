@@ -18,6 +18,9 @@ const CUSTOMER_ID = "customer-1";
 const check = makeFunctionReference<"action", CheckArgs, unknown>(
   "actions.fixture:check"
 );
+const checkUnidentified = makeFunctionReference<"action", CheckArgs, unknown>(
+  "identity.fixture:check"
+);
 const consumeCheck = makeFunctionReference<
   "action",
   InternalConsumeCheckArgs,
@@ -170,6 +173,30 @@ describe("generated mutation actions", () => {
       operation: "track",
       message:
         "The Autumn request contains a value Autumn cannot receive faithfully.",
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  /**
+   * `identify(ctx)` runs inside the classified region, so a failure it raises is
+   * classified as an Autumn outcome. Its `statusCode` belongs to whatever
+   * service identification consulted, and reading it here would report
+   * `AUTUMN_INDETERMINATE` for an operation that never existed, telling an
+   * operator to reconcile provider state against a request Autumn never saw.
+   */
+  test("does not read a status off an error this package did not create", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(checkUnidentified, { featureId: "messages" })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_REQUEST_FAILED",
+      operation: "check",
+      message: "Autumn rejected the request.",
     });
     expect(fetcher).not.toHaveBeenCalled();
   });
@@ -429,8 +456,13 @@ describe("generated mutation actions", () => {
     expect(await scheduledFunctions(t)).toEqual([]);
   });
 
+  // A Node connection failure is a `TypeError` whose message begins "fetch
+  // failed", which is what the SDK matches on to raise its `ConnectionError`.
+  // Any other message becomes an `UnexpectedClientError` instead, so a
+  // hand-written message here would leave the `ConnectionError` branch of the
+  // classifier untested.
   test.each([
-    ["network", () => new TypeError("socket closed")],
+    ["network", () => new TypeError("fetch failed")],
     ["timeout", () => new DOMException("timed out", "TimeoutError")],
     ["abort", () => new DOMException("aborted", "AbortError")],
   ])(

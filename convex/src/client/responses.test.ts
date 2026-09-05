@@ -13,7 +13,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { AutumnError, UnexpectedClientError } from "autumn-js";
 import { defineSchema, makeFunctionReference } from "convex/server";
 import type { InternalTrackArgs } from "../types.js";
-import { AutumnIndeterminateError } from "../errors.js";
+import { AutumnIndeterminateError, AutumnValidationError } from "../errors.js";
 import { errorData, initConvexTest } from "./setup.test.js";
 import {
   closeResponseServer,
@@ -230,6 +230,44 @@ describe("direct methods against a real HTTP server", () => {
     expect(caught).toBeInstanceOf(UnexpectedClientError);
     expect(requestCount()).toBe(1);
   });
+
+  /**
+   * The SDK stringifies a class instance like any other object, so a value the
+   * request cannot carry faithfully is no less unsendable for sitting inside
+   * one. Left to the SDK it surfaces as a raw `TypeError` instead of this
+   * package's named validation error, and it rejects the SDK's second result
+   * promise with nothing attached to it: the same unhandled rejection this file
+   * already guards for a truncated body.
+   */
+  test.each([
+    [
+      "a class instance",
+      () => {
+        class ClassPayload {
+          amount = 10n;
+        }
+        return new ClassPayload();
+      },
+    ],
+    ["a BigInt64Array", () => new BigInt64Array([1n])],
+  ])(
+    "rejects a bigint inside %s without reaching the server",
+    async (_description, build) => {
+      planResponse({ status: 200, body: "complete" });
+
+      const caught = await directClient()
+        .track(null, {
+          featureId: "messages",
+          properties: { payload: build() },
+          operationId: "direct-hidden-bigint",
+        })
+        .catch((error: unknown) => error);
+
+      await expectNoUnhandledRejections();
+      expect(caught).toBeInstanceOf(AutumnValidationError);
+      expect(requestCount()).toBe(0);
+    }
+  );
 
   test("leaves a complete HTTP 409 on the SDK error with its status", async () => {
     planResponse({ status: 409, body: "complete" });

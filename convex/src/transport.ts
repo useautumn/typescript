@@ -1,4 +1,5 @@
 import {
+  AutumnError,
   Autumn as AutumnSDK,
   HTTPClient,
   ResponseValidationError,
@@ -224,10 +225,26 @@ export async function invokeNative<T>(
   }
 }
 
+/**
+ * The status a response to this operation carried, or `undefined` when no
+ * response was ever received.
+ *
+ * Only the SDK's own response error and this package's own errors are read, so
+ * no status is ever inferred from an error neither of them created. A generated
+ * action classifies everything raised inside it, including a failure of the
+ * caller's `identify(ctx)`; that failure carries the status of whatever service
+ * identification consulted, and reading it here applied the ambiguity rules to a
+ * request Autumn never saw, reporting an indeterminate outcome for an operation
+ * that never existed.
+ *
+ * `AutumnError` is the SDK's base for the errors it raises from a response it
+ * received. Its client errors sit outside that hierarchy and carry no status of
+ * their own, so nothing the server actually decided is lost by ignoring them.
+ */
 export function sdkStatus(error: unknown): number | undefined {
   if (
-    typeof error === "object" &&
-    error !== null &&
+    (error instanceof AutumnError ||
+      error instanceof AutumnIndeterminateError) &&
     "statusCode" in error &&
     typeof error.statusCode === "number"
   ) {

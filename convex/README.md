@@ -260,8 +260,11 @@ does not, such as a fractional `timestamp` where an integer is required. The
 SDK's own message is not passed through, since it can embed the offending value.
 Direct methods are unaffected and keep throwing the native SDK error.
 
-A `ConvexError` thrown by `identify(ctx)` passes through unchanged. One thrown by
-a custom `fetcher` does not: the SDK wraps anything the fetcher throws in a
+A `ConvexError` thrown by `identify(ctx)` passes through unchanged. Any other
+error it throws is reported as `AUTUMN_REQUEST_FAILED` with no `statusCode`, even
+when it carries one: that status belongs to whatever service identification
+consulted, and the operation never reached Autumn. One thrown by a custom
+`fetcher` does not pass through: the SDK wraps anything the fetcher throws in a
 client error of its own, so it arrives here as a transport failure and is
 reported as `AUTUMN_INDETERMINATE` like any other unreadable outcome.
 
@@ -279,9 +282,12 @@ action boundary. The operation itself already reached Autumn in that case.
 
 Every internal action additionally requires the trusted `customerId` described
 above. Direct billing methods accept the complete supported SDK subset, while
-the generated public actions omit billing operator controls. Within request
-arrays and plain objects, `bigint`, `ArrayBuffer`, `NaN` and infinite numbers are
-rejected because Autumn cannot receive them faithfully. Generated actions
+the generated public actions omit billing operator controls. Anywhere in a
+request, including inside a class instance, `bigint`, `ArrayBuffer`, `NaN` and
+infinite numbers are rejected because Autumn cannot receive them faithfully. A
+`BigInt64Array` or `BigUint64Array` is rejected for the same reason, since every
+element of one is a `bigint`. Any other typed array is left to the SDK, which
+sends a `Uint8Array` as base64. Generated actions
 otherwise use their Convex validators. Direct methods retain the native SDK's
 request types and handling of `Date`, `Uint8Array`, class instances and
 `undefined`. Pass only declared fields to a direct method. A value in an
