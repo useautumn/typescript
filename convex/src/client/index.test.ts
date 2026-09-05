@@ -118,7 +118,7 @@ describe("Autumn native transport", () => {
     expect(request.headers.get("authorization")).toBe("Bearer test-secret-key");
     expect(request.headers.get("content-type")).toBe("application/json");
     expect(request.headers.get("x-api-version")).toBe("2.3.0");
-    expect(request.headers.get("idempotency-key")).toMatch(/^autumn-1-/);
+    expect(request.headers.get("idempotency-key")).toMatch(/^autumn-2-/);
     expect(request.headers.get("idempotency-key")).not.toContain(
       "caller-operation-id"
     );
@@ -204,7 +204,7 @@ describe("Autumn native transport", () => {
     expect(new Set(keys).size).toBe(2);
   });
 
-  test("fences reused operation IDs across customers and payloads", async () => {
+  test("fences reused operation IDs by customer but not by payload", async () => {
     const keys: string[] = [];
     const fetcher = async (input: RequestInfo | URL) => {
       const request = new Request(input);
@@ -246,11 +246,13 @@ describe("Autumn native transport", () => {
       string,
       string,
     ];
-    // Within one namespace and mutation action, an operation ID is unique across
-    // all customers. Changing the customer or payload deliberately keeps the
-    // same key, while another mutation action has its own operation identity.
+    // An operation ID is unique within its namespace, mutation action and
+    // customer, so another customer reusing it addresses its own operation. The
+    // payload stays out of the key: a retry that corrects its arguments is the
+    // same operation and must still meet Autumn's duplicate rejection. Another
+    // mutation action has its own operation identity.
     expect(changedTrack).toBe(firstTrack);
-    expect(otherCustomer).toBe(firstTrack);
+    expect(otherCustomer).not.toBe(firstTrack);
     expect(otherRoute).not.toBe(firstTrack);
   });
 
@@ -956,7 +958,7 @@ describe("Autumn native transport", () => {
     const [read, consume] = requests as [Request, Request];
     expect(read.headers.get("idempotency-key")).toBeNull();
     expect(await read.text()).not.toContain("send_event");
-    expect(consume.headers.get("idempotency-key")).toMatch(/^autumn-1-/);
+    expect(consume.headers.get("idempotency-key")).toMatch(/^autumn-2-/);
     expect(await consume.text()).toContain('"send_event":true');
   });
 
@@ -984,6 +986,7 @@ describe("Autumn native transport", () => {
         await deriveProviderKey({
           operation: "balances.update",
           operationNamespace: "namespace-1",
+          customerId: "customer-1",
           operationId,
         })
       );

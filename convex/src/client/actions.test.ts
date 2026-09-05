@@ -312,7 +312,7 @@ describe("generated mutation actions", () => {
     });
     expect(JSON.parse(JSON.stringify(result))).toEqual(result);
     expect(fetcher).toHaveBeenCalledOnce();
-    expect(keys[0]).toMatch(/^autumn-1-/);
+    expect(keys[0]).toMatch(/^autumn-2-/);
     expect(await scheduledFunctions(t)).toEqual([]);
   });
 
@@ -343,6 +343,7 @@ describe("generated mutation actions", () => {
         await deriveProviderKey({
           operation: "balances.update",
           operationNamespace: "actions-fixture",
+          customerId: CUSTOMER_ID,
           operationId,
         })
       );

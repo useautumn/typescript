@@ -108,8 +108,8 @@ on the next key rotation.
 Two clients that share one installed component must not share a namespace. The
 namespace separates their provider idempotency keys, so one application's
 operation ID can never suppress another's mutation at Autumn. The namespace,
-mutation action and operation ID are hashed into the key, so none of them is sent
-in readable form.
+customer ID, mutation action and operation ID are hashed into the key, so none of
+them is sent in readable form.
 
 ## Public and internal actions
 
@@ -201,13 +201,17 @@ if (result.balance) {
 }
 ```
 
-The package hashes the operation namespace, mutation action and `operationId`
-into the provider `Idempotency-Key`. None of those values appears in that header
-in readable form. An `operationId` must be unique within its
-`operationNamespace` and mutation action across all customers. The request
-payload and customer ID are not part of the key, so changing the customer or
-arguments does not create a new key. Autumn rejects the reused key as a duplicate
-instead of performing a second mutation.
+The package hashes the operation namespace, the customer ID, the mutation action
+and `operationId` into the provider `Idempotency-Key`. None of those values
+appears in that header in readable form. An `operationId` must be unique per
+customer, per `operationNamespace` and per mutation action, so an identifier that
+only distinguishes one customer's operations from each other, such as an invoice
+number or a period label, is enough.
+
+The request payload is not part of the key. A retry that corrects its arguments
+is still the same operation, so reusing an `operationId` with different arguments
+reaches Autumn's duplicate rejection instead of performing a second mutation
+nobody asked for.
 
 `autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
 records the usage event and requires one. HTTP 202, malformed success JSON and an

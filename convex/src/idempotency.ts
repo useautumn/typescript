@@ -1,6 +1,16 @@
 import { AutumnConfigurationError, AutumnValidationError } from "./errors.js";
 
-const KEY_FORMAT_VERSION = "1";
+/**
+ * The identity composition this key format denotes.
+ *
+ * It travels in the readable prefix and inside the digest, so a key derived
+ * under one composition can never be read as a key derived under another. Any
+ * later change to which parts are hashed, or to the order they are hashed in,
+ * bumps it. Version 1 hashed the namespace, the mutation action and the
+ * operation ID; version 2 adds the trusted customer between the namespace and
+ * the action.
+ */
+const KEY_FORMAT_VERSION = "2";
 const OPERATION_ID_MAX_LENGTH = 256;
 const OPERATION_NAMESPACE_MAX_LENGTH = 256;
 
@@ -24,8 +34,9 @@ async function digest(value: string): Promise<string> {
  *
  * Every part carries its own length, so a value that contains the separator
  * cannot move the boundary between two parts. Operation identity mixes an
- * operator-chosen namespace with an action name and operation ID, and a plain
- * separator would let one of them impersonate a prefix of the next.
+ * operator-chosen namespace with a customer ID, an action name and an operation
+ * ID, and a plain separator would let one of them impersonate a prefix of the
+ * next.
  */
 function canonicalIdentity(parts: string[]): string {
   return parts.map((part) => `${part.length}\0${part}`).join("\0");
@@ -62,6 +73,25 @@ export function validateOperationNamespace(operationNamespace: string): void {
   }
 }
 
+/**
+ * Check that a customer ID reaches the digest unchanged.
+ *
+ * `TextEncoder` replaces an unpaired surrogate with U+FFFD, so two customer IDs
+ * differing only in one would collapse to a single identity. The customer is
+ * what now keeps two tenants' operations apart, so it is checked for the reason
+ * the namespace and the operation ID already are. Its length stays unbounded:
+ * the value is trusted, it reaches the header only as part of the digest, and
+ * both callers have already rejected an empty one.
+ */
+function validateCustomerId(operation: string, customerId: string): void {
+  if (!isWellFormedUnicode(customerId)) {
+    throw new AutumnValidationError(
+      operation,
+      `${operation} customerId must contain well-formed Unicode.`
+    );
+  }
+}
+
 export function validateOperationId(
   operation: string,
   operationId: string
@@ -87,16 +117,24 @@ export function validateOperationId(
  * Derive the provider idempotency key for one mutation.
  *
  * The key is the only duplicate suppression this package has, so it is derived
- * from operation identity alone: the namespace, the mutation action and the
- * caller's operation ID. The namespace keeps tenants and environments apart,
- * and the action name keeps one operation ID from meaning two different
- * mutations.
+ * from operation identity alone: the namespace, the trusted customer, the
+ * mutation action and the caller's operation ID. The namespace keeps tenants and
+ * environments apart, the action name keeps one operation ID from meaning two
+ * different mutations, and the customer keeps one operation ID from addressing
+ * two customers' mutations.
  *
- * The customer ID and request payload are deliberately not part of the key. An
- * operation ID is therefore unique within its namespace and mutation action
- * across all customers. Reusing it with another customer or different arguments
- * must reach the same key, so Autumn rejects the second request as a duplicate
- * rather than performing a second mutation nobody asked for.
+ * The customer has to be in here because Autumn scopes a claimed key to the
+ * organization and environment only. A key exists to suppress the retry of one
+ * operation, and a retry always carries the same customer, so two customers that
+ * happen to choose the same operation ID are two operations rather than one:
+ * without the customer the first claims the key and the second is refused for
+ * the duplicate window, which this package can only report as an indeterminate
+ * outcome for a mutation that never ran.
+ *
+ * The request payload stays out for the opposite reason. A retry that corrects
+ * its arguments is still the same operation, and a payload in the key would give
+ * it a new one, turning Autumn's duplicate rejection into a second mutation
+ * nobody asked for.
  *
  * None of the inputs travels in readable form: the key is a digest of the
  * versioned canonical identity, and only the format version stays legible.
@@ -104,18 +142,22 @@ export function validateOperationId(
 export async function deriveProviderKey({
   operation,
   operationNamespace,
+  customerId,
   operationId,
 }: {
   operation: string;
   operationNamespace: string;
+  customerId: string;
   operationId: string;
 }): Promise<string> {
   validateOperationNamespace(operationNamespace);
+  validateCustomerId(operation, customerId);
   validateOperationId(operation, operationId);
   const identity = await digest(
     canonicalIdentity([
       KEY_FORMAT_VERSION,
       operationNamespace,
+      customerId,
       operation,
       operationId,
     ])

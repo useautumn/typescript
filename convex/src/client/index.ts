@@ -399,15 +399,22 @@ export class Autumn<Context = unknown> {
    * replaying the original result, and it therefore says nothing about an
    * outcome this package could not read. A mutation dispatches once for that
    * reason, and neither retries nor schedules a second attempt.
+   *
+   * The identifier is the trusted one the operation runs for, resolved before
+   * the key is derived. Autumn scopes a claimed key to the organization and
+   * environment, so the customer has to be inside the key for one customer's
+   * operation ID to stop suppressing another customer's mutation.
    */
   private async keyedCall(
     operation: string,
+    identifier: Identifier,
     args: MutationArgs
   ): Promise<AutumnCall> {
     return this.transport.createCall(
       await deriveProviderKey({
         operation,
         operationNamespace: this.options.operationNamespace,
+        customerId: identifier.customerId,
         operationId: args.operationId,
       })
     );
@@ -422,7 +429,7 @@ export class Autumn<Context = unknown> {
   ): Promise<T> {
     const identifier = await this.identify(ctx);
     const nativeRequest = request(identifier);
-    const call = await this.keyedCall(operation, args);
+    const call = await this.keyedCall(operation, identifier, args);
     return await invokeNative(
       operation,
       call,
@@ -466,7 +473,7 @@ export class Autumn<Context = unknown> {
       validate?.(args);
       const identifier = this.trustedIdentifier(operation, args);
       const nativeRequest = request(identifier);
-      const call = await this.keyedCall(operation, args);
+      const call = await this.keyedCall(operation, identifier, args);
       return toConvexSerializable(
         await invokeNative(
           operation,

@@ -395,7 +395,7 @@ describe("public action security boundary", () => {
         operationId: `classification-${name}`,
       });
 
-      expect(request.headers.get("idempotency-key")).toMatch(/^autumn-1-/);
+      expect(request.headers.get("idempotency-key")).toMatch(/^autumn-2-/);
     }
   );
 

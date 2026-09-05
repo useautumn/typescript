@@ -2,20 +2,25 @@ import { describe, expect, test } from "vitest";
 import { AutumnConfigurationError, AutumnValidationError } from "./errors.js";
 import { deriveProviderKey } from "./idempotency.js";
 
+/** The byte the canonical identity joins its parts with. */
+const SEPARATOR = String.fromCharCode(0);
+
 const base = {
   operation: "track",
   operationNamespace: "namespace-1",
+  customerId: "customer-1",
   operationId: "operation-1",
 };
 
 describe("provider key derivation", () => {
   test("repeats the key for the same operation identity", async () => {
     expect(await deriveProviderKey(base)).toBe(await deriveProviderKey(base));
-    expect(await deriveProviderKey(base)).toMatch(/^autumn-1-[\w-]+$/);
+    expect(await deriveProviderKey(base)).toMatch(/^autumn-2-[\w-]+$/);
   });
 
   test.each([
     ["namespace", { operationNamespace: "namespace-2" }],
+    ["customer", { customerId: "customer-2" }],
     ["operation", { operation: "balances.update" }],
     ["operation ID", { operationId: "operation-2" }],
   ])("separates keys that differ only in the %s", async (_name, difference) => {
@@ -23,6 +28,33 @@ describe("provider key derivation", () => {
       await deriveProviderKey(base)
     );
   });
+
+  /**
+   * Autumn scopes a claimed key to the organization and environment only, so a
+   * key two customers share is claimed by whichever of them arrives first. The
+   * second is refused for the duplicate window, and this package reports an
+   * indeterminate outcome for a mutation that certainly never ran. Operation IDs
+   * that are unique per customer rather than globally are the ordinary case: an
+   * invoice number, a period label, a request ID from a client.
+   */
+  test("keeps two customers off each other's key", async () => {
+    const shared = { ...base, operationId: "monthly-reset-2026-09" };
+
+    expect(
+      await deriveProviderKey({ ...shared, customerId: "customer-a" })
+    ).not.toBe(
+      await deriveProviderKey({ ...shared, customerId: "customer-b" })
+    );
+  });
+
+  test.each(["\ud800", "\udc00"])(
+    "rejects malformed customer ID Unicode %j",
+    async (customerId) => {
+      await expect(
+        deriveProviderKey({ ...base, customerId })
+      ).rejects.toBeInstanceOf(AutumnValidationError);
+    }
+  );
 
   test.each(["\ud800", "\udc00"])(
     "rejects malformed operation ID Unicode %j",
@@ -47,9 +79,10 @@ describe("provider key derivation", () => {
       deriveProviderKey({
         ...base,
         operationNamespace: "namespace-😀",
+        customerId: "customer-😀",
         operationId: "operation-😀",
       })
-    ).resolves.toMatch(/^autumn-1-[\w-]+$/);
+    ).resolves.toMatch(/^autumn-2-[\w-]+$/);
   });
 
   test("keeps no identity part readable in the key", async () => {
@@ -61,25 +94,39 @@ describe("provider key derivation", () => {
   });
 
   /**
-   * Identity parts are joined before they are hashed, and the namespace is an
-   * operator input while the operation ID comes from the caller. Without a
-   * length in front of each part, either can carry the separator and take over
-   * the next part's position, which addresses another operation at Autumn.
+   * Identity parts are joined before they are hashed. The namespace is an
+   * operator input, the customer is trusted but otherwise arbitrary, and the
+   * operation ID comes from the caller, so any of them can carry the separator.
+   * Without a length in front of each part it would take over the next part's
+   * position and address another operation at Autumn. Each case pairs two
+   * identities whose parts concatenate to the same bytes once the lengths are
+   * dropped, so one key for both would mean the lengths had stopped carrying.
    */
-  test("no identity part can absorb the next one", async () => {
-    const shifted = await deriveProviderKey({
-      ...base,
-      operationNamespace: "namespace\0track",
-      operation: "operation",
-      operationId: "1",
-    });
-    const original = await deriveProviderKey({
-      ...base,
-      operationNamespace: "namespace",
-      operation: "track",
-      operationId: "operation\u00001",
-    });
-
-    expect(shifted).not.toBe(original);
+  test.each([
+    [
+      "namespace into the customer",
+      {
+        operationNamespace: `namespace${SEPARATOR}customer`,
+        customerId: "1",
+      },
+      {
+        operationNamespace: "namespace",
+        customerId: `customer${SEPARATOR}1`,
+      },
+    ],
+    [
+      "customer into the operation",
+      { customerId: `customer${SEPARATOR}track`, operation: "operation" },
+      { customerId: "customer", operation: `track${SEPARATOR}operation` },
+    ],
+    [
+      "operation into the operation ID",
+      { operation: `track${SEPARATOR}operation`, operationId: "1" },
+      { operation: "track", operationId: `operation${SEPARATOR}1` },
+    ],
+  ])("keeps the %s from absorbing it", async (_name, shifted, original) => {
+    expect(await deriveProviderKey({ ...base, ...shifted })).not.toBe(
+      await deriveProviderKey({ ...base, ...original })
+    );
   });
 });

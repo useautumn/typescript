@@ -54,9 +54,13 @@
   code reads the status Autumn sent instead of a native client error without
   one. A definitive rejection such as HTTP 422 keeps its native SDK error.
 - Require a deliberate `operationNamespace`, reject malformed Unicode operation
-  identities before hashing, and derive the provider key from the namespace so
-  clients that share one installed component never address each other's
-  operations.
+  identities before hashing, and derive the provider key from the namespace, the
+  trusted customer, the mutation action and the operation ID. Clients that share
+  one installed component never address each other's operations, and neither do
+  two customers of one client: an `operationId` has to be unique per customer,
+  per namespace and per mutation action rather than globally. The request payload
+  stays out of the key, so a retry that corrects its arguments is still the same
+  operation and still meets Autumn's duplicate rejection.
 - Require a trusted `customerId` on every internal generated action, so one
   action serves both scheduled work, which carries no original user auth, and
   calls that still carry it. Strip the action's identity metadata before
