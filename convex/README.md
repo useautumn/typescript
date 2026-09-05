@@ -93,9 +93,11 @@ export const {
 } = autumn.internalApi();
 ```
 
-Public actions and direct methods take their customer from `identify(ctx)`, and
-their arguments never accept a customer ID. The customer ID must be globally
-unique across every configured identity provider, which `subject` is not.
+Public actions and direct methods never accept a customer ID in their arguments.
+Those that operate on a customer take it from `identify(ctx)`; `getPlan` and the
+`plans.get` direct method read the global plan catalog and consult no identity at
+all. The customer ID must be globally unique across every configured identity
+provider, which `subject` is not.
 
 ## Operation namespace
 
@@ -360,7 +362,8 @@ The constructor requires `operationNamespace` and `identify`, and accepts
 overrides are rejected case-insensitively.
 
 Set `timeoutMs` explicitly. Without it, `check`, `consumeCheck` and `track` have
-the SDK's five-second timeout; every other operation waits indefinitely. This is
+the SDK's own five-second timeout (autumn-js 1.2.55); every other operation waits
+indefinitely. This is
 especially important for `consumeCheck`, because Autumn may have recorded the
 usage event before the request aborts. If a call outlives Convex's action
 execution limit, the platform reports its failure instead of an

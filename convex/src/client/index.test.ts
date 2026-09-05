@@ -765,6 +765,35 @@ describe("Autumn native transport", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
+  /**
+   * A success body the SDK refuses is a mutation whose outcome is open: the
+   * server answered 200, so it may well have applied the operation, and the
+   * result that would have said so never decoded. This body is valid JSON, so it
+   * passes the transport's own read and is rejected further in, by the SDK's
+   * pinned response schema. `TrackResponse$inboundSchema` requires `value` in
+   * both members of its union and parses it with `number2()`, which takes a
+   * number or a numeric string and rejects anything else (measured against
+   * autumn-js 1.2.55). `track` is a mutation, which is the case where the
+   * unreadable result may already have cost the customer balance.
+   */
+  test("makes a schema-rejected success response observable without retrying", async () => {
+    const fetcher = vi.fn(async () =>
+      response({
+        customer_id: "customer-1",
+        value: "not-a-number",
+        balance: null,
+      })
+    );
+
+    const caught = await client(fetcher)
+      .track(null, { featureId: "messages", operationId: "schema-rejected" })
+      .catch((error: unknown) => error);
+
+    expect(caught).toBeInstanceOf(AutumnIndeterminateError);
+    expect((caught as AutumnIndeterminateError).statusCode).toBe(200);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
   test.each([409, 429, 500, 503])("does not retry HTTP %s", async (status) => {
     const fetcher = vi.fn(async () => response({ message: "failure" }, status));
     await expect(
@@ -1024,6 +1053,102 @@ describe("Autumn native transport", () => {
         operationId: "invalid-track",
       })
     ).rejects.toThrow("exactly one");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Each case violates one relational condition. The SDK's own request schema
+   * admits all of them, so the condition is the only thing between the caller
+   * and a request whose meaning Autumn would decide for itself: a track with no
+   * subject, an attach that names one feature quantity twice, a multi-update
+   * whose entry targets nothing, an aggregate over two ranges at once or none.
+   * A mutation among them would also be keyed and sent, so the rejection has to
+   * happen before transport rather than at the provider.
+   */
+  test.each([
+    [
+      "a track with neither a feature nor an event",
+      (a: Autumn<null>) => a.track(null, { operationId: "no-subject" }),
+      "exactly one",
+    ],
+    [
+      "an attach that repeats a feature quantity",
+      (a: Autumn<null>) =>
+        a.billing.attach(null, {
+          planId: "pro",
+          featureQuantities: [
+            { featureId: "seats", quantity: 1 },
+            { featureId: "seats", quantity: 2 },
+          ],
+          operationId: "repeated-quantity",
+        }),
+      "at most once",
+    ],
+    [
+      "a multi-attach with no plans",
+      (a: Autumn<null>) =>
+        a.billing.multiAttach(null, { plans: [], operationId: "no-plans" }),
+      "requires plans",
+    ],
+    [
+      "a multi-update with no updates",
+      (a: Autumn<null>) =>
+        a.billing.multiUpdate(null, { updates: [], operationId: "no-updates" }),
+      "requires updates",
+    ],
+    [
+      "a multi-update entry with neither a plan nor a subscription",
+      (a: Autumn<null>) =>
+        a.billing.multiUpdate(null, {
+          updates: [{ cancelAction: "cancel_immediately" }],
+          operationId: "no-update-target",
+        }),
+      "planId or subscriptionId",
+    ],
+    [
+      "an aggregate with no range",
+      (a: Autumn<null>) => a.events.aggregate(null, { featureId: "messages" }),
+      "exactly one",
+    ],
+    [
+      "an aggregate with both range forms",
+      (a: Autumn<null>) =>
+        a.events.aggregate(null, {
+          featureId: "messages",
+          range: "24h",
+          customRange: { start: 1, end: 2 },
+        }),
+      "exactly one",
+    ],
+    [
+      "an aggregate whose range ends before it starts",
+      (a: Autumn<null>) =>
+        a.events.aggregate(null, {
+          featureId: "messages",
+          customRange: { start: 2, end: 1 },
+        }),
+      "must not exceed end",
+    ],
+    [
+      "an event list whose range ends before it starts",
+      (a: Autumn<null>) =>
+        a.events.list(null, { customRange: { start: 2, end: 1 } }),
+      "must not exceed end",
+    ],
+    [
+      "an aggregate with six filters",
+      (a: Autumn<null>) =>
+        a.events.aggregate(null, {
+          featureId: "messages",
+          range: "24h",
+          filterBy: { a: "1", b: "2", c: "3", d: "4", e: "5", f: "6" },
+        }),
+      "at most five",
+    ],
+  ])("rejects %s before transport", async (_name, execute, message) => {
+    const fetcher = vi.fn();
+
+    await expect(execute(client(fetcher))).rejects.toThrow(message);
     expect(fetcher).not.toHaveBeenCalled();
   });
 });

@@ -10,6 +10,7 @@ import type {
 } from "convex/server";
 import type { Autumn as AutumnSDK } from "autumn-js";
 import * as autumnActions from "./actions.fixture.js";
+import { deriveProviderKey } from "../idempotency.js";
 import { initConvexTest, response } from "./setup.test.js";
 
 /**
@@ -90,29 +91,90 @@ const PUBLIC_OPERATOR_CONTROLS: Array<[string, Record<string, unknown>]> = [
 ];
 
 /**
- * Every internal provider mutation, with arguments that reach transport. The
- * trusted `customerId` each requires is added at the call site.
+ * Every internal provider mutation, with arguments that reach transport, the
+ * single Autumn route it is allowed to call and the operation label its
+ * idempotency key is derived from. The trusted `customerId` each requires is
+ * added at the call site.
  */
-const PROVIDER_MUTATIONS: Array<[string, Record<string, unknown>]> = [
-  ["consumeCheck", { featureId: "messages" }],
-  ["track", { featureId: "messages" }],
-  ["attach", { planId: "pro" }],
-  ["multiAttach", { plans: [{ planId: "pro" }] }],
-  ["updateSubscription", { planId: "pro" }],
+const PROVIDER_MUTATIONS: Array<
+  [string, Record<string, unknown>, string, string]
+> = [
+  ["consumeCheck", { featureId: "messages" }, "/v1/balances.check", "check"],
+  ["track", { featureId: "messages" }, "/v1/balances.track", "track"],
+  ["attach", { planId: "pro" }, "/v1/billing.attach", "billing.attach"],
+  [
+    "multiAttach",
+    { plans: [{ planId: "pro" }] },
+    "/v1/billing.multi_attach",
+    "billing.multiAttach",
+  ],
+  [
+    "updateSubscription",
+    { planId: "pro" },
+    "/v1/billing.update",
+    "billing.update",
+  ],
   [
     "multiUpdate",
     { updates: [{ planId: "pro", cancelAction: "cancel_immediately" }] },
+    "/v1/billing.multi_update",
+    "billing.multiUpdate",
   ],
-  ["setupPayment", { planId: "pro" }],
-  ["getOrCreateCustomer", {}],
-  ["updateCustomer", { name: "Ada" }],
-  ["deleteCustomer", {}],
-  ["createEntity", { entityId: "seat-1", featureId: "seats" }],
-  ["updateEntity", { entityId: "seat-1", billingControls: {} }],
-  ["deleteEntity", { entityId: "seat-1" }],
-  ["updateBalance", { featureId: "messages", addToBalance: 1 }],
-  ["createReferralCode", { programId: "friends" }],
-  ["redeemReferralCode", { code: "code-1" }],
+  [
+    "setupPayment",
+    { planId: "pro" },
+    "/v1/billing.setup_payment",
+    "billing.setupPayment",
+  ],
+  [
+    "getOrCreateCustomer",
+    {},
+    "/v1/customers.get_or_create",
+    "customers.getOrCreate",
+  ],
+  [
+    "updateCustomer",
+    { name: "Ada" },
+    "/v1/customers.update",
+    "customers.update",
+  ],
+  ["deleteCustomer", {}, "/v1/customers.delete", "customers.delete"],
+  [
+    "createEntity",
+    { entityId: "seat-1", featureId: "seats" },
+    "/v1/entities.create",
+    "entities.create",
+  ],
+  [
+    "updateEntity",
+    { entityId: "seat-1", billingControls: {} },
+    "/v1/entities.update",
+    "entities.update",
+  ],
+  [
+    "deleteEntity",
+    { entityId: "seat-1" },
+    "/v1/entities.delete",
+    "entities.delete",
+  ],
+  [
+    "updateBalance",
+    { featureId: "messages", addToBalance: 1 },
+    "/v1/balances.update",
+    "balances.update",
+  ],
+  [
+    "createReferralCode",
+    { programId: "friends" },
+    "/v1/referrals.create_code",
+    "referrals.create",
+  ],
+  [
+    "redeemReferralCode",
+    { code: "code-1" },
+    "/v1/referrals.redeem_code",
+    "referrals.redeem",
+  ],
 ];
 
 const publicActionNames = ALLOWLISTED_PUBLIC_ROUTES.map(([name]) => name);
@@ -387,15 +449,28 @@ describe("public action security boundary", () => {
   );
 
   test.each(PROVIDER_MUTATIONS)(
-    "%s reaches a keyed provider mutation route reserved for internal actions",
-    async (name, args) => {
+    "%s reaches its own keyed provider mutation route reserved for internal actions",
+    async (name, args, path, operation) => {
+      const operationId = `classification-${name}`;
       const request = await captureRequest(name, {
         ...args,
         customerId: CUSTOMER_ID,
-        operationId: `classification-${name}`,
+        operationId,
       });
 
-      expect(request.headers.get("idempotency-key")).toMatch(/^autumn-2-/);
+      expect(new URL(request.url).pathname).toBe(path);
+      // The key is derived from the operation label rather than the route, so a
+      // mutation carrying another mutation's label keys its operation as that
+      // one: at Autumn the two suppress each other inside the duplicate window,
+      // and the caller is told a mutation it never made was already applied.
+      expect(request.headers.get("idempotency-key")).toBe(
+        await deriveProviderKey({
+          operation,
+          operationNamespace: "actions-fixture",
+          customerId: CUSTOMER_ID,
+          operationId,
+        })
+      );
     }
   );
 

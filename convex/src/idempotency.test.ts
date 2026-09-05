@@ -30,12 +30,32 @@ describe("provider key derivation", () => {
   });
 
   /**
+   * The limits are inclusive, and a caller cannot see where they sit. An
+   * identifier of exactly the maximum length is a key this package has already
+   * accepted, so a boundary that moved inward by one would refuse the retry of a
+   * mutation under the key its first attempt used: the caller would have to
+   * choose between a new key, which is a second mutation, and no retry at all.
+   */
+  test.each([
+    ["a namespace", { operationNamespace: "n".repeat(256) }],
+    ["an operation ID", { operationId: "o".repeat(256) }],
+  ])("accepts %s of exactly the maximum length", async (_name, atLimit) => {
+    await expect(deriveProviderKey({ ...base, ...atLimit })).resolves.toMatch(
+      /^autumn-2-[\w-]+$/
+    );
+  });
+
+  /**
    * Autumn scopes a claimed key to the organization and environment only, so a
    * key two customers share is claimed by whichever of them arrives first. The
    * second is refused for the duplicate window, and this package reports an
    * indeterminate outcome for a mutation that certainly never ran. Operation IDs
    * that are unique per customer rather than globally are the ordinary case: an
    * invoice number, a period label, a request ID from a client.
+   *
+   * The scoping is Autumn's server-side key builder, read on 2026-09-05: it
+   * composes its storage key from the organization, the environment and the
+   * hashed key, and the customer appears in none of the three.
    */
   test("keeps two customers off each other's key", async () => {
     const shared = { ...base, operationId: "monthly-reset-2026-09" };

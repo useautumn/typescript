@@ -1,4 +1,5 @@
 import { componentsGeneric } from "convex/server";
+import { ConvexError } from "convex/values";
 import { Autumn, type AutumnComponent } from "./index.js";
 
 const components = componentsGeneric() as unknown as {
@@ -53,3 +54,30 @@ const foreignTimeout = new Autumn(components.autumn, {
 });
 
 export const { check: checkForeignTimeout } = foreignTimeout.api();
+
+/** The data the rejecting `identify(ctx)` below sends to its caller. */
+export const IDENTIFY_REJECTION = {
+  code: "UNAUTHENTICATED",
+  message: "Sign in before using billing.",
+  attempted: { tenant: "tenant-1" },
+};
+
+/**
+ * A client whose `identify(ctx)` refuses the request with a `ConvexError`.
+ *
+ * A `ConvexError` is how a Convex function sends structured data to its caller,
+ * and `identify(ctx)` is consumer code that owns the authorization decision.
+ * Classifying one as an Autumn outcome would replace the consumer's own payload
+ * with this package's sanitized one and tell the caller Autumn rejected a
+ * request that was never sent.
+ */
+const rejecting = new Autumn(components.autumn, {
+  secretKey: "test-secret-key",
+  serverURL: "https://example.test",
+  operationNamespace: "identity-fixture-rejection",
+  identify: async () => {
+    throw new ConvexError(IDENTIFY_REJECTION);
+  },
+});
+
+export const { check: checkRejected } = rejecting.api();

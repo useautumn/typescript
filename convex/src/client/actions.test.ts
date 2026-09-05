@@ -11,6 +11,7 @@ import type {
   InternalUpdateBalanceArgs,
 } from "../types.js";
 import { deriveProviderKey } from "../idempotency.js";
+import { IDENTIFY_REJECTION } from "./identity.fixture.js";
 import { errorData, initConvexTest, response } from "./setup.test.js";
 
 const CUSTOMER_ID = "customer-1";
@@ -23,6 +24,9 @@ const checkUnidentified = makeFunctionReference<"action", CheckArgs, unknown>(
 );
 const checkForeignTimeout = makeFunctionReference<"action", CheckArgs, unknown>(
   "identity.fixture:checkForeignTimeout"
+);
+const checkRejected = makeFunctionReference<"action", CheckArgs, unknown>(
+  "identity.fixture:checkRejected"
 );
 const consumeCheck = makeFunctionReference<
   "action",
@@ -226,6 +230,27 @@ describe("generated mutation actions", () => {
       operation: "check",
       message: "Autumn rejected the request.",
     });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  /**
+   * A `ConvexError` is how a Convex function sends structured data to its
+   * caller, and `identify(ctx)` is consumer code that owns the authorization
+   * decision. Rewrapping one would replace the consumer's payload with this
+   * package's sanitized `AUTUMN_REQUEST_FAILED` and report a rejected Autumn
+   * request that was never sent, so it reaches the caller as itself.
+   */
+  test("passes a ConvexError from identify through unchanged", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(checkRejected, { featureId: "messages" })
+      .catch((error) => error);
+
+    expect(caught).toBeInstanceOf(ConvexError);
+    expect(errorData(caught)).toEqual(IDENTIFY_REJECTION);
     expect(fetcher).not.toHaveBeenCalled();
   });
 
@@ -473,6 +498,43 @@ describe("generated mutation actions", () => {
         customerId: CUSTOMER_ID,
         featureId: "messages",
         operationId: "malformed-1",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toMatchObject({
+      code: "AUTUMN_INDETERMINATE",
+      operation: "track",
+      statusCode: 200,
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
+
+  /**
+   * The body above never parses as JSON and is caught by the transport's own
+   * read. This one does parse, reaches the SDK, and is refused there by the
+   * pinned response schema: `TrackResponse$inboundSchema` requires `value` in
+   * both members of its union and parses it with `number2()`, which takes a
+   * number or a numeric string and rejects anything else (measured against
+   * autumn-js 1.2.55). The server answered 200 either way, so a mutation whose
+   * result cannot be decoded may already have cost the customer balance.
+   */
+  test("reports a schema-rejected success response without resending", async () => {
+    const fetcher = vi.fn(async () =>
+      response({
+        customer_id: CUSTOMER_ID,
+        value: "not-a-number",
+        balance: null,
+      })
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        operationId: "schema-rejected-1",
       })
       .catch((error) => error);
 

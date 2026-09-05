@@ -11,6 +11,19 @@ const CONTROL_FIELD = `balance${String.fromCharCode(1)}`;
 const NON_ASCII_FIELD = `balance${String.fromCharCode(233)}`;
 const OVERLONG_FIELD = "b".repeat(1025);
 
+/** The two platform limits the Convex encoder is documented as not applying. */
+const UNENFORCED_LIMITS: Array<[string, () => Value]> = [
+  ["a 20 MiB string", () => "a".repeat(20 * 1024 * 1024)],
+  [
+    "a 1000-deep object",
+    () => {
+      let deep: Value = null;
+      for (let level = 0; level < 1000; level += 1) deep = { nested: deep };
+      return deep;
+    },
+  ],
+];
+
 const invalidFieldNames: Array<[string, string]> = [
   ["a reserved $ prefix", "$balance"],
   ["a control character", CONTROL_FIELD],
@@ -115,6 +128,25 @@ describe("Convex result serialization", () => {
       count: { $integer: "AQAAAAAAIAA=" },
     });
   });
+
+  /**
+   * `toConvexSerializable` is documented as narrowing the encoder's per-value
+   * grammar and not the platform's size and depth limits, and callers are told
+   * to expect a large or deep result to fail at the outer action boundary
+   * instead. That is a claim about the installed encoder rather than about this
+   * package, so it is pinned against the encoder: were a later Convex release to
+   * start rejecting either, the failure would move inside this package and the
+   * documented division would be wrong.
+   */
+  test.each(UNENFORCED_LIMITS)(
+    "neither the encoder nor this package rejects %s",
+    (_name, build) => {
+      const value = build();
+
+      expect(() => convexToJson(value)).not.toThrow();
+      expect(() => toConvexSerializable(value)).not.toThrow();
+    }
+  );
 
   test("returns a value the Convex response boundary re-encodes unchanged", () => {
     const native = {
