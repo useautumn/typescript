@@ -97,3 +97,14 @@ function client(timeoutMs?: number) {
 export const { track } = client().internalApi();
 /** The same action under a timeout short enough to end a stalled body read. */
 export const { track: trackWithTimeout } = client(200).internalApi();
+
+/**
+ * The same client without its generated actions.
+ *
+ * A direct method throws the transport error itself instead of the safe error
+ * data an action reports, so it is where trusted server code has to recognize an
+ * ambiguous outcome.
+ */
+export function directClient() {
+  return client();
+}

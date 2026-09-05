@@ -10,11 +10,14 @@ import {
   test,
 } from "vitest";
 import { setTimeout as delay } from "node:timers/promises";
+import { AutumnError, UnexpectedClientError } from "autumn-js";
 import { defineSchema, makeFunctionReference } from "convex/server";
 import type { InternalTrackArgs } from "../types.js";
+import { AutumnIndeterminateError } from "../errors.js";
 import { errorData, initConvexTest } from "./setup.test.js";
 import {
   closeResponseServer,
+  directClient,
   planResponse,
   requestCount,
 } from "./responses.fixture.js";
@@ -178,6 +181,67 @@ describe("responses from a real HTTP server", () => {
       statusCode: 422,
       message: REJECTED,
     });
+    expect(requestCount()).toBe(1);
+  });
+});
+
+/**
+ * A direct method has no error data to read a status from, so the status has to
+ * reach its caller in the error itself. Trusted server code decides on that
+ * error alone whether an operation may still have been applied.
+ */
+describe("direct methods against a real HTTP server", () => {
+  const args = (operationId: string) => ({
+    featureId: "messages",
+    operationId,
+  });
+
+  test.each([[409], [500]])(
+    "reports an ambiguous HTTP %i with an unreadable body as indeterminate",
+    async (status) => {
+      planResponse({ status, body: "truncated" });
+
+      const caught = await directClient()
+        .track(null, args(`direct-truncated-${status}`))
+        .catch((error: unknown) => error);
+
+      await expectNoUnhandledRejections();
+      expect(caught).toBeInstanceOf(AutumnIndeterminateError);
+      expect(caught).toMatchObject({
+        code: "AUTUMN_INDETERMINATE",
+        operation: "track",
+        statusCode: status,
+      });
+      expect(requestCount()).toBe(1);
+    }
+  );
+
+  test("leaves a rejected HTTP 422 with an unreadable body on the SDK error", async () => {
+    planResponse({ status: 422, body: "truncated" });
+
+    const caught = await directClient()
+      .track(null, args("direct-truncated-422"))
+      .catch((error: unknown) => error);
+
+    await expectNoUnhandledRejections();
+    // The server rejected the request definitively, so nothing about the outcome
+    // became uncertain when its body stopped short.
+    expect(caught).not.toBeInstanceOf(AutumnIndeterminateError);
+    expect(caught).toBeInstanceOf(UnexpectedClientError);
+    expect(requestCount()).toBe(1);
+  });
+
+  test("leaves a complete HTTP 409 on the SDK error with its status", async () => {
+    planResponse({ status: 409, body: "complete" });
+
+    const caught = await directClient()
+      .track(null, args("direct-complete-409"))
+      .catch((error: unknown) => error);
+
+    await expectNoUnhandledRejections();
+    expect(caught).not.toBeInstanceOf(AutumnIndeterminateError);
+    expect(caught).toBeInstanceOf(AutumnError);
+    expect(caught).toMatchObject({ statusCode: 409 });
     expect(requestCount()).toBe(1);
   });
 });

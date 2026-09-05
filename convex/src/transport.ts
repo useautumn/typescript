@@ -48,8 +48,8 @@ function validatedHeaders(input?: HeadersInit): Headers {
  *
  * The status line arrives before the body, so a truncated body never erases what
  * the server decided. The SDK wraps this error in a native `UnexpectedClientError`
- * and keeps it as that error's `cause`, which is where {@link sdkStatus} reads
- * the status back from.
+ * and keeps it as that error's `cause`, which is where
+ * {@link responseReadStatus} reads the status back from.
  */
 class AutumnResponseReadError extends Error {
   readonly statusCode: number;
@@ -59,6 +59,39 @@ class AutumnResponseReadError extends Error {
     this.name = "AutumnResponseReadError";
     this.statusCode = statusCode;
   }
+}
+
+/**
+ * The status a failed body read carried, or `undefined` for any other error.
+ *
+ * Only this package's own error is unwrapped, and only one level deep, so no
+ * status is ever inferred from an error this package did not create.
+ */
+function responseReadStatus(error: unknown): number | undefined {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "cause" in error &&
+    error.cause instanceof AutumnResponseReadError
+  ) {
+    return error.cause.statusCode;
+  }
+  return undefined;
+}
+
+/**
+ * Whether a status leaves the outcome of a mutation open.
+ *
+ * A 2xx that could not be decoded, a 409 the provider may have applied under an
+ * earlier key and a 5xx all describe work that may or may not have happened.
+ * Every other status is a decision the server made and kept.
+ */
+function isAmbiguousStatus(statusCode: number): boolean {
+  return (
+    (statusCode >= 200 && statusCode < 300) ||
+    statusCode === 409 ||
+    statusCode >= 500
+  );
 }
 
 /**
@@ -155,6 +188,15 @@ export async function invokeNative<T>(
     if (statusCode !== undefined && statusCode >= 200 && statusCode < 300) {
       throw new AutumnIndeterminateError(operation, statusCode);
     }
+    // A body that never arrived leaves the status the server sent as the only
+    // account of the outcome. The SDK reports the failed read as a client error
+    // with no status of its own, so an ambiguous one has to be recovered here:
+    // a direct method throws this error to its caller unconverted, and
+    // `UnexpectedClientError` alone cannot be told from a dropped connection.
+    const unreadableStatus = responseReadStatus(error);
+    if (unreadableStatus !== undefined && isAmbiguousStatus(unreadableStatus)) {
+      throw new AutumnIndeterminateError(operation, unreadableStatus);
+    }
     throw error;
   }
 }
@@ -169,17 +211,8 @@ export function sdkStatus(error: unknown): number | undefined {
     return error.statusCode;
   }
   // An unreadable body reaches the SDK as a client error with no status of its
-  // own. Only this package's own error is unwrapped, and only one level deep,
-  // so no status is ever inferred from an error this package did not create.
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "cause" in error &&
-    error.cause instanceof AutumnResponseReadError
-  ) {
-    return error.cause.statusCode;
-  }
-  return undefined;
+  // own, and the status it observed is still in the wrapped cause.
+  return responseReadStatus(error);
 }
 
 export function isTransportIndeterminate(
@@ -187,14 +220,7 @@ export function isTransportIndeterminate(
   statusCode: number | undefined
 ): boolean {
   if (error instanceof AutumnIndeterminateError) return true;
-  if (
-    statusCode === 202 ||
-    statusCode === 409 ||
-    (statusCode !== undefined && statusCode >= 500) ||
-    (statusCode !== undefined && statusCode >= 200 && statusCode < 300)
-  ) {
-    return true;
-  }
+  if (statusCode !== undefined && isAmbiguousStatus(statusCode)) return true;
   if (
     statusCode === undefined &&
     typeof error === "object" &&

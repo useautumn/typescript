@@ -23,6 +23,10 @@
   derive bounded provider idempotency keys from caller-supplied operation IDs.
   Duplicate suppression is Autumn's, time-bounded, and does not replay the
   original result, so an ambiguous outcome is reported rather than retried.
+- Throw `AutumnIndeterminateError` from a direct method when a body that could
+  not be read leaves an HTTP 2xx, 409 or 5xx outcome open, so trusted server
+  code reads the status Autumn sent instead of a native client error without
+  one. A definitive rejection such as HTTP 422 keeps its native SDK error.
 - Require a deliberate `operationNamespace`, reject malformed Unicode operation
   identities before hashing, and derive the provider key from the namespace so
   clients that share one installed component never address each other's

@@ -74,8 +74,8 @@ Legacy `{ data, error, statusCode }` envelopes are gone. Direct methods resolve 
 native camelCase SDK values and throw native SDK errors once a request reaches
 Autumn. A failure this package detects first keeps its own class:
 `AutumnValidationError` for a rejected argument, `AutumnConfigurationError` for an
-unusable client or identity, and `AutumnIndeterminateError` for HTTP 202 and
-malformed success JSON.
+unusable client or identity, and `AutumnIndeterminateError` for HTTP 202,
+malformed success JSON and an unreadable body under HTTP 2xx, 409 or 5xx.
 
 Generated actions return serializable native values and throw safe `ConvexError`
 data. Each of them is one shot: it dispatches its request once and never retries

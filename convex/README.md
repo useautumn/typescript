@@ -205,8 +205,9 @@ arguments does not create a new key. Autumn rejects the reused key as a duplicat
 instead of performing a second mutation.
 
 `autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
-records the usage event and requires one. HTTP 202 and malformed success JSON
-throw `AutumnIndeterminateError` instead of returning a fail-open response.
+records the usage event and requires one. HTTP 202, malformed success JSON and an
+unreadable body under HTTP 2xx, 409 or 5xx throw `AutumnIndeterminateError`
+instead of returning a fail-open response.
 
 ## Duplicate suppression and its limits
 
@@ -232,8 +233,9 @@ recovery or exactly-once execution:
 - Reconcile an indeterminate operation by reading the customer's state back from
   Autumn before deciding to send it again.
 
-Direct methods differ: only HTTP 202 and malformed success JSON become
-`AutumnIndeterminateError`; the other failures above remain native SDK errors.
+Direct methods differ: HTTP 202, malformed success JSON and an unreadable body
+under HTTP 2xx, 409 or 5xx become `AutumnIndeterminateError`; the other failures
+above remain native SDK errors.
 
 Generated action errors are `ConvexError` values whose data contains only:
 
