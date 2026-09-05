@@ -17,6 +17,8 @@
   and a balance-consuming `consumeCheck`.
 - Validate every result with Convex's own value encoder before it is returned,
   and preserve the Convex value rather than its transport encoding.
+- Validate every request before dispatch, rejecting `bigint`, `ArrayBuffer`,
+  `NaN` and infinite numbers that Autumn cannot receive faithfully.
 - Pin Autumn API version 2.3.0, disable retries and fail-open behavior, and
   derive bounded provider idempotency keys from caller-supplied operation IDs.
   Duplicate suppression is Autumn's, time-bounded, and does not replay the
