@@ -82,6 +82,7 @@ import {
   AutumnTransport,
   type AutumnTransportOptions,
   invokeNative,
+  isRequestRejectedLocally,
   isTransportIndeterminate,
   sdkStatus,
 } from "../transport.js";
@@ -294,6 +295,16 @@ function safeError(
       code: "AUTUMN_RESULT_UNSERIALIZABLE",
       operation,
       message: error.message,
+    };
+  }
+  // The SDK's own schema check rejected the request before any connection was
+  // opened. The SDK's message embeds the offending value, so it is replaced
+  // rather than passed through.
+  if (isRequestRejectedLocally(error)) {
+    return {
+      code: "AUTUMN_VALIDATION_ERROR",
+      operation,
+      message: "The Autumn request was rejected before it was sent.",
     };
   }
   if (isTransportIndeterminate(error, statusCode)) {

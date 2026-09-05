@@ -1,4 +1,9 @@
-import { Autumn as AutumnSDK, HTTPClient } from "autumn-js";
+import {
+  Autumn as AutumnSDK,
+  HTTPClient,
+  ResponseValidationError,
+  SDKValidationError,
+} from "autumn-js";
 import {
   AutumnConfigurationError,
   AutumnIndeterminateError,
@@ -12,6 +17,23 @@ const PROTECTED_HEADERS = new Set([
   "x-api-version",
   "idempotency-key",
 ]);
+
+/**
+ * The debug logger every SDK client receives, which discards what it is given.
+ *
+ * The SDK falls back to `console` whenever no logger is supplied and
+ * `AUTUMN_DEBUG` is set. Its request logger prints every header, including the
+ * `Authorization` bearer token, and both its request and response loggers print
+ * bodies; in Convex that console is the deployment log. Transport policy is
+ * pinned here rather than taken from the environment, so this logger is pinned
+ * with it and an operator cannot turn provider payloads into log output by
+ * setting a variable.
+ */
+const SILENT_LOGGER = {
+  group: () => {},
+  groupEnd: () => {},
+  log: () => {},
+};
 
 export type AutumnTransportOptions = {
   secretKey?: string;
@@ -158,6 +180,7 @@ export class AutumnTransport {
         serverURL: this.options.serverURL,
         retryConfig: { strategy: "none" },
         timeoutMs: this.options.timeoutMs,
+        debugLogger: SILENT_LOGGER,
         httpClient,
       }),
       requestOptions: {
@@ -213,6 +236,26 @@ export function sdkStatus(error: unknown): number | undefined {
   // An unreadable body reaches the SDK as a client error with no status of its
   // own, and the status it observed is still in the wrapped cause.
   return responseReadStatus(error);
+}
+
+/**
+ * Whether the SDK rejected the request against its own schema before sending it.
+ *
+ * The SDK parses every request locally and returns a `SDKValidationError`
+ * without opening a connection, so the operation never reached Autumn and
+ * blaming Autumn for it points an operator at the wrong system.
+ *
+ * `SDKValidationError` overrides `Symbol.hasInstance` to match anything carrying
+ * `rawValue`, `rawMessage` and `pretty`, which a `ResponseValidationError`
+ * does. That one describes a response the server already sent, so for a mutation
+ * it means the operation may well have been applied. It is excluded here and
+ * left to the ambiguity rules, which read the status it carries.
+ */
+export function isRequestRejectedLocally(error: unknown): boolean {
+  return (
+    error instanceof SDKValidationError &&
+    !(error instanceof ResponseValidationError)
+  );
 }
 
 export function isTransportIndeterminate(

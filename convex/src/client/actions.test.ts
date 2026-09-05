@@ -174,6 +174,39 @@ describe("generated mutation actions", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  /**
+   * The SDK parses every request against its own schema before it opens a
+   * connection. `timestamp` is a Convex `v.number()` here and an integer there,
+   * so a fractional one is rejected locally and Autumn never sees the request.
+   */
+  test("reports a request the SDK rejected locally as a validation failure", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        timestamp: 1.5,
+        operationId: "local-rejection-1",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_VALIDATION_ERROR",
+      operation: "track",
+      message: "The Autumn request was rejected before it was sent.",
+    });
+    // The SDK's own message names the field and can carry the offending value.
+    const reported = JSON.stringify(errorData(caught));
+    expect(reported).not.toContain("Input validation failed");
+    expect(reported).not.toContain("timestamp");
+    expect(reported).not.toContain("1.5");
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
+
   test("passes nested JSON request values through unchanged", async () => {
     const requests: Request[] = [];
     const fetcher = vi.fn(async (input: RequestInfo | URL) => {

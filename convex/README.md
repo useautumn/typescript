@@ -39,6 +39,11 @@ import type { ActionCtx } from "./_generated/server";
 export const autumn = new Autumn<ActionCtx>(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY,
   operationNamespace: "acme-production",
+  // The deadline the SDK already applies to `check` and `track`, extended to
+  // every operation: without one, a mutation Autumn has already applied can
+  // outlive Convex's action limit, and the caller then gets a platform failure
+  // carrying none of this package's error data instead of `AUTUMN_INDETERMINATE`.
+  timeoutMs: 5_000,
   identify: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
@@ -248,6 +253,13 @@ Generated action errors are `ConvexError` values whose data contains only:
 }
 ```
 
+A request the SDK rejects against its own schema before opening a connection is
+reported as `AUTUMN_VALIDATION_ERROR` with no `statusCode`, because Autumn never
+received it. This covers shapes the Convex validators admit and the SDK's schema
+does not, such as a fractional `timestamp` where an integer is required. The
+SDK's own message is not passed through, since it can embed the offending value.
+Direct methods are unaffected and keep throwing the native SDK error.
+
 A `ConvexError` thrown by `identify(ctx)` passes through unchanged. One thrown by
 a custom `fetcher` does not: the SDK wraps anything the fetcher throws in a
 client error of its own, so it arrives here as a transport failure and is
@@ -337,3 +349,11 @@ especially important for `consumeCheck`, because Autumn may have recorded the
 usage event before the request aborts. If a call outlives Convex's action
 execution limit, the platform reports its failure instead of an
 `AUTUMN_INDETERMINATE` error.
+
+The SDK's `AUTUMN_DEBUG` request logging is suppressed. The client is always
+built with a logger of this package's own, so the SDK's fallback to `console`
+cannot engage: that logging prints the `Authorization` header, and therefore the
+Autumn secret key, along with request and response bodies, none of which this
+package otherwise lets cross a boundary. In Convex that console is the
+deployment log. Debug an exchange through a custom `fetcher` instead, which sees
+the same requests and controls its own redaction.

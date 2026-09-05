@@ -19,6 +19,14 @@
   and preserve the Convex value rather than its transport encoding.
 - Validate every request before dispatch, rejecting `bigint`, `ArrayBuffer`,
   `NaN` and infinite numbers that Autumn cannot receive faithfully.
+- Always supply the SDK client with a logger of this package's own, so the
+  SDK's `AUTUMN_DEBUG` fallback to `console` cannot print the `Authorization`
+  header, and with it the Autumn secret key, or request and response bodies into
+  the Convex deployment log.
+- Report a request the SDK rejects against its own schema before sending it as
+  `AUTUMN_VALIDATION_ERROR` rather than blaming Autumn for a request it never
+  received. The SDK's message is not passed through, since it can embed the
+  offending value, and direct methods keep throwing the native SDK error.
 - Pin Autumn API version 2.3.0, disable retries and fail-open behavior, and
   derive bounded provider idempotency keys from caller-supplied operation IDs.
   Duplicate suppression is Autumn's, time-bounded, and does not replay the

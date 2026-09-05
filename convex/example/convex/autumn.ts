@@ -8,6 +8,11 @@ export const autumn = new Autumn<ActionCtx>(components.autumn, {
   // Deliberate, stable, and independent of the secret key: the provider
   // idempotency key is derived from it, so rotating the key must not change it.
   operationNamespace: "example-app-production",
+  // The deadline the SDK already applies to `check` and `track`, extended to
+  // every operation: without one, a mutation Autumn has already applied can
+  // outlive Convex's action limit, and the caller then gets a platform failure
+  // carrying none of this package's error data instead of `AUTUMN_INDETERMINATE`.
+  timeoutMs: 5_000,
   identify: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
