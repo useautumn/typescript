@@ -16,17 +16,27 @@
 - Split `check` into a read-only operation with no `sendEvent` or `operationId`
   and a balance-consuming `consumeCheck`.
 - Validate every result with Convex's own value encoder before it is returned,
-  and preserve the Convex value rather than its transport encoding.
+  and preserve the Convex value rather than its transport encoding. The encoder
+  supplies the per-value grammar only: it enforces no size or nesting-depth
+  limit, so a large or deeply nested result still fails at the outer action
+  boundary.
 - Validate every request before dispatch, rejecting `bigint`, `ArrayBuffer`,
   `NaN` and infinite numbers that Autumn cannot receive faithfully, wherever
   they sit. A class instance is inspected like the plain object the SDK's
   `JSON.stringify` treats it as, a `BigInt64Array` or `BigUint64Array` is
   rejected because every element of one is a `bigint`, and a request that refers
-  back to itself is validated rather than overflowing the stack.
+  back to itself is rejected as a value it cannot carry faithfully instead of
+  reaching the SDK, whose `JSON.stringify` throws outside its guarded region. A
+  value shared by two fields without forming a cycle stays acceptable and is
+  walked once.
 - Read a status only from an error Autumn's SDK or this package raised, so a
   failure of the caller's `identify(ctx)` that carries a status of its own is no
   longer reported as an indeterminate Autumn outcome for an operation that never
-  existed.
+  existed. Classify a transport failure by the SDK's own error classes rather
+  than by error name, for the same reason: those four names are Speakeasy's
+  standard generated ones, so an error raised by any other Speakeasy-generated
+  SDK reached the classifier carrying them and reported that Autumn may have
+  applied an operation it never received.
 - Always supply the SDK client with a logger of this package's own, so the
   SDK's `AUTUMN_DEBUG` fallback to `console` cannot print the `Authorization`
   header, and with it the Autumn secret key, or request and response bodies into

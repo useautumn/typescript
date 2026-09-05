@@ -1,9 +1,13 @@
 import {
   AutumnError,
   Autumn as AutumnSDK,
+  ConnectionError,
   HTTPClient,
+  RequestAbortedError,
+  RequestTimeoutError,
   ResponseValidationError,
   SDKValidationError,
+  UnexpectedClientError,
 } from "autumn-js";
 import {
   AutumnConfigurationError,
@@ -275,23 +279,42 @@ export function isRequestRejectedLocally(error: unknown): boolean {
   );
 }
 
+/**
+ * The SDK client errors that leave a request Autumn may already have received.
+ *
+ * These are classes rather than the names they carry, because a name
+ * establishes nothing about which SDK failed. `ConnectionError`,
+ * `UnexpectedClientError`, `RequestTimeoutError` and `RequestAbortedError` are
+ * Speakeasy's standard generated names and Autumn's SDK is Speakeasy-generated,
+ * so every other Speakeasy-generated SDK raises errors carrying exactly them,
+ * and anything at all can set `name`. A generated action classifies everything
+ * raised inside it, including a failure of the caller's `identify(ctx)`: matched
+ * by name, an identity service's own timeout reported an indeterminate Autumn
+ * operation for a request that was never created. All four derive from the
+ * SDK's exported `HTTPClientError`, which overrides no `Symbol.hasInstance`
+ * (measured against autumn-js 1.2.55), so `instanceof` answers for the SDK that
+ * raised the error.
+ *
+ * `InvalidRequestError`, the fifth `HTTPClientError`, is deliberately absent:
+ * the SDK raises it while building a request, which it therefore never sent, so
+ * nothing about that operation is open. Widening this to the shared base would
+ * take it back in.
+ */
+function isSdkTransportFailure(error: unknown): boolean {
+  return (
+    error instanceof ConnectionError ||
+    error instanceof UnexpectedClientError ||
+    error instanceof RequestTimeoutError ||
+    error instanceof RequestAbortedError
+  );
+}
+
 export function isTransportIndeterminate(
   error: unknown,
   statusCode: number | undefined
 ): boolean {
   if (error instanceof AutumnIndeterminateError) return true;
   if (statusCode !== undefined && isAmbiguousStatus(statusCode)) return true;
-  if (
-    statusCode === undefined &&
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    (error.name === "ConnectionError" ||
-      error.name === "UnexpectedClientError" ||
-      error.name === "RequestTimeoutError" ||
-      error.name === "RequestAbortedError")
-  ) {
-    return true;
-  }
+  if (statusCode === undefined && isSdkTransportFailure(error)) return true;
   return false;
 }

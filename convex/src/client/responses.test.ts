@@ -269,6 +269,31 @@ describe("direct methods against a real HTTP server", () => {
     }
   );
 
+  /**
+   * A cycle fails the same way and for the same reason: the SDK's
+   * `JSON.stringify` of a request that refers back to itself throws outside its
+   * own guarded region, so accepting one here returned a raw `TypeError` to the
+   * caller and left the SDK's second result promise rejected with nothing
+   * attached to it.
+   */
+  test("rejects a cyclic request without reaching the server", async () => {
+    planResponse({ status: 200, body: "complete" });
+    const properties: Record<string, unknown> = { source: "runtime" };
+    properties.self = properties;
+
+    const caught = await directClient()
+      .track(null, {
+        featureId: "messages",
+        properties,
+        operationId: "direct-cyclic",
+      })
+      .catch((error: unknown) => error);
+
+    await expectNoUnhandledRejections();
+    expect(caught).toBeInstanceOf(AutumnValidationError);
+    expect(requestCount()).toBe(0);
+  });
+
   test("leaves a complete HTTP 409 on the SDK error with its status", async () => {
     planResponse({ status: 409, body: "complete" });
 

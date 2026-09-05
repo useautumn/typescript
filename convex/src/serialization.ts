@@ -19,15 +19,26 @@ export class AutumnSerializationError extends Error {
  * SDK's second result promise rejected with nothing attached to it. Every
  * object is walked for that reason.
  *
- * `seen` bounds the walk. Descending into arbitrary objects makes a request that
- * refers back to itself a stack overflow, and an array or plain object could
- * already do that before class instances were reached at all.
+ * `active` holds the objects on the path currently being walked and `cleared`
+ * those already walked to completion, which are different answers rather than
+ * one bound on the walk. An object met again while it is still active is a
+ * cycle, and a request that refers back to itself is a value the request cannot
+ * carry faithfully: the SDK's `JSON.stringify` of one throws outside its own
+ * guarded region, so treating it as acceptable handed the caller a raw
+ * `TypeError` and an unhandled rejection from the SDK's second result promise.
+ * An object found in `cleared` was walked and found clean, so it is a shared
+ * reference the request may carry; rejecting it would refuse a legitimate
+ * request, and re-walking it would turn a shared subgraph into exponential work.
  *
  * The walk reads properties, which invokes getters. The SDK's own
  * `JSON.stringify` of the same request invokes them too, so sending the request
  * causes no side effect this check has not already caused.
  */
-function containsUnfaithfulValue(value: unknown, seen: Set<object>): boolean {
+function containsUnfaithfulValue(
+  value: unknown,
+  active: Set<object>,
+  cleared: Set<object>
+): boolean {
   if (typeof value === "bigint") return true;
   if (typeof value === "number" && !Number.isFinite(value)) return true;
   if (typeof value !== "object" || value === null) return false;
@@ -44,14 +55,20 @@ function containsUnfaithfulValue(value: unknown, seen: Set<object>): boolean {
   if (ArrayBuffer.isView(value)) {
     return value instanceof BigInt64Array || value instanceof BigUint64Array;
   }
-  if (seen.has(value)) return false;
-  seen.add(value);
+  if (active.has(value)) return true;
+  if (cleared.has(value)) return false;
+  active.add(value);
   const entries = Array.isArray(value) ? value : Object.values(value);
-  return entries.some((entry) => containsUnfaithfulValue(entry, seen));
+  const unfaithful = entries.some((entry) =>
+    containsUnfaithfulValue(entry, active, cleared)
+  );
+  active.delete(value);
+  if (!unfaithful) cleared.add(value);
+  return unfaithful;
 }
 
 export function validateJsonRequest(operation: string, value: unknown): void {
-  if (containsUnfaithfulValue(value, new Set())) {
+  if (containsUnfaithfulValue(value, new Set(), new Set())) {
     throw new AutumnValidationError(
       operation,
       "The Autumn request contains a value Autumn cannot receive faithfully."
@@ -63,12 +80,23 @@ export function validateJsonRequest(operation: string, value: unknown): void {
  * Round-trip a native SDK result through Convex's own value encoder.
  *
  * `convexToJson` is the encoder Convex applies at the outer action response
- * boundary, so it is the only complete source of the invalid-value grammar:
- * reserved `$` field names, control and non-ASCII field names, field names past
- * the maximum identifier length, unsupported object types, `undefined` and
- * out-of-range integers. Validating here turns a result Convex cannot encode
- * into a named error of this package, rather than an opaque failure at the
- * outer action boundary after the operation has already reached Autumn.
+ * boundary, and it is the source of the per-value grammar: reserved `$` field
+ * names, control and non-ASCII field names, field names past the maximum
+ * identifier length, unsupported object types, `undefined` and out-of-range
+ * integers. Validating here turns a result carrying one of those into a named
+ * error of this package, rather than an opaque failure at the outer action
+ * boundary after the operation has already reached Autumn.
+ *
+ * It is not the whole grammar the platform applies. `convexToJson` enforces
+ * neither the function-return size limit nor any nesting depth: against
+ * convex 1.29.3 it encoded a 20 MiB string and a 1000-deep object without
+ * complaint (both accepted, as were depths 16, 64 and 200; measured by calling
+ * `convexToJson` directly on generated values). A provider response large or
+ * deep enough therefore still passes here and is rejected by the platform at
+ * the outer action boundary, after the operation has reached Autumn: the
+ * outcome this function narrows rather than closes. Choosing those limits and
+ * paying to measure them on every result is a design decision, and it is filed
+ * as one rather than guessed at here.
  *
  * `jsonToConvex` restores the Convex value itself, so callers keep `ArrayBuffer`
  * and `bigint` values instead of their `$bytes` and `$integer` transport

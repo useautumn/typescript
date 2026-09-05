@@ -276,7 +276,11 @@ method, so callers read result fields without an assertion. A result is validate
 with Convex's own value encoder before it is returned. One Convex refuses to
 encode, such as a provider-supplied map key that starts with `$`, becomes an
 `AUTUMN_RESULT_UNSERIALIZABLE` error rather than an opaque failure at the outer
-action boundary. The operation itself already reached Autumn in that case.
+action boundary. The operation itself already reached Autumn in that case. That
+check covers the encoder's per-value grammar and not the platform's own size and
+depth limits, which `convexToJson` does not enforce (measured against convex
+1.29.3), so a result long or deeply nested enough still fails at the outer
+boundary.
 
 ## Supported methods
 
@@ -286,8 +290,10 @@ the generated public actions omit billing operator controls. Anywhere in a
 request, including inside a class instance, `bigint`, `ArrayBuffer`, `NaN` and
 infinite numbers are rejected because Autumn cannot receive them faithfully. A
 `BigInt64Array` or `BigUint64Array` is rejected for the same reason, since every
-element of one is a `bigint`. Any other typed array is left to the SDK, which
-sends a `Uint8Array` as base64. Generated actions
+element of one is a `bigint`. A request that refers back to itself is rejected
+too, because the SDK stringifies it and a cycle cannot be stringified; a value
+shared by two fields without forming a cycle is accepted. Any other typed array
+is left to the SDK, which sends a `Uint8Array` as base64. Generated actions
 otherwise use their Convex validators. Direct methods retain the native SDK's
 request types and handling of `Date`, `Uint8Array`, class instances and
 `undefined`. Pass only declared fields to a direct method. A value in an

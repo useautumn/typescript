@@ -21,6 +21,9 @@ const check = makeFunctionReference<"action", CheckArgs, unknown>(
 const checkUnidentified = makeFunctionReference<"action", CheckArgs, unknown>(
   "identity.fixture:check"
 );
+const checkForeignTimeout = makeFunctionReference<"action", CheckArgs, unknown>(
+  "identity.fixture:checkForeignTimeout"
+);
 const consumeCheck = makeFunctionReference<
   "action",
   InternalConsumeCheckArgs,
@@ -191,6 +194,31 @@ describe("generated mutation actions", () => {
 
     const caught = await t
       .action(checkUnidentified, { featureId: "messages" })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toEqual({
+      code: "AUTUMN_REQUEST_FAILED",
+      operation: "check",
+      message: "Autumn rejected the request.",
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The same region classifies an error merely named like a transport failure.
+   * Those four names are Speakeasy's standard generated ones and Autumn's SDK
+   * is Speakeasy-generated, so any other such SDK identification consults
+   * raises errors carrying them. Autumn never sent a request here, so telling
+   * the caller the operation may have been applied would send an operator to
+   * reconcile provider state that was never touched.
+   */
+  test("does not read a transport failure off a foreign error of the same name", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(checkForeignTimeout, { featureId: "messages" })
       .catch((error) => error);
 
     expect(errorData(caught)).toEqual({

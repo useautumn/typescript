@@ -1,4 +1,4 @@
-import { AutumnError, ConnectionError } from "autumn-js";
+import { AutumnError, ConnectionError, UnexpectedClientError } from "autumn-js";
 import { describe, expect, test, vi } from "vitest";
 import { deriveProviderKey } from "../idempotency.js";
 import { isTransportIndeterminate } from "../transport.js";
@@ -827,6 +827,32 @@ describe("Autumn native transport", () => {
     expect(caught).toBeInstanceOf(ConnectionError);
     expect(isTransportIndeterminate(caught, undefined)).toBe(true);
     expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  /**
+   * The four transport failure names are Speakeasy's standard generated ones,
+   * and Autumn's SDK is Speakeasy-generated, so any other such SDK reachable
+   * from the classified region raises errors carrying exactly them. A name
+   * establishes nothing about which SDK failed, and anyone can set one.
+   */
+  test.each([
+    "ConnectionError",
+    "UnexpectedClientError",
+    "RequestTimeoutError",
+    "RequestAbortedError",
+  ])("rejects a foreign error named %s", (name) => {
+    const foreign = Object.assign(new Error("foreign SDK failure"), { name });
+
+    expect(foreign.name).toBe(name);
+    expect(isTransportIndeterminate(foreign, undefined)).toBe(false);
+  });
+
+  // The wrapper this package's own unreadable-body path reaches the classifier
+  // as, built here directly so the class branch is pinned without a server.
+  test("admits the SDK client error a failed body read is wrapped in", () => {
+    const wrapped = new UnexpectedClientError("body read failed");
+
+    expect(isTransportIndeterminate(wrapped, undefined)).toBe(true);
   });
 
   // A fetcher failure the SDK does not recognize as a connection error is a

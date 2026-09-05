@@ -228,8 +228,10 @@ describe("Autumn request validation", () => {
         return cyclic;
       },
     ],
-  ])("terminates on a faithful cycle through %s", (_description, build) => {
-    expect(() => validateJsonRequest("track", build())).not.toThrow();
+  ])("rejects a cycle through %s", (_description, build) => {
+    expect(() => validateJsonRequest("track", build())).toThrow(
+      AutumnValidationError
+    );
   });
 
   test("visits a repeated sibling that is not a cycle", () => {
@@ -238,5 +240,41 @@ describe("Autumn request validation", () => {
     expect(() =>
       validateJsonRequest("track", { first: shared, second: shared })
     ).toThrow(AutumnValidationError);
+  });
+
+  /**
+   * An object met again while it is still being walked is a cycle. One already
+   * walked to completion and found clean is a shared reference, which a request
+   * may carry: rejecting it would refuse a legitimate request.
+   */
+  test("accepts a shared reference that is not a cycle", () => {
+    const shared = { label: "ok" };
+
+    expect(() =>
+      validateJsonRequest("track", {
+        first: shared,
+        second: shared,
+        nested: { third: shared },
+      })
+    ).not.toThrow();
+  });
+
+  /**
+   * A cleared object is never walked again, so a shared subgraph costs one pass
+   * rather than one per path that reaches it. The walk reads properties, so a
+   * getter counts the passes over the object that holds it.
+   */
+  test("walks a shared reference once", () => {
+    let reads = 0;
+    const shared = {
+      get label() {
+        reads += 1;
+        return "ok";
+      },
+    };
+
+    validateJsonRequest("track", { first: shared, second: shared });
+
+    expect(reads).toBe(1);
   });
 });

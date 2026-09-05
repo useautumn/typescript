@@ -25,3 +25,31 @@ const unidentified = new Autumn(components.autumn, {
 });
 
 export const { check } = unidentified.api();
+
+/**
+ * A client whose `identify(ctx)` fails with an error named like a transport
+ * failure.
+ *
+ * `ConnectionError`, `UnexpectedClientError`, `RequestTimeoutError` and
+ * `RequestAbortedError` are Speakeasy's standard generated error names, so any
+ * other Speakeasy-generated SDK identification calls raises errors carrying
+ * exactly them. This one is a foreign error of that shape: Autumn never sent a
+ * request, so the outcome of an Autumn operation cannot be open.
+ */
+class ForeignRequestTimeoutError extends Error {
+  constructor() {
+    super("identity service timed out");
+    this.name = "RequestTimeoutError";
+  }
+}
+
+const foreignTimeout = new Autumn(components.autumn, {
+  secretKey: "test-secret-key",
+  serverURL: "https://example.test",
+  operationNamespace: "identity-fixture-timeout",
+  identify: async () => {
+    throw new ForeignRequestTimeoutError();
+  },
+});
+
+export const { check: checkForeignTimeout } = foreignTimeout.api();
