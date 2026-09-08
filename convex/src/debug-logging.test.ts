@@ -58,8 +58,11 @@ test("keeps the secret key and provider bodies out of the console under AUTUMN_D
   });
 
   const request = { customerId: "customer-1", featureId: "messages" };
-  await invokeNative("track", transport.createCall(), request, (sdk, options) =>
-    sdk.track(request, options)
+  await invokeNative(
+    "track",
+    transport.createCall(),
+    request,
+    (snapshot, sdk, options) => sdk.track(snapshot, options)
   );
 
   // The call really happened, so an empty console is suppression rather than an

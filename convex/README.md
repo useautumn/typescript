@@ -325,22 +325,48 @@ boundary.
 Every internal action additionally requires the trusted `customerId` described
 above. Direct billing methods accept the complete supported SDK subset. The
 generated public actions omit billing operator controls and portal session
-creation. Anywhere in a request, including inside a class instance, `bigint`,
-`ArrayBuffer`, `NaN` and
-infinite numbers are rejected because Autumn cannot receive them faithfully.
-`BigInt64Array` and `BigUint64Array` values are rejected too, since every element
-of either view is a `bigint`. Other typed arrays are deliberately left to the
-SDK: it sends a `Uint8Array` as base64 and stringifies the remaining typed arrays
-as index-keyed objects. Non-finite elements inside a `Float32Array` or
-`Float64Array` are therefore accepted and sent as `null`, while bare `NaN` and
-infinite numbers remain rejected. A request that refers back to itself is
-rejected because the SDK cannot stringify a cycle; a value shared by two fields
-without forming a cycle is accepted. Generated actions otherwise use their
-Convex validators. Direct methods retain the native SDK's request types and
-handling of `Date`, `Uint8Array`, class instances and `undefined`. Pass only
-declared fields to a direct method. A value in an undeclared field is validated
-even though the SDK drops that field before sending the request, so `bigint`,
-`ArrayBuffer`, `NaN` or an infinite number there rejects the call.
+creation.
+
+Every composed native request is materialized once after identity checks and
+request construction, before package payload validation or the SDK can read it.
+The resulting snapshot contains only package-owned JSON data. Arrays, objects,
+getters and proxies are observed during that one pass; subsequent caller
+mutations cannot change the request sent to Autumn. This is a controlled,
+non-atomic observation of payload data. A stateful payload proxy can influence
+the plain-data form observed during materialization, and the package does not
+promise the same accept-or-reject result as passing that original proxy directly
+to `autumn-js`. A trap error encountered during materialization still fails
+locally. Array holes and array entries containing `undefined` become `null`,
+while object fields containing `undefined` are omitted. Stable inputs containing
+cycles, classes, boxed primitives, functions, symbol values, `bigint`, non-finite
+numbers, `ArrayBuffer`, `DataView`, typed arrays other than the explicitly
+supported `Uint8Array`, and other native objects are rejected locally without a
+provider request.
+
+`Date` and `Uint8Array` are normalized only as values of the supported root
+free-value records: `properties` for check and track, `checkoutSessionParams`
+for attach operations and setup payment, `subscriptionParams` for update
+operations, and customer `metadata`. Dates become intrinsic ISO strings and
+bytes become base64 without invoking caller `toJSON`, iterator or conversion
+hooks. Billing `metadata` and aggregate-event `filterBy` remain string-only
+records. A native value at any other position is rejected rather than coerced.
+
+These SDK records follow the pinned Zod record-key behavior. Symbol keys are
+rejected, non-enumerable string keys are included, and a direct `__proto__` key
+is skipped without reading it. Other records accept only enumerable own string
+fields and reject non-enumerable fields. Snapshot records have a null prototype,
+and a nested `__proto__` inside a free value remains an ordinary data field.
+Shared references are supported inside one policy domain. Sharing one source
+object between free and strict domains is rejected, even when its current value
+would fit both.
+
+The trusted `customerId` and mutation `operationId` must be own primitive string
+data properties that remain unchanged through dispatch. Accessors, inherited
+identity fields, contradictory proxy reads and mutations during request
+construction or materialization fail locally. The package never chooses a
+replacement value or derives an alternate idempotency key. Generated actions
+otherwise use their Convex validators, and direct methods retain the native SDK
+request types.
 
 | Direct method                | Generated action      | Visibility | Supported request fields                                                                                           |
 | ---------------------------- | --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -397,10 +423,11 @@ The constructor requires `operationNamespace` and `identify`, and accepts
 overrides are rejected case-insensitively.
 
 Set `timeoutMs` explicitly. Without it, `check`, `consumeCheck` and `track` have
-the SDK's own five-second timeout (autumn-js 1.2.55); every other operation waits
-indefinitely. This is
-especially important for `consumeCheck`, because Autumn may have recorded the
-usage event before the request aborts. If a call outlives Convex's action
+the SDK's own five-second timeout (autumn-js 1.2.55); `consumeCheck` inherits it
+because the package invokes the SDK's `check` operation. Every other operation
+waits indefinitely. This is especially important for `consumeCheck`, because
+Autumn may have recorded the usage event before the request aborts. If a call
+outlives Convex's action
 execution limit, the platform reports its failure instead of an
 `AUTUMN_INDETERMINATE` error.
 

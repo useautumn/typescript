@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+- Materialize each composed request once after identity checks and request
+  construction, before payload validation and SDK dispatch. SDK record keys
+  follow the pinned Zod behavior, supported free-value records normalize
+  intrinsic dates and bytes, and stable unsupported exotic values fail locally.
+  Payload proxy observation is non-atomic and defines the detached plain-data
+  snapshot; accept-or-reject parity with passing the original stateful proxy to
+  `autumn-js` is not promised.
+- Reject cycles and references shared across different request-policy domains,
+  while preserving shared values within one domain. Snapshot records use a null
+  prototype and never expose caller getters, proxies or mutable native leaves to
+  the SDK.
+- Require stable own primitive `customerId` and `operationId` data properties
+  through request construction, key derivation and dispatch. Contradictory reads
+  and mid-request changes fail without selecting a different idempotency key.
+- Run relational validation against the same snapshot the SDK receives, with
+  shape guards that leave malformed field types to the SDK's local schemas.
+
 ## 1.0.0 - 2026-09-01
 
 - Replace the legacy wrapper with an explicit native-shape `autumn-js@1.2.55`

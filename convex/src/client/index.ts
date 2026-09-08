@@ -1,6 +1,5 @@
 import { ConvexError } from "convex/values";
 import { actionGeneric, internalActionGeneric } from "convex/server";
-import type { Autumn as AutumnSDK } from "autumn-js";
 import type { ComponentApi } from "../component/_generated/component.js";
 import {
   AggregateEventsArgs,
@@ -46,6 +45,9 @@ import {
   type ListPlansArgs as ListPlansArgsType,
   type MultiAttachArgs as MultiAttachArgsType,
   type MultiUpdateArgs as MultiUpdateArgsType,
+  type NativeOperation,
+  type NativeRequestByOperation,
+  type NativeRequestSnapshot,
   PublicPreviewAttachArgs,
   type PreviewAttachArgs as PreviewAttachArgsType,
   PublicPreviewMultiAttachArgs,
@@ -78,6 +80,7 @@ import {
 } from "../serialization.js";
 import {
   type AutumnCall,
+  type NativeCall,
   AutumnTransport,
   type AutumnTransportOptions,
   invokeNative,
@@ -101,12 +104,21 @@ export type AutumnOptions<Context> = AutumnTransportOptions & {
   identify: (ctx: Context) => Identifier | null | Promise<Identifier | null>;
 };
 
-type NativeCall<T> = (
-  sdk: AutumnSDK,
-  options: { retries: { strategy: "none" }; headers?: Record<string, string> }
-) => Promise<T>;
 type MutationArgs = { operationId: string };
 type InternalMutationArgs = MutationArgs & { customerId: string };
+type IdentityField = "customerId" | "operationId";
+type IdentityEntry = {
+  carrier: object;
+  field: IdentityField;
+  value: string;
+};
+type CapturedIdentity = {
+  source: Identifier;
+  customerId: string;
+};
+
+const REQUEST_VALIDATION_MESSAGE =
+  "The Autumn request contains a value Autumn cannot receive faithfully.";
 
 class IdentifyPreDispatchError extends Error {
   constructor() {
@@ -115,11 +127,109 @@ class IdentifyPreDispatchError extends Error {
   }
 }
 
+class RequestIdentityChecks {
+  private readonly entries: IdentityEntry[] = [];
+  private customerId: string | undefined;
+
+  constructor(private readonly operation: NativeOperation) {}
+
+  capture(carrier: object, field: IdentityField): string {
+    const existing = this.entries.find(
+      (entry) => entry.carrier === carrier && entry.field === field
+    );
+    if (existing) return existing.value;
+
+    const descriptor = this.descriptor(carrier, field);
+    if (!("value" in descriptor) || typeof descriptor.value !== "string") {
+      this.reject();
+    }
+    const value = descriptor.value;
+    let actual: unknown;
+    try {
+      actual = Reflect.get(carrier, field);
+    } catch {
+      this.reject();
+    }
+    if (actual !== value) this.reject();
+    const repeatedDescriptor = this.descriptor(carrier, field);
+    if (
+      !("value" in repeatedDescriptor) ||
+      repeatedDescriptor.value !== value
+    ) {
+      this.reject();
+    }
+
+    this.entries.push({ carrier, field, value });
+    if (field === "customerId") {
+      if (this.customerId !== undefined && this.customerId !== value) {
+        this.reject();
+      }
+      this.customerId = value;
+    }
+    return value;
+  }
+
+  assertCurrent(): void {
+    for (const entry of this.entries) {
+      const descriptor = this.descriptor(entry.carrier, entry.field);
+      if (!("value" in descriptor) || descriptor.value !== entry.value) {
+        this.reject();
+      }
+    }
+  }
+
+  assertRequestCustomer(request: object): void {
+    if (this.customerId === undefined) return;
+    const descriptor = this.descriptor(request, "customerId");
+    if (!("value" in descriptor) || descriptor.value !== this.customerId) {
+      this.reject();
+    }
+  }
+
+  private descriptor(
+    carrier: object,
+    field: IdentityField
+  ): PropertyDescriptor {
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(carrier, field);
+      if (!descriptor) this.reject();
+      return descriptor;
+    } catch {
+      this.reject();
+    }
+  }
+
+  private reject(): never {
+    throw new AutumnValidationError(
+      this.operation,
+      "Autumn request identity must use stable primitive string properties."
+    );
+  }
+}
+
+function copyWithout<T extends object, Key extends PropertyKey>(
+  source: T,
+  excluded: ReadonlySet<Key>
+): Omit<T, Key> {
+  const result = {} as Record<PropertyKey, unknown>;
+  for (const key of Reflect.ownKeys(source)) {
+    if (excluded.has(key as Key)) continue;
+    const descriptor = Reflect.getOwnPropertyDescriptor(source, key);
+    if (!descriptor?.enumerable) continue;
+    Object.defineProperty(result, key, {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: Reflect.get(source, key),
+    });
+  }
+  return result as Omit<T, Key>;
+}
+
 function withoutOperationId<T extends MutationArgs>(
   args: T
 ): Omit<T, "operationId"> {
-  const { operationId: _operationId, ...request } = args;
-  return request;
+  return copyWithout(args, new Set(["operationId"] as const));
 }
 
 /**
@@ -133,131 +243,182 @@ function withoutOperationId<T extends MutationArgs>(
 function withoutIdentity<T extends InternalMutationArgs>(
   args: T
 ): Omit<T, "operationId" | "customerId"> {
-  const {
-    operationId: _operationId,
-    customerId: _customerId,
-    ...request
-  } = args;
-  return request;
+  return copyWithout(args, new Set(["operationId", "customerId"] as const));
+}
+
+function buildRequest<Request extends object>(
+  operation: NativeOperation,
+  create: () => Request
+): Request {
+  try {
+    return create();
+  } catch (error) {
+    if (error instanceof AutumnValidationError) throw error;
+    throw new AutumnValidationError(operation, REQUEST_VALIDATION_MESSAGE);
+  }
 }
 
 function requireCondition(
-  operation: string,
+  operation: NativeOperation,
   condition: boolean,
   message: string
 ): asserts condition {
   if (!condition) throw new AutumnValidationError(operation, message);
 }
 
-function validateTrack(args: TrackArgsType): void {
-  requireCondition(
-    "track",
-    (args.featureId === undefined) !== (args.eventName === undefined),
-    "track requires exactly one of featureId or eventName."
-  );
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function validateTrack(request: unknown): void {
+  if (!isRecord(request)) return;
+  const { featureId, eventName } = request;
+  if (
+    (featureId === undefined || typeof featureId === "string") &&
+    (eventName === undefined || typeof eventName === "string")
+  ) {
+    requireCondition(
+      "track",
+      (featureId === undefined) !== (eventName === undefined),
+      "track requires exactly one of featureId or eventName."
+    );
+  }
 }
 
 function validateFeatureQuantities(
-  operation: string,
-  quantities: Array<{ featureId: string }> | undefined
+  operation: NativeOperation,
+  quantities: unknown
 ): void {
-  if (!quantities) return;
-  const featureIds = new Set(quantities.map(({ featureId }) => featureId));
-  requireCondition(
-    operation,
-    featureIds.size === quantities.length,
-    `${operation} featureQuantities must contain each featureId at most once.`
-  );
+  if (quantities === undefined || !Array.isArray(quantities)) return;
+  const featureIds = new Set<string>();
+  for (const quantity of quantities) {
+    if (!isRecord(quantity) || typeof quantity.featureId !== "string") continue;
+    requireCondition(
+      operation,
+      !featureIds.has(quantity.featureId),
+      `${operation} featureQuantities must contain each featureId at most once.`
+    );
+    featureIds.add(quantity.featureId);
+  }
 }
 
-function validateAttach(operation: string, args: PreviewAttachArgsType): void {
-  validateFeatureQuantities(operation, args.featureQuantities);
+function validateAttach(operation: NativeOperation, request: unknown): void {
+  if (!isRecord(request)) return;
+  validateFeatureQuantities(operation, request.featureQuantities);
 }
 
 function validateMultiAttach(
-  operation: string,
-  args: PreviewMultiAttachArgsType
+  operation: NativeOperation,
+  request: unknown
 ): void {
+  if (!isRecord(request) || !Array.isArray(request.plans)) return;
   requireCondition(
     operation,
-    args.plans.length > 0,
+    request.plans.length > 0,
     `${operation} requires plans.`
   );
-  for (const plan of args.plans) {
-    validateFeatureQuantities(operation, plan.featureQuantities);
+  for (const plan of request.plans) {
+    if (isRecord(plan)) {
+      validateFeatureQuantities(operation, plan.featureQuantities);
+    }
   }
 }
 
 function validateMultiUpdate(
-  operation: string,
-  args: PreviewMultiUpdateArgsType
+  operation: NativeOperation,
+  request: unknown
 ): void {
+  if (!isRecord(request) || !Array.isArray(request.updates)) return;
   requireCondition(
     operation,
-    args.updates.length > 0,
+    request.updates.length > 0,
     `${operation} requires updates.`
   );
-  for (const update of args.updates) {
-    requireCondition(
-      operation,
-      update.planId !== undefined || update.subscriptionId !== undefined,
-      `${operation} updates require planId or subscriptionId.`
-    );
+  for (const update of request.updates) {
+    if (!isRecord(update)) continue;
+    const { planId, subscriptionId } = update;
+    if (
+      (planId === undefined || typeof planId === "string") &&
+      (subscriptionId === undefined || typeof subscriptionId === "string")
+    ) {
+      requireCondition(
+        operation,
+        planId !== undefined || subscriptionId !== undefined,
+        `${operation} updates require planId or subscriptionId.`
+      );
+    }
   }
 }
 
-function validateBalance(args: UpdateBalanceArgsType): void {
-  const changes = [args.remaining, args.addToBalance, args.usage].filter(
-    (value) => value !== undefined
-  );
+function validateBalance(request: unknown): void {
+  if (!isRecord(request)) return;
+  const values = [request.remaining, request.addToBalance, request.usage];
+  if (
+    !values.every((value) => value === undefined || typeof value === "number")
+  ) {
+    return;
+  }
   requireCondition(
     "balances.update",
-    changes.length <= 1,
+    values.filter((value) => value !== undefined).length <= 1,
     "balances.update accepts at most one of remaining, addToBalance or usage."
   );
 }
 
-function validateAggregateEvents(args: AggregateEventsArgsType): void {
-  requireCondition(
-    "events.aggregate",
-    (args.range === undefined) !== (args.customRange === undefined),
-    "events.aggregate requires exactly one of range or customRange."
-  );
-  if (args.customRange) {
+function validateAggregateEvents(request: unknown): void {
+  if (!isRecord(request)) return;
+  const { range, customRange, filterBy } = request;
+  if (
+    (range === undefined || typeof range === "string") &&
+    (customRange === undefined || isRecord(customRange))
+  ) {
     requireCondition(
       "events.aggregate",
-      args.customRange.start <= args.customRange.end,
+      (range === undefined) !== (customRange === undefined),
+      "events.aggregate requires exactly one of range or customRange."
+    );
+  }
+  if (
+    isRecord(customRange) &&
+    typeof customRange.start === "number" &&
+    typeof customRange.end === "number"
+  ) {
+    requireCondition(
+      "events.aggregate",
+      customRange.start <= customRange.end,
       "events.aggregate customRange start must not exceed end."
     );
   }
-  if (args.filterBy) {
+  if (
+    isRecord(filterBy) &&
+    Object.values(filterBy).every((value) => typeof value === "string")
+  ) {
     requireCondition(
       "events.aggregate",
-      Object.keys(args.filterBy).length <= 5,
+      Object.keys(filterBy).length <= 5,
       "events.aggregate accepts at most five filters."
     );
   }
 }
 
-function validateListEvents(args: ListEventsArgsType): void {
-  if (
-    args.customRange?.start !== undefined &&
-    args.customRange.end !== undefined
-  ) {
+function validateListEvents(request: unknown): void {
+  if (!isRecord(request) || !isRecord(request.customRange)) return;
+  const { start, end } = request.customRange;
+  if (typeof start === "number" && typeof end === "number") {
     requireCondition(
       "events.list",
-      args.customRange.start <= args.customRange.end,
+      start <= end,
       "events.list customRange start must not exceed end."
     );
   }
 }
 
 function readOnlyCheckRequest(
-  identifier: Identifier,
+  identity: CapturedIdentity,
   args: CheckArgsType
 ): CheckArgsType & { customerId: string } {
   return {
-    customerId: identifier.customerId,
+    customerId: identity.customerId,
     featureId: args.featureId,
     entityId: args.entityId,
     requiredBalance: args.requiredBalance,
@@ -267,13 +428,13 @@ function readOnlyCheckRequest(
 }
 
 function mergeCustomerData(
-  identifier: Identifier,
+  identity: CapturedIdentity,
   request: Omit<GetOrCreateCustomerArgsType, "operationId">
 ): Omit<GetOrCreateCustomerArgsType, "operationId"> & { customerId: string } {
   return {
-    ...identifier.customerData,
+    ...identity.source.customerData,
     ...request,
-    customerId: identifier.customerId,
+    customerId: identity.customerId,
   };
 }
 
@@ -357,7 +518,10 @@ export class Autumn<Context = unknown> {
     this.transport = new AutumnTransport(options);
   }
 
-  private async identify(ctx: Context): Promise<Identifier> {
+  private async identify(
+    ctx: Context,
+    operation: NativeOperation
+  ): Promise<{ identity: CapturedIdentity; checks: RequestIdentityChecks }> {
     let identifier: Identifier | null;
     try {
       identifier = await this.options.identify(ctx);
@@ -365,12 +529,19 @@ export class Autumn<Context = unknown> {
       if (error instanceof ConvexError) throw error;
       throw new IdentifyPreDispatchError();
     }
-    if (!identifier?.customerId) {
+    if (typeof identifier !== "object" || identifier === null) {
       throw new AutumnConfigurationError(
         "Autumn identify(ctx) must return a customerId."
       );
     }
-    return identifier;
+    const checks = new RequestIdentityChecks(operation);
+    const customerId = checks.capture(identifier, "customerId");
+    if (!customerId) {
+      throw new AutumnConfigurationError(
+        "Autumn identify(ctx) must return a customerId."
+      );
+    }
+    return { identity: { source: identifier, customerId }, checks };
   }
 
   /**
@@ -381,32 +552,45 @@ export class Autumn<Context = unknown> {
    * the action and has already decided that the operation is allowed, which
    * holds whether or not that caller still had an identity of its own.
    */
-  private trustedIdentifier(
-    operation: string,
-    args: InternalMutationArgs
-  ): Identifier {
+  private trustedIdentity(
+    operation: NativeOperation,
+    args: InternalMutationArgs,
+    checks: RequestIdentityChecks
+  ): CapturedIdentity {
+    const customerId = checks.capture(args, "customerId");
     requireCondition(
       operation,
-      args.customerId.length > 0,
+      customerId.length > 0,
       `${operation} requires a customerId from its caller.`
     );
-    return { customerId: args.customerId };
+    return { source: { customerId }, customerId };
   }
 
-  private async read<Request extends object, T>(
+  private async read<Operation extends NativeOperation, Result>(
     ctx: Context,
-    operation: string,
-    request: (identifier: Identifier) => Request,
-    invoke: (request: Request) => NativeCall<T>
-  ): Promise<T> {
-    const identifier = await this.identify(ctx);
-    const nativeRequest = request(identifier);
+    operation: Operation,
+    request: (
+      identity: CapturedIdentity
+    ) => NativeRequestByOperation[Operation],
+    invoke: NativeCall<Operation, Result>,
+    validate?: (
+      request: NativeRequestSnapshot<NativeRequestByOperation[Operation]>
+    ) => void
+  ): Promise<Result> {
+    const { identity, checks } = await this.identify(ctx, operation);
+    const nativeRequest = buildRequest(operation, () => request(identity));
+    checks.assertRequestCustomer(nativeRequest);
+    checks.assertCurrent();
     const call = this.transport.createCall();
     return await invokeNative(
       operation,
       call,
       nativeRequest,
-      invoke(nativeRequest)
+      invoke,
+      (snapshot) => {
+        checks.assertCurrent();
+        validate?.(snapshot);
+      }
     );
   }
 
@@ -425,35 +609,51 @@ export class Autumn<Context = unknown> {
    * operation ID to stop suppressing another customer's mutation.
    */
   private async keyedCall(
-    operation: string,
-    identifier: Identifier,
-    args: MutationArgs
+    operation: NativeOperation,
+    customerId: string,
+    operationId: string
   ): Promise<AutumnCall> {
     return this.transport.createCall(
       await deriveProviderKey({
         operation,
         operationNamespace: this.options.operationNamespace,
-        customerId: identifier.customerId,
-        operationId: args.operationId,
+        customerId,
+        operationId,
       })
     );
   }
 
-  private async mutate<Request extends object, T>(
+  private async mutate<Operation extends NativeOperation, Result>(
     ctx: Context,
-    operation: string,
+    operation: Operation,
     args: MutationArgs,
-    request: (identifier: Identifier) => Request,
-    invoke: (request: Request) => NativeCall<T>
-  ): Promise<T> {
-    const identifier = await this.identify(ctx);
-    const nativeRequest = request(identifier);
-    const call = await this.keyedCall(operation, identifier, args);
+    request: (
+      identity: CapturedIdentity
+    ) => NativeRequestByOperation[Operation],
+    invoke: NativeCall<Operation, Result>,
+    validate?: (
+      request: NativeRequestSnapshot<NativeRequestByOperation[Operation]>
+    ) => void
+  ): Promise<Result> {
+    const { identity, checks } = await this.identify(ctx, operation);
+    const operationId = checks.capture(args, "operationId");
+    const nativeRequest = buildRequest(operation, () => request(identity));
+    checks.assertRequestCustomer(nativeRequest);
+    checks.assertCurrent();
+    const call = await this.keyedCall(
+      operation,
+      identity.customerId,
+      operationId
+    );
     return await invokeNative(
       operation,
       call,
       nativeRequest,
-      invoke(nativeRequest)
+      invoke,
+      (snapshot) => {
+        checks.assertCurrent();
+        validate?.(snapshot);
+      }
     );
   }
 
@@ -479,27 +679,42 @@ export class Autumn<Context = unknown> {
    * records an attempt of its own.
    */
   private async generated<
+    Operation extends NativeOperation,
     Args extends InternalMutationArgs,
-    Request extends object,
-    T,
+    Result,
   >(
-    operation: string,
+    operation: Operation,
     args: Args,
-    request: (identifier: Identifier) => Request,
-    invoke: (request: Request) => NativeCall<T>,
-    validate?: (args: Args) => void
-  ): Promise<T> {
+    request: (
+      identity: CapturedIdentity
+    ) => NativeRequestByOperation[Operation],
+    invoke: NativeCall<Operation, Result>,
+    validate?: (
+      request: NativeRequestSnapshot<NativeRequestByOperation[Operation]>
+    ) => void
+  ): Promise<Result> {
     try {
-      validate?.(args);
-      const identifier = this.trustedIdentifier(operation, args);
-      const nativeRequest = request(identifier);
-      const call = await this.keyedCall(operation, identifier, args);
+      const checks = new RequestIdentityChecks(operation);
+      const operationId = checks.capture(args, "operationId");
+      const identity = this.trustedIdentity(operation, args, checks);
+      const nativeRequest = buildRequest(operation, () => request(identity));
+      checks.assertRequestCustomer(nativeRequest);
+      checks.assertCurrent();
+      const call = await this.keyedCall(
+        operation,
+        identity.customerId,
+        operationId
+      );
       return toConvexSerializable(
         await invokeNative(
           operation,
           call,
           nativeRequest,
-          invoke(nativeRequest)
+          invoke,
+          (snapshot) => {
+            checks.assertCurrent();
+            validate?.(snapshot);
+          }
         )
       );
     } catch (error) {
@@ -511,8 +726,8 @@ export class Autumn<Context = unknown> {
     return await this.read(
       ctx,
       "check",
-      (identifier) => readOnlyCheckRequest(identifier, args),
-      (request) => (sdk, options) => sdk.check(request, options)
+      (identity) => readOnlyCheckRequest(identity, args),
+      (request, sdk, options) => sdk.check(request, options)
     );
   }
 
@@ -521,151 +736,145 @@ export class Autumn<Context = unknown> {
       ctx,
       "check",
       args,
-      (identifier) => ({
+      (identity) => ({
         ...withoutOperationId(args),
-        customerId: identifier.customerId,
+        customerId: identity.customerId,
         sendEvent: true as const,
       }),
-      (request) => (sdk, options) => sdk.check(request, options)
+      (request, sdk, options) => sdk.check(request, options)
     );
   }
 
   async track(ctx: Context, args: TrackArgsType) {
-    validateTrack(args);
     return await this.mutate(
       ctx,
       "track",
       args,
-      (identifier) => ({
+      (identity) => ({
         ...withoutOperationId(args),
-        customerId: identifier.customerId,
+        customerId: identity.customerId,
       }),
-      (request) => (sdk, options) => sdk.track(request, options)
+      (request, sdk, options) => sdk.track(request, options),
+      validateTrack
     );
   }
 
   billing = {
     previewAttach: async (ctx: Context, args: PreviewAttachArgsType) => {
-      validateAttach("billing.previewAttach", args);
       return await this.read(
         ctx,
         "billing.previewAttach",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) =>
-          sdk.billing.previewAttach(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.billing.previewAttach(request, options),
+        (request) => validateAttach("billing.previewAttach", request)
       );
     },
     attach: async (ctx: Context, args: AttachArgsType) => {
-      validateAttach("billing.attach", args);
       return await this.mutate(
         ctx,
         "billing.attach",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.billing.attach(request, options)
+        (request, sdk, options) => sdk.billing.attach(request, options),
+        (request) => validateAttach("billing.attach", request)
       );
     },
     previewMultiAttach: async (
       ctx: Context,
       args: PreviewMultiAttachArgsType
     ) => {
-      validateMultiAttach("billing.previewMultiAttach", args);
       return await this.read(
         ctx,
         "billing.previewMultiAttach",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) =>
-          sdk.billing.previewMultiAttach(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) =>
+          sdk.billing.previewMultiAttach(request, options),
+        (request) => validateMultiAttach("billing.previewMultiAttach", request)
       );
     },
     multiAttach: async (ctx: Context, args: MultiAttachArgsType) => {
-      validateMultiAttach("billing.multiAttach", args);
       return await this.mutate(
         ctx,
         "billing.multiAttach",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.billing.multiAttach(request, options)
+        (request, sdk, options) => sdk.billing.multiAttach(request, options),
+        (request) => validateMultiAttach("billing.multiAttach", request)
       );
     },
     previewUpdate: async (ctx: Context, args: PreviewUpdateArgsType) => {
-      validateFeatureQuantities(
-        "billing.previewUpdate",
-        args.featureQuantities
-      );
       return await this.read(
         ctx,
         "billing.previewUpdate",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) =>
-          sdk.billing.previewUpdate(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.billing.previewUpdate(request, options),
+        (request) => validateAttach("billing.previewUpdate", request)
       );
     },
     update: async (ctx: Context, args: UpdateSubscriptionArgsType) => {
-      validateFeatureQuantities("billing.update", args.featureQuantities);
       return await this.mutate(
         ctx,
         "billing.update",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.billing.update(request, options)
+        (request, sdk, options) => sdk.billing.update(request, options),
+        (request) => validateAttach("billing.update", request)
       );
     },
     previewMultiUpdate: async (
       ctx: Context,
       args: PreviewMultiUpdateArgsType
     ) => {
-      validateMultiUpdate("billing.previewMultiUpdate", args);
       return await this.read(
         ctx,
         "billing.previewMultiUpdate",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) =>
-          sdk.billing.previewMultiUpdate(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) =>
+          sdk.billing.previewMultiUpdate(request, options),
+        (request) => validateMultiUpdate("billing.previewMultiUpdate", request)
       );
     },
     multiUpdate: async (ctx: Context, args: MultiUpdateArgsType) => {
-      validateMultiUpdate("billing.multiUpdate", args);
       return await this.mutate(
         ctx,
         "billing.multiUpdate",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.billing.multiUpdate(request, options)
+        (request, sdk, options) => sdk.billing.multiUpdate(request, options),
+        (request) => validateMultiUpdate("billing.multiUpdate", request)
       );
     },
     setupPayment: async (ctx: Context, args: SetupPaymentArgsType) => {
-      validateFeatureQuantities("billing.setupPayment", args.featureQuantities);
       return await this.mutate(
         ctx,
         "billing.setupPayment",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) =>
-          sdk.billing.setupPayment(request, options)
+        (request, sdk, options) => sdk.billing.setupPayment(request, options),
+        (request) => validateAttach("billing.setupPayment", request)
       );
     },
     portal: async (ctx: Context, args: BillingPortalArgsType = {}) =>
       await this.read(
         ctx,
         "billing.portal",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) =>
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) =>
           sdk.billing.openCustomerPortal(request, options)
       ),
   };
@@ -675,39 +884,38 @@ export class Autumn<Context = unknown> {
       await this.read(
         ctx,
         "customers.get",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) => sdk.customers.get(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.customers.get(request, options)
       ),
     getOrCreate: async (ctx: Context, args: GetOrCreateCustomerArgsType) =>
       await this.mutate(
         ctx,
         "customers.getOrCreate",
         args,
-        (identifier) => mergeCustomerData(identifier, withoutOperationId(args)),
-        (request) => (sdk, options) =>
-          sdk.customers.getOrCreate(request, options)
+        (identity) => mergeCustomerData(identity, withoutOperationId(args)),
+        (request, sdk, options) => sdk.customers.getOrCreate(request, options)
       ),
     update: async (ctx: Context, args: UpdateCustomerArgsType) =>
       await this.mutate(
         ctx,
         "customers.update",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.customers.update(request, options)
+        (request, sdk, options) => sdk.customers.update(request, options)
       ),
     delete: async (ctx: Context, args: DeleteCustomerArgsType) =>
       await this.mutate(
         ctx,
         "customers.delete",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.customers.delete(request, options)
+        (request, sdk, options) => sdk.customers.delete(request, options)
       ),
   };
 
@@ -717,99 +925,102 @@ export class Autumn<Context = unknown> {
         ctx,
         "entities.create",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.entities.create(request, options)
+        (request, sdk, options) => sdk.entities.create(request, options)
       ),
     get: async (ctx: Context, args: GetEntityArgsType) =>
       await this.read(
         ctx,
         "entities.get",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) => sdk.entities.get(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.entities.get(request, options)
       ),
     list: async (ctx: Context, args: ListEntitiesArgsType = {}) =>
       await this.read(
         ctx,
         "entities.list",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) => sdk.entities.list(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.entities.list(request, options)
       ),
     update: async (ctx: Context, args: UpdateEntityArgsType) =>
       await this.mutate(
         ctx,
         "entities.update",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.entities.update(request, options)
+        (request, sdk, options) => sdk.entities.update(request, options)
       ),
     delete: async (ctx: Context, args: DeleteEntityArgsType) =>
       await this.mutate(
         ctx,
         "entities.delete",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.entities.delete(request, options)
+        (request, sdk, options) => sdk.entities.delete(request, options)
       ),
   };
 
   plans = {
     get: async (_ctx: Context, args: GetPlanArgsType) => {
       const call = this.transport.createCall();
-      return await invokeNative("plans.get", call, args, (sdk, options) =>
-        sdk.plans.get(args, options)
+      return await invokeNative(
+        "plans.get",
+        call,
+        args,
+        (request, sdk, options) => sdk.plans.get(request, options)
       );
     },
     list: async (ctx: Context, args: ListPlansArgsType = {}) =>
       await this.read(
         ctx,
         "plans.list",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) => sdk.plans.list(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.plans.list(request, options)
       ),
   };
 
   balances = {
     update: async (ctx: Context, args: UpdateBalanceArgsType) => {
-      validateBalance(args);
       return await this.mutate(
         ctx,
         "balances.update",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) => sdk.balances.update(request, options)
+        (request, sdk, options) => sdk.balances.update(request, options),
+        validateBalance
       );
     },
   };
 
   events = {
     list: async (ctx: Context, args: ListEventsArgsType = {}) => {
-      validateListEvents(args);
       return await this.read(
         ctx,
         "events.list",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) => sdk.events.list(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.events.list(request, options),
+        validateListEvents
       );
     },
     aggregate: async (ctx: Context, args: AggregateEventsArgsType) => {
-      validateAggregateEvents(args);
       return await this.read(
         ctx,
         "events.aggregate",
-        (identifier) => ({ ...args, customerId: identifier.customerId }),
-        (request) => (sdk, options) => sdk.events.aggregate(request, options)
+        (identity) => ({ ...args, customerId: identity.customerId }),
+        (request, sdk, options) => sdk.events.aggregate(request, options),
+        validateAggregateEvents
       );
     },
   };
@@ -820,24 +1031,22 @@ export class Autumn<Context = unknown> {
         ctx,
         "referrals.create",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) =>
-          sdk.referrals.createCode(request, options)
+        (request, sdk, options) => sdk.referrals.createCode(request, options)
       ),
     redeem: async (ctx: Context, args: RedeemReferralCodeArgsType) =>
       await this.mutate(
         ctx,
         "referrals.redeem",
         args,
-        (identifier) => ({
+        (identity) => ({
           ...withoutOperationId(args),
-          customerId: identifier.customerId,
+          customerId: identity.customerId,
         }),
-        (request) => (sdk, options) =>
-          sdk.referrals.redeemCode(request, options)
+        (request, sdk, options) => sdk.referrals.redeemCode(request, options)
       ),
   };
 
@@ -988,12 +1197,12 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "check",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
               sendEvent: true as const,
             }),
-            (request) => (sdk, options) => sdk.check(request, options)
+            (request, sdk, options) => sdk.check(request, options)
           ),
       }),
       track: internalActionGeneric({
@@ -1002,11 +1211,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "track",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) => sdk.track(request, options),
+            (request, sdk, options) => sdk.track(request, options),
             validateTrack
           ),
       }),
@@ -1016,11 +1225,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.attach",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) => sdk.billing.attach(request, options),
+            (request, sdk, options) => sdk.billing.attach(request, options),
             (args) => validateAttach("billing.attach", args)
           ),
       }),
@@ -1030,11 +1239,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.multiAttach",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
+            (request, sdk, options) =>
               sdk.billing.multiAttach(request, options),
             (args) => validateMultiAttach("billing.multiAttach", args)
           ),
@@ -1045,11 +1254,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.update",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) => sdk.billing.update(request, options),
+            (request, sdk, options) => sdk.billing.update(request, options),
             (args) =>
               validateFeatureQuantities(
                 "billing.update",
@@ -1063,11 +1272,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.multiUpdate",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
+            (request, sdk, options) =>
               sdk.billing.multiUpdate(request, options),
             (args) => validateMultiUpdate("billing.multiUpdate", args)
           ),
@@ -1078,11 +1287,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "billing.setupPayment",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
+            (request, sdk, options) =>
               sdk.billing.setupPayment(request, options),
             (args) =>
               validateFeatureQuantities(
@@ -1097,9 +1306,8 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "customers.getOrCreate",
             args,
-            (identifier) =>
-              mergeCustomerData(identifier, withoutIdentity(args)),
-            (request) => (sdk, options) =>
+            (identity) => mergeCustomerData(identity, withoutIdentity(args)),
+            (request, sdk, options) =>
               sdk.customers.getOrCreate(request, options)
           ),
       }),
@@ -1109,12 +1317,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "customers.update",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
-              sdk.customers.update(request, options)
+            (request, sdk, options) => sdk.customers.update(request, options)
           ),
       }),
       deleteCustomer: internalActionGeneric({
@@ -1123,12 +1330,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "customers.delete",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
-              sdk.customers.delete(request, options)
+            (request, sdk, options) => sdk.customers.delete(request, options)
           ),
       }),
       createEntity: internalActionGeneric({
@@ -1137,11 +1343,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "entities.create",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) => sdk.entities.create(request, options)
+            (request, sdk, options) => sdk.entities.create(request, options)
           ),
       }),
       updateEntity: internalActionGeneric({
@@ -1150,11 +1356,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "entities.update",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) => sdk.entities.update(request, options)
+            (request, sdk, options) => sdk.entities.update(request, options)
           ),
       }),
       deleteEntity: internalActionGeneric({
@@ -1163,11 +1369,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "entities.delete",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) => sdk.entities.delete(request, options)
+            (request, sdk, options) => sdk.entities.delete(request, options)
           ),
       }),
       updateBalance: internalActionGeneric({
@@ -1176,12 +1382,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "balances.update",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
-              sdk.balances.update(request, options),
+            (request, sdk, options) => sdk.balances.update(request, options),
             validateBalance
           ),
       }),
@@ -1191,11 +1396,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "referrals.create",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
+            (request, sdk, options) =>
               sdk.referrals.createCode(request, options)
           ),
       }),
@@ -1205,11 +1410,11 @@ export class Autumn<Context = unknown> {
           await this.generated(
             "referrals.redeem",
             args,
-            (identifier) => ({
+            (identity) => ({
               ...withoutIdentity(args),
-              customerId: identifier.customerId,
+              customerId: identity.customerId,
             }),
-            (request) => (sdk, options) =>
+            (request, sdk, options) =>
               sdk.referrals.redeemCode(request, options)
           ),
       }),

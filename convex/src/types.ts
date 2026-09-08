@@ -546,12 +546,87 @@ export type InternalRedeemReferralCodeArgs = Infer<
   typeof InternalRedeemReferralCodeArgs
 >;
 
+type WithoutOperationId<T> = Omit<T, "operationId">;
+type WithCustomer<T> = WithoutOperationId<T> & { customerId: string };
+
+export type NativeRequestByOperation = {
+  check: WithCustomer<CheckArgs> & { sendEvent?: true };
+  track: WithCustomer<TrackArgs>;
+  "billing.previewAttach": WithCustomer<PreviewAttachArgs>;
+  "billing.attach": WithCustomer<AttachArgs>;
+  "billing.previewMultiAttach": WithCustomer<PreviewMultiAttachArgs>;
+  "billing.multiAttach": WithCustomer<MultiAttachArgs>;
+  "billing.previewUpdate": WithCustomer<PreviewUpdateArgs>;
+  "billing.update": WithCustomer<UpdateSubscriptionArgs>;
+  "billing.previewMultiUpdate": WithCustomer<PreviewMultiUpdateArgs>;
+  "billing.multiUpdate": WithCustomer<MultiUpdateArgs>;
+  "billing.setupPayment": WithCustomer<SetupPaymentArgs>;
+  "billing.portal": WithCustomer<BillingPortalArgs>;
+  "customers.get": WithCustomer<GetCustomerArgs>;
+  "customers.getOrCreate": WithCustomer<GetOrCreateCustomerArgs>;
+  "customers.update": WithCustomer<UpdateCustomerArgs>;
+  "customers.delete": WithCustomer<DeleteCustomerArgs>;
+  "entities.create": WithCustomer<CreateEntityArgs>;
+  "entities.get": WithCustomer<GetEntityArgs>;
+  "entities.list": WithCustomer<ListEntitiesArgs>;
+  "entities.update": WithCustomer<UpdateEntityArgs>;
+  "entities.delete": WithCustomer<DeleteEntityArgs>;
+  "plans.get": GetPlanArgs;
+  "plans.list": WithCustomer<ListPlansArgs>;
+  "balances.update": WithCustomer<UpdateBalanceArgs>;
+  "events.list": WithCustomer<ListEventsArgs>;
+  "events.aggregate": WithCustomer<AggregateEventsArgs>;
+  "referrals.create": WithCustomer<CreateReferralCodeArgs>;
+  "referrals.redeem": WithCustomer<RedeemReferralCodeArgs>;
+};
+
+export type NativeOperation = keyof NativeRequestByOperation;
+
+export type JsonPrimitive = null | boolean | number | string;
+export type JsonValue =
+  | JsonPrimitive
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+type IsAny<T> = 0 extends 1 & T ? true : false;
+type IsUnknown<T> = unknown extends T
+  ? [keyof T] extends [never]
+    ? true
+    : false
+  : false;
+type SnapshotPropertyKey<Key, Value> = Key extends string
+  ? Value extends (...args: never[]) => unknown
+    ? never
+    : Key
+  : never;
+
+export type NativeRequestSnapshot<T> =
+  IsAny<T> extends true
+    ? JsonValue
+    : IsUnknown<T> extends true
+      ? JsonValue
+      : T extends Date | Uint8Array
+        ? string
+        : T extends (...args: never[]) => unknown
+          ? never
+          : T extends readonly (infer Item)[]
+            ? Array<
+                | NativeRequestSnapshot<Exclude<Item, undefined>>
+                | (undefined extends Item ? null : never)
+              >
+            : T extends object
+              ? {
+                  [Key in keyof T as SnapshotPropertyKey<
+                    Key,
+                    T[Key]
+                  >]: NativeRequestSnapshot<T[Key]>;
+                }
+              : T;
+
 type SDK = AutumnSDK;
 type Param<T> = T extends (request: infer P, ...args: never[]) => unknown
   ? NonNullable<P>
   : never;
-type WithoutOperationId<T> = Omit<T, "operationId">;
-type WithCustomer<T> = WithoutOperationId<T> & { customerId: string };
 type ExactSubset<Local, Native> =
   Exclude<keyof Local, keyof Native> extends never
     ? Local extends Pick<Native, keyof Local & keyof Native>
@@ -559,6 +634,48 @@ type ExactSubset<Local, Native> =
       : false
     : false;
 type Assert<T extends true> = T;
+type SDKRequestByOperation = {
+  check: Param<SDK["check"]>;
+  track: Param<SDK["track"]>;
+  "billing.previewAttach": Param<SDK["billing"]["previewAttach"]>;
+  "billing.attach": Param<SDK["billing"]["attach"]>;
+  "billing.previewMultiAttach": Param<SDK["billing"]["previewMultiAttach"]>;
+  "billing.multiAttach": Param<SDK["billing"]["multiAttach"]>;
+  "billing.previewUpdate": Param<SDK["billing"]["previewUpdate"]>;
+  "billing.update": Param<SDK["billing"]["update"]>;
+  "billing.previewMultiUpdate": Param<SDK["billing"]["previewMultiUpdate"]>;
+  "billing.multiUpdate": Param<SDK["billing"]["multiUpdate"]>;
+  "billing.setupPayment": Param<SDK["billing"]["setupPayment"]>;
+  "billing.portal": Param<SDK["billing"]["openCustomerPortal"]>;
+  "customers.get": Param<SDK["customers"]["get"]>;
+  "customers.getOrCreate": Param<SDK["customers"]["getOrCreate"]>;
+  "customers.update": Param<SDK["customers"]["update"]>;
+  "customers.delete": Param<SDK["customers"]["delete"]>;
+  "entities.create": Param<SDK["entities"]["create"]>;
+  "entities.get": Param<SDK["entities"]["get"]>;
+  "entities.list": Param<SDK["entities"]["list"]>;
+  "entities.update": Param<SDK["entities"]["update"]>;
+  "entities.delete": Param<SDK["entities"]["delete"]>;
+  "plans.get": Param<SDK["plans"]["get"]>;
+  "plans.list": Param<SDK["plans"]["list"]>;
+  "balances.update": Param<SDK["balances"]["update"]>;
+  "events.list": Param<SDK["events"]["list"]>;
+  "events.aggregate": Param<SDK["events"]["aggregate"]>;
+  "referrals.create": Param<SDK["referrals"]["createCode"]>;
+  "referrals.redeem": Param<SDK["referrals"]["redeemCode"]>;
+};
+type SnapshotSDKCompatibility = {
+  [Operation in NativeOperation]: NativeRequestSnapshot<
+    NativeRequestByOperation[Operation]
+  > extends SDKRequestByOperation[Operation]
+    ? true
+    : false;
+};
+type _AllSnapshotsFitSDK = Assert<
+  Exclude<SnapshotSDKCompatibility[NativeOperation], true> extends never
+    ? true
+    : false
+>;
 
 type _CheckParams = Assert<
   ExactSubset<WithCustomer<CheckArgs>, Param<SDK["check"]>>

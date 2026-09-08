@@ -9,17 +9,19 @@ import {
   expect,
   test,
 } from "vitest";
-import { setTimeout as delay } from "node:timers/promises";
 import { AutumnError, UnexpectedClientError } from "autumn-js";
 import { defineSchema, makeFunctionReference } from "convex/server";
 import type { InternalTrackArgs } from "../types.js";
 import { AutumnIndeterminateError, AutumnValidationError } from "../errors.js";
+import { deriveProviderKey } from "../idempotency.js";
 import { errorData, initConvexTest } from "./setup.test.js";
 import {
   closeResponseServer,
   directClient,
   planResponse,
+  requestBody,
   requestCount,
+  requestHeaders,
 } from "./responses.fixture.js";
 
 const CUSTOMER_ID = "customer-1";
@@ -59,14 +61,14 @@ beforeEach(() => {
  * The SDK hands its result to a promise it also unwraps a second time, and an
  * error that escapes the guarded fetcher path rejects that second promise with
  * nothing attached to it, which ends a Node 24 process even where the action
- * error is caught. Node reports such a rejection a turn after the promise
- * settles, so this leaves the current turn before it looks.
+ * error is caught. Node reports such a rejection after the promise settles, so
+ * this flushes the event loop before it looks.
  *
  * Every test calls this before it inspects the error data, because an assertion
  * on the data would otherwise fail first and hide the rejection.
  */
 async function expectNoUnhandledRejections(): Promise<void> {
-  await delay(20);
+  await new Promise(setImmediate);
   expect(
     rejections.map((reason) =>
       reason instanceof Error ? `${reason.name}: ${reason.message}` : reason
@@ -92,6 +94,18 @@ describe("responses from a real HTTP server", () => {
       balance: null,
     });
     expect(requestCount()).toBe(1);
+    expect(JSON.parse(requestBody())).toEqual({
+      customer_id: CUSTOMER_ID,
+      feature_id: "messages",
+    });
+    expect(requestHeaders().get("idempotency-key")).toBe(
+      await deriveProviderKey({
+        operation: "track",
+        operationNamespace: "responses-fixture",
+        customerId: CUSTOMER_ID,
+        operationId: "complete-200",
+      })
+    );
   });
 
   test.each([
@@ -232,12 +246,9 @@ describe("direct methods against a real HTTP server", () => {
   });
 
   /**
-   * The SDK stringifies a class instance like any other object, so a value the
-   * request cannot carry faithfully is no less unsendable for sitting inside
-   * one. Left to the SDK it surfaces as a raw `TypeError` instead of this
-   * package's named validation error, and it rejects the SDK's second result
-   * promise with nothing attached to it: the same unhandled rejection this file
-   * already guards for a truncated body.
+   * Unsupported exotic values are rejected before the SDK can stringify them.
+   * This keeps its second result promise from rejecting after the caller has
+   * already caught the first failure.
    */
   test.each([
     [
@@ -251,7 +262,7 @@ describe("direct methods against a real HTTP server", () => {
     ],
     ["a BigInt64Array", () => new BigInt64Array([1n])],
   ])(
-    "rejects a bigint inside %s without reaching the server",
+    "rejects unsupported %s data without reaching the server",
     async (_description, build) => {
       planResponse({ status: 200, body: "complete" });
 
@@ -287,6 +298,57 @@ describe("direct methods against a real HTTP server", () => {
         properties,
         operationId: "direct-cyclic",
       })
+      .catch((error: unknown) => error);
+
+    await expectNoUnhandledRejections();
+    expect(caught).toBeInstanceOf(AutumnValidationError);
+    expect(requestCount()).toBe(0);
+  });
+
+  test("sends detached snapshot bytes after the source mutates", async () => {
+    planResponse({ status: 200, body: "complete" });
+    const source = { label: "before", items: [1] };
+    let reads = 0;
+    const properties = {
+      get payload() {
+        reads += 1;
+        return source;
+      },
+      get mutateSource() {
+        source.label = "after";
+        source.items.push(2);
+        return true;
+      },
+    };
+
+    await directClient()
+      .track(null, {
+        featureId: "messages",
+        properties,
+        operationId: "detached-source",
+      })
+      .catch(() => undefined);
+
+    await expectNoUnhandledRejections();
+    expect(source).toEqual({ label: "after", items: [1, 2] });
+    expect(reads).toBe(1);
+    expect(JSON.parse(requestBody())).toMatchObject({
+      properties: { payload: { label: "before", items: [1] } },
+    });
+    expect(requestCount()).toBe(1);
+  });
+
+  test("rejects cross-domain sharing before the loopback server", async () => {
+    planResponse({ status: 200, body: "complete" });
+    const shared = new Date("2026-01-01T00:00:00.000Z");
+
+    const caught = await directClient()
+      .billing.attach(null, {
+        planId: "pro",
+        checkoutSessionParams: { at: shared },
+        successUrl: shared,
+        operationId: "cross-domain",
+      } as never)
       .catch((error: unknown) => error);
 
     await expectNoUnhandledRejections();

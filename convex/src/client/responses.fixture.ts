@@ -31,21 +31,50 @@ export type ResponsePlan = {
 
 const plan: ResponsePlan = { status: 200, body: "complete" };
 let received = 0;
+let receivedBody = "";
+let receivedHeaders = new Headers();
 
 /** Set what the server answers next and forget earlier requests. */
 export function planResponse(next: ResponsePlan): void {
   plan.status = next.status;
   plan.body = next.body;
   received = 0;
+  receivedBody = "";
+  receivedHeaders = new Headers();
 }
 
 export function requestCount(): number {
   return received;
 }
 
-function handle(request: IncomingMessage, response: ServerResponse): void {
+export function requestBody(): string {
+  return receivedBody;
+}
+
+export function requestHeaders(): Headers {
+  return new Headers(receivedHeaders);
+}
+
+async function handle(
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> {
   received += 1;
-  request.resume();
+  const headerEntries: [string, string][] = [];
+  for (const [name, value] of Object.entries(request.headers)) {
+    if (value !== undefined) {
+      headerEntries.push([
+        name,
+        Array.isArray(value) ? value.join(", ") : value,
+      ]);
+    }
+  }
+  receivedHeaders = new Headers(headerEntries);
+  const chunks: Buffer[] = [];
+  for await (const chunk of request) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  receivedBody = Buffer.concat(chunks).toString("utf8");
   const body = JSON.stringify(
     plan.status >= 200 && plan.status < 300
       ? { customer_id: "customer-1", value: 1, balance: null }
