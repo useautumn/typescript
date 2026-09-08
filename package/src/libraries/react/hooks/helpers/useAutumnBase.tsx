@@ -8,8 +8,7 @@ import type {
 } from "@sdk";
 import type { AttachResult } from "@sdk/general/attachTypes";
 import type { AutumnContextParams } from "@/AutumnContext";
-import type { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
-import type { AutumnClient } from "@/client/ReactAutumnClient";
+import type { IAutumnClient } from "@/client/ReactAutumnClient";
 import type {
 	AttachParams,
 	CheckoutParams,
@@ -30,7 +29,7 @@ export const useAutumnBase = ({
 }: {
 	// AutumnContext: React.Context<AutumnContextParams>;
 	context?: AutumnContextParams;
-	client: AutumnClient | ConvexAutumnClient;
+	client: IAutumnClient;
 	refetchCustomer?: () => Promise<any>;
 }) => {
 	const { attachDialog, paywallDialog } = context || {};

@@ -6,13 +6,15 @@
   subset.
 - Add one-shot generated mutation actions that dispatch their request once and
   never retry an ambiguous outcome. Every generated action resolves to the
-  native camelCase result type of its operation.
+  native camelCase result type of its operation. A valid HTTP 202 track response
+  is accepted work and returns successfully without being sent again; other 202
+  mutation responses remain indeterminate.
 - Register every provider mutation as a Convex internal action through
-  `autumn.internalApi()`, leaving only restricted previews, the portal session
-  and reads of the identified customer, its entities, its events and the plan
-  catalog on the public `autumn.api()` surface. Generated public actions omit
-  billing operator controls retained by direct server methods, including the
-  billing portal configuration ID.
+  `autumn.internalApi()`, leaving only restricted previews and reads of the
+  identified customer, its entities, its events and the plan catalog on the
+  public `autumn.api()` surface. Portal session creation remains a trusted direct
+  method for application-owned actions that enforce billing authorization and
+  construct an allowlisted return URL.
 - Split `check` into a read-only operation with no `sendEvent` or `operationId`
   and a balance-consuming `consumeCheck`.
 - Validate every result with Convex's own value encoder before it is returned,

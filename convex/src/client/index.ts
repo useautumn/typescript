@@ -46,7 +46,6 @@ import {
   type ListPlansArgs as ListPlansArgsType,
   type MultiAttachArgs as MultiAttachArgsType,
   type MultiUpdateArgs as MultiUpdateArgsType,
-  PublicBillingPortalArgs,
   PublicPreviewAttachArgs,
   type PreviewAttachArgs as PreviewAttachArgsType,
   PublicPreviewMultiAttachArgs,
@@ -473,10 +472,11 @@ export class Autumn<Context = unknown> {
    * Run one provider mutation as an internal Convex action.
    *
    * The action is one shot. It sends the request once and reports what it saw;
-   * an ambiguous outcome such as HTTP 202, HTTP 409, an HTTP 5xx, a timeout or a
-   * dropped connection becomes an `AUTUMN_INDETERMINATE` error and stays there.
-   * Deciding what to do about it needs the state Autumn holds, which is why
-   * nothing here retries, schedules or records an attempt of its own.
+   * an ambiguous outcome such as HTTP 409, an HTTP 5xx, a timeout or a dropped
+   * connection becomes an `AUTUMN_INDETERMINATE` error and stays there. A valid
+   * HTTP 202 track result is Autumn's accepted response and returns successfully;
+   * every other 202 stays indeterminate. Nothing here retries, schedules or
+   * records an attempt of its own.
    */
   private async generated<
     Args extends InternalMutationArgs,
@@ -847,14 +847,16 @@ export class Autumn<Context = unknown> {
    * The public surface fails closed: an operation belongs here only when it
    * cannot change provider state. Every one of these reaches Autumn through
    * {@link Autumn.read}, which never derives a provider idempotency key, and
-   * every route it can reach is a preview, a portal session, or a read of the
-   * identified customer, its entities, its events, or the plan catalog.
+   * every route it can reach is a preview or a read of the identified customer,
+   * its entities, its events, or the plan catalog.
    *
    * Every provider mutation, including a balance-consuming check, lives in
    * {@link Autumn.internalApi}. Billing arguments carry operator controls such
    * as `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
-   * `subscriptionParams`, `recalculateBalances`, `carryOverUsages` and the portal
-   * `configurationId`, so no client may reach them.
+   * `subscriptionParams`, `recalculateBalances` and `carryOverUsages`, so no
+   * client may reach them. Portal session creation stays a trusted direct method:
+   * an application-owned public action must make its own billing authorization
+   * decision and construct the return URL before calling it.
    */
   api() {
     return {
@@ -898,14 +900,6 @@ export class Autumn<Context = unknown> {
             "billing.previewMultiUpdate",
             async () =>
               await this.billing.previewMultiUpdate(ctx as Context, args)
-          ),
-      }),
-      billingPortal: actionGeneric({
-        args: PublicBillingPortalArgs,
-        handler: async (ctx, args) =>
-          await this.actionResult(
-            "billing.portal",
-            async () => await this.billing.portal(ctx as Context, args)
           ),
       }),
       getCustomer: actionGeneric({

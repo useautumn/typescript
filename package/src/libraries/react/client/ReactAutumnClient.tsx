@@ -78,7 +78,7 @@ export interface IAutumnClient {
 		},
 	): AutumnPromise<ExpandedCustomer<T>>;
 
-	// HTTP methods (stubbed for Convex)
+	// HTTP methods
 	detectCors(): Promise<{
 		valid: boolean;
 		includeCredentials: boolean | undefined;

@@ -33,8 +33,9 @@ Create the client in `convex/autumn.ts`:
 
 ```ts
 import { Autumn } from "@useautumn/convex";
+import { v } from "convex/values";
 import { components } from "./_generated/api";
-import type { ActionCtx } from "./_generated/server";
+import { action, type ActionCtx } from "./_generated/server";
 
 export const autumn = new Autumn<ActionCtx>(components.autumn, {
   secretKey: process.env.AUTUMN_SECRET_KEY,
@@ -63,7 +64,6 @@ export const {
   previewMultiAttach,
   previewUpdate,
   previewMultiUpdate,
-  billingPortal,
   getCustomer,
   getEntity,
   listEntities,
@@ -91,6 +91,25 @@ export const {
   createReferralCode,
   redeemReferralCode,
 } = autumn.internalApi();
+
+const APP_ORIGIN = "https://app.example.com";
+
+export const openBillingPortal = action({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Sign in to manage billing.");
+    if (identity.role !== "billing_admin") {
+      throw new Error("You are not allowed to manage billing.");
+    }
+
+    const portal = await autumn.billing.portal(ctx, {
+      returnUrl: new URL("/settings/billing", APP_ORIGIN).toString(),
+    });
+    return portal.url;
+  },
+});
 ```
 
 Public actions and direct methods never accept a customer ID in their arguments.
@@ -115,17 +134,21 @@ them is sent in readable form.
 
 ## Public and internal actions
 
-The generated surface fails closed. `autumn.api()` returns public Convex actions
-that reach only their allowlisted public routes. `check`, previews, and customer,
-entity, and event reads use the customer resolved by `identify(ctx)`. `getPlan`
-reads the global plan catalog without a customer. `listPlans` sends the customer
-resolved by `identify(ctx)`, so its response carries that customer's eligibility
-and the call fails when no customer resolves. `billingPortal` also uses the
-resolved customer and is the explicit provider-session-creation exception
-to read-only behavior. It sends `POST /v1/billing.open_customer_portal` to create
-the session, but does not itself mutate subscriptions, balances, usage, entities,
-or customer records. Every provider billing or data mutation is in
-`autumn.internalApi()`, which registers it with Convex `internalActionGeneric`.
+The generated surface fails closed. `autumn.api()` returns 12 public Convex
+actions that reach only their allowlisted read and preview routes. `check`,
+previews, and customer, entity, and event reads use the customer resolved by
+`identify(ctx)`. `getPlan` reads the global plan catalog without a customer.
+`listPlans` sends the customer resolved by `identify(ctx)`, so its response
+carries that customer's eligibility and the call fails when no customer
+resolves. Every provider billing or data mutation is in `autumn.internalApi()`,
+which registers it with Convex `internalActionGeneric`.
+
+Portal session creation is absent from `autumn.api()`. Authentication alone does
+not establish permission to manage billing. Expose an application-owned public
+action only after it enforces the application's billing role, lets
+`identify(ctx)` determine the customer on the server, and constructs the return
+URL from an allowlisted application origin. The example above accepts neither a
+browser-supplied customer ID nor a browser-supplied return URL.
 
 Never move a name between the two export blocks. Visibility is decided by the
 builder that registered the action, so exporting a mutation from the public
@@ -134,11 +157,11 @@ block would publish it under `api.<module>.<name>` and let any client call it.
 Direct billing methods accept operator controls such as `invoiceMode`,
 `noBillingChanges`, `enablePlanImmediately`, `refundLastPayment`,
 `subscriptionParams`, `recalculateBalances`, `carryOverUsages` and the portal
-`configurationId`. Generated public actions omit those fields. Provider
-mutations including `attach`, `multiAttach`, `updateSubscription`, `multiUpdate`
-and `setupPayment` are internal. `track` is internal because a negative `value`
-can return balance to the customer. `updateBalance` is separately internal
-because it directly changes a balance or its grant configuration.
+`configurationId`. Provider mutations including `attach`, `multiAttach`,
+`updateSubscription`, `multiUpdate` and `setupPayment` are internal. `track` is
+internal because a negative `value` can return balance to the customer.
+`updateBalance` is separately internal because it directly changes a balance or
+its grant configuration.
 
 Public `check` is read-only by construction. Its validator has no `sendEvent`
 and no `operationId`, so it cannot consume balance. Use the internal
@@ -216,9 +239,12 @@ reaches Autumn's duplicate rejection instead of performing a second mutation
 nobody asked for.
 
 `autumn.check` is read-only and takes no `operationId`. `autumn.consumeCheck`
-records the usage event and requires one. HTTP 202, malformed success JSON and an
-unreadable body under HTTP 2xx, 409 or 5xx throw `AutumnIndeterminateError`
-instead of returning a fail-open response.
+records the usage event and requires one. A valid HTTP 202 result from
+`autumn.track` means Autumn accepted the usage event for processing, which may
+finish later. Treat that return as success and never send the event again. Every
+other HTTP 202, malformed success JSON, and an unreadable body under HTTP 2xx,
+409 or 5xx throw `AutumnIndeterminateError` instead of returning a fail-open
+response.
 
 ## Duplicate suppression and its limits
 
@@ -233,8 +259,11 @@ For generated actions, read that as duplicate suppression, never as durable
 recovery or exactly-once execution:
 
 - An outcome the package cannot read is reported as `AUTUMN_INDETERMINATE` and
-  left there. HTTP 202, HTTP 409, HTTP 5xx, malformed success responses, network
-  failures, timeouts and aborts all land here.
+  left there. HTTP 409, HTTP 5xx, malformed success responses, network failures,
+  timeouts and aborts all land here. HTTP 202 also lands here for every operation
+  except a valid track response.
+- A valid HTTP 202 track response is accepted work. It returns successfully and
+  must not be retried, even when Autumn completes its processing later.
 - Nothing is retried, in place or on a schedule. HTTP 429 also fails closed
   without an automatic retry. Whether an ambiguous operation took effect is
   knowable only from Autumn, so the decision belongs to the caller.
@@ -244,9 +273,10 @@ recovery or exactly-once execution:
 - Reconcile an indeterminate operation by reading the customer's state back from
   Autumn before deciding to send it again.
 
-Direct methods differ: HTTP 202, malformed success JSON and an unreadable body
-under HTTP 2xx, 409 or 5xx become `AutumnIndeterminateError`; the other failures
-above remain native SDK errors.
+Direct methods differ: a valid HTTP 202 track response returns successfully.
+Every other HTTP 202, malformed success JSON, and an unreadable body under HTTP
+2xx, 409 or 5xx become `AutumnIndeterminateError`; the other failures above
+remain native SDK errors.
 
 Generated action errors are `ConvexError` values whose data contains only:
 
@@ -293,9 +323,10 @@ boundary.
 ## Supported methods
 
 Every internal action additionally requires the trusted `customerId` described
-above. Direct billing methods accept the complete supported SDK subset, while
-the generated public actions omit billing operator controls. Anywhere in a
-request, including inside a class instance, `bigint`, `ArrayBuffer`, `NaN` and
+above. Direct billing methods accept the complete supported SDK subset. The
+generated public actions omit billing operator controls and portal session
+creation. Anywhere in a request, including inside a class instance, `bigint`,
+`ArrayBuffer`, `NaN` and
 infinite numbers are rejected because Autumn cannot receive them faithfully.
 `BigInt64Array` and `BigUint64Array` values are rejected too, since every element
 of either view is a `bigint`. Other typed arrays are deliberately left to the
@@ -325,7 +356,7 @@ even though the SDK drops that field before sending the request, so `bigint`,
 | `billing.previewMultiUpdate` | `previewMultiUpdate`  | public     | plan-aware subscription cancellation updates                                                                       |
 | `billing.multiUpdate`        | `multiUpdate`         | internal   | same supported shape as preview multi-update                                                                       |
 | `billing.setupPayment`       | `setupPayment`        | internal   | plan, entity, feature quantities, checkout settings, currency                                                      |
-| `billing.portal`             | `billingPortal`       | public     | return URL; direct method also accepts configuration ID                                                            |
+| `billing.portal`             | none                  | direct     | return URL and configuration ID; expose through an app-owned authorized action                                     |
 | `customers.get`              | `getCustomer`         | public     | expand                                                                                                             |
 | `customers.getOrCreate`      | `getOrCreateCustomer` | internal   | identity fields, metadata, processor ID, currency, expand                                                          |
 | `customers.update`           | `updateCustomer`      | internal   | identity fields, metadata, processor ID, currency                                                                  |

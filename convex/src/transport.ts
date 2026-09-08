@@ -206,7 +206,9 @@ export async function invokeNative<T>(
   validateJsonRequest(operation, request);
   try {
     const result = await invoke(call.sdk, call.requestOptions);
-    if (call.status() === 202) {
+    // Track defines a parsed 202 as accepted work that clients must not resend.
+    // No other operation in the pinned SDK gives 202 that definitive meaning.
+    if (call.status() === 202 && operation !== "track") {
       throw new AutumnIndeterminateError(operation, 202);
     }
     return result;

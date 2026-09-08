@@ -6,6 +6,7 @@ type ExampleIdentity = {
   tokenIdentifier: string;
   name: string;
   email: string;
+  role?: string;
 };
 
 type AutumnOptions = {
@@ -20,9 +21,14 @@ type AutumnOptions = {
 const autumnMock = vi.hoisted(
   (): {
     constructorOptions: AutumnOptions | undefined;
+    portal: ReturnType<typeof vi.fn>;
     trackReference: symbol;
   } => ({
     constructorOptions: undefined,
+    portal: vi.fn(async () => ({
+      customerId: "customer-1",
+      url: "https://portal.example/session",
+    })),
     trackReference: Symbol("internal.autumn.track"),
   })
 );
@@ -32,6 +38,8 @@ vi.mock("@useautumn/convex", () => ({
     constructor(_component: unknown, options: AutumnOptions) {
       autumnMock.constructorOptions = options;
     }
+
+    billing = { portal: autumnMock.portal };
 
     api(): Record<string, never> {
       return {};
@@ -47,6 +55,17 @@ vi.mock("./_generated/api.js", () => ({
   components: { autumn: {} },
   internal: { autumn: { track: autumnMock.trackReference } },
 }));
+
+type ExamplePortalAction = {
+  _handler: (
+    ctx: {
+      auth: {
+        getUserIdentity: () => Promise<{ role?: string } | null>;
+      };
+    },
+    args: Record<string, never>
+  ) => Promise<string>;
+};
 
 type ExampleMutation = {
   _handler: (
@@ -64,6 +83,48 @@ type ExampleMutation = {
     args: { count: number }
   ) => Promise<unknown>;
 };
+
+describe("billing portal example", () => {
+  test("authorizes billing and constructs the return URL on the server", async () => {
+    const { openBillingPortal } = await import("./autumn.js");
+    const action = openBillingPortal as unknown as ExamplePortalAction;
+    const ctx = {
+      auth: {
+        getUserIdentity: async () => ({ role: "billing_admin" }),
+      },
+    };
+    autumnMock.portal.mockClear();
+
+    await expect(action._handler(ctx, {})).resolves.toBe(
+      "https://portal.example/session"
+    );
+    expect(autumnMock.portal).toHaveBeenCalledOnce();
+    expect(autumnMock.portal).toHaveBeenCalledWith(ctx, {
+      returnUrl: "https://app.example.com/settings/billing",
+    });
+  });
+
+  test.each([
+    ["anonymous", null, "Sign in to manage billing."],
+    [
+      "unauthorized",
+      { role: "member" },
+      "You are not allowed to manage billing.",
+    ],
+  ])(
+    "rejects an %s caller before portal creation",
+    async (_name, identity, message) => {
+      const { openBillingPortal } = await import("./autumn.js");
+      const action = openBillingPortal as unknown as ExamplePortalAction;
+      autumnMock.portal.mockClear();
+
+      await expect(
+        action._handler({ auth: { getUserIdentity: async () => identity } }, {})
+      ).rejects.toThrow(message);
+      expect(autumnMock.portal).not.toHaveBeenCalled();
+    }
+  );
+});
 
 describe("scheduled usage example", () => {
   test("uses the token identifier for customer identity and usage", async () => {

@@ -18,7 +18,6 @@ export const {
   previewMultiAttach,
   previewUpdate,
   previewMultiUpdate,
-  billingPortal,
   getCustomer,
   getEntity,
   listEntities,

@@ -458,14 +458,55 @@ describe("generated mutation actions", () => {
     expect(new Set(keys).size).toBe(1);
   });
 
-  test.each([202, 409, 500])(
+  test("returns an accepted HTTP 202 track response without resending", async () => {
+    const fetcher = vi.fn(async () => response(trackResponse(3), 202));
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    await expect(
+      t.action(track, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        value: 3,
+        operationId: "accepted-202",
+      })
+    ).resolves.toEqual({
+      customerId: CUSTOMER_ID,
+      value: 3,
+      balance: null,
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
+
+  test("keeps HTTP 202 non-track mutations indeterminate", async () => {
+    const fetcher = vi.fn(async () => response({ success: true }, 202));
+    vi.stubGlobal("fetch", fetcher);
+    const t = initConvexTest(defineSchema({}));
+
+    const caught = await t
+      .action(updateBalance, {
+        customerId: CUSTOMER_ID,
+        featureId: "messages",
+        addToBalance: 1,
+        operationId: "indeterminate-balance-202",
+      })
+      .catch((error) => error);
+
+    expect(errorData(caught)).toMatchObject({
+      code: "AUTUMN_INDETERMINATE",
+      operation: "balances.update",
+      statusCode: 202,
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(await scheduledFunctions(t)).toEqual([]);
+  });
+
+  test.each([409, 500])(
     "reports HTTP %s as indeterminate without a second attempt",
     async (status) => {
       const fetcher = vi.fn(async () =>
-        response(
-          status === 202 ? trackResponse() : { message: "failure" },
-          status
-        )
+        response({ message: "failure" }, status)
       );
       vi.stubGlobal("fetch", fetcher);
       const t = initConvexTest(defineSchema({}));

@@ -15,8 +15,7 @@ import { initConvexTest, response } from "./setup.test.js";
 
 /**
  * Every public action, with arguments that reach transport, and the single
- * Autumn route it is allowed to call. `billingPortal` creates a provider-side
- * session, but remains bounded to its allowlisted route.
+ * Autumn route it is allowed to call.
  */
 const ALLOWLISTED_PUBLIC_ROUTES: Array<
   [string, Record<string, unknown>, string]
@@ -34,7 +33,6 @@ const ALLOWLISTED_PUBLIC_ROUTES: Array<
     { updates: [{ planId: "pro", cancelAction: "cancel_immediately" }] },
     "/v1/billing.preview_multi_update",
   ],
-  ["billingPortal", {}, "/v1/billing.open_customer_portal"],
   ["getCustomer", {}, "/v1/customers.get"],
   ["getEntity", { entityId: "seat-1" }, "/v1/entities.get"],
   ["listEntities", {}, "/v1/entities.list"],
@@ -87,7 +85,6 @@ const PUBLIC_OPERATOR_CONTROLS: Array<[string, Record<string, unknown>]> = [
       subscriptionParams: { payment_behavior: "pending_if_incomplete" },
     },
   ],
-  ["billingPortal", { configurationId: "bpc_operator" }],
 ];
 
 /**
@@ -227,6 +224,9 @@ type _MutationsAreInternal = Assert<
 type _MutationsAreNotPublic = Assert<
   Equal<Extract<keyof PublicApi, ProviderMutation>, never>
 >;
+type _BillingPortalIsNotPublic = Assert<
+  Equal<Extract<keyof PublicApi, "billingPortal">, never>
+>;
 type _PublicApiContainsOnlyAllowlistedActions = Assert<
   Equal<
     keyof PublicApi,
@@ -235,7 +235,6 @@ type _PublicApiContainsOnlyAllowlistedActions = Assert<
     | "previewMultiAttach"
     | "previewUpdate"
     | "previewMultiUpdate"
-    | "billingPortal"
     | "getCustomer"
     | "getEntity"
     | "listEntities"
@@ -315,13 +314,6 @@ type _PublicMultiUpdateRejectsOperatorControls = Assert<
     never
   >
 >;
-type _PublicBillingPortalRejectsConfigurationId = Assert<
-  Equal<
-    Extract<keyof ActionArgs<PublicApi["billingPortal"]>, "configurationId">,
-    never
-  >
->;
-
 type _PublicActionsRejectCustomerId = Assert<
   Equal<AcceptsCustomerId<ActionArgs<PublicApi[keyof PublicApi]>>, false>
 >;
@@ -388,9 +380,15 @@ afterEach(() => {
 
 describe("generated action surface", () => {
   test("classifies every generated action exactly once", () => {
+    expect(publicActionNames).toHaveLength(12);
+    expect(internalMutationNames).toHaveLength(16);
     expect(new Set(Object.keys(autumnActions))).toEqual(
       new Set([...publicActionNames, ...internalMutationNames])
     );
+  });
+
+  test("does not publish a generic billing portal action", () => {
+    expect(autumnActions).not.toHaveProperty("billingPortal");
   });
 
   test.each(internalMutationNames)(

@@ -32,7 +32,6 @@ export const {
   previewMultiAttach,
   previewUpdate,
   previewMultiUpdate,
-  billingPortal,
   getCustomer,
   getEntity,
   listEntities,
@@ -60,6 +59,31 @@ export const {
   createReferralCode,
   redeemReferralCode,
 } = autumn.internalApi();
+
+const APP_ORIGIN = "https://app.example.com";
+
+/**
+ * Portal creation is application-owned because authentication alone does not
+ * establish a billing role. The browser supplies neither the customer nor the
+ * return URL: this action authorizes the role, `identify(ctx)` resolves the
+ * customer, and the application constructs an allowlisted destination.
+ */
+export const openBillingPortal = action({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Sign in to manage billing.");
+    if (identity.role !== "billing_admin") {
+      throw new Error("You are not allowed to manage billing.");
+    }
+
+    const portal = await autumn.billing.portal(ctx, {
+      returnUrl: new URL("/settings/billing", APP_ORIGIN).toString(),
+    });
+    return portal.url;
+  },
+});
 
 /** Results keep the native camelCase fields, so no caller assertion is needed. */
 export const messagesAllowed = action({

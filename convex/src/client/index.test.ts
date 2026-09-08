@@ -730,7 +730,46 @@ describe("Autumn native transport", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
-  test("makes HTTP 202 observable without retrying", async () => {
+  test("returns an accepted HTTP 202 track response without retrying", async () => {
+    const fetcher = vi.fn(async () =>
+      response(
+        {
+          customer_id: "customer-1",
+          value: 2,
+          balance: null,
+        },
+        202
+      )
+    );
+
+    await expect(
+      client(fetcher).track(null, {
+        featureId: "messages",
+        value: 2,
+        operationId: "accepted-202",
+      })
+    ).resolves.toEqual({
+      customerId: "customer-1",
+      value: 2,
+      balance: null,
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test("keeps HTTP 202 non-track mutations indeterminate", async () => {
+    const fetcher = vi.fn(async () => response({ success: true }, 202));
+
+    await expect(
+      client(fetcher).balances.update(null, {
+        featureId: "messages",
+        addToBalance: 1,
+        operationId: "indeterminate-balance-202",
+      })
+    ).rejects.toBeInstanceOf(AutumnIndeterminateError);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  test("makes a read-only HTTP 202 observable without retrying", async () => {
     const fetcher = vi.fn(async () =>
       response(
         {
