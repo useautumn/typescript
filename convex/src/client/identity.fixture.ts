@@ -1,18 +1,48 @@
 import { componentsGeneric } from "convex/server";
 import { ConvexError } from "convex/values";
+import {
+  AutumnError,
+  ConnectionError,
+  RequestAbortedError,
+  RequestTimeoutError,
+  ResponseValidationError,
+  SDKValidationError,
+  UnexpectedClientError,
+} from "autumn-js";
+import { AutumnIndeterminateError } from "../errors.js";
 import { Autumn, type AutumnComponent } from "./index.js";
 
 const components = componentsGeneric() as unknown as {
   autumn: AutumnComponent;
 };
 
+function checkForIdentifyError(error: Error, operationNamespace: string) {
+  const client = new Autumn(components.autumn, {
+    secretKey: "test-secret-key",
+    serverURL: "https://example.test",
+    operationNamespace,
+    identify: async () => {
+      throw error;
+    },
+  });
+  return client.api().check;
+}
+
+function httpMetadata(status: number) {
+  return {
+    response: new Response("provider failure", { status }),
+    request: new Request("https://example.test/v1/check"),
+    body: "provider failure",
+  };
+}
+
 /**
  * A client whose `identify(ctx)` fails with a status-bearing error.
  *
  * Consumer code reaches this shape whenever identification consults a service of
  * its own: the failure carries that service's status, and Autumn never sent it.
- * `identify(ctx)` runs inside the region a generated action classifies, so this
- * is where a status read off any error at all would be attributed to Autumn.
+ * The callback boundary has to remove that status before the generated action
+ * classifies provider and transport errors.
  */
 const unidentified = new Autumn(components.autumn, {
   secretKey: "test-secret-key",
@@ -54,6 +84,48 @@ const foreignTimeout = new Autumn(components.autumn, {
 });
 
 export const { check: checkForeignTimeout } = foreignTimeout.api();
+
+export const checkIndeterminate = checkForIdentifyError(
+  new AutumnIndeterminateError("check", 503),
+  "identity-fixture-indeterminate"
+);
+export const checkAutumnError = checkForIdentifyError(
+  new AutumnError("provider failure", httpMetadata(503)),
+  "identity-fixture-autumn-error"
+);
+export const checkConnectionError = checkForIdentifyError(
+  new ConnectionError("connection failed"),
+  "identity-fixture-connection-error"
+);
+export const checkUnexpectedClientError = checkForIdentifyError(
+  new UnexpectedClientError("unexpected client failure"),
+  "identity-fixture-unexpected-error"
+);
+export const checkRequestTimeoutError = checkForIdentifyError(
+  new RequestTimeoutError("request timed out"),
+  "identity-fixture-request-timeout"
+);
+export const checkRequestAbortedError = checkForIdentifyError(
+  new RequestAbortedError("request aborted"),
+  "identity-fixture-request-aborted"
+);
+export const checkSdkValidationError = checkForIdentifyError(
+  new SDKValidationError(
+    "request validation failed",
+    new Error("validation cause"),
+    { private: "identity input" }
+  ),
+  "identity-fixture-sdk-validation"
+);
+export const checkResponseValidationError = checkForIdentifyError(
+  new ResponseValidationError("response validation failed", {
+    ...httpMetadata(503),
+    cause: new Error("validation cause"),
+    rawValue: { private: "identity response" },
+    rawMessage: "invalid identity response",
+  }),
+  "identity-fixture-response-validation"
+);
 
 /** The data the rejecting `identify(ctx)` below sends to its caller. */
 export const IDENTIFY_REJECTION = {

@@ -832,12 +832,18 @@ describe("Autumn native transport", () => {
       fetcher,
     });
 
-    await expect(
-      autumn.track(null, {
+    const caught = await autumn
+      .track(null, {
         featureId: "messages",
         operationId: "identify-failure",
       })
-    ).rejects.toBe(identificationError);
+      .catch((error) => error);
+
+    expect(caught).toBeInstanceOf(Error);
+    expect(caught).not.toBe(identificationError);
+    expect((caught as Error).message).toBe(
+      "Customer identification failed before the request was sent."
+    );
     expect(fetcher).not.toHaveBeenCalled();
   });
 

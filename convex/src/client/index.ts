@@ -109,6 +109,13 @@ type NativeCall<T> = (
 type MutationArgs = { operationId: string };
 type InternalMutationArgs = MutationArgs & { customerId: string };
 
+class IdentifyPreDispatchError extends Error {
+  constructor() {
+    super("Customer identification failed before the request was sent.");
+    this.name = "IdentifyPreDispatchError";
+  }
+}
+
 function withoutOperationId<T extends MutationArgs>(
   args: T
 ): Omit<T, "operationId"> {
@@ -297,6 +304,13 @@ function safeError(
       message: error.message,
     };
   }
+  if (error instanceof IdentifyPreDispatchError) {
+    return {
+      code: "AUTUMN_REQUEST_FAILED",
+      operation,
+      message: error.message,
+    };
+  }
   // The SDK's own schema check rejected the request before any connection was
   // opened. The SDK's message embeds the offending value, so it is replaced
   // rather than passed through.
@@ -345,7 +359,13 @@ export class Autumn<Context = unknown> {
   }
 
   private async identify(ctx: Context): Promise<Identifier> {
-    const identifier = await this.options.identify(ctx);
+    let identifier: Identifier | null;
+    try {
+      identifier = await this.options.identify(ctx);
+    } catch (error) {
+      if (error instanceof ConvexError) throw error;
+      throw new IdentifyPreDispatchError();
+    }
     if (!identifier?.customerId) {
       throw new AutumnConfigurationError(
         "Autumn identify(ctx) must return a customerId."

@@ -234,12 +234,9 @@ export async function invokeNative<T>(
  * response was ever received.
  *
  * Only the SDK's own response error and this package's own errors are read, so
- * no status is ever inferred from an error neither of them created. A generated
- * action classifies everything raised inside it, including a failure of the
- * caller's `identify(ctx)`; that failure carries the status of whatever service
- * identification consulted, and reading it here applied the ambiguity rules to a
- * request Autumn never saw, reporting an indeterminate outcome for an operation
- * that never existed.
+ * no status is ever inferred from an error neither of them created. The caller's
+ * `identify(ctx)` runs behind a pre-dispatch boundary that normalizes its other
+ * failures before generated actions classify provider and transport errors.
  *
  * `AutumnError` is the SDK's base for the errors it raises from a response it
  * received. Its client errors sit outside that hierarchy and carry no status of
@@ -287,11 +284,8 @@ export function isRequestRejectedLocally(error: unknown): boolean {
  * `UnexpectedClientError`, `RequestTimeoutError` and `RequestAbortedError` are
  * Speakeasy's standard generated names and Autumn's SDK is Speakeasy-generated,
  * so every other Speakeasy-generated SDK raises errors carrying exactly them,
- * and anything at all can set `name`. A generated action classifies everything
- * raised inside it, including a failure of the caller's `identify(ctx)`: matched
- * by name, an identity service's own timeout reported an indeterminate Autumn
- * operation for a request that was never created. All four derive from the
- * SDK's exported `HTTPClientError`, which overrides no `Symbol.hasInstance`
+ * and anything at all can set `name`. All four derive from the SDK's exported
+ * `HTTPClientError`, which overrides no `Symbol.hasInstance`
  * (measured against autumn-js 1.2.55), so `instanceof` answers for the SDK that
  * raised the error.
  *

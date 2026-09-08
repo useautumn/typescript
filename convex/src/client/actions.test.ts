@@ -28,6 +28,24 @@ const checkForeignTimeout = makeFunctionReference<"action", CheckArgs, unknown>(
 const checkRejected = makeFunctionReference<"action", CheckArgs, unknown>(
   "identity.fixture:checkRejected"
 );
+const classifiedIdentifyFailures = [
+  ["an AutumnIndeterminateError", "checkIndeterminate"],
+  ["an AutumnError", "checkAutumnError"],
+  ["a ConnectionError", "checkConnectionError"],
+  ["an UnexpectedClientError", "checkUnexpectedClientError"],
+  ["a RequestTimeoutError", "checkRequestTimeoutError"],
+  ["a RequestAbortedError", "checkRequestAbortedError"],
+  ["an SDKValidationError", "checkSdkValidationError"],
+  ["a ResponseValidationError", "checkResponseValidationError"],
+].map(
+  ([description, name]) =>
+    [
+      description,
+      makeFunctionReference<"action", CheckArgs, unknown>(
+        `identity.fixture:${name}`
+      ),
+    ] as const
+);
 const consumeCheck = makeFunctionReference<
   "action",
   InternalConsumeCheckArgs,
@@ -185,11 +203,9 @@ describe("generated mutation actions", () => {
   });
 
   /**
-   * `identify(ctx)` runs inside the classified region, so a failure it raises is
-   * classified as an Autumn outcome. Its `statusCode` belongs to whatever
-   * service identification consulted, and reading it here would report
-   * `AUTUMN_INDETERMINATE` for an operation that never existed, telling an
-   * operator to reconcile provider state against a request Autumn never saw.
+   * A status on an identification failure belongs to whatever service the
+   * callback consulted. The pre-dispatch boundary removes it before the action
+   * can attribute that status to Autumn.
    */
   test("does not read a status off an error this package did not create", async () => {
     const fetcher = vi.fn();
@@ -203,18 +219,14 @@ describe("generated mutation actions", () => {
     expect(errorData(caught)).toEqual({
       code: "AUTUMN_REQUEST_FAILED",
       operation: "check",
-      message: "Autumn rejected the request.",
+      message: "Customer identification failed before the request was sent.",
     });
     expect(fetcher).not.toHaveBeenCalled();
   });
 
   /**
-   * The same region classifies an error merely named like a transport failure.
-   * Those four names are Speakeasy's standard generated ones and Autumn's SDK
-   * is Speakeasy-generated, so any other such SDK identification consults
-   * raises errors carrying them. Autumn never sent a request here, so telling
-   * the caller the operation may have been applied would send an operator to
-   * reconcile provider state that was never touched.
+   * Error names establish nothing about which SDK raised one. A foreign error
+   * named like an Autumn transport failure is normalized at the same boundary.
    */
   test("does not read a transport failure off a foreign error of the same name", async () => {
     const fetcher = vi.fn();
@@ -228,10 +240,30 @@ describe("generated mutation actions", () => {
     expect(errorData(caught)).toEqual({
       code: "AUTUMN_REQUEST_FAILED",
       operation: "check",
-      message: "Autumn rejected the request.",
+      message: "Customer identification failed before the request was sent.",
     });
     expect(fetcher).not.toHaveBeenCalled();
   });
+
+  test.each(classifiedIdentifyFailures)(
+    "normalizes %s from identify before provider classification",
+    async (_description, action) => {
+      const fetcher = vi.fn();
+      vi.stubGlobal("fetch", fetcher);
+      const t = initConvexTest(defineSchema({}));
+
+      const caught = await t
+        .action(action, { featureId: "messages" })
+        .catch((error) => error);
+
+      expect(errorData(caught)).toEqual({
+        code: "AUTUMN_REQUEST_FAILED",
+        operation: "check",
+        message: "Customer identification failed before the request was sent.",
+      });
+      expect(fetcher).not.toHaveBeenCalled();
+    }
+  );
 
   /**
    * A `ConvexError` is how a Convex function sends structured data to its

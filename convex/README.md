@@ -266,10 +266,12 @@ does not, such as a fractional `timestamp` where an integer is required. The
 SDK's own message is not passed through, since it can embed the offending value.
 Direct methods are unaffected and keep throwing the native SDK error.
 
-A `ConvexError` thrown by `identify(ctx)` passes through unchanged. Any other
-error it throws is reported as `AUTUMN_REQUEST_FAILED` with no `statusCode`, even
-when it carries one: that status belongs to whatever service identification
-consulted, and the operation never reached Autumn. One thrown by a custom
+A `ConvexError` thrown by `identify(ctx)` passes through unchanged. Every other
+error it throws is normalized before provider and transport errors are
+classified, then reported as `AUTUMN_REQUEST_FAILED` with no `statusCode` and
+`Customer identification failed before the request was sent.` This includes
+errors created by this package or by `autumn-js`: they came from application
+callback code, and the operation never reached Autumn. One thrown by a custom
 `fetcher` does not pass through: the SDK wraps anything the fetcher throws in a
 client error of its own, so it arrives here as a transport failure and is
 reported as `AUTUMN_INDETERMINATE` like any other unreadable outcome.
@@ -294,18 +296,20 @@ Every internal action additionally requires the trusted `customerId` described
 above. Direct billing methods accept the complete supported SDK subset, while
 the generated public actions omit billing operator controls. Anywhere in a
 request, including inside a class instance, `bigint`, `ArrayBuffer`, `NaN` and
-infinite numbers are rejected because Autumn cannot receive them faithfully. A
-`BigInt64Array` or `BigUint64Array` is rejected for the same reason, since every
-element of one is a `bigint`. A request that refers back to itself is rejected
-too, because the SDK stringifies it and a cycle cannot be stringified; a value
-shared by two fields without forming a cycle is accepted. Any other typed array
-is left to the SDK, which sends a `Uint8Array` as base64. Generated actions
-otherwise use their Convex validators. Direct methods retain the native SDK's
-request types and handling of `Date`, `Uint8Array`, class instances and
-`undefined`. Pass only declared fields to a direct method. A value in an
-undeclared field is validated even though the SDK drops that field before
-sending the request, so `bigint`, `ArrayBuffer`, `NaN` or an infinite number
-there rejects the call.
+infinite numbers are rejected because Autumn cannot receive them faithfully.
+`BigInt64Array` and `BigUint64Array` values are rejected too, since every element
+of either view is a `bigint`. Other typed arrays are deliberately left to the
+SDK: it sends a `Uint8Array` as base64 and stringifies the remaining typed arrays
+as index-keyed objects. Non-finite elements inside a `Float32Array` or
+`Float64Array` are therefore accepted and sent as `null`, while bare `NaN` and
+infinite numbers remain rejected. A request that refers back to itself is
+rejected because the SDK cannot stringify a cycle; a value shared by two fields
+without forming a cycle is accepted. Generated actions otherwise use their
+Convex validators. Direct methods retain the native SDK's request types and
+handling of `Date`, `Uint8Array`, class instances and `undefined`. Pass only
+declared fields to a direct method. A value in an undeclared field is validated
+even though the SDK drops that field before sending the request, so `bigint`,
+`ArrayBuffer`, `NaN` or an infinite number there rejects the call.
 
 | Direct method                | Generated action      | Visibility | Supported request fields                                                                                           |
 | ---------------------------- | --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
