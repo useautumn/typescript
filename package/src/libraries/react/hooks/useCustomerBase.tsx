@@ -18,8 +18,7 @@ import type { Success } from "@sdk/response";
 import type React from "react";
 import useSWR, { type SWRConfiguration } from "swr";
 import { type AutumnContextParams, useAutumnContext } from "@/AutumnContext";
-import type { ConvexAutumnClient } from "@/client/ConvexAutumnClient";
-import type { AutumnClient } from "@/client/ReactAutumnClient";
+import type { IAutumnClient } from "@/client/ReactAutumnClient";
 import type {
 	AttachParams,
 	CheckoutParams,
@@ -143,7 +142,7 @@ export const useCustomerBase = <
 }: {
 	params?: UseCustomerParams<T>;
 	AutumnContext?: React.Context<any>;
-	client?: AutumnClient | ConvexAutumnClient;
+	client?: IAutumnClient;
 }): UseCustomerResult<T> => {
 	let context: AutumnContextParams | undefined;
 

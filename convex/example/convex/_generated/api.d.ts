@@ -13,8 +13,11 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as autumn from "../autumn.js";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  autumn: typeof autumn;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

@@ -5,7 +5,7 @@ This repository contains multiple JavaScript/TypeScript packages for working wit
 ### Packages
 
 - **`atmn` (CLI)**: Declare pricing as code and apply changes to your Autumn config via a command-line interface.
-- **`@useautumn/convex` (Convex Component)**: Integrate Autumn into your Convex project and use hooks/components from `autumn-js`.
+- **`@useautumn/convex` (Convex Component)**: Native Autumn bindings for Convex. Framework wrappers and applications expose typed, app-owned public function references after applying their own authorization policy.
 - **`autumn-js` (Main SDK + React + Backend)**:
   - SDK for the Autumn API
   - React hooks and UI components
@@ -24,7 +24,7 @@ npx atmn@latest
 - **Convex component (`@useautumn/convex`)**
 
 ```bash
-npm i @useautumn/convex autumn-js
+npm i @useautumn/convex convex
 ```
 
 - **Main package (`autumn-js`)**

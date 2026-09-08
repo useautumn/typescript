@@ -3,47 +3,51 @@
 ## Running locally
 
 ```sh
-npm i
-npm run dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 ## Testing
 
 ```sh
-npm run clean
-npm ci
-npm run build
-npm run typecheck
-npm run test
-npm run lint
+pnpm install --frozen-lockfile
+pnpm build
+pnpm typecheck
+pnpm test
+pnpm lint
 ```
 
-## Deploying
+`pnpm build` removes `dist` first, so output for a deleted source file can never
+reach a tarball. Run it before `pnpm typecheck`, which also compiles the example
+Convex app in `example/convex` against the built package types.
 
-### Building a one-off package
+## Building a package
 
 ```sh
-npm run clean
-npm run build
-npm pack
+pnpm build
+pnpm pack
 ```
 
-### Deploying a new version
+Inspect the tarball before publishing.
+
+## Publishing a release
+
+Set the deliberate release version in `package.json` and add its changelog entry
+before running the release checks. The release script publishes that manifest
+version without changing it:
 
 ```sh
-# this will change the version and commit it (if you run it in the root directory)
-npm version patch
-npm publish --dry-run
-# sanity check files being included
-npm publish
-git push --tags
+pnpm build
+pnpm typecheck
+pnpm test
+pnpm lint
+pnpm publish --dry-run
+./publish.sh
 ```
 
-#### Alpha release
-
-The same as above, but it requires extra flags so the release is only installed with `@alpha`:
+For a beta release, set the intended prerelease version in `package.json`, then
+publish it under the beta tag:
 
 ```sh
-npm version prerelease --preid alpha
-npm publish --tag alpha
+./publish.sh --tag beta
 ```

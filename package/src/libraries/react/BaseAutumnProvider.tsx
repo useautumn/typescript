@@ -30,10 +30,8 @@ export function BaseAutumnProvider({
 		setProductChangeOpen,
 	] = useDialog(components.productChangeDialog);
 
-	// Always call useCustomerBase, but pass the client as any to avoid type issues
-	// The hook will work with both HTTP and Convex clients
 	useCustomerBase({
-		client: client as any,
+		client,
 		params: { errorOnNotFound: false },
 	});
 

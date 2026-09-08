@@ -1,10 +1,12 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema } from "convex/server";
 
-export default defineSchema({
-  counters: defineTable({
-    name: v.string(),
-    value: v.number(),
-    shard: v.number(),
-  }).index("name", ["name", "shard"]),
-});
+/**
+ * The component stores nothing.
+ *
+ * Autumn owns the state of every operation this package performs, and the
+ * package keeps no copy of it: a mutation is dispatched once per invocation and
+ * carries a provider idempotency key instead of a local record. The component
+ * exists so the client is installed under a Convex component namespace of its
+ * own.
+ */
+export default defineSchema({});

@@ -1,10 +1,10 @@
-#!/bin/bash
-npm login
+#!/usr/bin/env bash
+set -euo pipefail
+
 pnpm build
 
-if [ "$1" = "--tag" ] && [ "$2" = "beta" ]; then
-  npm publish --tag beta --access public
+if [[ "${1:-}" == "--tag" && "${2:-}" == "beta" ]]; then
+  pnpm publish --tag beta --access public
 else
-  npm version patch
-  npm publish --access public
+  pnpm publish --access public
 fi
