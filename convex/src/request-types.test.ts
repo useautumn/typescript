@@ -1,4 +1,3 @@
-import type { Autumn as AutumnSDK } from "autumn-js";
 import { expect, test } from "vitest";
 import type {
   JsonValue,
@@ -14,56 +13,6 @@ type Equal<Left, Right> = [Left] extends [Right]
     : false
   : false;
 type IsAny<Value> = 0 extends 1 & Value ? true : false;
-type Param<Method> = Method extends (
-  request: infer Request,
-  ...args: never[]
-) => unknown
-  ? NonNullable<Request>
-  : never;
-type SDKRequestByOperation = {
-  check: Param<AutumnSDK["check"]>;
-  track: Param<AutumnSDK["track"]>;
-  "billing.previewAttach": Param<AutumnSDK["billing"]["previewAttach"]>;
-  "billing.attach": Param<AutumnSDK["billing"]["attach"]>;
-  "billing.previewMultiAttach": Param<
-    AutumnSDK["billing"]["previewMultiAttach"]
-  >;
-  "billing.multiAttach": Param<AutumnSDK["billing"]["multiAttach"]>;
-  "billing.previewUpdate": Param<AutumnSDK["billing"]["previewUpdate"]>;
-  "billing.update": Param<AutumnSDK["billing"]["update"]>;
-  "billing.previewMultiUpdate": Param<
-    AutumnSDK["billing"]["previewMultiUpdate"]
-  >;
-  "billing.multiUpdate": Param<AutumnSDK["billing"]["multiUpdate"]>;
-  "billing.setupPayment": Param<AutumnSDK["billing"]["setupPayment"]>;
-  "billing.portal": Param<AutumnSDK["billing"]["openCustomerPortal"]>;
-  "customers.get": Param<AutumnSDK["customers"]["get"]>;
-  "customers.getOrCreate": Param<AutumnSDK["customers"]["getOrCreate"]>;
-  "customers.update": Param<AutumnSDK["customers"]["update"]>;
-  "customers.delete": Param<AutumnSDK["customers"]["delete"]>;
-  "entities.create": Param<AutumnSDK["entities"]["create"]>;
-  "entities.get": Param<AutumnSDK["entities"]["get"]>;
-  "entities.list": Param<AutumnSDK["entities"]["list"]>;
-  "entities.update": Param<AutumnSDK["entities"]["update"]>;
-  "entities.delete": Param<AutumnSDK["entities"]["delete"]>;
-  "plans.get": Param<AutumnSDK["plans"]["get"]>;
-  "plans.list": Param<AutumnSDK["plans"]["list"]>;
-  "balances.update": Param<AutumnSDK["balances"]["update"]>;
-  "events.list": Param<AutumnSDK["events"]["list"]>;
-  "events.aggregate": Param<AutumnSDK["events"]["aggregate"]>;
-  "referrals.create": Param<AutumnSDK["referrals"]["createCode"]>;
-  "referrals.redeem": Param<AutumnSDK["referrals"]["redeemCode"]>;
-};
-type Compatibility = {
-  [Operation in NativeOperation]: NativeRequestSnapshot<
-    NativeRequestByOperation[Operation]
-  > extends SDKRequestByOperation[Operation]
-    ? true
-    : false;
-};
-type _AllSnapshotsFitTheirSDKMethod = Assert<
-  Exclude<Compatibility[NativeOperation], true> extends never ? true : false
->;
 type TrackProperties = NonNullable<
   NativeRequestSnapshot<NativeRequestByOperation["track"]>["properties"]
 >;

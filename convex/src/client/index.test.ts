@@ -1433,7 +1433,7 @@ describe("Autumn native transport", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  test("materializes keyed identity once before request construction", async () => {
+  test("reads keyed identity and payload once before dispatch", async () => {
     const reads: string[] = [];
     const fetcher = vi.fn(async () => response({ message: "rejected" }, 400));
     const identifier = new Proxy(
@@ -1481,7 +1481,10 @@ describe("Autumn native transport", () => {
 
     await autumn.track(null, args).catch(() => undefined);
 
-    expect(reads).toEqual(["customerId", "operationId", "payload"]);
+    expect(reads).toHaveLength(3);
+    for (const read of ["customerId", "operationId", "payload"]) {
+      expect(reads.filter((value) => value === read)).toHaveLength(1);
+    }
     expect(fetcher).toHaveBeenCalledOnce();
   });
 

@@ -59,6 +59,7 @@ async function handle(
   request: IncomingMessage,
   response: ServerResponse
 ): Promise<void> {
+  const { status, body: behavior } = plan;
   received += 1;
   const headerEntries: [string, string][] = [];
   for (const [name, value] of Object.entries(request.headers)) {
@@ -76,14 +77,11 @@ async function handle(
   }
   receivedBody = Buffer.concat(chunks).toString("utf8");
   const body = JSON.stringify(
-    plan.status >= 200 && plan.status < 300
+    status >= 200 && status < 300
       ? { customer_id: "customer-1", value: 1, balance: null }
       : { message: "provider failure" }
   );
-  // Read once, because the callback below outlives the turn that plans the next
-  // response.
-  const behavior = plan.body;
-  response.writeHead(plan.status, {
+  response.writeHead(status, {
     "content-type": "application/json",
     // An announced length the body never reaches is what makes the client read
     // past the end of a response the server has already committed to.
