@@ -1,0 +1,20 @@
+{
+	"name": "example-ai-credits-rollover",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"scenario": "tsx src/scenario.ts",
+		"typecheck": "tsc --noEmit",
+		"verify:config": "tsx scripts/verify-config.ts"
+	},
+	"dependencies": {
+		"atmn": "1.1.25",
+		"autumn-js": "1.5.18"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"tsx": "^4.0.0",
+		"typescript": "^5.0.0"
+	}
+}

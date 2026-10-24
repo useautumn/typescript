@@ -1,0 +1,9 @@
+node_modules/
+.env
+.demo-state.json
+.demo-state.json.tmp
+
+# The repo's root .gitignore ignores `.env*` files and `autumn.config.ts`
+# (for local development) — this example ships both on purpose.
+!.env.example
+!autumn.config.ts
